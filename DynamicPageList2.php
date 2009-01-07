@@ -27,7 +27,7 @@
  *          addcategories: bug fixed
  *          CATLIST variable defined
  * @version 0.9.3
- *          allow ï¿½ as an alias for |
+ *          allow ¦ as an alias for |
  *          escapelinks= introduced
  * @version 0.9.4
  *          allow "-" with categories = 
@@ -496,7 +496,7 @@ class ExtDynamicPageList2
         /**
          * listseparators is an array of four tags (in html or wiki syntax) which defines the output of DPL2
          * if mode = 'userformat' was specified.
-         *   '\n' or 'ï¿½'  in the input will be interpreted as a newline character.
+         *   '\n' or '¶'  in the input will be interpreted as a newline character.
          *   '%xxx%'      in the input will be replaced by a corresponding value (xxx= PAGE, NR, COUNT etc.)
          * t1 and t4 are the "outer envelope" for the whole result list, 
          * t2,t3 form an inner envelope around the article name of each entry.
@@ -783,7 +783,7 @@ class ExtDynamicPageList2
                                  // phase of the MediaWiki parser
 
     public static function setup() {
-        // Page Transclusion, adopted from Steve Sanbegï¿½s LabeledSectionTransclusion
+        // Page Transclusion, adopted from Steve Sanbeg´s LabeledSectionTransclusion
         require_once( 'DynamicPageList2Include.php' );
 
         global $wgParser, $wgMessageCache;
@@ -888,7 +888,7 @@ class ExtDynamicPageList2
         $numargs = func_num_args();
         if ($numargs < 2) {
           $input = "#dpl: no arguments specified";
-          return str_replace('ï¿½','<','ï¿½pre>ï¿½nowiki>'.$input.'ï¿½/nowiki>ï¿½/pre>');
+          return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
         }
         
         // fetch all user-provided arguments (skipping $parser)
@@ -898,7 +898,7 @@ class ExtDynamicPageList2
           $input .= str_replace("\n","",$p1) ."\n";
         }
         // for debugging you may want to uncomment the following statement
-        // return str_replace('ï¿½','<','ï¿½pre>ï¿½nowiki>'.$input.'ï¿½/nowiki>ï¿½/pre>');
+        // return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
     
         
         // $dump1   = self::dumpParsedRefs($parser,"before DPL func");
@@ -1301,10 +1301,10 @@ class ExtDynamicPageList2
         $input = str_replace('Â»','>',$input);
         $input = str_replace('Â«','<',$input);
     
-        // use the ï¿½ as a general alias for |
+        // use the ¦ as a general alias for |
         $input = str_replace('Â¦','|',$input); // the symbol is utf8-escaped
     
-        // the combination 'ï¿½{' and '}ï¿½'will be translated to double curly braces; this allows postponed template execution
+        // the combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution
         // which is crucial for DPL queries which call other DPL queries
         $input = str_replace('Â²{','{{',$input);
         $input = str_replace('}Â²','}}',$input);
@@ -3092,7 +3092,7 @@ class ExtDynamicPageList2
                 
                 //USER/AUTHOR(S)
                 // because we are going to do a recursive parse at the end of the output phase
-                // we have to generate wiki syntax for linking to a userï¿½s homepage
+                // we have to generate wiki syntax for linking to a user´s homepage
                 if($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince != '') {
                     $dplArticle->mUserLink  = '[[User:'.$row->rev_user_text.'|'.$row->rev_user_text.']]';
                     $dplArticle->mUser = $row->rev_user_text;
@@ -3862,7 +3862,7 @@ class DPL2 {
 					} else {
 						if($article->mRevision != '') 	$rBody	.= ' <html><a href="'.$pagename.'?oldid='.$article->mRevision.'">'
 														   		.  $wgLang->timeanddate($article->mDate, true).'</a></html> : ';
-						else 							$rBody	.= $wgLang->timeanddate($article->mDate, true) . wfMsg( 'colon-separator' );
+						else 							$rBody	.= $wgLang->timeanddate($article->mDate, true) . ': ';
 					}
 				}
 				// output the link to the article
@@ -3879,7 +3879,7 @@ class DPL2 {
 				if($article->mUserLink != '')	$rBody .= ' . . [[User:' . $article->mUser .'|'.$article->mUser.']]';
 				if($article->mContributor != '')$rBody .= ' . . [[User:' . $article->mContributor .'|'.$article->mContributor." $article->mContrib]]";
 							
-				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <SMALL>' . wfMsg('categories') . wfMsg( 'colon-separator' ) . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
+				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
 			}
 			
 			// add included contents
