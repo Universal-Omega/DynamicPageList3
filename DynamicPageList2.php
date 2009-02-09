@@ -3879,7 +3879,7 @@ class DPL2 {
 				if($article->mUserLink != '')	$rBody .= ' . . [[User:' . $article->mUser .'|'.$article->mUser.']]';
 				if($article->mContributor != '')$rBody .= ' . . [[User:' . $article->mContributor .'|'.$article->mContributor." $article->mContrib]]";
 							
-				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
+				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <small>' . wfMsg('categories') . ': ' . $wgLang->pipeList( $article->mCategoryLinks ) . '</small>';
 			}
 			
 			// add included contents
@@ -4115,7 +4115,4 @@ class DPL2Logger {
 		sort($paramoptions);
 		return $this->escapeMsg( $msgid, $paramvar, htmlspecialchars( $val ), ExtDynamicPageList2::$options[$paramvar]['default'], implode(' | ', $paramoptions ));
 	}
-
 }
-
-?>
