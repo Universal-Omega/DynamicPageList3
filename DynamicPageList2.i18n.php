@@ -145,6 +145,96 @@ class DPL2_i18n
              */
             'dpl2_articlecount' => 'There {{PLURAL:$1|is one article|are $1 articles}} in this heading.'
         );
+        self::$messages['fr'] = array(
+            /*
+                Log
+             */
+            // FATAL
+            /**
+             * $0: 'namespace' or 'notnamespace'
+             * $1: wrong parameter given by user
+             * $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
+             */
+            'dpl2_log_' . self::FATAL_WRONGNS => "ERREUR : Mauvais paramètre '$0' : '$1'! Aide :  <code>$0= <i>chaîne vide</i> (Principal)$3</code>. (Les équivalents avec des mots magiques sont aussi autorisés.)",
+            /**
+             * $0: 'linksto' (left as $0 just in case the parameter is renamed in the future)
+             * $1: wrong parameter given by user
+             */
+            'dpl2_log_' . self::FATAL_WRONGLINKSTO => "ERREUR : Mauvais paramètre '$0' : '$1'! Aide :  <code>$0= <i>Nom complet de la page</i></code>. (Les mots magiques sont autorisés.)",
+            /**
+             * $0: max number of categories that can be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOMANYCATS => 'ERREUR : Trop de catégories ! Maximum : $0. Aide : accroître <code>ExtDynamicPageList2::$maxCategoryCount</code> pour autoriser plus de catégories ou régler <code>ExtDynamicPageList2::$allowUnlimitedCategories=true</code> pour aucune limite. (À régler dans <code>LocalSettings.php</code>, après avoir inclus <code>DynamicPageList2.php</code>.)',
+            /**
+             * $0: min number of categories that have to be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOFEWCATS => 'ERREUR : Pas assez de catégories ! Minimum : $0. Aide : décroître <code>ExtDynamicPageList2::$minCategoryCount</code> pour autoriser moins de catégories. (À régler dans <code>LocalSettings.php</code> de préférence, après avoir inclus <code>DynamicPageList2.php</code>.)',
+            'dpl2_log_' . self::FATAL_NOSELECTION => "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+            'dpl2_log_' . self::FATAL_CATDATEBUTNOINCLUDEDCATS => "ERREUR : Vous devez inclure au moins une catégorie si vous voulez utiliser 'addfirstcategorydate=true' ou 'ordermethod=categoryadd' !",
+            'dpl2_log_' . self::FATAL_CATDATEBUTMORETHAN1CAT => "ERREUR : Si vous incluez plus d’une catégorie, vous ne pouvez pas utiliser 'addfirstcategorydate=true' ou 'ordermethod=categoryadd' !",
+            'dpl2_log_' . self::FATAL_MORETHAN1TYPEOFDATE => 'ERREUR : Vous ne pouvez pas utiliser plus d’un type de date à la fois !',
+            /**
+             * $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+             * $1: last 'ordermethod' parameter required for $0
+             */
+            'dpl2_log_' . self::FATAL_WRONGORDERMETHOD => "ERREUR : Vous ne pouvez utiliser '$0' qu’avec 'ordermethod=[...,]$1' !",
+            /**
+             * $0: the number of arguments in includepage
+             */
+            'dpl2_log_' . self::FATAL_DOMINANTSECTIONRANGE => "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
+            /**
+             * $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+             * $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+             */
+            'dpl2_log_' . self::FATAL_NOCLVIEW => "ERREUR : Ne peut pas effectuer d’opérations logiques sur les pages sans catégories (avec la paramètre 'category') car la vue $0 n’existe pas dans la base de données ! Aide : demander à un administrateur de la base de données d'effectuer : <code>$1</code>.",
+            'dpl2_log_' . self::FATAL_OPENREFERENCES => 'ERROR: specifying "openreferences" is incompatible with some other option you specified. See the manual for details.',
+
+            // WARN
+            /**
+             * $0: unknown parameter given by user
+             * $1: list of DPL2 available parameters separated by ', '
+             */
+            'dpl2_log_' . self::WARN_UNKNOWNPARAM => "AVERTISSEMENT : Le paramètre inconnu '$0' est ignoré. Aide : paramètres disponibles : <code>$1</code>.",
+            /**
+             * $3: list of valid param values separated by ' | '
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM => "AVERTISSEMENT : Mauvais paramètre '$0' : '$1'! Utilisation de la valeur par défaut : '$2'. Aide : <code>$0= $3</code>.",
+            /**
+             * $0: param name
+             * $1: wrong param value given by user
+             * $2: default param value used instead by program
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM_INT => "AVERTISSEMENT : Mauvais paramètre '$0' : '$1'! Utilisattion de la valeur par défaut : '$2' (aucune limite). Aide : <code>$0= <i>chaîne vide</i> (aucune limite) | n</code>, avec <code>n</code> un entier positif.",
+            'dpl2_log_' . self::WARN_NORESULTS => 'AVERTISSEMENT : Aucun résultat !',
+            'dpl2_log_' . self::WARN_CATOUTPUTBUTWRONGPARAMS => "AVERTISSEMENT : Les paramètres Add* ('adduser', 'addeditdate', etc.)' et 'includepage' n’ont aucun effet avec 'mode=category'. Seuls l’espace de nom et le titre de la page peuvent être vus dans ce mode..",
+            /**
+             * $0: 'headingmode' value given by user
+             * $1: value used instead by program (which means no heading)
+             */
+            'dpl2_log_' . self::WARN_HEADINGBUTSIMPLEORDERMETHOD => "AVERTISSEMENT : 'headingmode=$0' n'a aucun effet avec 'ordermethod' sur une simple composante. Utiliser : '$1'. Aide : vous pouvez utiliser not-$1  sur les valeurs de 'headingmode' avec 'ordermethod' sur plusieurs composantes.  La première composante est utilisée pour les en-têtes. Exemple : 'ordermethod=category,<i>comp</i>' (<i>comp</i> est une autre composante) pour les en-têtes de catégorie.",
+            /**
+             * $0: 'log' value
+             */
+            'dpl2_log_' . self::WARN_DEBUGPARAMNOTFIRST => "AVERTISSEMENT : 'debug=$0' n’est pas en première position dans l’élément DPL. Les nouveaux réglages de débogage ne seront appliqués qu’après que les paramètres précédents aient été vérifiés.",
+            /**
+             * $0: title of page that creates an infinite transclusion loop
+             */
+            'dpl2_log_' . self::WARN_TRANSCLUSIONLOOP => "AVERTISSEMENT : Une boucle d’inclusion infinie est créée par la page '$0'.",
+
+            // DEBUG
+            /**
+             * $0: SQL query executed to generate the dynamic page list
+             */
+            'dpl2_log_' . self::DEBUG_QUERY => 'REQUÊTE : <code>$0</code>',
+
+            /*
+               Output formatting
+             */
+            /**
+             * $1: number of articles
+             */
+            'dpl2_articlecount' => 'Il y a {{PLURAL:$1|un article|$1 articles}} dans cette section.'
+        ); 
         self::$messages['he'] = array(
             /*
                 Log
@@ -234,6 +324,96 @@ class DPL2_i18n
              * $1: number of articles
              */
             'dpl2_articlecount' => '{{PLURAL:$1|ישנם $1 דפים|ישנו דף אחד}} תחת כותרת זו.'
+        );
+        self::$messages['id'] = array(
+            /*
+                Log
+             */
+            // FATAL
+            /**
+             * $0: 'namespace' or 'notnamespace'
+             * $1: wrong parameter given by user
+             * $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
+             */
+            'dpl2_log_' . self::FATAL_WRONGNS => "KESALAHAN: Parameter '$0' salah: '$1'! Bantuan: <code>$0= <i>string kosong</i> (Utama)$3</code>. (Ekivalen kata kunci juga diizinkan.)",
+            /**
+             * $0: 'linksto' (left as $0 just in case the parameter is renamed in the future)
+             * $1: wrong parameter given by user
+             */
+            'dpl2_log_' . self::FATAL_WRONGLINKSTO => "KESALAHAN: Parameter '$0' salah: '$1'! Bantuan:  <code>$0= <i>nama lengkap halaman</i></code>. (Kata kunci diizinkan.)",
+            /**
+             * $0: max number of categories that can be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOMANYCATS => 'KESALAHAN: Kategori terlalu banyak! Maksimum: $0. Bantuan: perbesar <code>ExtDynamicPageList2::$maxCategoryCount</code> untuk memberikan lebih banyak kategori atau atur  <code>ExtDynamicPageList2::$allowUnlimitedCategories=true</code> untuk menghapus batasan. (Atur variabel tersebut di <code>LocalSettings.php</code>, setelah mencantumkan <code>DynamicPageList2.php</code>.)',
+            /**
+             * $0: min number of categories that have to be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOFEWCATS => 'KESALAHAN: Kategori terlalu sedikit! Minimum: $0. Bantuan: kurangi <code>ExtDynamicPageList2::$minCategoryCount</code> untuk mengurangi kategori. (Atur variabel tersebut di <code>LocalSettings.php</code>, setelah mencantumkan <code>DynamicPageList2.php</code>.)',
+            'dpl2_log_' . self::FATAL_NOSELECTION => "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+            'dpl2_log_' . self::FATAL_CATDATEBUTNOINCLUDEDCATS => "KESALAHAN: Anda harus memberikan paling tidak satu kategori jika menggunakan 'addfirstcategorydate=true' atau 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_CATDATEBUTMORETHAN1CAT => "KESALAHAN: Jika Anda memberikan lebih dari satu kategori, Anda tidak dapat menggunakan 'addfirstcategorydate=true' atau 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_MORETHAN1TYPEOFDATE => 'KESALAHAN: Anda tidak dapat memberikan lebih dari satu jenis tanggal dalam satu waktu!',
+            /**
+             * $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+             * $1: last 'ordermethod' parameter required for $0
+             */
+            'dpl2_log_' . self::FATAL_WRONGORDERMETHOD => "KESALAHAN: Anda dapat menggunakan '$0' hanya dengan 'ordermethod=[...,]$1'!",
+            /**
+             * $0: the number of arguments in includepage
+             */
+            'dpl2_log_' . self::FATAL_DOMINANTSECTIONRANGE => "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
+            /**
+             * $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+             * $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+             */
+            'dpl2_log_' . self::FATAL_NOCLVIEW => "KESALAHAN: Tidak dapat melakukan operasi logika pada halaman yang tak terkategori (misalnya dengan parameter 'kategori') karena view $0 tidak ada di basis data! Bantuan: mintalah admin basis data untuk menjalankan kueri berikut: <code>$1</code>.",
+            'dpl2_log_' . self::FATAL_OPENREFERENCES => 'ERROR: specifying "openreferences" is incompatible with some other option you specified. See the manual for details.',
+
+            // WARN
+            /**
+             * $0: unknown parameter given by user
+             * $1: list of DPL2 available parameters separated by ', '
+             */
+            'dpl2_log_' . self::WARN_UNKNOWNPARAM => "KESALAHAN: Paramater yang tak dikenal '$0' diabaikan. Bantuan: parameter yang tersedia: <code>$1</code>.",
+            /**
+             * $3: list of valid param values separated by ' | '
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM => "KESALAHAN: Parameter '$0' salah: '$1'! Menggunakan konfigurasi baku: '$2'. Bantuan: <code>$0= $3</code>.",
+            /**
+             * $0: param name
+             * $1: wrong param value given by user
+             * $2: default param value used instead by program
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM_INT => "KESALAHAN: Parameter '$0' salah: '$1'! Menggunakan konfigurasi baku: '$2' (tanpa limitasi). Bantuan: <code>$0= <i>string kosong</i> (tanpa limitasi) | n</code>, dengan <code>n</code> suatu bilangan positif.",
+            'dpl2_log_' . self::WARN_NORESULTS => 'KESALAHAN: Hasil tak ditemukan!',
+            'dpl2_log_' . self::WARN_CATOUTPUTBUTWRONGPARAMS => "KESALAHAN: Menambahkan * parameter ('adduser', 'addeditdate', dll.)' dan 'includepage' tidak berpengaruh pada 'mode=category'. Hanya ruang nama/judul halaman yang dapat ditampilkan dengan mode ini.",
+            /**
+             * $0: 'headingmode' value given by user
+             * $1: value used instead by program (which means no heading)
+             */
+            'dpl2_log_' . self::WARN_HEADINGBUTSIMPLEORDERMETHOD => "KESALAHAN: 'headingmode=$0' tidak berpengaruh dengan 'ordermethod' pada suatu komponen tunggal. Menggunakan: '$1'. Bantuan: Anda dapat menggunakan nilai not-$1 'headingmode' dengan 'ordermethod' terhadap beberapa komponen. Komponen pertama digunakan sebagai judul. Misalnya 'ordermethod=category,<i>comp</i>' (<i>comp</i> adalah komponen lain) untuk judul kategori.",
+            /**
+             * $0: 'log' value
+             */
+            'dpl2_log_' . self::WARN_DEBUGPARAMNOTFIRST => "KESALAHAN: 'debug=$0' tidak pada posisi pertama pada elemen DPL. Aturan debug tidak diterapkan sebelum semua variabel sebelumnya telah diparsing dan dicek.",
+            /**
+             * $0: title of page that creates an infinite transclusion loop
+             */
+            'dpl2_log_' . self::WARN_TRANSCLUSIONLOOP => "KESALAHAN: Suatu lingkaran transklusi tak hingga ditimbulkan oleh halaman '$0'.",
+
+            // DEBUG
+            /**
+             * $0: SQL query executed to generate the dynamic page list
+             */
+            'dpl2_log_' . self::DEBUG_QUERY => 'KUERI: <code>$0</code>',
+
+            /*
+               Output formatting
+             */
+            /**
+             * $1: number of articles
+             */
+            'dpl2_articlecount' => 'Terdapat {{PLURAL:$1|artikel|artikel}} dalam judul ini.'
         );
         self::$messages['it'] = array(
             /*
@@ -569,6 +749,186 @@ class DPL2_i18n
              */
             'dpl2_articlecount' => 'V tomto nadpise {{PLURAL:$1|je jeden clánok|sú $1 clánky|je $1 clánkov}}.'
         );
+        self::$messages['sr-ec'] = array(
+            /*
+                Log
+             */
+            // FATAL
+            /**
+             * $0: 'namespace' or 'notnamespace'
+             * $1: wrong parameter given by user
+             * $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
+             */
+            'dpl2_log_' . self::FATAL_WRONGNS => "ГРЕШКА: Погреан '$0' параметар: '$1'! Помоћ:  <code>$0= <i>погрешан стринг</i> (Главно)$3</code>. (Еквиваленти са магичним речима су такође дозвољени.)",
+            /**
+             * $0: 'linksto' (left as $0 just in case the parameter is renamed in the future)
+             * $1: wrong parameter given by user
+             */
+            'dpl2_log_' . self::FATAL_WRONGLINKSTO => "ГРЕШКА: Погрешан '$0' параметар: '$1'! Помоћ:  <code>$0= <i>пуно име странице</i></code>. (Магичне речи су дозвољене.)",
+            /**
+             * $0: max number of categories that can be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOMANYCATS => 'ГРЕШКА: Превише категорија! Максимум је: $0. Помоћ: повећајте <code>ExtDynamicPageList2::$maxCategoryCount</code> како бисте поставили више категорија или промените <code>ExtDynamicPageList2::$allowUnlimitedCategories=true</code> за без граница. (Подесите варијаблу у <code>LocalSettings.php</code>, након укључивања <code>DynamicPageList2.php</code>.)',
+            /**
+             * $0: min number of categories that have to be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOFEWCATS => 'ГРЕШКА: Премало категорија! Минимум је: $0. Помоћ: повећајте <code>ExtDynamicPageList2::$minCategoryCount</code> како бисте поставили мање категорија. (Подесите варијаблу у <code>LocalSettings.php</code>, након укључивања <code>DynamicPageList2.php</code>.)',
+            'dpl2_log_' . self::FATAL_NOSELECTION => "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+            'dpl2_log_' . self::FATAL_CATDATEBUTNOINCLUDEDCATS => "ГРЕШКА: Морате укључити бар једну категорију уколико желите да користите 'addfirstcategorydate=true' или 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_CATDATEBUTMORETHAN1CAT => "ГРЕШКА: Уколико укључујете више од једне категорије, не можете користити 'addfirstcategorydate=true' или 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_MORETHAN1TYPEOFDATE => 'ГРЕШКА: Не можете додати више од једног типа датума!',
+            /**
+             * $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+             * $1: last 'ordermethod' parameter required for $0
+             */
+            'dpl2_log_' . self::FATAL_WRONGORDERMETHOD => "ГРЕШКА: Можете користити '$0' са 'ordermethod=[...,]$1' искључиво!",
+            /**
+             * $0: the number of arguments in includepage
+             */
+            'dpl2_log_' . self::FATAL_DOMINANTSECTIONRANGE => "ГРЕШКА: Немогуће извршити операцију на некатегоризованим страницама (нпр. са 'category' параметром) зато што $0 преглед не постоји у бази података! Помоћ: нека администратор базе изврши овај упит: <code>$1</code>.",
+            /**
+             * $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+             * $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+             */
+            'dpl2_log_' . self::FATAL_NOCLVIEW => "ERROR: Cannot perform logical operations on the Uncategorized pages (f.e. with the 'category' parameter) because the $0 view does not exist on the database! Help: have the database administrator execute this query: <code>$1</code>.",
+            'dpl2_log_' . self::FATAL_OPENREFERENCES => 'ERROR: specifying "openreferences" is incompatible with some other option you specified. See the manual for details.',
+
+            // WARN
+            /**
+             * $0: unknown parameter given by user
+             * $1: list of DPL2 available parameters separated by ', '
+             */
+            'dpl2_log_' . self::WARN_UNKNOWNPARAM => "ПАЖЊА: Непознат параметар '$0' је игнорисан. Помоћ: доступни параметри су: <code>$1</code>.",
+            /**
+             * $3: list of valid param values separated by ' | '
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM => "ПАЖЊА: Погрешан '$0' параметар: '$1'! Користи се основни: '$2'. Помоћ: <code>$0= $3</code>.",
+            /**
+             * $0: param name
+             * $1: wrong param value given by user
+             * $2: default param value used instead by program
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM_INT => "ПАЖЊА: Погрешан '$0' параметар: '$1'! Користи се основни: '$2' (без границе). Помоћ: <code>$0= <i>празан стринг</i> (без границе) | n</code>, с <code>n</code> је позитиван интегер.",
+            'dpl2_log_' . self::WARN_NORESULTS => 'ПАЖЊА: Нема резултата!',
+            'dpl2_log_' . self::WARN_CATOUTPUTBUTWRONGPARAMS => "ПАЖЊА: Додавање* параметара ('adduser', 'addeditdate', итд.)' и 'includepage' нема ефекта са 'mode=category'. Искључиво име странице/именски простор могу да се виде у овом моду.",
+            /**
+             * $0: 'headingmode' value given by user
+             * $1: value used instead by program (which means no heading)
+             */
+            'dpl2_log_' . self::WARN_HEADINGBUTSIMPLEORDERMETHOD => "ПАЖЊА: 'headingmode=$0' нема ефекта са 'ordermethod' на једној компоненти. Користи се: '$1'. Помоћ: не морате користити-$1 'headingmode' податке 'ordermethod' на више компоненти. Прва компонента се користи за наслов. Нпр. 'ordermethod=category,<i>компонента</i>' (<i>компонента</i> је друга компонента) за наслове категорија.",
+            /**
+             * $0: 'log' value
+             */
+            'dpl2_log_' . self::WARN_DEBUGPARAMNOTFIRST => "ПАЖЊА: 'debug=$0' није на првом месту у DPL елементу. Нова дебаг подешавања нису примењена пре свих параметара који су проверени",
+            /**
+             * $0: title of page that creates an infinite transclusion loop
+             */
+            'dpl2_log_' . self::WARN_TRANSCLUSIONLOOP => "ПАЖЊА: Бесконачна петљаса странице '$0'.",
+
+            // DEBUG
+            /**
+             * $0: SQL query executed to generate the dynamic page list
+             */
+            'dpl2_log_' . self::DEBUG_QUERY => 'УПИТ: <code>$0</code>',
+
+            /*
+               Output formatting
+             */
+            /**
+             * $1: number of articles
+             */
+            'dpl2_articlecount' => 'У овом наслову се тренутно налази {{PLURAL:$1|један чланак|$1 чланка|$1 чланака}}.'
+        );
+        self::$messages['sr-el'] = array(
+            /*
+                Log
+             */
+            // FATAL
+            /**
+             * $0: 'namespace' or 'notnamespace'
+             * $1: wrong parameter given by user
+             * $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
+             */
+            'dpl2_log_' . self::FATAL_WRONGNS => "GREŠKA: Pogrean '$0' parametar: '$1'! Pomoć:  <code>$0= <i>pogrešan string</i> (Glavno)$3</code>. (Ekvivalenti sa magičnim rečima su takođe dozvoljeni.)",
+            /**
+             * $0: 'linksto' (left as $0 just in case the parameter is renamed in the future)
+             * $1: wrong parameter given by user
+             */
+            'dpl2_log_' . self::FATAL_WRONGLINKSTO => "GREŠKA: Pogrešan '$0' parametar: '$1'! Pomoć:  <code>$0= <i>puno ime stranice</i></code>. (Magične reči su dozvoljene.)",
+            /**
+             * $0: max number of categories that can be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOMANYCATS => 'GREŠKA: Previše kategorija! Maksimum je: $0. Pomoć: povećajte <code>ExtDynamicPageList2::$maxCategoryCount</code> kako biste postavili više kategorija ili promenite <code>ExtDynamicPageList2::$allowUnlimitedCategories=true</code> za bez granica. (Podesite varijablu u <code>LocalSettings.php</code>, nakon uključivanja <code>DynamicPageList2.php</code>.)',
+            /**
+             * $0: min number of categories that have to be included
+             */
+	    'dpl2_log_' . self::FATAL_TOOFEWCATS => 'GREŠKA: Premalo kategorija! Minimum je: $0. Pomoć: povećajte <code>ExtDynamicPageList2::$minCategoryCount</code> kako biste postavili manje kategorija. (Podesite varijablu u <code>LocalSettings.php</code>, nakon uključivanja <code>DynamicPageList2.php</code>.)',
+            'dpl2_log_' . self::FATAL_NOSELECTION => "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+            'dpl2_log_' . self::FATAL_CATDATEBUTNOINCLUDEDCATS => "GREŠKA: Morate uključiti bar jednu kategoriju ukoliko želite da koristite 'addfirstcategorydate=true' ili 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_CATDATEBUTMORETHAN1CAT => "GREŠKA: Ukoliko uključujete više od jedne kategorije, ne možete koristiti 'addfirstcategorydate=true' ili 'ordermethod=categoryadd'!",
+            'dpl2_log_' . self::FATAL_MORETHAN1TYPEOFDATE => 'GREŠKA: Ne možete dodati više od jednog tipa datuma!',
+            /**
+             * $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+             * $1: last 'ordermethod' parameter required for $0
+             */
+            'dpl2_log_' . self::FATAL_WRONGORDERMETHOD => "GREŠKA: Možete koristiti '$0' sa 'ordermethod=[...,]$1' isključivo!",
+            /**
+             * $0: the number of arguments in includepage
+             */
+            'dpl2_log_' . self::FATAL_DOMINANTSECTIONRANGE => "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
+            /**
+             * $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+             * $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+             */
+            'dpl2_log_' . self::FATAL_NOCLVIEW => "GREŠKA: Nemoguće izvršiti operaciju na nekategorizovanim stranicama (npr. sa 'category' parametrom) zato što $0 pregled ne postoji u bazi podataka! Pomoć: neka administrator baze izvrši ovaj upit: <code>$1</code>.",
+            'dpl2_log_' . self::FATAL_OPENREFERENCES => 'ERROR: specifying "openreferences" is incompatible with some other option you specified. See the manual for details.',
+
+            // WARN
+            /**
+             * $0: unknown parameter given by user
+             * $1: list of DPL2 available parameters separated by ', '
+             */
+            'dpl2_log_' . self::WARN_UNKNOWNPARAM => "PAŽNJA: Nepoznat parametar '$0' je ignorisan. Pomoć: dostupni parametri su: <code>$1</code>.",
+            /**
+             * $3: list of valid param values separated by ' | '
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM => "PAŽNJA: Pogrešan '$0' parametar: '$1'! Koristi se osnovni: '$2'. Pomoć: <code>$0= $3</code>.",
+            /**
+             * $0: param name
+             * $1: wrong param value given by user
+             * $2: default param value used instead by program
+             */
+            'dpl2_log_' . self::WARN_WRONGPARAM_INT => "PAŽNJA: Pogrešan '$0' parametar: '$1'! Koristi se osnovni: '$2' (bez granice). Pomoć: <code>$0= <i>prazan string</i> (bez granice) | n</code>, s <code>n</code> je pozitivan integer.",
+            'dpl2_log_' . self::WARN_NORESULTS => 'PAŽNJA: Nema rezultata!',
+            'dpl2_log_' . self::WARN_CATOUTPUTBUTWRONGPARAMS => "PAŽNJA: Dodavanje* parametara ('adduser', 'addeditdate', itd.)' i 'includepage' nema efekta sa 'mode=category'. Isključivo ime stranice/imenski prostor mogu da se vide u ovom modu.",
+            /**
+             * $0: 'headingmode' value given by user
+             * $1: value used instead by program (which means no heading)
+             */
+            'dpl2_log_' . self::WARN_HEADINGBUTSIMPLEORDERMETHOD => "PAŽNJA: 'headingmode=$0' nema efekta sa 'ordermethod' na jednoj komponenti. Koristi se: '$1'. Pomoć: ne morate koristiti-$1 'headingmode' podatke 'ordermethod' na više komponenti. Prva komponenta se koristi za naslov. Npr. 'ordermethod=category,<i>komponenta</i>' (<i>komponenta</i> je druga komponenta) za naslove kategorija.",
+            /**
+             * $0: 'log' value
+             */
+            'dpl2_log_' . self::WARN_DEBUGPARAMNOTFIRST => "PAŽNJA: 'debug=$0' nije na prvom mestu u DPL elementu. Nova debag podešavanja nisu primenjena pre svih parametara koji su provereni",
+            /**
+             * $0: title of page that creates an infinite transclusion loop
+             */
+            'dpl2_log_' . self::WARN_TRANSCLUSIONLOOP => "PAŽNJA: Beskonačna petljasa stranice '$0'.",
+
+            // DEBUG
+            /**
+             * $0: SQL query executed to generate the dynamic page list
+             */
+            'dpl2_log_' . self::DEBUG_QUERY => 'UPIT: <code>$0</code>',
+
+            /*
+               Output formatting
+             */
+            /**
+             * $1: number of articles
+             */
+            'dpl2_articlecount' => 'U ovom naslovu se trenutno nalazi {{PLURAL:$1|jedan članak|$1 članka|$1 članaka}}'
+        );
         self::$messages['yue'] = array(
             /*
                 Log
@@ -812,6 +1172,7 @@ class DPL2_i18n
              */
             'dpl2_articlecount' => '在這個標題中有$1篇條目。'
         );
+        self::$messages['sr'] = self::$messages['sr-ec'];
         self::$messages['zh-cn'] = self::$messages['zh-hans'];
         self::$messages['zh-hk'] = self::$messages['zh-hant'];
         self::$messages['zh-mo'] = self::$messages['zh-hant'];
