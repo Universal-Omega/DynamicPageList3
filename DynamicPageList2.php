@@ -308,10 +308,9 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList2', 'setup' );
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList2__languageGetMagic';
 
 $wgExtensionCredits['parserhook'][] = array(
+	'path' => __FILE__,
 	'name' => 'DynamicPageList',
-	'author' =>  '[http://en.wikinews.org/wiki/User:IlyaHaykinson IlyaHaykinson], [http://en.wikinews.org/wiki/User:Amgine Amgine],'
-				.'[http://de.wikipedia.org/wiki/Benutzer:Unendlich Unendlich], [http://meta.wikimedia.org/wiki/User:Dangerman Cyril Dangerville], '
-				.'[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Algorithmix]',
+	'author' => array( '[http://en.wikinews.org/wiki/User:IlyaHaykinson IlyaHaykinson]', '[http://en.wikinews.org/wiki/User:Amgine Amgine]', '[http://de.wikipedia.org/wiki/Benutzer:Unendlich Unendlich]', '[http://meta.wikimedia.org/wiki/User:Dangerman Cyril Dangerville]', '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Algorithmix]' ),
 	'url' => 'http://www.mediawiki.org/wiki/Extension:DynamicPageList',
 	'description' => 'a highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
   	'version' => ExtDynamicPageList2::VERSION
