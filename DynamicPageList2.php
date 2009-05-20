@@ -282,7 +282,16 @@
  *          CATBULLETS variable
  * @version 1.7.6
  *			error correction: non existing array index 0 when trying to includematch content in a non-existing chapter (near #3887) 
- *
+ * @version 1.7.7
+ *			configuration switch allows to run DPL from protected pages only (ExtDynamicPageList2::$options['RunFromProtectedPagesOnly'])
+ * @version 1.7.8
+ *			allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageList2Include.php)
+ *			accept include=* together with table=
+ *			Bugfix: %PAGES% was wrong (showing total pages in some cases
+ *			Bugfix: labeled section inclusion did not work because content was automatically truncated to a length of zero
+ *			added minrevisions & maxrevisions
+ * @version 1.7.9
+ *			...
  *		! when making changes here you must update the VERSION constant at the beginning of class ExtDynamicPageList2 !
  */
 
@@ -299,9 +308,10 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList2', 'setup' );
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList2__languageGetMagic';
 
 $wgExtensionCredits['parserhook'][] = array(
-	'path' => __FILE__,
-	'name' => 'DynamicPageList2',
-	'author' => array( "[http://en.wikinews.org/wiki/User:IlyaHaykinson IlyaHaykinson]", "[http://en.wikinews.org/wiki/User:Amgine Amgine]", "[http://de.wikipedia.org/wiki/Benutzer:Unendlich Unendlich]", "[http://meta.wikimedia.org/wiki/User:Dangerman Cyril Dangerville]", "[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Algorithmix]" ),
+	'name' => 'DynamicPageList',
+	'author' =>  '[http://en.wikinews.org/wiki/User:IlyaHaykinson IlyaHaykinson], [http://en.wikinews.org/wiki/User:Amgine Amgine],'
+				.'[http://de.wikipedia.org/wiki/Benutzer:Unendlich Unendlich], [http://meta.wikimedia.org/wiki/User:Dangerman Cyril Dangerville], '
+				.'[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Algorithmix]',
 	'url' => 'http://www.mediawiki.org/wiki/Extension:DynamicPageList',
 	'description' => 'a highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
   	'version' => ExtDynamicPageList2::VERSION
@@ -320,7 +330,7 @@ function ExtDynamicPageList2__endEliminate( &$parser, $text )			 	{
 
 class ExtDynamicPageList2
 {
-    const VERSION = '1.7.6';               // current version
+    const VERSION = '1.7.8';               // current version
 
     /**
      * Extension options
@@ -689,6 +699,11 @@ class ExtDynamicPageList2
          */
         'allrevisionssince'    => array('default' => '', 'pattern' => '#^[-./:0-9]+$#'),
         /**
+         * Minimum/Maximum number of revisions required
+         */
+        'minrevisions'         => array('default' => '', 'pattern' => '/^\d*$/'),
+        'maxrevisions'         => array('default' => '', 'pattern' => '/^\d*$/'),
+        /**
          * noresultsheader / footer is some wiki text which will be output (instead of a warning message)
          * if the result set is empty; setting 'noresultsheader' to something like ' ' will suppress
          * the warning about empty result set.
@@ -791,6 +806,10 @@ class ExtDynamicPageList2
          */
         'titlemaxlength'       => array('default' => '', 'pattern' => '/^\d*$/')
     );
+
+    // Note: If you add a line like the followin to your LocalSetings.php, DPL will only run from protected pages    
+	// ExtDynamicPageList2::$options['RunFromProtectedPagesOnly'] = "<small><i>Extension DPL (warning): current configuration allows execution from protected pages only.</i></small>";
+
 
     public static $debugMinLevels = array();
     public static $createdLinks; // the links created by DPL are collected here;
@@ -1110,7 +1129,13 @@ class ExtDynamicPageList2
         $localParser = new Parser();
         $pOptions = $parser->mOptions;
         $pTitle = $parser->mTitle;
-    
+
+        // check if DPL shall only be executed from protected pages
+        if (array_key_exists('RunFromProtectedPagesOnly',self::$options) &&
+        	self::$options['RunFromProtectedPagesOnly']==true && !($parser->mTitle->isProtected('edit'))) {
+	        return (self::$options['RunFromProtectedPagesOnly']);
+		}    
+            
         // get database access
         $dbr =& wfGetDB( DB_SLAVE );
         $sPageTable = $dbr->tableName( 'page' );
@@ -1169,7 +1194,12 @@ class ExtDynamicPageList2
         $sAllRevisionsBefore = self::$options['allrevisionsbefore']['default'];
         $sFirstRevisionSince = self::$options['firstrevisionsince']['default'];
         $sAllRevisionsSince  = self::$options['allrevisionssince']['default'];
-            
+
+        $_sMinRevisions = self::$options['minrevisions']['default'];
+        $iMinRevisions  = ($_sMinRevisions == '') ? NULL: intval($_sMinRevisions);
+        $_sMaxRevisions = self::$options['maxrevisions']['default'];
+        $iMaxRevisions  = ($_sMaxRevisions == '') ? NULL: intval($_sMaxRevisions);
+
         $sRedirects = self::$options['redirects']['default'];
         
         $bSuppressErrors  = self::argBoolean(self::$options['suppresserrors']['default']);
@@ -1221,7 +1251,7 @@ class ExtDynamicPageList2
 
         
         $aSecLabels = array();
-        if($bIncPage && $_incpage != '*') $aSecLabels = explode(',', $_incpage);
+        if($bIncPage) $aSecLabels = explode(',', $_incpage);
         $aSecLabelsMatch 	= array();
         $aSecLabelsNotMatch = array();
         $bIncParsed = false;  // default is to match raw parameters
@@ -1718,6 +1748,21 @@ class ExtDynamicPageList2
                     else // wrong value
                         $output .= $logger->msgWrongParam($sType, $sArg);
                     break;
+                case 'minrevisions':
+                    //ensure that $iMinRevisions is a number
+                    if( preg_match(self::$options['minrevisions']['pattern'], $sArg) )
+                        $iMinRevisions = ($sArg == '') ? NULL: intval($sArg);
+                    else // wrong value
+                        $output .= $logger->msgWrongParam('minrevisions', $sArg);
+                    break;
+                case 'maxrevisions':
+                    //ensure that $iMaxRevisions is a number
+                    if( preg_match(self::$options['maxrevisions']['pattern'], $sArg) )
+                        $iMaxRevisions = ($sArg == '') ? NULL: intval($sArg);
+                    else // wrong value
+                        $output .= $logger->msgWrongParam('maxrevisions', $sArg);
+                    break;
+                    
                     
                 case 'openreferences':
                     if( in_array($sArg, self::$options['openreferences']) )
@@ -1855,7 +1900,7 @@ class ExtDynamicPageList2
                 case 'include':
                 case 'includepage':
                     $bIncPage =  $sArg !== '';
-                    if($bIncPage && $sArg != '*')
+                    if($bIncPage)
                         $aSecLabels= explode(',', $sArg);
                     break;
     
@@ -2928,6 +2973,13 @@ class ExtDynamicPageList2
         // page_id=rev_page (if revision table required)
         $sSqlWhere .= $sSqlCond_page_rev;
 
+        if ($iMinRevisions != NULL) {
+			$sSqlWhere .= " and ((select count(rev_aux2.rev_page) from revision as rev_aux2 where rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
+    	}        
+        if ($iMaxRevisions != NULL) {
+			$sSqlWhere .= " and ((select count(rev_aux3.rev_page) from revision as rev_aux3 where rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+    	}        
+        
         // count(all categories) <= max no of categories
         $sSqlWhere .= $sSqlCond_MaxCat;
 
@@ -3258,14 +3310,14 @@ class ExtDynamicPageList2
         $dpl2result = $dpl->getText();
         $header='';
         if ($sOneResultHeader != '' && $rowcount==1) {
-            $header = str_replace('%PAGES%',1,$sOneResultHeader);
+            $header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',1,$sOneResultHeader));
         } else if ($rowcount==0) {
             if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "Â¶", "\n", $sNoResultsHeader));
             if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "Â¶", "\n", $sNoResultsFooter));
             if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(DPL2_i18n::WARN_NORESULTS);
         }
         else {
-            if ($sResultsHeader != '')	$header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$rowcount,$sResultsHeader));
+            if ($sResultsHeader != '')	$header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sResultsHeader));
         }
         $header = str_replace( '\n', "\n", str_replace( "Â¶", "\n", $header ));
         $header = str_replace('%VERSION%', self::VERSION,$header);
@@ -3785,6 +3837,7 @@ class DPL2 {
 		$rBody='';
 		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 		for ($i = $iStart; $i < $iStart+$iCount; $i++) {
+
 			$article = $this->mArticles[$i];
 			$pagename = $article->mTitle->getPrefixedText();
 			if ($this->mEscapeLinks && ($article->mNamespace==14 || $article->mNamespace==6) ) {
@@ -3796,7 +3849,7 @@ class DPL2 {
 			
 			if ($this->mIncPage) {
 				$matchFailed=false;
-				if(empty($this->mIncSecLabels)) {        					// include whole article
+				if(empty($this->mIncSecLabels) || $this->mIncSecLabels[0]=='*') {        					// include whole article
 					$title = $article->mTitle->getPrefixedText();
 					if ($mode->name == 'userformat') $incwiki = '';
 					else							 $incwiki = '<br/>';
@@ -3823,7 +3876,13 @@ class DPL2 {
     					}
     					else {
 	    					// append full text to output
-							$incwiki .= $text;
+	    					if (array_key_exists('0',$mode->sSectionTags)){
+		    					$incwiki .= $this->substTagParm($mode->sSectionTags[0], $pagename, $article,$this->filteredCount, $iTitleMaxLen);
+		    					$pieces = array(0=>$text);
+		    					$this->formatSingleItems(&$pieces, 0);
+		    					$incwiki .= $pieces[0];
+	    					}
+	    					else $incwiki .= $text;
 						}
 					}
 					else {
@@ -4002,7 +4061,7 @@ class DPL2 {
 				if($article->mUserLink != '')	$rBody .= ' . . [[User:' . $article->mUser .'|'.$article->mUser.']]';
 				if($article->mContributor != '')$rBody .= ' . . [[User:' . $article->mContributor .'|'.$article->mContributor." $article->mContrib]]";
 							
-				if( !empty($article->mCategoryLinks) )  $rBody .= ' . . <small>' . wfMsg('categories') . ': ' . $wgLang->pipeList( $article->mCategoryLinks ) . '</small>';
+				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <small>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</small>';
 			}
 			
 			// add included contents

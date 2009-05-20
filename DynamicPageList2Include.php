@@ -82,6 +82,10 @@
  *			allow % within included template parameters
  * @version 1.7.3
  *			%SECTION% can now be used within multiseseparators (see includeHeading)
+ * @version 1.7.8
+ *			allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageList2Include.php)
+ * @version 1.7.9
+ *			bug fix (near line #150): section inclusion did not work because all content was truncated to 0 bytes
 
  */
 
@@ -125,12 +129,14 @@ class DPL2Include
     private static function parse($parser, $title, $text, $part1, $skiphead=0, $recursionCheck=true, $maxLength=-1, $link='', $trim=false) 
     {
       global $wgVersion;
-    
+
       // if someone tries something like<section begin=blah>lst only</section>
       // text, may as well do the right thing.
       $text = str_replace('</section>', '', $text);
-    
+
+
       if (self::open($parser, $part1)) {
+
     
         //Handle recursion here, so we can break cycles.  Although we can't do
         //feature detection here, r18473 was only a few weeks before the
@@ -141,7 +147,7 @@ class DPL2Include
           self::close($parser, $part1);
         }
     
-        if ($maxLength>=0) {
+        if ($maxLength>0) {
             $text = self::limitTranscludedText($text,$maxLength,$link);
         }
         if ($trim) return trim($text);
@@ -230,7 +236,7 @@ class DPL2Include
 	    }
 	    $any=false;
     	$pat = self::createSectionPattern($sec,$to,$any);
-    
+
     	preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER);
       
     	foreach ($m[2] as $nr=>$piece)  {
@@ -541,9 +547,9 @@ class DPL2Include
 	                                // named parameter
 	                                $exParmQuote = str_replace('/','\/',$exParm);
 	                                foreach ($parms as $parm) {
-	                                    if (!preg_match("/^\s*$exParmQuote\s*=/",$parm)) continue;
+	                                    if (!preg_match("/^\s*$exParmQuote\s*(<!--.*-->)*\s*=/",$parm)) continue;
 	                                    $found=true;
-	                                    $output[$n] .= $dpl->formatTemplateArg(preg_replace("/^$exParmQuote\s*=\s*/","",$parm),$dplNr,$exParmKey,$firstCall,$maxlen);
+	                                    $output[$n] .= $dpl->formatTemplateArg(preg_replace("/^$exParmQuote\s*(<!--.*-->)*\s*=\s*/","",$parm),$dplNr,$exParmKey,$firstCall,$maxlen);
 	                                    break;
 	                                }
                                 }
