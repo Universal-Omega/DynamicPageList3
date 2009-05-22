@@ -56,6 +56,7 @@ class DPL2_i18n
          */
 
          self::$messages['en'] = array(
+            'dpl2-desc' => 'A highly flexible report generator for MediaWikis',
             /*
                 Log
              */
@@ -930,6 +931,7 @@ class DPL2_i18n
             'dpl2_articlecount' => 'U ovom naslovu se trenutno nalazi {{PLURAL:$1|jedan članak|$1 članka|$1 članaka}}'
         );
         self::$messages['yue'] = array(
+           'dpl2-desc' => '一個畀MediaWiki嘅高彈性報告產生器',
             /*
                 Log
              */
@@ -1011,6 +1013,7 @@ class DPL2_i18n
             'dpl2_articlecount' => '響呢個標題度有$1篇文。'
         );
         self::$messages['zh-hans'] = array(
+            'dpl2-desc' => '一个给MediaWiki的高弹性报告产生器',
             /*
                 Log
              */
@@ -1092,6 +1095,7 @@ class DPL2_i18n
             'dpl2_articlecount' => '在这个标题中有$1篇条目。'
         );
         self::$messages['zh-hant'] = array(
+            'dpl2-desc' => '一個給MediaWiki的高彈性報告產生器',
             /*
                 Log
              */

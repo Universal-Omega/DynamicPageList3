@@ -313,6 +313,7 @@ $wgExtensionCredits['parserhook'][] = array(
 	'author' => array( '[http://en.wikinews.org/wiki/User:IlyaHaykinson IlyaHaykinson]', '[http://en.wikinews.org/wiki/User:Amgine Amgine]', '[http://de.wikipedia.org/wiki/Benutzer:Unendlich Unendlich]', '[http://meta.wikimedia.org/wiki/User:Dangerman Cyril Dangerville]', '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Algorithmix]' ),
 	'url' => 'http://www.mediawiki.org/wiki/Extension:DynamicPageList',
 	'description' => 'a highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
+	'descriptionmsg' => 'dpl2-desc',
   	'version' => ExtDynamicPageList2::VERSION
   );
 
