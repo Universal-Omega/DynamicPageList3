@@ -1453,12 +1453,12 @@ class ExtDynamicPageList2
                                 $sParamList = explode('|',self::getSubcategories(substr($sParam,1),$sPageTable));
                                 foreach ($sParamList as $sPar) {
                                     $title = Title::newFromText($localParser->transformMsg($sPar, $pOptions));
-                                    if( !is_null($title) )	$aCategories[] = $title->getDBKey();
+                                    if( !is_null($title) )	$aCategories[] = $title->getDBkey();
                                 }
                             }
                             else {
                                 $title = Title::newFromText($localParser->transformMsg($sParam, $pOptions));
-                                if( !is_null($title) )	$aCategories[] = $title->getDBKey();
+                                if( !is_null($title) )	$aCategories[] = $title->getDBkey();
                             }
                         }
                     }
@@ -1491,7 +1491,7 @@ class ExtDynamicPageList2
                 case 'notcategory':
                     $title = Title::newFromText($localParser->transformMsg($sArg, $pOptions));
                     if( !is_null($title) ) {
-                        $aExcludeCategories[] = $title->getDBKey();
+                        $aExcludeCategories[] = $title->getDBkey();
                         $bConflictsWithOpenReferences=true;
                     }
                     break;
@@ -2591,8 +2591,8 @@ class ExtDynamicPageList2
             foreach ($aLinksTo as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
                 $sSqlCond_page_pl .= '(pl.pl_namespace=' . intval( $link->getNamespace() );
-                if ($bIgnoreCase) 	$sSqlCond_page_pl .= " AND LOWER(pl.pl_title)=LOWER(" . $dbr->addQuotes( $link->getDBKey() ).'))';
-                else				$sSqlCond_page_pl .= " AND pl.pl_title=" . $dbr->addQuotes( $link->getDBKey() ).')';
+                if ($bIgnoreCase) 	$sSqlCond_page_pl .= " AND LOWER(pl.pl_title)=LOWER(" . $dbr->addQuotes( $link->getDBkey() ).'))';
+                else				$sSqlCond_page_pl .= " AND pl.pl_title=" . $dbr->addQuotes( $link->getDBkey() ).')';
                 $n++;
             }
             $sSqlCond_page_pl .= ')'; 
@@ -2605,8 +2605,8 @@ class ExtDynamicPageList2
             foreach ($aNotLinksTo as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
                 $sSqlCond_page_pl .= '('.$sPageLinksTable.'.pl_namespace=' . intval($link->getNamespace());
-                if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER('.$sPageLinksTable.'.pl_title)=LOWER(' . $dbr->addQuotes( $link->getDBKey() ).'))';
-                else				$sSqlCond_page_pl .= ' AND       '.$sPageLinksTable.'.pl_title='        . $dbr->addQuotes( $link->getDBKey() ).')';
+                if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER('.$sPageLinksTable.'.pl_title)=LOWER(' . $dbr->addQuotes( $link->getDBkey() ).'))';
+                else				$sSqlCond_page_pl .= ' AND       '.$sPageLinksTable.'.pl_title='        . $dbr->addQuotes( $link->getDBkey() ).')';
                 $n++;
             }
             $sSqlCond_page_pl .= ') )'; 
@@ -2671,8 +2671,8 @@ class ExtDynamicPageList2
             $n=0;
             foreach ($aImageUsed as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                if ($bIgnoreCase) 	$sSqlCond_page_pl .= "LOWER(il.il_to)=LOWER(" . $dbr->addQuotes( $link->getDBKey() ).')';
-                else				$sSqlCond_page_pl .= "il.il_to=" . $dbr->addQuotes( $link->getDBKey() );
+                if ($bIgnoreCase) 	$sSqlCond_page_pl .= "LOWER(il.il_to)=LOWER(" . $dbr->addQuotes( $link->getDBkey() ).')';
+                else				$sSqlCond_page_pl .= "il.il_to=" . $dbr->addQuotes( $link->getDBkey() );
                 $n++;
             }
             $sSqlCond_page_pl .= ')';
@@ -2705,8 +2705,8 @@ class ExtDynamicPageList2
             foreach ($aUses as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
                 $sSqlCond_page_pl .= '(tl.tl_namespace=' . intval( $link->getNamespace() ); 
-                if ($bIgnoreCase)	$sSqlCond_page_pl .= " AND LOWER(tl.tl_title)=LOWER(" . $dbr->addQuotes( $link->getDBKey() ).'))';
-                else				$sSqlCond_page_pl .= " AND       tl.tl_title="        . $dbr->addQuotes( $link->getDBKey() ).')';
+                if ($bIgnoreCase)	$sSqlCond_page_pl .= " AND LOWER(tl.tl_title)=LOWER(" . $dbr->addQuotes( $link->getDBkey() ).'))';
+                else				$sSqlCond_page_pl .= " AND       tl.tl_title="        . $dbr->addQuotes( $link->getDBkey() ).')';
                 $n++;
             }
             $sSqlCond_page_pl .= ')'; 
@@ -2719,8 +2719,8 @@ class ExtDynamicPageList2
             foreach ($aNotUses as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
                 $sSqlCond_page_pl .= '('.$sTemplateLinksTable.'.tl_namespace=' . intval($link->getNamespace());
-                if ($bIgnoreCase)	$sSqlCond_page_pl .= ' AND LOWER('.$sTemplateLinksTable.'.tl_title)=LOWER(' . $dbr->addQuotes( $link->getDBKey() ).'))';
-                else				$sSqlCond_page_pl .= ' AND '.$sTemplateLinksTable.'.tl_title=' . $dbr->addQuotes( $link->getDBKey() ).')';
+                if ($bIgnoreCase)	$sSqlCond_page_pl .= ' AND LOWER('.$sTemplateLinksTable.'.tl_title)=LOWER(' . $dbr->addQuotes( $link->getDBkey() ).'))';
+                else				$sSqlCond_page_pl .= ' AND '.$sTemplateLinksTable.'.tl_title=' . $dbr->addQuotes( $link->getDBkey() ).')';
                 $n++;
             }
             $sSqlCond_page_pl .= ') )'; 
