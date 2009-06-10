@@ -1,6 +1,6 @@
 <?php
 /**#@+
- * This is a slightly modified and enhanced copy of a mediawiki extension called
+ * This is a modified and enhanced copy of a mediawiki extension called
  *
  *       LabeledSectionTransclusion
  *
@@ -8,13 +8,13 @@
  *
  *
  * @author Steve Sanbeg
- * @copyright Copyright Â© 2006, Steve Sanbeg
+ * @copyright Copyright © 2006, Steve Sanbeg
  * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
  *
  *
  * This copy was made to avoid version conflicts between the two extensions.
  * In this copy names were changed (wfLst.. --> wfDplLst..).
- * So any version of LabeledSectionTransclusion can be installed together with DPL2
+ * So any version of LabeledSectionTransclusion can be installed together with DPL
  *
  * Enhancements were made to 
  *     -  allow inclusion of templates ("template swapping")
@@ -83,13 +83,15 @@
  * @version 1.7.3
  *			%SECTION% can now be used within multiseseparators (see includeHeading)
  * @version 1.7.8
- *			allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageList2Include.php)
+ *			allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageListInclude.php)
  * @version 1.7.9
  *			bug fix (near line #150): section inclusion did not work because all content was truncated to 0 bytes
+ * @version 1.8.0
+ *			removal of html-comments within template calls
 
  */
 
-class DPL2Include
+class DPLInclude
 {
 
     ##############################################################
@@ -442,7 +444,7 @@ class DPL2Include
         $extractParm = array();
         
         // check if we want to extract parameters directly from the call
-        // in that case we wonÂ´t invoke template2 but will directly return the extracted parameters
+        // in that case we won´t invoke template2 but will directly return the extracted parameters
         // as a sequence of table columns; 
         if (strlen($template2)>strlen($template1) && ($template2[strlen($template1)]==':')) {
             $extractParm = split(':',substr($template2,strlen($template1)+1));
@@ -498,7 +500,7 @@ class DPL2Include
             else {
                 // if the user wants parameters directly from the call line of template1 we return just those
                 $cbrackets=2;
-                $templateCall = $tCall;
+                $templateCall = preg_replace('/<!--.*-->/Us','',$tCall);
                 $size=strlen($templateCall);
                 $parms=array();
                 $parm='';
@@ -578,3 +580,4 @@ class DPL2Include
     }
 
 }
+
