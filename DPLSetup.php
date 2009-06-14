@@ -27,7 +27,7 @@
  *          addcategories: bug fixed
  *          CATLIST variable defined
  * @version 0.9.3
- *          allow ¦ as an alias for |
+ *          allow ?as an alias for |
  *          escapelinks= introduced
  * @version 0.9.4
  *          allow "-" with categories = 
@@ -314,7 +314,14 @@
  * @version 1.8.1
  *			bugfix: %DATE% was not expanded when addedit=true and ordermethod=lastedit were chosen
  *			bugfix: allrevisionssince delivered wrong results
- 
+ * @version 1.8.2
+ *			bugfix: ordermethod=lastedit AND minoredits=exclude produced a SQL error
+
+ *			bugfix dplcache
+ *			config switch: respectParserCache
+ *			date timestamp adapt to user preferences
+ * @version 1.8.3
+ *			bugfix: URL variable expansion
  
  *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
@@ -351,6 +358,8 @@ class ExtDynamicPageList
 	public  static $behavingLikeIntersection = false; // Changes certain default values to comply with Extension:Intersection
 	public  static $functionalRichness		 = 0;	  // The amount of functionality of DPL that is accesible for the user;
 													  // .. to be set by DynamicPageList.php and DynamicPageListMigration.php
+    public  static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
+													  // .. to be changed in LocalSettings.php
 
     /**
      * Map parameters to possible values.
@@ -369,7 +378,9 @@ class ExtDynamicPageList
         'addpagesize'          => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addpagetoucheddate'   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'adduser'              => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-        'allowcachedresults'   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on', 'yes+warn'),
+		
+		// default of allowchacheresults depends on behaveasIntersetion and on LopcalSettings ...
+        'allowcachedresults'   => array( 'true', 'false', 'no', 'yes', 'yes+warn', '0', '1', 'off', 'on'),
         /**
          * search for a page with the same title in another namespace (this is normally the article to a talk page)
          */
@@ -533,7 +544,7 @@ class ExtDynamicPageList
         /**
          * listseparators is an array of four tags (in html or wiki syntax) which defines the output of DPL
          * if mode = 'userformat' was specified.
-         *   '\n' or '¶'  in the input will be interpreted as a newline character.
+         *   '\n' or '?  in the input will be interpreted as a newline character.
          *   '%xxx%'      in the input will be replaced by a corresponding value (xxx= PAGE, NR, COUNT etc.)
          * t1 and t4 are the "outer envelope" for the whole result list, 
          * t2,t3 form an inner envelope around the article name of each entry.
@@ -863,6 +874,7 @@ class ExtDynamicPageList
 					suppresserrors
 					',
 			1 => 	'
+					allowcachedresults
 					execandexit
 					columns
 					debug
@@ -899,7 +911,6 @@ class ExtDynamicPageList
 					addpagesize
 					addpagetoucheddate
 					adduser
-					allowcachedresults
 					categoriesminmax
 					createdby
 					dominantsection
@@ -1146,7 +1157,7 @@ class ExtDynamicPageList
         $numargs = func_num_args();
         if ($numargs < 2) {
           $input = "#dpl: no arguments specified";
-          return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
+          return str_replace('?,'<','§pre>§nowiki>'.$input.'?nowiki>?pre>');
         }
         
         // fetch all user-provided arguments (skipping $parser)
@@ -1156,7 +1167,7 @@ class ExtDynamicPageList
           $input .= str_replace("\n","",$p1) ."\n";
         }
         // for debugging you may want to uncomment the following statement
-        // return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
+        // return str_replace('?,'<','§pre>§nowiki>'.$input.'?nowiki>?pre>');
     
         
         // $dump1   = self::dumpParsedRefs($parser,"before DPL func");

@@ -11,6 +11,9 @@ class DPLMain
     // The real callback function for converting the input text to wiki text output
     public static function dynamicPageList( $input, $params, &$parser, &$bReset, $calledInMode ) {
 
+        // Output
+        $output = '';
+
         error_reporting(E_ALL);
 
         global $wgUser, $wgContLang, $wgRequest, $wgRawHtml;
@@ -74,16 +77,9 @@ class DPLMain
         
 		// check parameters which can be set via the URL
 
-		if (strpos($input,'{%DPL_')!== false) {
+		if (strpos($input,'{%DPL_') >= 0) {
 			for($i=1;$i<=5;$i++) {
-				$dplArg = $wgRequest->getVal('DPL_arg'.$i,'');
-				if ($dplArg=='') {
-					$input=preg_replace('/\{%DPL_arg'.$i.':(.*)%\}/U', '\1'    ,$input);
-					$input=preg_replace('/\{%DPL_arg'.$i.'%\}/U',      '\1'    ,$input);
-				} else {
-					$input=preg_replace('/\{%DPL_arg'.$i.':.*%\}/U  ', $dplArg ,$input);
-					$input=str_replace('{%DPL_arg'.$i.'%}'           , $dplArg ,$input);
-				}
+				$input = self::resolveUrlArg($input,'DPL_arg'.$i);
 			}
 		}
 
@@ -94,7 +90,8 @@ class DPLMain
 		$iCount = -1;
 		
 		// commandline parameters like %DPL_offset% are replaced
-		$input = str_replace('{%DPL_offset%}',$iOffset,$input);
+		$input = self::resolveUrlArg($input,'DPL_offset');
+		$input = self::resolveUrlArg($input,'DPL_count');
 
 		$originalInput = $input;
 
@@ -126,13 +123,14 @@ class DPLMain
 		// execAndExit
         $sExecAndExit= ExtDynamicPageList::$options['execandexit']['default'];
 
-		// ordermethod, order, mode, userdateformat:
+		// ordermethod, order, mode, userdateformat, allowcachedresults:
 		// if we have to behave like Extension:Intersection we use different default values for some commands
 		if (ExtDynamicPageList::$behavingLikeIntersection) {
 			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'categoryadd', 'categoryadd', 'lastedit');
 			ExtDynamicPageList::$options['order'] = array('default' => 'descending', 'ascending', 'descending');
 			ExtDynamicPageList::$options['mode'] = array('default' => 'unordered', 'none', 'ordered', 'unordered');
 			ExtDynamicPageList::$options['userdateformat'] = array('default' => 'Y-m-d: ');
+			ExtDynamicPageList::$options['allowcachedresults']['default'] = 'true';
 		}
 		else {
 			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'title', 'counter', 'size', 'category', 'sortkey', 
@@ -142,6 +140,7 @@ class DPLMain
 			ExtDynamicPageList::$options['order'] = array('default' => 'ascending', 'ascending', 'descending');
 			ExtDynamicPageList::$options['mode'] = array('default' => 'unordered', 'category', 'inline', 'none', 'ordered', 'unordered', 'userformat');
 			ExtDynamicPageList::$options['userdateformat'] = array('default' => 'Y-m-d H:i: ');
+			ExtDynamicPageList::$options['allowcachedresults']['default'] = ExtDynamicPageList::$respectParserCache;
 		}
 		$aOrderMethods	 	= array(ExtDynamicPageList::$options['ordermethod']['default']);
         $sOrder 			= ExtDynamicPageList::$options['order']['default'];
@@ -305,9 +304,6 @@ class DPLMain
         $sUpdateRules = ExtDynamicPageList::$options['updaterules']['default'];
         $sDeleteRules = ExtDynamicPageList::$options['deleterules']['default'];
 
-        // Output
-        $output = '';
-		
 
     // ###### PARSE PARAMETERS ######
     
@@ -315,10 +311,10 @@ class DPLMain
         $input = str_replace('Â»','>',$input);
         $input = str_replace('Â«','<',$input);
     
-        // use the ¦ as a general alias for |
+        // use the ï¿½ as a general alias for |
         $input = str_replace('Â¦','|',$input); // the symbol is utf8-escaped
     
-        // the combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution
+        // the combination 'ï¿½{' and '}ï¿½'will be translated to double curly braces; this allows postponed template execution
         // which is crucial for DPL queries which call other DPL queries
         $input = str_replace('Â²{','{{',$input);
         $input = str_replace('}Â²','}}',$input);
@@ -572,7 +568,7 @@ class DPLMain
                 case 'execandexit':
                     // we offer a possibility to execute a DPL command without querying the database
 					// this is useful if you want to catch the command line parameters DPL_arg1,... etc
-                    return $sArg;
+                    $sExecAndExit = $sArg;
                     break;
 				 
 				 
@@ -945,7 +941,6 @@ class DPLMain
                         $bSelectionCriteriaFound=true;
                         $bConflictsWithOpenReferences=true;
                         $bAllowCachedResults = true;
-						$parser->disableCache(false);
                     }
                     break;
                 
@@ -1203,7 +1198,6 @@ class DPLMain
 	                        $bAllowCachedResults = true;
 	                        $bWarnCachedResults = true;
                         }
-						if ($bAllowCachedResults) $parser->disableCache();
                     }
                     else
                         $output .= $logger->msgWrongParam('allowcachedresults', $sArg);
@@ -1445,8 +1439,21 @@ class DPLMain
 			// justify limits;
 			$iCount = ExtDynamicPageList::$maxResultCount;  
 		}
+
+
+	    // disable parser cache	if caching is not allowed (which is default for DPL but not for <DynamicPageList>)	
+        if ( !$bAllowCachedResults) {
+			$parser->disableCache();
+		}
+        // place cache warning in resultsheader		
+        if ($bWarnCachedResults) $sResultsHeader = '{{DPL Cache Warning}}' . $sResultsHeader;
 		
         
+		
+        if ($sExecAndExit != '') return $sExecAndExit;
+
+		
+		
 		// if Caching is desired AND if the cache is up to date: get result from Cache and exit
 
 		global $wgUploadDirectory, $wgRequest;
@@ -1492,10 +1499,7 @@ class DPLMain
         $iTotalIncludeCatCount = count($aIncludeCategories, COUNT_RECURSIVE) - $iIncludeCatCount;
         $iExcludeCatCount = count($aExcludeCategories);
         $iTotalCatCount = $iTotalIncludeCatCount + $iExcludeCatCount;
-    
-        // place cache warning in resultsheader		
-        if ($bWarnCachedResults) $sResultsHeader = '{{DPL Cache Warning}}' . $sResultsHeader;
-    
+        
         if ($calledInMode=='tag') {
             // in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
             if ($bReset[5]) { $bReset[1] = true; $bReset[5] = false; }
@@ -1519,7 +1523,8 @@ class DPLMain
         }
 
 
-    // ###### CHECKS ON PARAMETERS ######
+		// ###### CHECKS ON PARAMETERS ######
+		
         // too many categories!
         if ( ($iTotalCatCount > ExtDynamicPageList::$maxCategoryCount) && (!ExtDynamicPageList::$allowUnlimitedCategories) )
             return $output . $logger->escapeMsg(DPL_i18n::FATAL_TOOMANYCATS, ExtDynamicPageList::$maxCategoryCount);
@@ -1723,15 +1728,18 @@ class DPLMain
                     // deleted because of conflict with revsion-parameters
                     $sSqlCond_page_rev = ' AND '.$sPageTable.'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
                     break;
+                case 'pagetouched':
+						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
+						break;
                 case 'lastedit':
-					if ($bAddUser) {
+					if (ExtDynamicPageList::$behavingLikeIntersection) {
+						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
+					}
+					else {
 						$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
 						$sSqlRev_timestamp = ', rev_timestamp';
 						// deleted because of conflict with revision-parameters
 						$sSqlCond_page_rev = ' AND '.$sPageTable.'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
-					}
-					else {
-						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
 					}
                     break;
                 case 'sortkey':
@@ -2040,7 +2048,7 @@ class DPLMain
             $sSqlPage_counter = ", $sPageTable.page_counter as page_counter";
         if ($bAddPageSize)
             $sSqlPage_size = ", $sPageTable.page_len as page_len";
-        if ($bAddPageTouchedDate)
+        if ($bAddPageTouchedDate && $sSqlPage_touched=='')
             $sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
         if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sSqlRevisionTable != '')
             $sSqlRev_user = ', rev_user, rev_user_text';
@@ -2262,7 +2270,9 @@ class DPLMain
                         $sSqlWhere .= 'rev_timestamp';
                         break;
                     case 'lastedit':
-                        $sSqlWhere .= 'page_touched';
+						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
+						if (ExtDynamicPageList::$behavingLikeIntersection) 	$sSqlWhere .= 'page_touched';
+						else 												$sSqlWhere .= 'rev_timestamp';
                         break;
                     case 'pagetouched':
                         $sSqlWhere .= 'page_touched';
@@ -2363,7 +2373,10 @@ class DPLMain
             }
         }
     
-        
+
+		// find user's time correction
+		$timeCorrection = self::getTimeCorrection($wgUser);
+
         $iArticle = 0;
     
         while( $row = $dbr->fetchObject ( $res ) ) {
@@ -2473,6 +2486,11 @@ class DPLMain
                 elseif ($bAddFirstCategoryDate)							$dplArticle->mDate = $row->cl_timestamp;
                 elseif ($bAddEditDate && isset($row->rev_timestamp))	$dplArticle->mDate = $row->rev_timestamp;
                 elseif ($bAddEditDate && isset($row->page_touched))		$dplArticle->mDate = $row->page_touched;
+				
+				// time zone adjustment
+                if ($dplArticle->mDate!='') {
+					$dplArticle->mDate= date('YmdHis',strtotime($dplArticle->mDate)-$timeCorrection);
+				}
                 
                 if ($dplArticle->mDate!='' && $sUserDateFormat!='') {
 					// we apply the userdateformat
@@ -2488,7 +2506,7 @@ class DPLMain
                 
                 //USER/AUTHOR(S)
                 // because we are going to do a recursive parse at the end of the output phase
-                // we have to generate wiki syntax for linking to a user´s homepage
+                // we have to generate wiki syntax for linking to a userï¿½s homepage
                 if($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince != '') {
                     $dplArticle->mUserLink  = '[[User:'.$row->rev_user_text.'|'.$row->rev_user_text.']]';
                     $dplArticle->mUser = $row->rev_user_text;
@@ -2652,7 +2670,7 @@ class DPLMain
                 ExtDynamicPageList::$createdLinks[3][$imgid] = $imgid;
             }
         }
-    
+
         return $output;
         
     }
@@ -2756,5 +2774,27 @@ class DPLMain
 		return false; 
 	}	
 	
+	private static function getTimeCorrection($user) {
+		$i=strtotime('20000101 00:00:00');
+		$corr = $user->getOption('timecorrection','00:00').':00';
+		if ($corr[0]=='-') {
+			return strtotime('20000101 '.substr($corr,1)) - $i;
+		}
+		else {
+			return $i - strtotime('20000101 '.$corr);
+		}
+	}
+
+	private static function resolveUrlArg($input,$arg) {
+		global $wgRequest;
+		$dplArg = $wgRequest->getVal($arg,'');
+		if ($dplArg=='') {
+			$input=preg_replace('/\{%'.$arg.':(.*)%\}/U', '\1'    ,$input);
+			return str_replace('{%'.$arg.'%}', 		     ''       ,$input);
+		} else {
+			$input=preg_replace('/\{%'.$arg.':.*%\}/U  ', $dplArg ,$input);
+			return str_replace('{%'.$arg.'%}'           , $dplArg ,$input);
+		}
+	}
 }
 
