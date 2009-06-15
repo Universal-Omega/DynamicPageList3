@@ -311,10 +311,10 @@ class DPLMain
         $input = str_replace('»','>',$input);
         $input = str_replace('«','<',$input);
     
-        // use the � as a general alias for |
+        // use the ¦ as a general alias for |
         $input = str_replace('¦','|',$input); // the symbol is utf8-escaped
     
-        // the combination '�{' and '}�'will be translated to double curly braces; this allows postponed template execution
+        // the combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution
         // which is crucial for DPL queries which call other DPL queries
         $input = str_replace('²{','{{',$input);
         $input = str_replace('}²','}}',$input);

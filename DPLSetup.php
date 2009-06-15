@@ -27,7 +27,7 @@
  *          addcategories: bug fixed
  *          CATLIST variable defined
  * @version 0.9.3
- *          allow ?as an alias for |
+ *          allow ¦ as an alias for |
  *          escapelinks= introduced
  * @version 0.9.4
  *          allow "-" with categories = 
@@ -308,8 +308,8 @@
  *			auto-create Template:Extension DPL
  *			changed "isChildObj" to "isLocalObj" near line 1160 (see bugreport 'Call to a memeber function getPrefixedKey() on a non-object')
  *			removal of html-comments within template calls (DPLInclude)
- *			reset/eliminate = none eingef�hrt
- *			DPL_count, DPL_offset, DPL_refresh eigef�hrt
+ *			reset/eliminate = none eingeführt
+ *			DPL_count, DPL_offset, DPL_refresh eigeführt
  *			New feature: execandexit
  * @version 1.8.1
  *			bugfix: %DATE% was not expanded when addedit=true and ordermethod=lastedit were chosen
@@ -544,7 +544,7 @@ class ExtDynamicPageList
         /**
          * listseparators is an array of four tags (in html or wiki syntax) which defines the output of DPL
          * if mode = 'userformat' was specified.
-         *   '\n' or '?  in the input will be interpreted as a newline character.
+         *   '\n' or '¶' in the input will be interpreted as a newline character.
          *   '%xxx%'      in the input will be replaced by a corresponding value (xxx= PAGE, NR, COUNT etc.)
          * t1 and t4 are the "outer envelope" for the whole result list, 
          * t2,t3 form an inner envelope around the article name of each entry.
@@ -1075,7 +1075,7 @@ class ExtDynamicPageList
 
 	private static function loadModules() {
 		
-        // Page Transclusion, adopted from Steve Sanbeg�s LabeledSectionTransclusion
+        // Page Transclusion, adopted from Steve Sanbeg´s LabeledSectionTransclusion
         require_once( 'DynamicPageListInclude.php' );
         require_once( 'DynamicPageList.i18n.php' );
         require_once( 'DPL.php' );
@@ -1157,7 +1157,7 @@ class ExtDynamicPageList
         $numargs = func_num_args();
         if ($numargs < 2) {
           $input = "#dpl: no arguments specified";
-          return str_replace('?','<','�pre>�nowiki>'.$input.'?nowiki>?pre>');
+          return str_replace('§','<','§pre>§nowiki>'.$input.'§nowiki>§pre>');
         }
         
         // fetch all user-provided arguments (skipping $parser)
@@ -1167,7 +1167,7 @@ class ExtDynamicPageList
           $input .= str_replace("\n","",$p1) ."\n";
         }
         // for debugging you may want to uncomment the following statement
-        // return str_replace('?,'<','�pre>�nowiki>'.$input.'?nowiki>?pre>');
+        // return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
     
         
         // $dump1   = self::dumpParsedRefs($parser,"before DPL func");
