@@ -1157,7 +1157,7 @@ class ExtDynamicPageList
         $numargs = func_num_args();
         if ($numargs < 2) {
           $input = "#dpl: no arguments specified";
-          return str_replace('?,'<','§pre>§nowiki>'.$input.'?nowiki>?pre>');
+          return str_replace('?','<','§pre>§nowiki>'.$input.'?nowiki>?pre>');
         }
         
         // fetch all user-provided arguments (skipping $parser)
