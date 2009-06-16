@@ -322,6 +322,15 @@
  *			date timestamp adapt to user preferences
  * @version 1.8.3
  *			bugfix: URL variable expansion
+ * @version 1.8.4
+ *			bugfix: title= & allrevisionssince caused SQL error
+ *			added ordermethod = none
+ *          changed %DPLTIME% to fractions of seconds
+ *			titlematch: We now translate a space to an escaped underscore as the native underscore is a special char within SQL LIKE 
+ *			new commands: linkstoexternal and addexternallink
+ *			changed default for userdateformat to show also seconds DPL only; Intersection will show only the date for compatibility reasons)
+ *			bugfix date/time problem 1977
+ *			time conditions in query are now also translated according to timezone of server/client
  
  *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
@@ -372,6 +381,7 @@ class ExtDynamicPageList
         'addcategories'        => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addcontribution'      => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addeditdate'          => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+        'addexternallink'      => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addfirstcategorydate' => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addlasteditor'        => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'addpagecounter'       => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
@@ -579,6 +589,11 @@ class ExtDynamicPageList
          * this parameter restricts the output to articles which do not contain a reference to the specified page.
          */
         'notlinksto'           => array('default' => ''),
+        /**
+         * this parameter restricts the output to articles which contain an external reference that conatins a certain pattern
+         * Examples:   linkstoexternal= www.xyz.com|www.xyz2.com
+         */
+        'linkstoexternal'      => array('default' => ''),
         /**
          * this parameter restricts the output to articles which use one of the specified images.
          * Examples:   imageused=Image:my image|Image:your image
@@ -906,6 +921,7 @@ class ExtDynamicPageList
 					addcategories
 					addcontribution
 					addeditdate
+					addexternallink
 					addlasteditor
 					addpagecounter
 					addpagesize
@@ -937,6 +953,7 @@ class ExtDynamicPageList
 					lastmodifiedby
 					linksfrom
 					linksto
+					linkstoexternal
 					listattr
 					minoredits
 					modifiedby

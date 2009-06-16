@@ -38,7 +38,7 @@ class DPLMain
          * Initialization
          */
 		 
-		$dplStartTime= time();
+		$dplStartTime= microtime(true);
 
          // Local parser created. See http://meta.wikimedia.org/wiki/MediaWiki_extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
         $localParser = new Parser();
@@ -126,7 +126,7 @@ class DPLMain
 		// ordermethod, order, mode, userdateformat, allowcachedresults:
 		// if we have to behave like Extension:Intersection we use different default values for some commands
 		if (ExtDynamicPageList::$behavingLikeIntersection) {
-			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'categoryadd', 'categoryadd', 'lastedit');
+			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'categoryadd', 'categoryadd', 'lastedit','none');
 			ExtDynamicPageList::$options['order'] = array('default' => 'descending', 'ascending', 'descending');
 			ExtDynamicPageList::$options['mode'] = array('default' => 'unordered', 'none', 'ordered', 'unordered');
 			ExtDynamicPageList::$options['userdateformat'] = array('default' => 'Y-m-d: ');
@@ -136,10 +136,10 @@ class DPLMain
 			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'title', 'counter', 'size', 'category', 'sortkey', 
                                         'category,firstedit',  'category,lastedit', 'category,pagetouched', 'category,sortkey', 
                                         'categoryadd', 'firstedit', 'lastedit', 'pagetouched', 'pagesel', 
-                                        'title', 'titlewithoutnamespace', 'user', 'user,firstedit', 'user,lastedit');
+                                        'title', 'titlewithoutnamespace', 'user', 'user,firstedit', 'user,lastedit','none');
 			ExtDynamicPageList::$options['order'] = array('default' => 'ascending', 'ascending', 'descending');
 			ExtDynamicPageList::$options['mode'] = array('default' => 'unordered', 'category', 'inline', 'none', 'ordered', 'unordered', 'userformat');
-			ExtDynamicPageList::$options['userdateformat'] = array('default' => 'Y-m-d H:i: ');
+			ExtDynamicPageList::$options['userdateformat'] = array('default' => 'Y-m-d H:i:s');
 			ExtDynamicPageList::$options['allowcachedresults']['default'] = ExtDynamicPageList::$respectParserCache;
 		}
 		$aOrderMethods	 	= array(ExtDynamicPageList::$options['ordermethod']['default']);
@@ -203,6 +203,8 @@ class DPLMain
         $bAddAuthor       = self::argBoolean(ExtDynamicPageList::$options['addauthor']['default']);
         $bAddContribution = self::argBoolean(ExtDynamicPageList::$options['addcontribution']['default']);
         $bAddLastEditor   = self::argBoolean(ExtDynamicPageList::$options['addlasteditor']['default']);
+
+        $bAddExternalLink = self::argBoolean(ExtDynamicPageList::$options['addexternallink']['default']);
         
         $bAllowCachedResults = self::argBoolean(ExtDynamicPageList::$options['allowcachedresults']['default']);
         $bWarnCachedResults = false;
@@ -270,6 +272,8 @@ class DPLMain
         $aNotLinksTo    = array();
         $aLinksFrom     = array();
         $aNotLinksFrom  = array();
+
+        $aLinksToExternal = array();
     
         $aImageUsed 	= array();
         $aImageContainer= array();
@@ -304,6 +308,10 @@ class DPLMain
         $sUpdateRules = ExtDynamicPageList::$options['updaterules']['default'];
         $sDeleteRules = ExtDynamicPageList::$options['deleterules']['default'];
 
+
+		// find user's time correction
+		$timeCorrection = self::getTimeCorrection($wgUser);
+		
 
     // ###### PARSE PARAMETERS ######
     
@@ -828,6 +836,18 @@ class DPLMain
                     if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('notlinksfrom', $sArg);
                     break;
                 
+                case 'linkstoexternal':
+                    $pages = explode('|', trim($sArg));
+                    $n=0;
+                    foreach($pages as $page) {
+                        if (trim($page)=='') continue;
+                        $aLinksToExternal[$n++] = $page;
+                        $bSelectionCriteriaFound=true;
+                    }
+                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('linkstoexternal', $sArg);
+                    $bConflictsWithOpenReferences=true;
+                    break;
+                
                 case 'imageused':
                     $pages = explode('|', trim($sArg));
                     $n=0;
@@ -1013,6 +1033,15 @@ class DPLMain
                         $output .= $logger->msgWrongParam('addeditdate', $sArg);
                     break;
                 
+                case 'addexternallink':
+                    if( in_array($sArg, ExtDynamicPageList::$options['addexternallink'])) {
+                        $bAddExternalLink = self::argBoolean($sArg);
+                        $bConflictsWithOpenReferences=true;
+                    }
+                    else
+                        $output .= $logger->msgWrongParam('addexternallink', $sArg);
+                    break;
+                    
                 case 'addpagecounter':
                     if( in_array($sArg, ExtDynamicPageList::$options['addpagecounter'])) {
                         $bAddPageCounter = self::argBoolean($sArg);
@@ -1325,10 +1354,12 @@ class DPLMain
                 case 'firstrevisionsince':
                 case 'allrevisionssince':
                     if( preg_match(ExtDynamicPageList::$options[$sType]['pattern'], $sArg) ) {
-                        if (($sType) == 'lastrevisionbefore')	$sLastRevisionBefore = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
-                        if (($sType) == 'allrevisionsbefore')	$sAllRevisionsBefore = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
-                        if (($sType) == 'firstrevisionsince')	$sFirstRevisionSince = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
-                        if (($sType) == 'allrevisionssince')	$sAllRevisionsSince  = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
+						$date = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
+						$date = date('YmdHis',strtotime($date)-$timeCorrection);
+                        if (($sType) == 'lastrevisionbefore')	$sLastRevisionBefore = $date;
+                        if (($sType) == 'allrevisionsbefore')	$sAllRevisionsBefore = $date;
+                        if (($sType) == 'firstrevisionsince')	$sFirstRevisionSince = $date;
+                        if (($sType) == 'allrevisionssince')	$sAllRevisionsSince  = $date;
                         $bConflictsWithOpenReferences=true;
                     }
                     else // wrong value
@@ -1675,7 +1706,7 @@ class DPLMain
         else								$sSqlDistinct = 'DISTINCT';
         $sSqlGroupBy = '';
         if ($sDistinctResultSet == 'strict' 
-           && (count($aLinksTo)+count($aNotLinksTo)+count($aLinksFrom)+count($aNotLinksFrom)+count($aImageUsed))>0 ) $sSqlGroupBy = 'page_title';
+           && (count($aLinksTo)+count($aNotLinksTo)+count($aLinksFrom)+count($aNotLinksFrom)+count($aLinksToExternal)+count($aImageUsed))>0 ) $sSqlGroupBy = 'page_title';
         $sSqlSortkey = '';
         $sSqlCl_to = '';
         $sSqlCats = '';
@@ -1693,10 +1724,13 @@ class DPLMain
         $sSqlRev_user = '';
         $sSqlCond_page_rev = '';
         $sPageLinksTable = $dbr->tableName( 'pagelinks' );
+        $sExternalLinksTable = $dbr->tableName( 'externallinks' );
         $sImageLinksTable = $dbr->tableName( 'imagelinks' );
         $sTemplateLinksTable = $dbr->tableName( 'templatelinks' );
         $sSqlPageLinksTable = '';
+        $sSqlExternalLinksTable = '';
         $sSqlCond_page_pl = '';
+        $sSqlCond_page_el = '';
         $sSqlCond_page_tpl = '';
         $sSqlCond_MaxCat = '';
         $sSqlWhere = ' WHERE 1=1 ';
@@ -1789,6 +1823,8 @@ class DPLMain
                     $sSqlRevisionTable = $sRevisionTable . ', ';
                     $sSqlRev_user = ', rev_user, rev_user_text';
                     break;
+                case 'none':
+                    break;
             }
         }
         
@@ -1873,6 +1909,20 @@ class DPLMain
             }
         }
     
+        // linkstoexternal
+        if ( count($aLinksToExternal)>0 ) {
+            $sSqlExternalLinksTable .= $sExternalLinksTable . ' as el, ';
+            $sSqlCond_page_el .= ' AND '.$sPageTable.'.page_id=el.el_from AND ('; 
+            $sSqlSelPage = ', el.el_to as el_to';
+            $n=0;
+            foreach ($aLinksToExternal as $link) {
+                if ($n>0) $sSqlCond_page_el .= ' OR ';
+                $sSqlCond_page_el .= '(el.el_to LIKE ' . $dbr->addQuotes( $link ).')';
+                $n++;
+            }
+            $sSqlCond_page_el .= ')'; 
+        }
+
         // imageused
         if ( count($aImageUsed)>0 ) {
             $sSqlPageLinksTable .= $sImageLinksTable . ' as il, ';
@@ -1942,7 +1992,7 @@ class DPLMain
                 $sSqlCond_page_tpl .= ' AND ('; 
                 $n=0;
                 foreach ($aUsedBy as $link) {
-                    if ($n>0) $sSqlCond_page_pl .= ' OR ';
+                    if ($n>0) $sSqlCond_page_tpl .= ' OR ';
                     $sSqlCond_page_tpl .= '(tpl_from=' . $link->getArticleID().')';
                     $n++;
                 }
@@ -2076,7 +2126,7 @@ class DPLMain
             					$sPageTable.'.page_title as page_title,'.$sPageTable.'.page_id as page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter .
                                 $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user .
                                 $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . 
-                                ' FROM ' . $sSqlRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sPageTable;
+                                ' FROM ' . $sSqlRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $sPageTable;
         
         // JOIN ...
         if($sSqlClHeadTable != '' || $sSqlClTableForGC != '') {
@@ -2202,7 +2252,10 @@ class DPLMain
         // page_id=pl.pl_from (if pagelinks table required)
         $sSqlWhere .= $sSqlCond_page_pl;
 
-        // page_id=tpl.pl_from (if templatelinks table required)
+        // page_id=el.el_from (if external links table required)
+        $sSqlWhere .= $sSqlCond_page_el;
+
+        // page_id=tpl.tl_from (if templatelinks table required)
         $sSqlWhere .= $sSqlCond_page_tpl;
 
         if ( isset($sArticleCategory) && $sArticleCategory !== null ) {
@@ -2247,7 +2300,7 @@ class DPLMain
         }
 
         // ORDER BY ...
-        if ($aOrderMethods[0]!='') {
+        if ($aOrderMethods[0]!='' && $aOrderMethods[0]!='none') {
             $sSqlWhere .= ' ORDER BY ';
             foreach($aOrderMethods as $i => $sOrderMethod) {
 
@@ -2294,7 +2347,11 @@ class DPLMain
             else			                $sSqlWhere .= ' ASC';
         }
 
-        if ($sAllRevisionsSince!='' || $sAllRevisionsBefore!='') $sSqlWhere .= ', rev_id DESC';
+        if ($sAllRevisionsSince!='' || $sAllRevisionsBefore!='') {
+			if ($aOrderMethods[0]=='' || $aOrderMethods[0]=='none') $sSqlWhere .= ' ORDER BY ';
+			else 													$sSqlWhere .= ', ';
+			$sSqlWhere .= 'rev_id DESC';
+		}
     
         // LIMIT ....
         // we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
@@ -2373,10 +2430,6 @@ class DPLMain
             }
         }
     
-
-		// find user's time correction
-		$timeCorrection = self::getTimeCorrection($wgUser);
-
         $iArticle = 0;
     
         while( $row = $dbr->fetchObject ( $res ) ) {
@@ -2444,6 +2497,9 @@ class DPLMain
             // page_id
             if (isset($row->page_id)) $dplArticle->mID = $row->page_id;
 			else					  $dplArticle->mID = 0;
+
+            // external link
+            if (isset($row->el_to))	$dplArticle->mExternalLink = $row->el_to;
 			
             //SHOW PAGE_COUNTER
             if( isset($row->page_counter) )
@@ -2452,7 +2508,6 @@ class DPLMain
             //SHOW PAGE_SIZE
             if( isset($row->page_len) )
                 $dplArticle->mSize = $row->page_len;
-    
             //STORE initially selected PAGE	
             if ( count($aLinksTo)>0  || count($aLinksFrom)>0 ) {
                 if (!isset($row->sel_title)) {
@@ -2506,7 +2561,7 @@ class DPLMain
                 
                 //USER/AUTHOR(S)
                 // because we are going to do a recursive parse at the end of the output phase
-                // we have to generate wiki syntax for linking to a user�s homepage
+                // we have to generate wiki syntax for linking to a user´s homepage
                 if($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince != '') {
                     $dplArticle->mUserLink  = '[[User:'.$row->rev_user_text.'|'.$row->rev_user_text.']]';
                     $dplArticle->mUser = $row->rev_user_text;
@@ -2567,7 +2622,7 @@ class DPLMain
                                       $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
                                                         
         $dpl = new DPL($aHeadings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $aArticles, 
-                       $aOrderMethods[0], $hListMode, $listMode, $bEscapeLinks, $bIncPage, $iIncludeMaxLen, 
+                       $aOrderMethods[0], $hListMode, $listMode, $bEscapeLinks, $bAddExternalLink, $bIncPage, $iIncludeMaxLen, 
                        $aSecLabels, $aSecLabelsMatch, $aSecLabelsNotMatch, $bIncParsed, $parser, $logger, $aReplaceInTitle, 
                        $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $sUpdateRules, $sDeleteRules);
 
@@ -2597,7 +2652,7 @@ class DPLMain
 
 		// replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp = self::prettyTimeStamp(date('YmdHis'));
-		$dplElapsedTime= time()-$dplStartTime;
+		$dplElapsedTime= sprintf('%.3f sec.',microtime(true)-$dplStartTime);
         $header = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $header);
         $footer = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $footer);
         
@@ -2776,7 +2831,14 @@ class DPLMain
 	
 	private static function getTimeCorrection($user) {
 		$i=strtotime('20000101 00:00:00');
-		$corr = $user->getOption('timecorrection','00:00').':00';
+		
+		$corr = $user->getOption('timecorrection','');
+		if ($corr !='') $corr .= ':00';
+		else {
+			$corr = date('Z');
+			if ($corr>=0)	$corr=sprintf("%02d:%02d:%02d",$corr/3600,$corr%3600/60,$corr%60);
+			else			$corr='-'.sprintf("%02d:%02d:%02d",-$corr/3600,-$corr%3600/60,-$corr%60);
+		}
 		if ($corr[0]=='-') {
 			return strtotime('20000101 '.substr($corr,1)) - $i;
 		}

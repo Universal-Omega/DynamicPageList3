@@ -7,6 +7,7 @@ class DPL {
 	var $mHListMode; 	// html list mode for headings
 	var $mListMode;		// html list mode for pages
 	var $mEscapeLinks;	// whether to escape img/cat or not
+	var $mAddExternalLink; // whether to add the text of an external link or not
 	var $mIncPage; 		// true only if page transclusion is enabled
 	var $mIncMaxLen; 	// limit for text to include
 	var $mIncSecLabels         = array(); // array of labels of sections to transclude
@@ -24,7 +25,7 @@ class DPL {
 	var $mTableRow;	// formatting rules for table fields
 	
 	function DPL($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, 
-				 $listmode, $bescapelinks, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, 
+				 $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, 
 				 $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen,
 				 $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules ) {
 	   	global $wgContLang;
@@ -32,6 +33,7 @@ class DPL {
 		$this->mArticles = $articles;
 		$this->mListMode = $listmode;
 		$this->mEscapeLinks = $bescapelinks;
+		$this->mAddExternalLink = $baddexternallink;
 		$this->mIncPage = $includepage;
 		if($includepage) {
 			$this->mIncSecLabels         = $includeseclabels;
@@ -177,6 +179,7 @@ class DPL {
 		$sTag = str_replace('%PAGEID%',$article->mID,$sTag);
 		$sTag = str_replace('%NAMESPACE%',$this->nameSpaces[$article->mNamespace],$sTag);
 		$sTag = str_replace('%IMAGE%',$imageUrl,$sTag);
+		$sTag = str_replace('%EXTERNALLINK%',$article->mExternalLink,$sTag);
 
 		$title = $article->mTitle->getText();
 		if (strpos($title,'%TITLE%')>=0) {
@@ -446,7 +449,7 @@ class DPL {
 				$rBody .= $mode->sItemStart;
 				if($article->mDate != '') {
 					if ($article->myDate != '') {
-						if($article->mRevision != '') 	$rBody 	.= ' <html>'.$sk->makeKnownLinkObj($article->mTitle, htmlspecialchars($article->myDate),'oldid='.$article->mRevision).'</html>';
+						if($article->mRevision != '') 	$rBody 	.= ' <html>'.$sk->makeKnownLinkObj($article->mTitle, htmlspecialchars($article->myDate),'oldid='.$article->mRevision).'</html> ';
 						else 							$rBody	.= $article->myDate;
 					} else {
 						if($article->mRevision != '') 	$rBody 	.= ' <html>'.$sk->makeKnownLinkObj($article->mTitle, htmlspecialchars($wgLang->timeanddate($article->mDate, true)),'oldid='.$article->mRevision).'</html> : ';
@@ -468,6 +471,7 @@ class DPL {
 				if($article->mContributor != '')$rBody .= ' . . [[User:' . $article->mContributor .'|'.$article->mContributor." $article->mContrib]]";
 							
 				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
+				if( $this->mAddExternalLink && $article->mExternalLink!= '') $rBody .= ' &rarr; ' . $article->mExternalLink;
 			}
 			
 			// add included contents
@@ -509,10 +513,10 @@ class DPL {
 	function updateArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'°',$rulesText);
-		$rulesText = str_replace('\°',';',$rulesText);
+		$rulesText = str_replace(";",'?,$rulesText);
+		$rulesText = str_replace('\?,';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('°',$rulesText);
+		$rules=split('?,$rulesText);
 		$exec=false;
 		$replaceThis='';
 		$replacement='';
@@ -602,10 +606,10 @@ class DPL {
   	function deleteArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'°',$rulesText);
-		$rulesText = str_replace('\°',';',$rulesText);
+		$rulesText = str_replace(";",'?,$rulesText);
+		$rulesText = str_replace('\?,';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('°',$rulesText);
+		$rules=split('?,$rulesText);
 		$exec=false;
 		$message= '';
 		$reason='';

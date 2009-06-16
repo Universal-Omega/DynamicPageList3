@@ -1206,7 +1206,7 @@ class DPL_i18n
 			'intersection_toofewcats' => 'DynamicPageList: 太少分类!',
 			'intersection_noresults' => 'DynamicPageList: 没有结果!',
 			'intersection_noincludecats' => 'DynamicPageList: 您需要去包含最少一个分类，或者指定一个空间名!',
-            'dpl-des' => '一个给MediaWiki的高弹性报告产生器',
+            'dpl-desc' => '一个给MediaWiki的高弹性报告产生器',
             'dpl_log_' . self::FATAL_WRONGNS 					=> "错误: 错误的 '$0' 参数: '$1'! 帮助:  <code>$0= <i>空白字符串</i> (主)$3</code>。",
             'dpl_log_' . self::FATAL_TOOMANYCATS				=> '错误: 过多分类! 最大值: $0。 帮助: 增加 <code>ExtDynamicPageList::$maxCategoryCount</code> 的值去指定更多的分类或设定 <code>ExtDynamicPageList::$allowUnlimitedCategories=true</code> 以解除限制。 (当加上 <code>DynamicPageList.php</code>后，在<code>LocalSettings.php</code>中设定变量。)',
             'dpl_log_' . self::FATAL_TOOFEWCATS					=> '错误: 过少分类! 最小值: $0。 帮助: 减少 <code>ExtDynamicPageList::$minCategoryCount</code> 的值去指定更少的分类。 (当加上 <code>DynamicPageList.php</code>后，在<code>LocalSettings.php</code>中设定一个合适的变量。)',

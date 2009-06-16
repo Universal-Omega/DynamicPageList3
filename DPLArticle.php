@@ -9,6 +9,7 @@ class DPLArticle {
 	var $mSelNamespace = -1;// selected namespace (number) of initial page
 	var $mImageSelTitle = ''; // selected title of image
 	var $mLink = ''; 		// html link to page
+	var $mExternalLink = '';// external link on the page
 	var $mStartChar = ''; 	// page title first char
 	var $mParentHLink = ''; // heading (link to the associated page) that page belongs to in the list (default '' means no heading)
 	var $mCategoryLinks = array(); // category links in the page
