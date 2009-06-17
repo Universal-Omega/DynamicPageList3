@@ -513,10 +513,10 @@ class DPL {
 	function updateArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'?,$rulesText);
-		$rulesText = str_replace('\?,';',$rulesText);
+		$rulesText = str_replace(";",'?',$rulesText);
+		$rulesText = str_replace('\?',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('?,$rulesText);
+		$rules=split('?',$rulesText);
 		$exec=false;
 		$replaceThis='';
 		$replacement='';
@@ -606,10 +606,10 @@ class DPL {
   	function deleteArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'?,$rulesText);
-		$rulesText = str_replace('\?,';',$rulesText);
+		$rulesText = str_replace(";",'?',$rulesText);
+		$rulesText = str_replace('\?',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('?,$rulesText);
+		$rules=split('?',$rulesText);
 		$exec=false;
 		$message= '';
 		$reason='';
