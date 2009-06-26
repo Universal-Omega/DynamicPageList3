@@ -1,5 +1,6 @@
 <?php
-
+// this file is UTF-8 encoded and contains some special characters.
+// Editing this file with an ASCII editor will potentially destroy it!
 /**
  * This file handles the configuration setup for the DynamicPageList extension of MediaWiki.
  * This code is released under the GNU General Public License.
@@ -331,7 +332,24 @@
  *			changed default for userdateformat to show also seconds DPL only; Intersection will show only the date for compatibility reasons)
  *			bugfix date/time problem 1977
  *			time conditions in query are now also translated according to timezone of server/client
- 
+ * @version 1.8.5
+ *			changed the php source files to UTF8 encoding (i18n was already utf8)
+ *			removed all closing ?> php tags at source file end
+ *			added 'path' and changed href to "third-party" in the hook-registration
+ *			added a space after showing the date in addeditdate etc.
+ *			changed implementation of userdate transformation to wgLang->userAdjust()
+ *			include now understands parserFunctions when used with {#xxx}
+ *			include now understands tag functions when used with {~xxx}
+ *			title< and title> added, 
+ *			new URL arg: DPL_fromTitle, DPL_toTitle
+ *			new built-in vars: %FIRSTTITLE%, %LASTTITLE%, %FIRSTNAMESPACE%, %LASTNAMESPACE%, %SCROLLDIR% (only in header and footer)
+ *			removed replacement of card suit symbols in SQL query due to collation incompatibilities
+ *			added special logic to DPL_fromTitle: reversed sort order for backward scrolling
+ *			changed default sort in DPL to 'titlewithoutnamespace (as this is more efficient than 'title')
+ *			bugfix at ordermethod = titlewithoutnamespace (led to invalid SQL statements)
+ * @version 1.8.6
+ *
+ *
  *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
 
@@ -554,7 +572,7 @@ class ExtDynamicPageList
         /**
          * listseparators is an array of four tags (in html or wiki syntax) which defines the output of DPL
          * if mode = 'userformat' was specified.
-         *   '\n' or '¶' in the input will be interpreted as a newline character.
+         *   '\n' or '¶'  in the input will be interpreted as a newline character.
          *   '%xxx%'      in the input will be replaced by a corresponding value (xxx= PAGE, NR, COUNT etc.)
          * t1 and t4 are the "outer envelope" for the whole result list, 
          * t2,t3 form an inner envelope around the article name of each entry.
@@ -696,6 +714,8 @@ class ExtDynamicPageList
          * titlematch is a (SQL-LIKE-expression) pattern
          * which restricts the result to pages matching that pattern
         */
+        'title<'	           => NULL,
+        'title>'	           => NULL,
         'titlematch'           => NULL,
         'titleregexp'          => NULL,
         'userdateformat'	   => NULL,  // depends on behaveAs... mode
@@ -913,6 +933,9 @@ class ExtDynamicPageList
 					rowcolformat
 					rows
 					rowsize
+					title
+					title<
+					title>
 					titlemaxlength
 					userdateformat
 					',
@@ -970,7 +993,6 @@ class ExtDynamicPageList
 					table
 					tablerow
 					tablesortcol
-					title
 					titlematch
 					usedby
 					uses
@@ -1174,7 +1196,7 @@ class ExtDynamicPageList
         $numargs = func_num_args();
         if ($numargs < 2) {
           $input = "#dpl: no arguments specified";
-          return str_replace('§','<','§pre>§nowiki>'.$input.'§nowiki>§pre>');
+          return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
         }
         
         // fetch all user-provided arguments (skipping $parser)
@@ -1424,4 +1446,3 @@ class ExtDynamicPageList
     }
 
 }
-

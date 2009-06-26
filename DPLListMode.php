@@ -37,7 +37,7 @@ class DPLListMode {
 				$this->sInline = $inlinetext;
 				break;
 			case 'ordered':
-				if ($iOffset==0) $this->sListStart = '<OL' . $_listattr . '>';
+				if ($iOffset==0) $this->sListStart = '<OL start=1 ' . $_listattr . '>';
 				else 			 $this->sListStart = '<OL start=' . ($iOffset+1) . ' ' . $_listattr . '>';
 				$this->sListEnd = '</OL>';
 				$this->sItemStart = '<LI'. $_itemattr . '>';
@@ -81,4 +81,3 @@ class DPLListMode {
 		}
 	}
 }
-

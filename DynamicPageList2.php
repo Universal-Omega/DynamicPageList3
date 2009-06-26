@@ -6,4 +6,3 @@
 */
 
 require_once("DynamicPageList.php");
-

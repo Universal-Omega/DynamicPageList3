@@ -30,4 +30,3 @@ class DPLArticle {
 		$this->mNamespace = $namespace;
 	}
 }
-

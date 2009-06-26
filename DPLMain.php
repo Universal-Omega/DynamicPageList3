@@ -1,4 +1,6 @@
 <?php
+// this file is UTF-8 encoded and contains some special characters.
+// Editing this file with an ASCII editor will potentially destroy it!
 
 class DPLMain
 {
@@ -16,7 +18,7 @@ class DPLMain
 
         error_reporting(E_ALL);
 
-        global $wgUser, $wgContLang, $wgRequest, $wgRawHtml;
+        global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgRawHtml;
         global $wgTitle, $wgNonincludableNamespaces;
 		
 		// we use "makeKnownLinkObject" to create hyperlinbks; 
@@ -92,6 +94,12 @@ class DPLMain
 		// commandline parameters like %DPL_offset% are replaced
 		$input = self::resolveUrlArg($input,'DPL_offset');
 		$input = self::resolveUrlArg($input,'DPL_count');
+		$input = self::resolveUrlArg($input,'DPL_fromTitle');
+		$input = self::resolveUrlArg($input,'DPL_toTitle');
+
+		$sTitleGE  = $wgRequest->getVal('DPL_fromTitle','');
+		$sTitleLE  = $wgRequest->getVal('DPL_toTitle','');
+		$scrollDir = $wgRequest->getVal('DPL_scrollDir','');
 
 		$originalInput = $input;
 
@@ -133,7 +141,7 @@ class DPLMain
 			ExtDynamicPageList::$options['allowcachedresults']['default'] = 'true';
 		}
 		else {
-			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'title', 'counter', 'size', 'category', 'sortkey', 
+			ExtDynamicPageList::$options['ordermethod'] = array('default' => 'titlewithoutnamespace', 'counter', 'size', 'category', 'sortkey', 
                                         'category,firstedit',  'category,lastedit', 'category,pagetouched', 'category,sortkey', 
                                         'categoryadd', 'firstedit', 'lastedit', 'pagetouched', 'pagesel', 
                                         'title', 'titlewithoutnamespace', 'user', 'user,firstedit', 'user,lastedit','none');
@@ -255,7 +263,7 @@ class DPLMain
         
         $sHListHtmlAttr = ExtDynamicPageList::$options['hlistattr']['default'];
         $sHItemHtmlAttr = ExtDynamicPageList::$options['hitemattr']['default'];
-    
+		    
         $_sTitleMaxLen = ExtDynamicPageList::$options['titlemaxlength']['default'];
         $iTitleMaxLen = ($_sTitleMaxLen == '') ? NULL: intval($_sTitleMaxLen);
     
@@ -307,10 +315,6 @@ class DPLMain
 
         $sUpdateRules = ExtDynamicPageList::$options['updaterules']['default'];
         $sDeleteRules = ExtDynamicPageList::$options['deleterules']['default'];
-
-
-		// find user's time correction
-		$timeCorrection = self::getTimeCorrection($wgUser);
 		
 
     // ###### PARSE PARAMETERS ######
@@ -713,8 +717,37 @@ class DPLMain
                     $sPageListMode='userformat';
                     $sInlTxt = '';
                     break;
-                
                     
+                case 'title':
+                    // we replace blanks by underscores to meet the internal representation
+                    // of page names in the database
+                    $title = Title::newFromText($sArg);
+                    if ($title) {
+                        $sNamespace= $title->getNamespace();
+                        $sTitleIs = str_replace(' ','_',$title->getText());
+                        $aNamespaces[0] = $sNamespace;
+                        $sPageListMode='userformat';
+                        $aOrderMethods = explode(',','');
+                        $bSelectionCriteriaFound=true;
+                        $bConflictsWithOpenReferences=true;
+                        $bAllowCachedResults = true;
+                    }
+                    break;
+                
+                case 'title>':
+                    // we replace blanks by underscores to meet the internal representation
+                    // of page names in the database
+                    $sTitleGE = str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions));
+                    $bSelectionCriteriaFound=true;
+                    break;
+                                
+                case 'title<':
+                    // we replace blanks by underscores to meet the internal representation
+                    // of page names in the database
+                    $sTitleLE = str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions));
+                    $bSelectionCriteriaFound=true;
+                    break;
+                                
                 case 'titlemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg) )
@@ -948,26 +981,10 @@ class DPLMain
                     $bConflictsWithOpenReferences=true;
                     break;
                             
-                case 'title':
-                    // we replace blanks by underscores to meet the internal representation
-                    // of page names in the database
-                    $title = Title::newFromText($sArg);
-                    if ($title) {
-                        $sNamespace= $title->getNamespace();
-                        $sTitleIs = str_replace(' ','_',$title->getText());
-                        $aNamespaces[0] = $sNamespace;
-                        $sPageListMode='userformat';
-                        $aOrderMethods = explode(',','');
-                        $bSelectionCriteriaFound=true;
-                        $bConflictsWithOpenReferences=true;
-                        $bAllowCachedResults = true;
-                    }
-                    break;
-                
                 case 'titlematch':
                     // we replace blanks by underscores to meet the internal representation
                     // of page names in the database
-                    $aTitleMatch = explode('|', str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions)));
+                    $aTitleMatch = explode('|', str_replace(' ','\_',$localParser->transformMsg($sArg, $pOptions)));
                     $bSelectionCriteriaFound=true;
                     break;
                                 
@@ -1355,7 +1372,7 @@ class DPLMain
                 case 'allrevisionssince':
                     if( preg_match(ExtDynamicPageList::$options[$sType]['pattern'], $sArg) ) {
 						$date = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
-						$date = date('YmdHis',strtotime($date)-$timeCorrection);
+						$date = $wgLang->userAdjust($date);
                         if (($sType) == 'lastrevisionbefore')	$sLastRevisionBefore = $date;
                         if (($sType) == 'allrevisionsbefore')	$sAllRevisionsBefore = $date;
                         if (($sType) == 'firstrevisionsince')	$sFirstRevisionSince = $date;
@@ -1690,6 +1707,12 @@ class DPLMain
                 }
             }
         }
+		
+		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
+		if ($sTitleLE != '' && $sTitleGE =='') {
+			if      ($sOrder == 'ascending' )  $sOrder='descending';
+			else if ($sOrder == 'descending')  $sOrder='ascending';
+		}
             
 		$output.='{{Extension DPL}}';
 
@@ -1787,18 +1810,22 @@ class DPLMain
                     // If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
                     // UTF-8 created problems with non-utf-8 MySQL databases
 					//see line 2011 (order method sortkey requires category
-					if (in_array('category',$aOrderMethods)) {
-						$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' '),'♣','⣣')) ".$sOrderCollation." as sortkey";
+					if (count($aIncludeCategories)+count($aExcludeCategories)>0) {
+						if (in_array('category',$aOrderMethods) && (count($aIncludeCategories)+count($aExcludeCategories)>0)) {
+							$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' ')) ".$sOrderCollation." as sortkey";
+						}
+						else {
+							$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' ')) ".$sOrderCollation." as sortkey";
+						}
 					}
 					else {
-						$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' '),'♣','⣣')) ".$sOrderCollation." as sortkey";
+							$sSqlSortkey = ", REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' ') ".$sOrderCollation." as sortkey";
 					}
-                    break;
-                case 'titlewithoutnamespace':
-                    $sSqlSortkey = ", REPLACE(page_title,'♣','⣣') ".$sOrderCollation." as sortkey";
                     break;
                 case 'pagesel':
                     $sSqlSortkey = ", CONCAT(pl.pl_namespace,pl.pl_title) ".$sOrderCollation." as sortkey";
+                    break;
+                case 'titlewithoutnamespace':
                     break;
                 case 'title':
                     $aStrictNs = array_slice(ExtDynamicPageList::$allowedNamespaces, 1, count(ExtDynamicPageList::$allowedNamespaces), true);
@@ -1808,7 +1835,7 @@ class DPLMain
                         foreach($aStrictNs as $iNs => $sNs)
                             $sSqlNsIdToText .= ' WHEN ' . intval( $iNs ) . " THEN " . $dbr->addQuotes( $sNs ) ;
                         $sSqlNsIdToText .= ' END';
-                        $sSqlSortkey = ", REPLACE(REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' '),'♣','⣣') ".$sOrderCollation." as sortkey";
+							$sSqlSortkey = ", REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') ".$sOrderCollation." as sortkey";
                     }
                     else {
                         $sSqlNsIdToText = 'CASE '.$sPageTable.'.page_namespace';
@@ -1816,7 +1843,7 @@ class DPLMain
                             $sSqlNsIdToText .= ' WHEN ' . intval( $iNs ) . " THEN " . $dbr->addQuotes( $sNs ) ;
                         $sSqlNsIdToText .= ' END';
                         // Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
-                        $sSqlSortkey = ", REPLACE(REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' '),'♣','⣣') ".$sOrderCollation." as sortkey";
+                        $sSqlSortkey = ", REPLACE(CONCAT( IF(".$sPageTable.".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), ".$sPageTable.".page_title), '_', ' ') ".$sOrderCollation." as sortkey";
                     }
                     break;
                 case 'user':
@@ -2179,6 +2206,22 @@ class DPLMain
             else			 	$sSqlWhere .= ' AND '.$sPageTable.'.page_title = ' . $dbr->addQuotes($sTitleIs) ;
         }
     
+        // TitleGE ...
+        if ( $sTitleGE != '' ) {
+            $sSqlWhere .= ' AND (';
+            if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title >=' . $dbr->addQuotes($sTitleGE) ;
+            else 		                $sSqlWhere .= $sPageTable.'.page_title >=' . $dbr->addQuotes($sTitleGE) ;
+            $sSqlWhere .= ')'; 
+        }
+
+        // TitleLE ...
+        if ( $sTitleLE != '' ) {
+            $sSqlWhere .= ' AND (';
+            if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title <=' . $dbr->addQuotes($sTitleLE) ;
+            else 		                $sSqlWhere .= $sPageTable.'.page_title <=' . $dbr->addQuotes($sTitleLE) ;
+            $sSqlWhere .= ')'; 
+        }
+
         // TitleMatch ...
         if ( count($aTitleMatch)>0 ) {
             $sSqlWhere .= ' AND (';
@@ -2333,8 +2376,11 @@ class DPLMain
                     case 'sortkey':
                     case 'title':
                     case 'pagesel':
-                    case 'titlewithoutnamespace':
                         $sSqlWhere .= 'sortkey';
+                        break;
+                    case 'titlewithoutnamespace':
+						if ($acceptOpenReferences)	$sSqlWhere .= "pl_title";
+						else 						$sSqlWhere .= "page_title";
                         break;
                     case 'user':
                         // rev_user_text can discriminate anonymous users (e.g. based on IP), rev_user cannot (=' 0' for all)
@@ -2431,6 +2477,10 @@ class DPLMain
         }
     
         $iArticle = 0;
+		$firstNamespaceFound = '';
+		$firstTitleFound = '';
+		$lastNamespaceFound = '';
+		$lastTitleFound = '';
     
         while( $row = $dbr->fetchObject ( $res ) ) {
             $iArticle++;
@@ -2457,7 +2507,7 @@ class DPLMain
                 $pageNamespace = $row->page_namespace;
                 $pageTitle     = $row->page_title;
             }
-    
+			    
             // if subpages are to be excluded: skip them
             if (!$bIncludeSubpages && (!(strpos($pageTitle,'/')===false))) continue;
                 
@@ -2544,7 +2594,7 @@ class DPLMain
 				
 				// time zone adjustment
                 if ($dplArticle->mDate!='') {
-					$dplArticle->mDate= date('YmdHis',strtotime($dplArticle->mDate)-$timeCorrection);
+					$dplArticle->mDate= $wgLang->userAdjust($dplArticle->mDate);
 				}
                 
                 if ($dplArticle->mDate!='' && $sUserDateFormat!='') {
@@ -2611,8 +2661,11 @@ class DPLMain
 			$rowcount = $row->rowcount;
 			$dbr->freeResult( $res );
 		}
-
-    
+		
+		// backward scrolling: if the user specified titleLE we reverse the output order
+		if ($sTitleLE != '' && $sTitleGE =='') $aArticles = array_reverse($aArticles);
+		
+		
     // ###### SHOW OUTPUT ######
     
         $listMode = new DPLListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, 
@@ -2645,7 +2698,7 @@ class DPLMain
         if ($sOneResultFooter != '' && $rowcount==1) {
             $footer = str_replace('%PAGES%',1,$sOneResultFooter);
         } else {
-            if ($sResultsFooter != '')	$footer =  str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$rowcount,$sResultsFooter));
+            if ($sResultsFooter != '')	$footer =  str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sResultsFooter));
         }
         $footer = str_replace( '\n', "\n", str_replace( "¶", "\n", $footer ));
         $footer = str_replace('%VERSION%', ExtDynamicPageList::$DPLVersion, $footer);
@@ -2655,6 +2708,24 @@ class DPLMain
 		$dplElapsedTime= sprintf('%.3f sec.',microtime(true)-$dplStartTime);
         $header = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $header);
         $footer = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $footer);
+
+		// replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
+		if (($n=count($aArticles)) > 0) {
+			$firstNamespaceFound = str_replace(' ','_',$aArticles[0]->mTitle->getNamespace());
+			$firstTitleFound 	 = str_replace(' ','_',$aArticles[0]->mTitle->getText());
+			$lastNamespaceFound  = str_replace(' ','_',$aArticles[$n-1]->mTitle->getNamespace());
+			$lastTitleFound 	 = str_replace(' ','_',$aArticles[$n-1]->mTitle->getText());
+		}
+        $header = str_replace('%FIRSTNAMESPACE%', 	$firstNamespaceFound, $header);
+        $footer = str_replace('%FIRSTNAMESPACE%', 	$firstNamespaceFound, $footer);
+        $header = str_replace('%FIRSTTITLE%', 		$firstTitleFound, $header);
+        $footer = str_replace('%FIRSTTITLE%', 		$firstTitleFound, $footer);
+        $header = str_replace('%LASTNAMESPACE%', 	$lastNamespaceFound, $header);
+        $footer = str_replace('%LASTNAMESPACE%', 	$lastNamespaceFound, $footer);
+        $header = str_replace('%LASTTITLE%', 		$lastTitleFound, $header);
+        $footer = str_replace('%LASTTITLE%', 		$lastTitleFound, $footer);
+        $header = str_replace('%SCROLLDIR%', 		$scrollDir, $header);
+        $footer = str_replace('%SCROLLDIR%', 		$scrollDir, $footer);
         
         $output .= $header . $dplResult . $footer;
         
@@ -2829,24 +2900,6 @@ class DPLMain
 		return false; 
 	}	
 	
-	private static function getTimeCorrection($user) {
-		$i=strtotime('20000101 00:00:00');
-		
-		$corr = $user->getOption('timecorrection','');
-		if ($corr !='') $corr .= ':00';
-		else {
-			$corr = date('Z');
-			if ($corr>=0)	$corr=sprintf("%02d:%02d:%02d",$corr/3600,$corr%3600/60,$corr%60);
-			else			$corr='-'.sprintf("%02d:%02d:%02d",-$corr/3600,-$corr%3600/60,-$corr%60);
-		}
-		if ($corr[0]=='-') {
-			return strtotime('20000101 '.substr($corr,1)) - $i;
-		}
-		else {
-			return $i - strtotime('20000101 '.$corr);
-		}
-	}
-
 	private static function resolveUrlArg($input,$arg) {
 		global $wgRequest;
 		$dplArg = $wgRequest->getVal($arg,'');
@@ -2859,4 +2912,3 @@ class DPLMain
 		}
 	}
 }
-

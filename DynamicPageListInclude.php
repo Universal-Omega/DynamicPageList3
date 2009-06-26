@@ -1,4 +1,7 @@
 <?php
+// this file is UTF-8 encoded and contains some special characters.
+// Editing this file with an ASCII editor will potentially destroy it!
+
 /**#@+
  * This is a modified and enhanced copy of a mediawiki extension called
  *
@@ -88,7 +91,9 @@
  *			bug fix (near line #150): section inclusion did not work because all content was truncated to 0 bytes
  * @version 1.8.0
  *			removal of html-comments within template calls
-
+ * @version 1.8.5
+ *			includeTemplate understands parser function syntax now
+ 
  */
 
 class DPLInclude
@@ -431,14 +436,38 @@ class DPLInclude
         $user = $article->mUserLink;
         $title = Title::newFromText($page);
         $text = $parser->fetchTemplate($title);
-        $tCalls = preg_split( "/\{\{\s*".preg_quote($template1,'/').'\s*[|}]/i', ' '.$text);
-		// We restore the first separator symbol (we had to include that symbol into the SPLIT, because we must make
-		// sure that we only accept exact matches of the complete template name
-        // (e.g. when looking for "foo" we must not accept "foo xyz")
-        foreach ($tCalls as $nr => $tCall) {
-	        if ($tCall[0]=='}') $tCalls[$nr] = '}'.$tCall;
-	        else				$tCalls[$nr] = '|'.$tCall;
-        }
+		
+		if ($template1 != '' && $template1[0]=='#') {
+			$template1=substr($template1,1);
+			$template2=substr($template2,1);
+			$defaultTemplate=substr($defaultTemplate,1);
+			// when looking for parser function calls we accept regexp search patterns
+			$text2 = preg_replace( "/\{\{\s*#(".$template1.')(\s*[:}])/i','°³²|%PFUNC%=\1\2|',$text);
+			$tCalls = preg_split( '/°³²/', ' '.$text2);
+			foreach($tCalls as $i => $tCall) if (($n=strpos($tCall,':'))!==false)$tCalls[$i][$n]=' ';
+		}
+		else if ($template1 != '' && $template1[0]=='~') {
+			$template1=substr($template1,1);
+			$template2=substr($template2,1);
+			$defaultTemplate=substr($defaultTemplate,1);
+			// looking for tags
+			$text2 = preg_replace( '/\<\s*('.$template1.')\s*\>/i','°³²|%TAG%=\1|%TAGBODY%=',$text);
+			$tCalls = preg_split( '/°³²/', ' '.$text2);
+			foreach($tCalls as $i => $tCall) {
+				$tCalls[$i]=preg_replace('/\<\s*\/'.$template1.'\s*\>.*/is','}}',$tCall);
+			}
+		}
+		else {
+			// when looking for template calls we only accept plain text as a template name
+			$tCalls = preg_split( "/\{\{\s*".preg_quote($template1,'/').'\s*[|}]/i', ' '.$text);
+			// We restore the first separator symbol (we had to include that symbol into the SPLIT, because we must make
+			// sure that we only accept exact matches of the complete template name
+			// (e.g. when looking for "foo" we must not accept "foo xyz")
+			foreach ($tCalls as $nr => $tCall) {
+				if ($tCall[0]=='}') $tCalls[$nr] = '}'.$tCall;
+				else				$tCalls[$nr] = '|'.$tCall;
+			}
+		}
     
         $output=array();
         $extractParm = array();
@@ -470,7 +499,7 @@ class DPLInclude
         $n=-2;
         // loop for all template invocations
         $firstCall=true;
-        foreach ($tCalls as $tCall) {
+        foreach ($tCalls as $iii => $tCall) {
             if ($n==-2) {
                 $n++;
                 continue;
@@ -580,4 +609,3 @@ class DPLInclude
     }
 
 }
-

@@ -1,4 +1,6 @@
 <?php
+// this file is UTF-8 encoded and contains some special characters.
+// Editing this file with an ASCII editor will potentially destroy it!
 
 class DPL {
 	
@@ -450,7 +452,7 @@ class DPL {
 				if($article->mDate != '') {
 					if ($article->myDate != '') {
 						if($article->mRevision != '') 	$rBody 	.= ' <html>'.$sk->makeKnownLinkObj($article->mTitle, htmlspecialchars($article->myDate),'oldid='.$article->mRevision).'</html> ';
-						else 							$rBody	.= $article->myDate;
+						else 							$rBody	.= $article->myDate.' ';
 					} else {
 						if($article->mRevision != '') 	$rBody 	.= ' <html>'.$sk->makeKnownLinkObj($article->mTitle, htmlspecialchars($wgLang->timeanddate($article->mDate, true)),'oldid='.$article->mRevision).'</html> : ';
 						else 							$rBody	.= $wgLang->timeanddate($article->mDate, true) . ': ';
@@ -506,17 +508,26 @@ class DPL {
 			ksort($rows);
 			$rBody="\n|-".join("\n|-",$rows)."\n|-";	
 		}
-		return $mode->sListStart . $rBody . $mode->sListEnd;
+		
+		// increase start value of ordered lists at multi-column output
+		$actStart = $mode->sListStart;
+		$start = preg_replace('/.*start=([0-9]+).*/','\1',$actStart);
+		if ($start!='') {
+			$start += $iCount;
+			$mode->sListStart = preg_replace('/start=[0-9]+/',"start=$start",$actStart);
+		}
+
+		return $actStart . $rBody . $mode->sListEnd;
 	}
 
 	
 	function updateArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'?',$rulesText);
-		$rulesText = str_replace('\?',';',$rulesText);
+		$rulesText = str_replace(";",'°',$rulesText);
+		$rulesText = str_replace('\°',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('?',$rulesText);
+		$rules=split('°',$rulesText);
 		$exec=false;
 		$replaceThis='';
 		$replacement='';
@@ -574,10 +585,12 @@ class DPL {
 			
 
 		}
-		$summary .= "\nbulk update:";
-		if ($replaceThis!='') $summary .= "\n replace $replaceThis\n by $replacement";
-		if ($before!='')      $summary .= "\n before  $before\n insertionBefore";
-		if ($after!='')       $summary .= "\n after   $after\n insertionAfter";
+		if ($summary=='') {
+			$summary .= "\nbulk update:";
+			if ($replaceThis!='') $summary .= "\n replace $replaceThis\n by $replacement";
+			if ($before!='')      $summary .= "\n before  $before\n insertionBefore";
+			if ($after!='')       $summary .= "\n after   $after\n insertionAfter";
+		}
 
 		// $message.= '</nowiki></pre>';
 		
@@ -606,10 +619,10 @@ class DPL {
   	function deleteArticleByRule($title,$text,$rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
-		$rulesText = str_replace(";",'?',$rulesText);
-		$rulesText = str_replace('\?',';',$rulesText);
+		$rulesText = str_replace(";",'°',$rulesText);
+		$rulesText = str_replace('\°',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('?',$rulesText);
+		$rules=split('°',$rulesText);
 		$exec=false;
 		$message= '';
 		$reason='';
@@ -772,4 +785,3 @@ class DPL {
 	}
 	
 }
-

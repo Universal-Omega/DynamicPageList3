@@ -59,16 +59,16 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupDPL' );
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
-$DPLVersion = '1.8.4';
+$DPLVersion = '1.8.6';
 
 $wgExtensionCredits['parserhook'][] = array(
-	'path'           => __FILE__,
-	'name'           => 'DynamicPageList',
-	'author'         => '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
-	'url'            => 'http://www.mediawiki.org/wiki/DynamicPageList_(third-party)',
-	'description'    => 'A highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
-	'descriptionmsg' => 'dpl-desc',
-  	'version'        => $DPLVersion
+	'path' 				=> __FILE__,
+	'name' 				=> 'DynamicPageList',
+	'author' 			=>  '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
+	'url' 				=> 'http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
+	'description' 		=> 'A highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
+	'descriptionmsg' 	=> 'dpl-desc',
+  	'version' 			=> $DPLVersion
   );
 
 require_once( 'DPLSetup.php' );
@@ -77,4 +77,3 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
 // use full functionality by default
 ExtDynamicPageList::setFunctionalRichness(4);
-
