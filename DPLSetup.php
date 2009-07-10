@@ -1070,10 +1070,6 @@ class ExtDynamicPageList
 
 		global $wgMessageCache;
 
-        foreach( DPL_i18n::getMessages() as $sLang => $aMsgs )
-        {
-            $wgMessageCache->addMessages( $aMsgs, $sLang );
-        }
 
         /**
          *  Define codes and map debug message to min debug level above which message can be displayed
