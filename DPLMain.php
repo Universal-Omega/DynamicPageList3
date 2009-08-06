@@ -19,7 +19,7 @@ class DPLMain
         error_reporting(E_ALL);
 
         global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgRawHtml;
-        global $wgTitle, $wgNonincludableNamespaces;
+        global $wgTitle, $wgArticle, $wgNonincludableNamespaces;
 		
 		// we use "makeKnownLinkObject" to create hyperlinbks; 
 		// the code we store in the dplcache may contain <html>....</html> sequences
@@ -50,8 +50,13 @@ class DPLMain
         // check if DPL shall only be executed from protected pages
         if (array_key_exists('RunFromProtectedPagesOnly',ExtDynamicPageList::$options) &&
         	ExtDynamicPageList::$options['RunFromProtectedPagesOnly']==true && !($parser->mTitle->isProtected('edit'))) {
+			
+			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page
+			// which is protected. Then there would be no need for the article to be protected.
+			// BUT: How can one find out from which wiki source an extension has been invoked???
+			
 	        return (ExtDynamicPageList::$options['RunFromProtectedPagesOnly']);
-		}    
+		}   
             
         // get database access
         $dbr =& wfGetDB( DB_SLAVE );
@@ -95,10 +100,19 @@ class DPLMain
 		$input = self::resolveUrlArg($input,'DPL_offset');
 		$input = self::resolveUrlArg($input,'DPL_count');
 		$input = self::resolveUrlArg($input,'DPL_fromTitle');
+		$input = self::resolveUrlArg($input,'DPL_findTitle');
 		$input = self::resolveUrlArg($input,'DPL_toTitle');
 
 		$sTitleGE  = $wgRequest->getVal('DPL_fromTitle','');
+		if (strlen($sTitleGE)>0) $sTitleGE[0] = strtoupper($sTitleGE[0]);
+		// findTitle has priority over fromTitle
+		$findTitle = $wgRequest->getVal('DPL_findTitle','');
+		if (strlen($findTitle)>0) $findTitle[0] = strtoupper($findTitle[0]);
+		if ($findTitle !='') $sTitleGE = '=_'.$findTitle;
 		$sTitleLE  = $wgRequest->getVal('DPL_toTitle','');
+		if (strlen($sTitleLE)>0) $sTitleLE[0] = strtoupper($sTitleLE[0]);
+		$sTitleGE = str_replace(' ','_',$sTitleGE);
+		$sTitleLE = str_replace(' ','_',$sTitleLE);
 		$scrollDir = $wgRequest->getVal('DPL_scrollDir','');
 
 		$originalInput = $input;
@@ -119,8 +133,9 @@ class DPLMain
         $bSelectionCriteriaFound=false;
         $bConflictsWithOpenReferences=false;
         // array for LINK / TEMPLATE / CATGEORY / IMAGE  by RESET / ELIMINATE
-        $bReset = array ( false, false, false, false, false, false, false, false );
-        
+        if (ExtDynamicPageList::$options['eliminate'] == 'all') $bReset = array ( false, false, false, false, true, true, true, true );
+		else											        $bReset = array ( false, false, false, false, false, false, false, false );
+
         // we allow " like " or "="
         $sCategoryComparisonMode    = '=';
         $sNotCategoryComparisonMode = '=';
@@ -389,7 +404,9 @@ class DPLMain
                         $sArg[0] = '';
                     }
                     $op='OR';
-                    if (strpos($sArg,'&')!==false) {
+					// we expand html entities because they contain an '& 'which would be interpreted as an AND condition
+					$sArg=html_entity_decode($sArg,ENT_QUOTES);
+					if (strpos($sArg,'&')!==false) {
 						$aParams = explode('&', $sArg);
 	                    $op = 'AND';
                     } else {
@@ -429,7 +446,7 @@ class DPLMain
                         if($bHeading)		$aCatHeadings 	 = array_unique($aCatHeadings + $aCategories);
                         if($bNotHeading)	$aCatNotHeadings = array_unique($aCatNotHeadings + $aCategories);
                         $bConflictsWithOpenReferences=true;
-                    }	
+                    }
                     break;
                 case 'notcategory':
                     $title = Title::newFromText($localParser->transformMsg($sArg, $pOptions));
@@ -515,7 +532,7 @@ class DPLMain
                     }
                     if ( !$breakaway ) {
                         $aOrderMethods = $methods;
-                        $bConflictsWithOpenReferences=true;
+                        if ($methods[0]!='none') $bConflictsWithOpenReferences=true;
                     }
                     break;
                 
@@ -1251,7 +1268,6 @@ class DPLMain
 
                 case 'dplcache':
                     if ($sArg!='') {
-						global $wgArticle;
 						if (isset($wgArticle)) {
 							$DPLCache = $wgArticle->getID().'_'.$sArg.'.txt';
 							$DPLCachePath = $wgArticle->getID() % 10;
@@ -1301,7 +1317,9 @@ class DPLMain
                         else if ($arg=='all')  {	
                             $bReset[4]=true; $bReset[5]=true; $bReset[6]=true; $bReset[7]=true;
                         }
-						else if ($arg=='none') ; // do nothing
+						else if ($arg=='none') {
+							$bReset[4]=false;$bReset[5]=false;$bReset[6]=false;$bReset[7]=false;
+						}
                     }
                     break;
                                     
@@ -1711,7 +1729,6 @@ class DPLMain
 		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
 		if ($sTitleLE != '' && $sTitleGE =='') {
 			if      ($sOrder == 'ascending' )  $sOrder='descending';
-			else if ($sOrder == 'descending')  $sOrder='ascending';
 		}
             
 		$output.='{{Extension DPL}}';
@@ -2167,9 +2184,9 @@ class DPLMain
             // If we want the Uncategorized
             $sSqlSelectFrom .= ' INNER JOIN ' . ( in_array('', $aIncludeCategories[$i]) ? $sDplClView : $sCategorylinksTable ) .
                                ' AS cl' . $iClTable . ' ON '.$sPageTable.'.page_id=cl' . $iClTable . '.cl_from AND (cl' . $iClTable . '.cl_to'. 
-                               $sCategoryComparisonMode . $dbr->addQuotes($aIncludeCategories[$i][0]);
+                               $sCategoryComparisonMode . $dbr->addQuotes(str_replace(' ','_',$aIncludeCategories[$i][0]));
             for ($j = 1; $j < count($aIncludeCategories[$i]); $j++)
-                $sSqlSelectFrom .= ' OR cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . $dbr->addQuotes($aIncludeCategories[$i][$j]);
+                $sSqlSelectFrom .= ' OR cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . $dbr->addQuotes(str_replace(' ','_',$aIncludeCategories[$i][$j]));
             $sSqlSelectFrom .= ') ';
             $iClTable++;
         }
@@ -2179,7 +2196,7 @@ class DPLMain
             $sSqlSelectFrom .=
                 ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' AS cl' . $iClTable .
                 ' ON '.$sPageTable.'.page_id=cl' . $iClTable . '.cl_from' .
-                ' AND cl' . $iClTable . '.cl_to'. $sNotCategoryComparisonMode . $dbr->addQuotes($aExcludeCategories[$i]);
+                ' AND cl' . $iClTable . '.cl_to'. $sNotCategoryComparisonMode . $dbr->addQuotes(str_replace(' ','_',$aExcludeCategories[$i]));
             $sSqlWhere .= ' AND cl' . $iClTable . '.cl_to IS NULL';
             $iClTable++;
         }
@@ -2209,16 +2226,26 @@ class DPLMain
         // TitleGE ...
         if ( $sTitleGE != '' ) {
             $sSqlWhere .= ' AND (';
-            if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title >=' . $dbr->addQuotes($sTitleGE) ;
-            else 		                $sSqlWhere .= $sPageTable.'.page_title >=' . $dbr->addQuotes($sTitleGE) ;
+			if (substr($sTitleGE,0,2)=='=_') {
+				if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title >=' . $dbr->addQuotes(substr($sTitleGE,2)) ;
+				else 		                $sSqlWhere .= $sPageTable.'.page_title >=' . $dbr->addQuotes(substr($sTitleGE,2)) ;
+			} else {
+				if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title >' . $dbr->addQuotes($sTitleGE) ;
+				else 		                $sSqlWhere .= $sPageTable.'.page_title >' . $dbr->addQuotes($sTitleGE) ;
+			}
             $sSqlWhere .= ')'; 
         }
 
         // TitleLE ...
         if ( $sTitleLE != '' ) {
             $sSqlWhere .= ' AND (';
-            if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title <=' . $dbr->addQuotes($sTitleLE) ;
-            else 		                $sSqlWhere .= $sPageTable.'.page_title <=' . $dbr->addQuotes($sTitleLE) ;
+			if (substr($sTitleLE,0,2)=='=_') {
+				if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title <=' . $dbr->addQuotes(substr($sTitleLE,2)) ;
+				else 		                $sSqlWhere .= $sPageTable.'.page_title <=' . $dbr->addQuotes(substr($sTitleLE,2)) ;
+			} else {
+				if ($acceptOpenReferences) 	$sSqlWhere .= 'pl_title <' . $dbr->addQuotes($sTitleLE) ;
+				else 		                $sSqlWhere .= $sPageTable.'.page_title <' . $dbr->addQuotes($sTitleLE) ;
+			}
             $sSqlWhere .= ')'; 
         }
 
@@ -2416,7 +2443,8 @@ class DPLMain
             if ($sOrder == 'descending')	$sSqlWhere .= ' ) order by cl3.cl_to DESC';
             else							$sSqlWhere .= ' ) order by cl3.cl_to ASC';
         }
-    
+
+
     // ###### DUMP SQL QUERY ######
         if ($logger->iDebugLevel >=3) {
             //DEBUG: output SQL query 
@@ -2427,6 +2455,7 @@ class DPLMain
         if ($logger->iDebugLevel ==6) {
             return $output;
         }
+
 
     // ###### PROCESS SQL QUERY ######
          
@@ -2663,7 +2692,7 @@ class DPLMain
 		}
 		
 		// backward scrolling: if the user specified titleLE we reverse the output order
-		if ($sTitleLE != '' && $sTitleGE =='') $aArticles = array_reverse($aArticles);
+		if ($sTitleLE != '' && $sTitleGE =='' && $sOrder=='descending' ) $aArticles = array_reverse($aArticles);
 		
 		
     // ###### SHOW OUTPUT ######
@@ -2752,8 +2781,39 @@ class DPLMain
 			$parser->disableCache();
         }
 
+		// update dependencies to CacheAPI if DPL is to respect the MW ParserCache and the page containing the DPL query is changed
+		
+		if (ExtDynamicPageList::$useCacheAPI && $bAllowCachedResults && $wgRequest->getVal('action','view')=='submit') {
+/*
+			CacheAPI::remDependencies ( $wgArticle->getID());
+			
+			// add category dependencies
+
+			$conditionTypes = array ( CACHETYPE_CATEGORY );
+			$conditions = array();
+			$conditions[0] = array();
+			$categorylist = array();
+			foreach ($aIncludeCategories as $categorygroup) {
+				$c=0;
+				foreach ($categorygroup as $category) {
+					if ($c==0) $conditions[0][]= $category;
+					$c++;
+				}
+			}
+
+			// add template dependencies
+
+			// add link dependencies
+
+			// add general dependencies
+
+			// CacheAPI::addDependencies ( $wgArticle->getID(), $conditionTypes, $conditions); 
+*/
+		}
+
+
         // The following requires an extra parser step which may consume some time
-        // we parse the DPL output and save all referenced found in that output in a global list
+        // we parse the DPL output and save all references found in that output in a global list
         // in a final user exit after the whole document processing we eliminate all these links
         // we use a local parser to avoid interference with the main parser
         
@@ -2771,31 +2831,29 @@ class DPLMain
             // we trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output
             // this allows us to remove these links from the link list later
             // If the article containing the DPL statement itself uses one of these links they will be thrown away!
-            foreach ($parserOutput->getLinks() as $link) {
-                foreach ($link as $key => $val) {
-                    ExtDynamicPageList::$createdLinks[0][$key]=$val;
-                    // $output.= "storing link $val($key).";
-                }
+            ExtDynamicPageList::$createdLinks[0]=array();
+            foreach ($parserOutput->getLinks() as $nsp => $link) {
+                ExtDynamicPageList::$createdLinks[0][$nsp]=$link;
             }
         }
         if ($bReset[5]) {	// TEMPLATES
-            foreach ($parserOutput->getTemplates() as $tpl) {
-                foreach ($tpl as $key => $val) {
-                    ExtDynamicPageList::$createdLinks[1][$key]=$val;
-                    // $output.= "storing use of template $val($key).";
-                }
+            ExtDynamicPageList::$createdLinks[1]=array();
+            foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
+                ExtDynamicPageList::$createdLinks[1][$nsp]=$tpl;
             }
         }
         if ($bReset[6]) {	// CATEGORIES
-            foreach ($parserOutput->mCategories as $catname => $catkey) {
-                ExtDynamicPageList::$createdLinks[2][$catname] = $catname;
-            }
+               ExtDynamicPageList::$createdLinks[2] = $parserOutput->mCategories;
         }
         if ($bReset[7]) {	// IMAGES
-            foreach ($parserOutput->mImages as $imgid => $dummy) {
-                ExtDynamicPageList::$createdLinks[3][$imgid] = $imgid;
-            }
+            ExtDynamicPageList::$createdLinks[3] = $parserOutput->mImages;
         }
+
+		// $file=fopen("d:/a1",'a');
+		// fwrite($file,$parser->mTitle->getPrefixedText().'   '.microtime()."\n");
+		// fclose($file);
+
+		// MyBug::trace(__CLASS__,'main END',$output);
 
         return $output;
         
@@ -2897,7 +2955,7 @@ class DPLMain
 		if (self::mkdirr($next_pathname)) { 
 			if (!file_exists($pathname)) return mkdir($pathname); 
 		} 
-		return false; 
+		return  false; 
 	}	
 	
 	private static function resolveUrlArg($input,$arg) {

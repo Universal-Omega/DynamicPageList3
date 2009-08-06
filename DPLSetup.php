@@ -346,9 +346,21 @@
  *			removed replacement of card suit symbols in SQL query due to collation incompatibilities
  *			added special logic to DPL_fromTitle: reversed sort order for backward scrolling
  *			changed default sort in DPL to 'titlewithoutnamespace (as this is more efficient than 'title')
- *			bugfix at ordermethod = titlewithoutnamespace (led to invalid SQL statements)
  * @version 1.8.6
- *
+ *			bugfix at ordermethod = titlewithoutnamespace (led to invalid SQL statements)
+ * @version 1.8.7
+ *			experimental calls to the CacheAPI; can be switched off by $useCacheAPI = false;
+ *			one can set option[eliminate] to 'all' in LocalSettings now as a default
+ *			editrulesnow takes several triples of 'parameter', 'value' and 'afterparm'
+ *			editrules can now produce a screen form to change template values
+ *			title< and title> now test for greater or less; if you want greater/equal the argument must start with "= "
+ *			the majority of the php modules are now only loaded if a page contains a DPL statement
+ *          added %DPL_findTitle%
+ *          first letter changed toUpper in %DPL_fromTitle%, %DPL_toTitle%, %DPL_findTitle%,
+ *			enhanced syntax for include : [limit text~skipPattern]
+ *			UNIQ-QINU Bug resolved
+ *			convert spaces to underscores in all category (regexp) statements
+ *			we convert html entities in the category command to avoid false interpretation of & as AND
  *
  *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
@@ -370,7 +382,11 @@ class ExtDynamicPageList
 
     public static $DPLVersion = '?';               // current version is set by DynamicPageList.php and DynamicPageListMigration.php
 
+	public static $useCacheAPI = true;				// decide whether we use another extension called CachePI which can help us
+													// to invalidate MediaWiki´s ParserCache if suitable
 
+	public static $modulesLoaded = false;			// php require_once control
+	
     /**
      * Extension options
      */
@@ -1040,8 +1056,6 @@ class ExtDynamicPageList
 
 		global $wgParser;
 
-		self::loadModules();
-
 		// DPL offers the same functionality as Intersection; so we register the <DynamicPageList> tag
 		// in case LabeledSection Extension is not installed we need to remove section markers
 
@@ -1057,7 +1071,6 @@ class ExtDynamicPageList
     }
 	
     public static function setupMigration() {
-		self::loadModules();
 
 		// DPL offers the same functionality as Intersection under the tag name <Intersection>
         global $wgParser;
@@ -1067,7 +1080,30 @@ class ExtDynamicPageList
     }
 
 	private static function commonSetup() {
+		
+        if (!isset(self::$createdLinks)) {
+            self::$createdLinks=array( 
+                'resetLinks'=> false, 'resetTemplates' => false, 
+                'resetCategories' => false, 'resetImages' => false, 'resetdone' => false , 'elimdone' => false );
+        }
 
+		// make sure page "Template:Extension DPL" exists
+        $title = Title::newFromText('Template:Extension DPL');
+		global $wgUser;
+		if (!$title->exists() && $wgUser->isAllowed('edit')) {
+			$article = new Article($title);
+			$article->doEdit( "<noinclude>This page was automatically created. It serves as an anchor page for ".
+							  "all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' ".
+							  "of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>",
+							  $title, EDIT_NEW | EDIT_FORCE_BOT );
+			die(header('Location: '.Title::newFromText('Template:Extension DPL')->getFullURL()));
+		}
+
+	}
+
+	private static function loadMessages() {
+		
+        require_once( 'DynamicPageList.i18n.php' );
 		global $wgMessageCache;
 
 
@@ -1088,36 +1124,22 @@ class ExtDynamicPageList
             self::$debugMinLevels[$i] = $minlevel;
         }
 
-        if (!isset(self::$createdLinks)) {
-            self::$createdLinks=array( 
-                'resetLinks'=> false, 'resetTemplates' => false, 
-                'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
-        }
-
-		// make sure page "Template:Extension DPL" exists
-        $title = Title::newFromText('Template:Extension DPL');
-		global $wgUser;
-		if (!$title->exists() && $wgUser->isAllowed('edit')) {
-			$article = new Article($title);
-			$article->doEdit( "<noinclude>This page was automatically created. It serves as an anchor page for ".
-							  "all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' ".
-							  "of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>",
-							  $title, EDIT_NEW | EDIT_FORCE_BOT );
-			die(header('Location: '.Title::newFromText('Template:Extension DPL')->getFullURL()));
-		}
-
 	}
 
 	private static function loadModules() {
+	
+		if (self::$modulesLoaded == true) return;
 		
-        // Page Transclusion, adopted from Steve Sanbeg´s LabeledSectionTransclusion
+		self::loadMessages();
+
         require_once( 'DynamicPageListInclude.php' );
-        require_once( 'DynamicPageList.i18n.php' );
         require_once( 'DPL.php' );
         require_once( 'DPLMain.php' );
         require_once( 'DPLArticle.php' );
         require_once( 'DPLListMode.php' );
         require_once( 'DPLLogger.php' );
+
+		self::$modulesLoaded = true;
 	}
 	
     public static function languageGetMagic( &$magicWords, $langCode ) {
@@ -1147,6 +1169,9 @@ class ExtDynamicPageList
     //------------------------------------------------------------------------------------- ENTRY parser TAG
     // The callback function wrapper for converting the input text to HTML output
     private static function executeTag( $input, $params, &$parser ) {
+
+		// late loading of php modules, only if needed
+		self::loadModules();
 
         // entry point for user tag <dpl>  or  <DynamicPageList>
         // create list and do a recursive parse of the output
@@ -1182,6 +1207,9 @@ class ExtDynamicPageList
 
     //------------------------------------------------------------------------------------- ENTRY parser FUNCTION #dpl
     public static function dplParserFunction(&$parser) {
+
+		// late loading of php modules, only if needed
+		self::loadModules();
 
 		self::behaveLikeIntersection(false);
 		
@@ -1302,74 +1330,13 @@ class ExtDynamicPageList
     } 
 
     private static function dumpParsedRefs($parser,$label) {
-        if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
-        $text="\n<pre>$label:\n";
-    /*
-        $text.="  control:";
-        foreach (self::$createdLinks as $key => $val) {
-            if (is_array($val)) continue;
-            $text.=  "$val($key),";
-        }
-        $text.="\n";
-    */
-        $text.="  categories:";
-        foreach ($parser->mOutput->mCategories as $key => $val ) {
-            $text .= "$val($key),";
-        }
-        $text.="\n";
-        if (array_key_exists(2,self::$createdLinks)) {
-            $text.="  CATEGORIES:";
-            foreach (self::$createdLinks[2] as $val ) {
-                $text .= "$val,";
-            }
-            $text.="\n";
-        }
-        $text.="  links:";
-        foreach ($parser->mOutput->mLinks as $lkey => $lval ) {
-            $text .= "$lval($lkey)={";
-            foreach ($lval as $key => $val ) {
-                $text .= "$val($key),";
-            }
-            $text .= "},";
-        }
-        $text.="\n";
-        if (array_key_exists(0,self::$createdLinks)) {
-            $text.="  LINKS:";
-            foreach (self::$createdLinks[0] as $val ) {
-                $text .= "$val,";
-            }
-            $text.="\n";
-        }
-        $text.="  templates:";
-        foreach ($parser->mOutput->mTemplates as $tkey => $tval ) {
-            $text .= "$tval($tkey)={";
-            foreach ($tval as $key => $val ) {
-                $text .= "$val($key),";
-            }
-            $text .= "},";
-        }
-        $text.="\n";
-        if (array_key_exists(1,self::$createdLinks)) {
-            $text.="  TEMPLATES:";
-            foreach (self::$createdLinks[1] as $val ) {
-                $text .= "$val,";
-            }
-            $text.="\n";
-        }
-        $text.="  images:";
-        foreach ($parser->mOutput->mImages as $key => $val ) {
-            $text .= "$val($key),";
-        }
-        $text.="\n";
-        if (array_key_exists(3,self::$createdLinks)) {
-            $text.="  IMAGES:";
-            foreach (self::$createdLinks[3] as $val ) {
-                $text .= "$val,";
-            }
-            $text.="\n";
-        }
-        $text.="</pre>\n";
-        return $text;
+        //if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
+		echo '<pre>parser mLinks: ';
+		ob_start(); var_dump($parser->mOutput->mLinks);	$a=ob_get_contents(); ob_end_clean(); echo htmlspecialchars($a,ENT_QUOTES);
+		echo '</pre>';
+		echo '<pre>parser mTemplates: ';
+		ob_start(); var_dump($parser->mOutput->mTemplates);	$a=ob_get_contents(); ob_end_clean(); echo htmlspecialchars($a,ENT_QUOTES);
+		echo '</pre>';
     }
 
     //remove section markers in case the LabeledSectionTransclusion extension is not installed.
@@ -1391,54 +1358,59 @@ class ExtDynamicPageList
     }
 
     public static function endEliminate( &$parser, &$text ) {
+
         // called during the final output phase; removes links created by DPL
-        if (isset(self::$createdLinks) || !self::$createdLinks['elimdone']) {
-            self::$createdLinks['elimdone'] = true;
-            // $text .= self::dumpParsedRefs($parser,"before final eliminate");
-            if (isset(self::$createdLinks) && array_key_exists(0,self::$createdLinks)) {
-                foreach ($parser->mOutput->getLinks() as $linkKey => $link) {
-                    foreach ($link as $key => $val) {
-                        if (array_key_exists($key,self::$createdLinks[0])) {
-                            unset($parser->mOutput->mLinks[$linkKey][$key]);
-                            // $text .= "removing link: $val($key);";
-                        }
-                    }
-                    if (count($parser->mOutput->mLinks[$linkKey])==0) {
-                        unset ($parser->mOutput->mLinks[$linkKey]);
-                    }
+        if (isset(self::$createdLinks)) {
+			// self::dumpParsedRefs($parser,"before final eliminate");
+            if (array_key_exists(0,self::$createdLinks)) {
+                foreach ($parser->mOutput->getLinks() as $nsp => $link) {
+					if (!array_key_exists($nsp,self::$createdLinks[0])) continue;
+					// echo ("<pre> elim: created Links [$nsp] = ". count(ExtDynamicPageList::$createdLinks[0][$nsp])."</pre>\n");
+					// echo ("<pre> elim: parser  Links [$nsp] = ". count($parser->mOutput->mLinks[$nsp])            ."</pre>\n");
+					$parser->mOutput->mLinks[$nsp] = array_diff_assoc($parser->mOutput->mLinks[$nsp],self::$createdLinks[0][$nsp]);
+					// echo ("<pre> elim: parser  Links [$nsp] nachher = ". count($parser->mOutput->mLinks[$nsp])     ."</pre>\n");
+					if (count($parser->mOutput->mLinks[$nsp])==0) unset ($parser->mOutput->mLinks[$nsp]);
                 }
             }
             if (isset(self::$createdLinks) && array_key_exists(1,self::$createdLinks)) {
-                foreach ($parser->mOutput->getTemplates() as $tplKey => $tpl) {
-                    foreach ($tpl as $key => $val) {
-                        if (in_array($val,self::$createdLinks[1])) {
-                            unset($parser->mOutput->mTemplates[$tplKey][$key]);
-                            // $text .= "removing use of template: $val($key);";
-                        }
-                    }
-                    if (count($parser->mOutput->mTemplates[$tplKey])==0) {
-                        unset ($parser->mOutput->mTemplates[$tplKey]);
-                    }
+                foreach ($parser->mOutput->mTemplates as $nsp => $tpl) {
+					if (!array_key_exists($nsp,self::$createdLinks[1])) continue;
+					// echo ("<pre> elim: created Tpls [$nsp] = ". count(ExtDynamicPageList::$createdLinks[1][$nsp])."</pre>\n");
+					// echo ("<pre> elim: parser  Tpls [$nsp] = ". count($parser->mOutput->mTemplates[$nsp])            ."</pre>\n");
+					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc($parser->mOutput->mTemplates[$nsp],self::$createdLinks[1][$nsp]);
+					// echo ("<pre> elim: parser  Tpls [$nsp] nachher = ". count($parser->mOutput->mTemplates[$nsp])     ."</pre>\n");
+					if (count($parser->mOutput->mTemplates[$nsp])==0) unset ($parser->mOutput->mTemplates[$nsp]);
                 }
             }
             if (isset(self::$createdLinks) && array_key_exists(2,self::$createdLinks)) {
-                foreach (self::$createdLinks[2] as $cat) {
-                    unset($parser->mOutput->mCategories[$cat]);
-                    // $text .= "removing cat: $cat;";
-                }
+				$parser->mOutput->mCategories = array_diff_assoc($parser->mOutput->mCategories,self::$createdLinks[2]);
             }
             if (isset(self::$createdLinks) && array_key_exists(3,self::$createdLinks)) {
-                foreach (self::$createdLinks[3] as $img) {
-                    unset($parser->mOutput->mImages[$img]);
-                    // $text .= "removing img: $img;";
-                }
+				$parser->mOutput->mImages = array_diff_assoc($parser->mOutput->mImages,self::$createdLinks[3]);
             }
             // $text .= self::dumpParsedRefs($parser,"after final eliminate".$parser->mTitle->getText());
         }
-        self::$createdLinks=array( 
-                'resetLinks'=> false, 'resetTemplates' => false, 
-                'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
+
+        //self::$createdLinks=array( 
+        //        'resetLinks'=> false, 'resetTemplates' => false, 
+        //        'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
         return true;
     }
+
+}
+
+class MyBug {
+
+	static function trace($class,$label,$msg) {
+		$fileName = dirname(__FILE__).'/MyBug';
+		if ($class=='') {
+			if (file_exists($fileName)) unlink(dirname(__FILE__).'/MyBug');
+			return;
+		}
+		$bugFile=fopen($fileName,'a');
+		fwrite($bugFile,"$class -------------------------------------------------------------------------------------------- $label\n");
+		fwrite($bugFile,$msg."\n");
+		fclose($bugFile);	
+	}
 
 }

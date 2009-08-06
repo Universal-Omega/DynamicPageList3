@@ -40,7 +40,7 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupMigration' )
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
-$DPLVersion = '1.8.6';
+$DPLVersion = '1.8.7';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,
@@ -60,4 +60,3 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 // be extremely restrictive by default: do not allow anything that goes beyond Extension:Intersection
 // can be extended by a different call to this function in LocalSettings.php after the require_once()
 ExtDynamicPageList::setFunctionalRichness(0);
-

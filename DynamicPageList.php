@@ -14,7 +14,7 @@
 	
         ExtDynamicPageList::setFunctionalRichness(  <n>  );
 		
-	where <n> is a number between 0 and 3.  
+	where <n> is a number between 0 and 4.  
 		
 	If your wiki has been using Extension:Intersection you must UNINSTALL that 
 	extension before you can use DynamicPageList (DPL).
@@ -36,7 +36,7 @@
 	on your server / database. For wikis up to 10.000 pages this is normally not a problem, 
 	but with larger wikis some care is advisable.
 
-	By default the RichnessLevel is set to 3 (= activate whole set of functions).
+	By default the RichnessLevel is set to 4 (= activate whole set of functions).
 
 	Use a different value if you do not feel comfortable with this:
 	-  level=0 will not allow any additional functionality (compared to Extension:Intersection).
@@ -59,16 +59,16 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupDPL' );
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
-$DPLVersion = '1.8.6';
+$DPLVersion = '1.8.7';
 
 $wgExtensionCredits['parserhook'][] = array(
-	'path' 				=> __FILE__,
-	'name' 				=> 'DynamicPageList',
-	'author' 			=>  '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
-	'url' 				=> 'http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
-	'description' 		=> 'A highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
-	'descriptionmsg' 	=> 'dpl-desc',
-  	'version' 			=> $DPLVersion
+	'path'           => __FILE__,
+	'name'           => 'DynamicPageList',
+	'author'         => '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
+	'url'            => 'http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
+	'description'    => 'A highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
+	'descriptionmsg' => 'dpl-desc',
+  	'version'        => $DPLVersion
   );
 
 require_once( 'DPLSetup.php' );
@@ -77,3 +77,5 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
 // use full functionality by default
 ExtDynamicPageList::setFunctionalRichness(4);
+
+// MyBug::trace('','','');

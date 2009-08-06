@@ -93,6 +93,8 @@
  *			removal of html-comments within template calls
  * @version 1.8.5
  *			includeTemplate understands parser function syntax now
+ * @version 1.8.7
+ *			UNIQ-QINU-Bug: replaced parser->replaceVariables by parser->preprocess
  
  */
 
@@ -133,7 +135,7 @@ class DPLInclude
      * Handle recursive substitution here, so we can break cycles, and set up
      * return values so that edit sections will resolve correctly.
      **/
-    private static function parse($parser, $title, $text, $part1, $skiphead=0, $recursionCheck=true, $maxLength=-1, $link='', $trim=false) 
+    private static function parse($parser, $title, $text, $part1, $skiphead=0, $recursionCheck=true, $maxLength=-1, $link='', $trim=false, $skipPattern='') 
     {
       global $wgVersion;
 
@@ -141,6 +143,11 @@ class DPLInclude
       // text, may as well do the right thing.
       $text = str_replace('</section>', '', $text);
 
+	  // if desired we remove portions of the text, esp. template calls
+	  if ($skipPattern!='') {
+		$text=preg_replace($skipPattern,'',$text);
+	  }
+    
 
       if (self::open($parser, $part1)) {
 
@@ -150,10 +157,11 @@ class DPLInclude
         //release, so this is close enough.
     
         if(version_compare( $wgVersion, "1.9" ) < 0 || $recursionCheck == false) {
-          $text = $parser->replaceVariables($text);
-          self::close($parser, $part1);
+			
+			$text = $parser->preprocess($text,$parser->mTitle,$parser->mOptions);
+			self::close($parser, $part1);
         }
-    
+		
         if ($maxLength>0) {
             $text = self::limitTranscludedText($text,$maxLength,$link);
         }
@@ -214,7 +222,7 @@ class DPLInclude
       return preg_match_all( "/$pat/im", substr($text,0,$limit), $m);
     }
     
-    private static function text($parser, $page, &$title, &$text) 
+    public static function text($parser, $page, &$title, &$text) 
     {
       $title = Title::newFromText($page);
       
@@ -235,7 +243,7 @@ class DPLInclude
     }
     
     ///section inclusion - include all matching sections
-    public static function includeSection($parser, $page='', $sec='', $to='', $recursionCheck=true, $trim=false) {
+    public static function includeSection($parser, $page='', $sec='', $to='', $recursionCheck=true, $trim=false, $skipPattern='') {
 	  	$output = array();
       	if (self::text($parser, $page, $title, $text) == false) {
 	    	$output[] = $text;
@@ -247,7 +255,7 @@ class DPLInclude
     	preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER);
       
     	foreach ($m[2] as $nr=>$piece)  {
-	    	$piece = self::parse($parser,$title,$piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim);
+	    	$piece = self::parse($parser,$title,$piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern);
 	    	if ($any) $output[] = $m[1][$nr].'::'.$piece;
 	    	else 	  $output[] = $piece;
     	}
@@ -297,7 +305,7 @@ class DPLInclude
     }
 
     public static function includeHeading($parser, $page='', $sec='', $to='', &$sectionHeading, $recursionCheck=true, $maxLength=-1,
-    									  $link='default', $trim=false)
+    									  $link='default', $trim=false, $skipPattern='')
     {
       $output=array();
       if (self::text($parser, $page, $title, $text) == false) {
@@ -305,12 +313,12 @@ class DPLInclude
         return $output;
       }
 
-      return self::extractHeadingFromText($parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim);
+      return self::extractHeadingFromText($parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern);
     }
 
     //section inclusion - include all matching sections (return array)
     public static function extractHeadingFromText($parser, $page, $title, $text, $sec='', $to='', &$sectionHeading, $recursionCheck=true, 
-    											  $maxLength=-1, $link='default', $trim=false) {
+    											  $maxLength=-1, $link='default', $trim=false, $skipPattern='' ) {
       
       // create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
       if      ($link=='default')                 $link = ' [['.$page.'#'.$sec.'|..&rarr;]]';
@@ -355,7 +363,7 @@ class DPLInclude
         if ($nr==-2) {
             // output text before first section and done
             $piece = substr($text,0,$m[1][1]-1); 
-            $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim);
+            $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern);
             return $output;
         }
         
@@ -404,20 +412,21 @@ class DPLInclude
         else $sectionHeading[$n] = '';
         if ($nr==1) {
             // output n-th section and done
-            $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim);
+            $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern);
             break;
         }
         if ($nr==-1) {
             if (!isset($end_off)) {
                 // output last section and done
-                $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim);
+                $output[0] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern);
                 break;
             }
         } else {
             // output section by name and continue search for another section with the same name
-            $output[$n++] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim);
+            $output[$n++] = self::parse($parser,$title,$piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern);
         }
       } while ($continueSearch);
+
       return $output;
     }
     
@@ -436,7 +445,7 @@ class DPLInclude
         $user = $article->mUserLink;
         $title = Title::newFromText($page);
         $text = $parser->fetchTemplate($title);
-		
+
 		if ($template1 != '' && $template1[0]=='#') {
 			$template1=substr($template1,1);
 			$template2=substr($template2,1);
@@ -490,7 +499,9 @@ class DPLInclude
                 else $output[0]=$dpl->formatTemplateArg('',$dplNr,0,true,-1);
             } else {
                 // put a red link into the output
-                $output[0]= $parser->replaceVariables('{{'.$defaultTemplate.'|%PAGE%='.$page.'|%TITLE%='.$title->getText().'|%DATE%='.$date.'|%USER%='.$user.'}}');
+                $output[0]= $parser->preprocess(
+					'{{'.$defaultTemplate.'|%PAGE%='.$page.'|%TITLE%='.$title->getText().'|%DATE%='.$date.'|%USER%='.$user.'}}',
+					$parser->mTitle,$parser->mOptions);
             }
             return $output;
         }
@@ -519,9 +530,9 @@ class DPLInclude
                         // if we must match a condition: test against it
                         if (($mustMatch   =='' ||  preg_match($mustMatch,substr($templateCall,0,$i-1))) && 
                             ($mustNotMatch=='' || !preg_match($mustNotMatch,substr($templateCall,0,$i-1)))) {
-                            $output[++$n] = $parser->replaceVariables(substr($templateCall,0,$i-1).
-                                '|%PAGE%='.$page.'|%TITLE%='.$title->getText().'|%DATE%='.$date.'|%USER%='.$user.'}}');
-                        }
+                            $output[++$n] = $parser->preprocess(substr($templateCall,0,$i-1).
+                                '|%PAGE%='.$page.'|%TITLE%='.$title->getText().'|%DATE%='.$date.'|%USER%='.$user.'}}',$parser->mTitle,$parser->mOptions);
+						}
                         break;
                     }
                 }
@@ -534,6 +545,7 @@ class DPLInclude
                 $parms=array();
                 $parm='';
                 $hasParm=false;
+
                 for ($i=0; $i<$size;$i++) {
                     $c = $templateCall[$i];
                     if ($c == '{' || $c=='[') $cbrackets++; // we count both types of brackets
