@@ -61,6 +61,10 @@ class DPL {
 		//			$this->parent  = $other->parent;
 		//		}
 		$this->mParser = clone $parser;
+		// clear state of cloned parser; if the above patch of LinkHoldersArray is not made this
+		// can lead to links not being shown in the original document (probably the UIQ_QINU-tags no longer
+		// get replaced properly; in combination with the patch however, it does not do any harm.
+		$this->mParser->clearState();
 		$this->mParserOptions = $parser->mOptions;
 		$this->mParserTitle = $parser->mTitle;
 		
@@ -381,7 +385,12 @@ class DPL {
 							}
 
 							$this->formatSingleItems($secPieces,$s);
-							if (!array_key_exists(0,$secPieces)) break;  # to avoid matching against a non-existing array element
+							if (!array_key_exists(0,$secPieces)) {
+								// avoid matching against a non-existing array element
+								// and skip the article if there was a match condition
+								if ($mustMatch!='' || $mustNotMatch!='') $matchFailed=true;
+								break;  
+							}
 							$secPiece[$s] = $secPieces[0];
 							for ($sp=1;$sp<count($secPieces);$sp++) {
 								if (isset($mode->aMultiSecSeparators[$s])) { 
@@ -575,8 +584,8 @@ class DPL {
 		$value=array();
 		$afterparm=array();
 		$format=array();
-		$submit=array();
-		$commit=array();
+		$preview=array();
+		$save=array();
 		$tooltip=array();
 		$optional=array();
 		
@@ -588,6 +597,7 @@ class DPL {
 		$hidden=array();
 		$legendPage='';
 		$table='';
+		$fieldFormat='';
 		
 		// $message .= 'updaterules=<pre><nowiki>';
 		$nr = -1;
@@ -634,6 +644,7 @@ class DPL {
 			if ($cmd[0] == 'afterparm') $afterparm[$nr] = array($arg);
 			if ($cmd[0] == 'legend') 	$legendPage = $arg;
 			if ($cmd[0] == 'table') 	$table = $arg;
+			if ($cmd[0] == 'field') 	$fieldFormat = $arg;
 			
 			if ($cmd[0] == 'replace') 	$replaceThis=$arg;
 			if ($cmd[0] == 'by') 		$replacement=$arg;
@@ -641,11 +652,11 @@ class DPL {
 			if ($cmd[0] == 'editform') 	$editForm=$arg;
 			if ($cmd[0] == 'action') 	$action=$arg;
 			if ($cmd[0] == 'hidden') 	$hidden[]=$arg;
-			if ($cmd[0] == 'submit') 	$submit[]=$arg;
-			if ($cmd[0] == 'commit') 	$commit[]=$arg;
+			if ($cmd[0] == 'preview') 	$preview[]=$arg;
+			if ($cmd[0] == 'save') 		$save[]=$arg;
 
 			if ($cmd[0] == 'summary') 	$summary=$arg;
-			if ($cmd[0] == 'exec') 		$exec=$arg; 	// we execute only if "exec" is 'save' or 'preview', otherwise we show an edit dialogue		
+			if ($cmd[0] == 'exec') 		$exec=$arg; 	// desired action (set or edit or preview)		
 		}
 		
 		if ($summary=='') {
@@ -673,7 +684,7 @@ class DPL {
 
 		// deal with template parameters =================================================
 
-		global $wgRequest;
+		global $wgRequest, $wgUser;
 		
 		if ($template!='') {
 
@@ -682,14 +693,14 @@ class DPL {
 				$legendText='';
 				if ($legendPage!='') {
 					$legendTitle='';				
-					global $wgParser;
+					global $wgParser, $wgUser;
 					$parser = clone $wgParser;
 					DPLInclude::text($parser, $legendPage, $legendTitle, $legendText);
 					$legendText = preg_replace('/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s','',$legendText);
 					$legendText = preg_replace('/\<section\s+end\s*=\s*legend\s*\/\>.*/s','',$legendText);
 				}
 				// construct an edit form containing all template invocations
-				$form="<html><form action=\"$action\" $editForm>\n";
+				$form="<html><form method=post action=\"$action\" $editForm>\n";
 				foreach ($tpv as $call => $tplValues) {
 					$form .= "<table $table>\n";
 					foreach ($parameter as $nr => $parm) {
@@ -706,20 +717,21 @@ class DPL {
 							}
 						}
 						$myValue=''; if (array_key_exists($parm,$tpv[$call])) $myValue=$tpv[$call][$parm];
-						$form .= $this->editTemplateCall($text,$template,$call,$parm,$myValue,$myFormat,$myToolTip,$myOptional);
+						$form .= $this->editTemplateCall($text,$template,$call,$parm,$myValue,$myFormat,$myToolTip,$myOptional,$fieldFormat);
 					}
 					$form .= "</table>\n<br/><br/>";
 				}
 				foreach($hidden as $hide) {
-					$form.=	"<input type=hidden ".$hide." /> ";
+					$form.=	"<input type=hidden ".$hide." />";
 				}
-				foreach($submit as $subm) {
-					$form.=	"<input type=submit ".$subm." /> ";
+				$form.=	"<input type=hidden name=\"token\" value=\"".$wgUser->editToken()."\" />";
+				foreach($preview as $prev) {
+					$form.=	"<input type=submit ".$prev." /> ";
 				}
 				$form .= "</form></html>\n";
 				return $form;
 			}
-			else if ($exec=='set' || $exec=='save' || $exec=='preview') {
+			else if ($exec=='set' || $exec=='preview') {
 				// loop over all invocations and parameters, this could be improved to enhance performance
 				$matchCount=10;
 				for ($call=0; $call<10; $call++) {
@@ -737,46 +749,69 @@ class DPL {
 					if ($exec=='set') break;  // values taken from dpl text only populate the first invocation
 				}
 			}
-			else if ($exec=='commit') {
-				// we expect the contents of an article to be saved
-				$text=$wgRequest->getVal('pageText','');
-				if ($text=='') return "DPL: no 'pageText' found.";
-				else {
-					$titleX = Title::newFromText($title);
-					global $wgArticle;
-					$wgArticle = $articleX = new Article($titleX);
-					$articleX->updateArticle($text, $summary, false, $titleX->userIsWatching());
-					return '';
-				}
-			}
 		}
 		
+		if 	($exec=='set')	{
+			return $this->updateArticle($title,$text,$summary);
+		}
+		else if ($exec=='preview'){
+			global $wgScriptPath,$wgRequest;
+			$titleX = Title::newFromText($title);
+			$articleX = new Article($titleX);
+			$form ='<html><form id="editform" name="editform" method="post" action="'.$wgScriptPath . '/index.php?title='.urlencode($title).'&action=submit" '
+			.'enctype="multipart/form-data">'."\n"
+			.'<input type="hidden" value="" name="wpSection" />'."\n"
+			.'<input type="hidden" value="'. wfTimestampNow() . '" name="wpStarttime" />'."\n"
+			.'<input type="hidden" value="'.$articleX->getTimestamp() .'" name="wpEdittime" />'."\n"
+			.'<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />'."\n"
+			.'<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="'.$wgUser->getIntOption( 'rows' )
+			.'" cols="'.$wgUser->getIntOption( 'cols' ).'" >'
+			.htmlspecialchars($text)
+			.'</textarea>'."\n"
+			.'<input type="hidden" name="wpSummary value="'.$summary.'" id="wpSummary" />'
+			.'<input name="wpAutoSummary" type="hidden" value="" />'
+			.'<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />'
+			.'<input type="hidden" value="'.$wgRequest->getVal('token').'" name="wpEditToken" />'."\n"
+			.'</form></html>'."\n";
+			return $form;
+		}
+		return "exec must be one of the following: edit, preview, set";
+    }
+	
+	function updateArticle($title, $text, $summary) {
+		global $wgUser, $wgRequest, $wgArticle, $wgOut;
+
+		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
+			$wgOut->addWikiMsg( 'sessionfailure' );
+			return 'session failure';
+		}
+
 		$titleX = Title::newFromText($title);
-		global $wgArticle;
+
 		$wgArticle = $articleX = new Article($titleX);
-		if 		($exec=='save' || $exec=='set')	{
+		$permission_errors = $articleX->mTitle->getUserPermissionsErrors( 'edit', $wgUser );
+		if (count($permission_errors)==0) {
 			$articleX->updateArticle($text, $summary, false, $titleX->userIsWatching());
 			return '';
 		}
-		else if ($exec=='preview'){
-			$form ="<html><form action=\"$action\" $editForm>\n";
-			$form.= "<textarea name=pageText rows=30 cols=100>".htmlspecialchars($text)."</textarea>";
-			foreach($hidden as $hide) {
-				$form.=	"<input type=hidden ".$hide." /> ";
-			}
-			foreach($commit as $comm) {
-					$form.=	"<input type=submit ".$comm." /> ";
-				}
-			$form .= "</form></html>\n";
-			return $form;
+		else {
+			$wgOut->showPermissionsErrorPage( $permission_errors );
+			return 'permission error';
 		}
-		return "exec must be one of the following: edit, preview, save, set, commit";
-    }
-
-  	function editTemplateCall($text,$template,$call,$parameter,$value,$format,$tooltip,$optional) {
-		return "<tr><td align=\"right\" title=\"".htmlspecialchars($tooltip)."\">".str_replace('_',' ',$parameter)."</td><td><textarea name=\"".
-				urlencode($call.'_'.$parameter)."\" $format/>".htmlspecialchars($value)."</textarea></td>".
-				"<td><small>$tooltip</small></td></tr>";
+	}
+	
+  	function editTemplateCall($text,$template,$call,$parameter,$value,$format,$tooltip,$optional,$fieldFormat) {
+		$matches=array();
+		$nlCount = preg_match_all('/\n/',$value,$matches);
+		if ($nlCount>0) $rows= $nlCount+1;
+		else $rows = floor(strlen($value) / 50) + 1;
+		if (preg_match('/rows\s*=/',$format)<=0) $format.= " rows=$rows";
+		$cols=50;
+		if (preg_match('/cols\s*=/',$format)<=0) $format.= " cols=$cols";
+		$textArea = "<textarea name=\"".urlencode($call.'_'.$parameter)."\" $format/>".htmlspecialchars($value)."</textarea>";
+		return  str_replace('%NAME%', htmlspecialchars(str_replace('_',' ',$parameter)),
+					str_replace('%INPUT%', $textArea,
+						str_replace('%LEGEND%', "</html>".htmlspecialchars($tooltip)."<html>",$fieldFormat)));
     }
 
 	/**
@@ -838,7 +873,7 @@ class DPL {
 	* Changes a single parameter value within a certain call of a tempplate
 	*/
   	function updateTemplateCall(&$matchCount, $text,$template,$call,$parameter,$value,$afterParm,$optional) {
-		
+	
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value=='') return $text;
 		
@@ -870,9 +905,9 @@ class DPL {
 					// there is already a list of parameters; we search to the end of the template call
 					$cbrackets=2;
 					$parm='';
-					$pos=$start+strlen($match);
+					$pos=$start+strlen($match)-1;
 					$textLen = strlen($text);
-					for ($i=$pos; $i<$textLen;$i++) {
+					for ($i=$pos+1; $i<$textLen;$i++) {
 						$c = $text[$i];
 						if ($c == '{' || $c=='[') $cbrackets++; // we count both types of brackets
 						if ($c == '}' || $c==']') $cbrackets--;
@@ -888,9 +923,20 @@ class DPL {
 									$parmValue=trim($token[1]);
 									if ($parmValue==$value) break; // no need to change when values are identical
 									// keep spaces;
-									$substitution = str_replace($parmValue,$value,$token[1]);
-									$beginSubst=$pos+strlen($token[0])+1;
+									if ($parmValue=='') {
+										if (strlen($token[1])>0 && $token[1][strlen($token[1])-1]=="\n") {
+											$substitution=str_replace ("\n",$value."\n",$token[1]);
+										}
+										else {
+											$substitution=$value.$token[1];
+										}
+									}
+									else {
+										$substitution = str_replace($parmValue,$value,$token[1]);
+									}
+									$beginSubst=$pos+strlen($token[0])+2;
 									$endSubst=$i;
+									// MyBug::trace(__CLASS__,'split',"pos=$pos,substitution=$substitution,...$token[0]...$token[1]...");
 									break;
 								}
 								else {
@@ -935,11 +981,20 @@ class DPL {
 		}
 
 		if ($beginSubst<0) return $text;
+		// MyBug::trace(__CLASS__,'updParm',"at $beginSubst,$endSubst : .1.".substr($text,$beginSubst-10,10)
+		//		.".2.".substr($text,$beginSubst,$endSubst-$beginSubst).".3.".substr($text,$endSubst,10).".4.$substitution.5.");
+
 		return  substr($text,0,$beginSubst).$substitution.substr($text,$endSubst);
 		
     }
 
   	function deleteArticleByRule($title,$text,$rulesText) {
+		
+		global $wgUser, $wgOut;
+		
+		// return "deletion of articles by DPL is disabled.";
+		
+		
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText = str_replace(";",'°',$rulesText);
@@ -949,7 +1004,12 @@ class DPL {
 		$exec=false;
 		$message= '';
 		$reason='';
+
+
 		foreach ($rules as $rule) {
+			if (preg_match('/^\s*#/',$rule)>0) continue;  // # is comment symbol
+			
+			$rule=preg_replace('/^[\s]*/','',$rule); // strip leading white space
 			$cmd = preg_split("/ +/",$rule,2);
 			if (count($cmd)>1) $arg = $cmd[1];
 			else				$arg='';
@@ -969,7 +1029,21 @@ class DPL {
 		$titleX = Title::newFromText($title);
 		global $wgArticle;
 		$wgArticle = $articleX = new Article($titleX);
-		if ($exec) $articleX->doDelete($reason);
+		if ($exec) {
+			# Check permissions
+			$permission_errors = $articleX->mTitle->getUserPermissionsErrors( 'delete', $wgUser );
+			if (count($permission_errors)>0) {
+				$wgOut->showPermissionsErrorPage( $permission_errors );
+				return 'permission error';
+			}
+			else if ( wfReadOnly() ) {
+				$wgOut->readOnlyPage();
+				return 'DPL: read only mode';
+			}
+			else {
+				$articleX->doDelete($reason);
+			}
+		}
 		else $message .= "set 'exec yes' to delete &nbsp; &nbsp; <big>'''$title'''</big>\n";
 		$message .= "<pre><nowiki>"
 			."\n".$text."</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";

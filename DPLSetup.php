@@ -361,7 +361,14 @@
  *			UNIQ-QINU Bug resolved
  *			convert spaces to underscores in all category (regexp) statements
  *			we convert html entities in the category command to avoid false interpretation of & as AND
- *
+ * @version 1.8.8
+ *			offset by one error in updaterules corrected
+ *			bugfix in checking includematch on chapter content
+ *			made size of edit fields depend on value size
+ *			deleterules: does some kind of permission checking now
+ *			various improvements in template editing (calling the edit page now for the real update)
+ *			call to parser->clearState() inserted; does this solve the UNIQ-QINU problem without a patch to LnkHolderArray ??
+ *			
  *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
 
