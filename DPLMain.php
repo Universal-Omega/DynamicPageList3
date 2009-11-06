@@ -21,7 +21,7 @@ class DPLMain
         global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgRawHtml;
         global $wgTitle, $wgArticle, $wgNonincludableNamespaces;
 		
-		// we use "makeKnownLinkObject" to create hyperlinbks; 
+		// we use "makeKnownLinkObject" to create hyperlinks; 
 		// the code we store in the dplcache may contain <html>....</html> sequences
 		// for both reasons we need to enable rawHtml output
 		// note that this does not affect the article wiki source - a <html> tag in the wiki source
@@ -83,6 +83,8 @@ class DPLMain
         }	
         
 		// check parameters which can be set via the URL
+		
+		self::getUrlArgs();
 
 		if (strpos($input,'{%DPL_') >= 0) {
 			for($i=1;$i<=5;$i++) {
@@ -90,10 +92,10 @@ class DPLMain
 			}
 		}
 
+
 		$_sOffset=$wgRequest->getVal('DPL_offset',ExtDynamicPageList::$options['offset']['default']);
         $iOffset  = ($_sOffset == '') ? 0: intval($_sOffset);
     
-		$sCount = $wgRequest->getVal('DPL_count','');
 		$iCount = -1;
 		
 		// commandline parameters like %DPL_offset% are replaced
@@ -103,17 +105,14 @@ class DPLMain
 		$input = self::resolveUrlArg($input,'DPL_findTitle');
 		$input = self::resolveUrlArg($input,'DPL_toTitle');
 
-		$sTitleGE  = $wgRequest->getVal('DPL_fromTitle','');
-		if (strlen($sTitleGE)>0) $sTitleGE[0] = strtoupper($sTitleGE[0]);
-		// findTitle has priority over fromTitle
-		$findTitle = $wgRequest->getVal('DPL_findTitle','');
-		if (strlen($findTitle)>0) $findTitle[0] = strtoupper($findTitle[0]);
-		if ($findTitle !='') $sTitleGE = '=_'.$findTitle;
-		$sTitleLE  = $wgRequest->getVal('DPL_toTitle','');
-		if (strlen($sTitleLE)>0) $sTitleLE[0] = strtoupper($sTitleLE[0]);
-		$sTitleGE = str_replace(' ','_',$sTitleGE);
-		$sTitleLE = str_replace(' ','_',$sTitleLE);
-		$scrollDir = $wgRequest->getVal('DPL_scrollDir','');
+		// variables needed for scrolling
+		$sCount       = '';
+		$sCountScroll = '';
+		$sTitleGE     = '';
+		$findTitle    = '';
+		$sTitleLE     = '';
+		$scrollDir    = '';
+
 
 		$originalInput = $input;
 
@@ -176,6 +175,8 @@ class DPLMain
         
         $bEscapeLinks = ExtDynamicPageList::$options['escapelinks']['default'];
         $bSkipThisPage= ExtDynamicPageList::$options['skipthispage']['default'];
+
+        $sHiddenCategories = ExtDynamicPageList::$options['hiddencategories']['default'];
         
         $sMinorEdits = NULL;
         $acceptOpenReferences = self::argBoolean(ExtDynamicPageList::$options['openreferences']['default']);
@@ -290,6 +291,8 @@ class DPLMain
         
         $_sIncludeMaxLen = ExtDynamicPageList::$options['includemaxlength']['default'];
         $iIncludeMaxLen = ($_sIncludeMaxLen == '') ? NULL: intval($_sIncludeMaxLen);
+
+        $bScroll = self::argBoolean(ExtDynamicPageList::$options['scroll']['default']);
         
         $aLinksTo       = array();
         $aNotLinksTo    = array();
@@ -414,11 +417,13 @@ class DPLMain
                     }
                     foreach($aParams as $sParam) {
                         $sParam=trim($sParam);
-                        if($sParam == '') { // include uncategorized pages (special value: empty string)
+                        if($sParam == '') { // ignore empty line
+                        } else if($sParam == '_none_') { // include uncategorized pages (special value: empty string)
+							$aParams[$sParam]='';
                             $bIncludeUncat = true;
                             $aCategories[] = '';
                         } else {
-                            if ($sParam[0]=='*') {
+                            if ($sParam[0]=='*' && strlen($sParam)>=2) {
 								if ($sParam[1]=='*') 	$sParamList = explode('|',self::getSubcategories(substr($sParam,2),$sPageTable,2));
                                 else					$sParamList = explode('|',self::getSubcategories(substr($sParam,1),$sPageTable,1));
                                 foreach ($sParamList as $sPar) {
@@ -447,6 +452,13 @@ class DPLMain
                         if($bNotHeading)	$aCatNotHeadings = array_unique($aCatNotHeadings + $aCategories);
                         $bConflictsWithOpenReferences=true;
                     }
+                    break;
+				case 'hiddencategories':
+                    if( in_array($sArg, ExtDynamicPageList::$options['hiddencategories']) ) {
+						$sHiddenCategories = $sArg;
+                    }
+                    else
+                        $output .= $logger->msgWrongParam('hiddencategories', $sArg);
                     break;
                 case 'notcategory':
                     $title = Title::newFromText($localParser->transformMsg($sArg, $pOptions));
@@ -597,7 +609,8 @@ class DPLMain
                 case 'execandexit':
                     // we offer a possibility to execute a DPL command without querying the database
 					// this is useful if you want to catch the command line parameters DPL_arg1,... etc
-                    $sExecAndExit = $sArg;
+					// in this case we prevent the parser cache from being disabled by later statements
+					$sExecAndExit = $sArg;
                     break;
 				 
 				 
@@ -765,6 +778,31 @@ class DPLMain
                     $bSelectionCriteriaFound=true;
                     break;
                                 
+                case 'scroll':
+                    if( in_array($sArg, ExtDynamicPageList::$options['scroll'])) {
+                        $bScroll = self::argBoolean($sArg);
+						// if scrolling is active we adjust the values for ceratin other parameters
+						// based on URL arguments
+						if ($bScroll) {
+							$sTitleGE  = $wgRequest->getVal('DPL_fromTitle','');
+							if (strlen($sTitleGE)>0) $sTitleGE[0] = strtoupper($sTitleGE[0]);
+							// findTitle has priority over fromTitle
+							$findTitle = $wgRequest->getVal('DPL_findTitle','');
+							if (strlen($findTitle)>0) $findTitle[0] = strtoupper($findTitle[0]);
+							if ($findTitle !='') $sTitleGE = '=_'.$findTitle;
+							$sTitleLE  = $wgRequest->getVal('DPL_toTitle','');
+							if (strlen($sTitleLE)>0) $sTitleLE[0] = strtoupper($sTitleLE[0]);
+							$sTitleGE = str_replace(' ','_',$sTitleGE);
+							$sTitleLE = str_replace(' ','_',$sTitleLE);
+							$scrollDir = $wgRequest->getVal('DPL_scrollDir','');
+							// also set count limit from URL if not otherwise set
+							$sCountScroll = $wgRequest->getVal('DPL_count','');
+						}
+                    }
+                    else
+                        $output .= $logger->msgWrongParam('scroll', $sArg);
+                    break;
+                    
                 case 'titlemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg) )
@@ -837,64 +875,31 @@ class DPLMain
                  */
 					   
                 case 'linksto':
-                    $pages = explode('|', trim($sArg));
-                    $n=0;
-                    foreach($pages as $page) {
-                        if (trim($page)=='') continue;
-                        if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('linksto', $sArg);
-                        $aLinksTo[$n++] = $theTitle;
-                        $bSelectionCriteriaFound=true;
-                    }
-                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('linksto', $sArg);
+					$problems = self::getPageNameList('linksto', $sArg, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
+					if ($problems!='') return $problems;
                     $bConflictsWithOpenReferences=true;
                     break;
                 
                 case 'notlinksto':
-                    $pages = explode('|', trim($sArg));
-                    $n=0;
-                    foreach($pages as $page) {
-                        if (trim($page)=='') continue;
-                        if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('notlinksto', $sArg);
-                        $aNotLinksTo[$n++] = $theTitle;
-                        $bSelectionCriteriaFound=true;
-                    }
-                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('notlinksto', $sArg);
+					$problems = self::getPageNameList('notlinksto', $sArg, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
+					if ($problems!='') return $problems;
                     $bConflictsWithOpenReferences=true;
                     break;
                             
                 case 'linksfrom':
-                    $pages = explode('|', trim($sArg));
-                    $n=0;
-                    foreach($pages as $page) {
-                        if (trim($page)=='') continue;
-                        if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('linksfrom', $sArg);
-                        $aLinksFrom[$n++] = $theTitle;
-                        $bSelectionCriteriaFound=true;
-                    }
-                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('linksfrom', $sArg);
+					$problems = self::getPageNameList('linksfrom', $sArg, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
+					if ($problems!='') return $problems;
+                    $bConflictsWithOpenReferences=true;
                     break;
                 
                 case 'notlinksfrom':
-                    $pages = explode('|', trim($sArg));
-                    $n=0;
-                    foreach($pages as $page) {
-                        if (trim($page)=='') continue;
-                        if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('notlinksfrom', $sArg);
-                        $aNotLinksFrom[$n++] = $theTitle;
-                        $bSelectionCriteriaFound=true;
-                    }
-                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('notlinksfrom', $sArg);
+					$problems = self::getPageNameList('notlinksfrom', $sArg, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
+					if ($problems!='') return $problems;
                     break;
                 
                 case 'linkstoexternal':
-                    $pages = explode('|', trim($sArg));
-                    $n=0;
-                    foreach($pages as $page) {
-                        if (trim($page)=='') continue;
-                        $aLinksToExternal[$n++] = $page;
-                        $bSelectionCriteriaFound=true;
-                    }
-                    if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('linkstoexternal', $sArg);
+					$problems = self::getPageNameList('linkstoexternal', $sArg, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
+					if ($problems!='') return $problems;
                     $bConflictsWithOpenReferences=true;
                     break;
                 
@@ -1255,15 +1260,20 @@ class DPLMain
                  */
                  
                 case 'allowcachedresults':
-                    if( in_array($sArg, ExtDynamicPageList::$options['allowcachedresults'])) {
-                        $bAllowCachedResults = self::argBoolean($sArg);
-                        if ($sArg=='yes+warn') {
-	                        $bAllowCachedResults = true;
-	                        $bWarnCachedResults = true;
-                        }
-                    }
-                    else
-                        $output .= $logger->msgWrongParam('allowcachedresults', $sArg);
+					// if execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings
+					// which are placed AFTER the execandexit statement
+					// thus we make sure that the cache will only become invalid if the query is really executed
+					if ($sExecAndExit=='') {
+						if( in_array($sArg, ExtDynamicPageList::$options['allowcachedresults'])) {
+							$bAllowCachedResults = self::argBoolean($sArg);
+							if ($sArg=='yes+warn') {
+								$bAllowCachedResults = true;
+								$bWarnCachedResults = true;
+							}
+						}
+						else
+							$output .= $logger->msgWrongParam('allowcachedresults', $sArg);
+					}
                     break;
 
                 case 'dplcache':
@@ -1283,6 +1293,10 @@ class DPLMain
                         $iDPLCachePeriod = ($sArg == '') ? ExtDynamicPageList::$options['dplcacheperiod']['default']: intval($sArg);
                     else
                         $output .= $logger->msgWrongParam('dplcacheperiod', $sArg);
+                    break;
+                
+                case 'fixcategory':
+					ExtDynamicPageList::fixCategory($sArg);
                     break;
                 
                 case 'reset':
@@ -1490,6 +1504,7 @@ class DPLMain
 		
 		// set COUNT
 		
+		if ($sCount=='') $sCount = $sCountScroll;
 		if ($sCount=='') {
 			$iCount=-1;
 		} else {
@@ -1516,7 +1531,12 @@ class DPLMain
 		
         
 		
-        if ($sExecAndExit != '') return $sExecAndExit;
+        if ($sExecAndExit != '') {
+			// the keyword "geturlargs" is used to return the Url arguments and do nothing else.
+			if ($sExecAndExit == 'geturlargs') return '';
+			// in all other cases we return the value of the argument (which may contain parser function calls)
+			return $sExecAndExit;
+		}
 
 		
 		
@@ -1741,7 +1761,7 @@ class DPLMain
         $sSqlPage_touched = '';
 		$sSqlCalcFoundRows = '';
 		if ( !ExtDynamicPageList::$allowUnlimitedResults 	&& $sGoal != 'categories' 
-															&& strpos($sResultsHeader.$sResultsFooter,'%TOTALPAGES%')!==false) $sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
+				&& strpos($sResultsHeader.$sResultsFooter.$sNoResultsHeader,'%TOTALPAGES%')!==false) $sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
         if ($sDistinctResultSet == 'false') $sSqlDistinct = '';
         else								$sSqlDistinct = 'DISTINCT';
         $sSqlGroupBy = '';
@@ -1865,7 +1885,7 @@ class DPLMain
                     break;
                 case 'user':
                     $sSqlRevisionTable = $sRevisionTable . ', ';
-                    $sSqlRev_user = ', rev_user, rev_user_text';
+                    $sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
                     break;
                 case 'none':
                     break;
@@ -1873,32 +1893,58 @@ class DPLMain
         }
         
         // linksto
+				
         if ( count($aLinksTo)>0 ) {
             $sSqlPageLinksTable .= $sPageLinksTable . ' as pl, ';
-            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id=pl.pl_from AND ('; 
+            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id=pl.pl_from AND '; 
             $sSqlSelPage = ', pl.pl_title as sel_title, pl.pl_namespace as sel_ns';
             $n=0;
-            foreach ($aLinksTo as $link) {
-                if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                $sSqlCond_page_pl .= '(pl.pl_namespace=' . intval( $link->getNamespace() );
-                if ($bIgnoreCase) 	$sSqlCond_page_pl .= " AND LOWER(pl.pl_title)=LOWER(" . $dbr->addQuotes( $link->getDbKey() ).'))';
-                else				$sSqlCond_page_pl .= " AND pl.pl_title=" . $dbr->addQuotes( $link->getDbKey() ).')';
-                $n++;
+            foreach ($aLinksTo as $linkGroup) {
+                if (++$n>1) break;
+                $sSqlCond_page_pl .= '( ';
+				$m=0;
+				foreach ($linkGroup as $link) {
+					if (++$m>1) $sSqlCond_page_pl .= ' OR ';
+					$sSqlCond_page_pl .= '(pl.pl_namespace=' . intval( $link->getNamespace() );
+					if (strpos($link->getDbKey(),'%')>=0) $operator = ' LIKE '; else $operator='=';
+					if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER(pl.pl_title)'.$operator.'LOWER(' . $dbr->addQuotes( $link->getDbKey() ).'))';
+					else				$sSqlCond_page_pl .= ' AND pl.pl_title'.$operator.$dbr->addQuotes( $link->getDbKey() ).')';					
+				}
+                $sSqlCond_page_pl .= ')';
+			}
+		}
+        if ( count($aLinksTo)>1 ) {
+            $n=0;
+            foreach ($aLinksTo as $linkGroup) {
+                if (++$n == 1) continue;
+				$m=0;
+				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from from '.$sPageLinksTable.' where ('.$sPageLinksTable.'.pl_from=page_id AND (';
+				foreach ($linkGroup as $link) {
+					if (++$m>1) $sSqlCond_page_pl .= ' OR ';
+					$sSqlCond_page_pl.= '('.$sPageLinksTable.'.pl_namespace=' . intval( $link->getNamespace() );
+					if (strpos($link->getDbKey(),'%')>=0) $operator = ' LIKE '; else $operator='=';
+					if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER(pagelinks.pl_title)'.$operator.'LOWER(' . $dbr->addQuotes( $link->getDbKey() ).')';
+					else				$sSqlCond_page_pl .= ' AND pagelinks.pl_title'.$operator.$dbr->addQuotes( $link->getDbKey() );					
+					$sSqlCond_page_pl .= ')'; 
+				}
+				$sSqlCond_page_pl .= ')))'; 
             }
-            $sSqlCond_page_pl .= ')'; 
         }
     
         // notlinksto
         if ( count($aNotLinksTo)>0 ) {
             $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id not in (select '.$sPageLinksTable.'.pl_from from '.$sPageLinksTable.' where (';
             $n=0;
-            foreach ($aNotLinksTo as $link) {
-                if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                $sSqlCond_page_pl .= '('.$sPageLinksTable.'.pl_namespace=' . intval($link->getNamespace());
-                if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER('.$sPageLinksTable.'.pl_title)=LOWER(' . $dbr->addQuotes( $link->getDbKey() ).'))';
-                else				$sSqlCond_page_pl .= ' AND       '.$sPageLinksTable.'.pl_title='        . $dbr->addQuotes( $link->getDbKey() ).')';
-                $n++;
-            }
+            foreach ($aNotLinksTo as $links) {
+				foreach ($links as $link) {
+					if ($n>0) $sSqlCond_page_pl .= ' OR ';
+					$sSqlCond_page_pl .= '('.$sPageLinksTable.'.pl_namespace=' . intval($link->getNamespace());
+				if (strpos($link->getDbKey(),'%')>=0) $operator = ' LIKE '; else $operator='=';
+					if ($bIgnoreCase) 	$sSqlCond_page_pl .= ' AND LOWER('.$sPageLinksTable.'.pl_title)'.$operator.'LOWER(' . $dbr->addQuotes( $link->getDbKey() ).'))';
+					else				$sSqlCond_page_pl .= ' AND       '.$sPageLinksTable.'.pl_title'.$operator. $dbr->addQuotes( $link->getDbKey() ).')';
+					$n++;
+				}
+			}
             $sSqlCond_page_pl .= ') )'; 
         }
         
@@ -1907,10 +1953,12 @@ class DPLMain
             if ($acceptOpenReferences) {
                 $sSqlCond_page_pl .= ' AND ('; 
                 $n=0;
-                foreach ($aLinksFrom as $link) {
-                    if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                    $sSqlCond_page_pl .= '(pl_from=' . $link->getArticleID().')';
-                    $n++;
+                foreach ($aLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n>0) $sSqlCond_page_pl .= ' OR ';
+						$sSqlCond_page_pl .= '(pl_from=' . $link->getArticleID().')';
+						$n++;
+					}
                 }
                 $sSqlCond_page_pl .= ')';
             }
@@ -1919,11 +1967,13 @@ class DPLMain
                 $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_namespace = plf.pl_namespace AND '.$sPageTable.'.page_title = plf.pl_title  AND pagesrc.page_id=plf.pl_from AND ('; 
                 $sSqlSelPage = ', pagesrc.page_title as sel_title, pagesrc.page_namespace as sel_ns';
                 $n=0;
-                foreach ($aLinksFrom as $link) {
-                    if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                    $sSqlCond_page_pl .= '(plf.pl_from=' . $link->getArticleID().')';
-                    $n++;
-                }
+                foreach ($aLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n>0) $sSqlCond_page_pl .= ' OR ';
+						$sSqlCond_page_pl .= '(plf.pl_from=' . $link->getArticleID().')';
+						$n++;
+					}
+				}
                 $sSqlCond_page_pl .= ')';
             } 
         }
@@ -1933,10 +1983,12 @@ class DPLMain
             if ($acceptOpenReferences) {
                 $sSqlCond_page_pl .= ' AND (';
                 $n=0;
-                foreach ($aNotLinksFrom as $link) {
-                    if ($n>0) $sSqlCond_page_pl .= ' AND ';
-                    $sSqlCond_page_pl .= 'pl_from <> ' . $link->getArticleID(). ' ';
-                    $n++;
+                foreach ($aNotLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n>0) $sSqlCond_page_pl .= ' AND ';
+						$sSqlCond_page_pl .= 'pl_from <> ' . $link->getArticleID(). ' ';
+						$n++;
+					}
                 }
                 $sSqlCond_page_pl .= ')'; 
             }
@@ -1944,10 +1996,12 @@ class DPLMain
                 $sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) not in (select CONCAT('.$sPageLinksTable.'.pl_namespace,'
                                     .$sPageLinksTable.'.pl_title) from '.$sPageLinksTable.' where (';
                 $n=0;
-                foreach ($aNotLinksFrom as $link) {
-                    if ($n>0) $sSqlCond_page_pl .= ' OR ';
-                    $sSqlCond_page_pl .= $sPageLinksTable.'.pl_from=' . $link->getArticleID(). ' ';
-                    $n++;
+                foreach ($aNotLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n>0) $sSqlCond_page_pl .= ' OR ';
+						$sSqlCond_page_pl .= $sPageLinksTable.'.pl_from=' . $link->getArticleID(). ' ';
+						$n++;
+					}
                 }
                 $sSqlCond_page_pl .= '))'; 
             }
@@ -1959,12 +2013,28 @@ class DPLMain
             $sSqlCond_page_el .= ' AND '.$sPageTable.'.page_id=el.el_from AND ('; 
             $sSqlSelPage = ', el.el_to as el_to';
             $n=0;
-            foreach ($aLinksToExternal as $link) {
-                if ($n>0) $sSqlCond_page_el .= ' OR ';
-                $sSqlCond_page_el .= '(el.el_to LIKE ' . $dbr->addQuotes( $link ).')';
-                $n++;
+            foreach ($aLinksToExternal as $linkGroup) {
+                if (++$n>1) break;
+				$m=0;
+				foreach ($linkGroup as $link) {
+					if (++$m>1) $sSqlCond_page_el .= ' OR ';
+					$sSqlCond_page_el .= '(el.el_to LIKE ' . $dbr->addQuotes( $link ).')';
+				}
+			}
+            $sSqlCond_page_el .= ')';
+		}
+        if ( count($aLinksToExternal)>1 ) {
+            $n=0;
+            foreach ($aLinksToExternal as $linkGroup) {
+                if (++$n == 1) continue;
+				$m=0;
+				$sSqlCond_page_el .= ' AND EXISTS(select el_from from '.$sExternalLinksTable.' where ('.$sExternalLinksTable.'.el_from=page_id AND (';
+				foreach ($linkGroup as $link) {
+					if (++$m>1) $sSqlCond_page_el .= ' OR ';
+					$sSqlCond_page_el .= '('.$sExternalLinksTable.'.el_to LIKE ' . $dbr->addQuotes( $link ).')';
+				}
+				$sSqlCond_page_el .= ')))'; 
             }
-            $sSqlCond_page_el .= ')'; 
         }
 
         // imageused
@@ -2145,7 +2215,7 @@ class DPLMain
         if ($bAddPageTouchedDate && $sSqlPage_touched=='')
             $sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
         if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sSqlRevisionTable != '')
-            $sSqlRev_user = ', rev_user, rev_user_text';
+            $sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
         if ($bAddCategories) {
             $sSqlCats = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats"; 
             // Gives list of all categories linked from each article, if any.
@@ -2187,7 +2257,7 @@ class DPLMain
                                $sCategoryComparisonMode . $dbr->addQuotes(str_replace(' ','_',$aIncludeCategories[$i][0]));
             for ($j = 1; $j < count($aIncludeCategories[$i]); $j++)
                 $sSqlSelectFrom .= ' OR cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . $dbr->addQuotes(str_replace(' ','_',$aIncludeCategories[$i][$j]));
-            $sSqlSelectFrom .= ') ';
+			$sSqlSelectFrom .= ') ';
             $iClTable++;
         }
         
@@ -2472,8 +2542,10 @@ class DPLMain
         }
         
         if ($dbr->numRows( $res ) <= 0) {
-            if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $sNoResultsHeader));
-            if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $sNoResultsFooter));
+			$header = str_replace('%TOTALPAGES%','0',str_replace('%PAGES%','0',$sNoResultsHeader));
+            if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $header));
+			$footer = str_replace('%TOTALPAGES%','0',str_replace('%PAGES%','0',$sNoResultsFooter));
+            if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $footer));
             if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(DPL_i18n::WARN_NORESULTS);
             $dbr->freeResult( $res );
             return $output;
@@ -2644,6 +2716,7 @@ class DPLMain
                 if($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince != '') {
                     $dplArticle->mUserLink  = '[[User:'.$row->rev_user_text.'|'.$row->rev_user_text.']]';
                     $dplArticle->mUser = $row->rev_user_text;
+                    $dplArticle->mComment = $row->rev_comment;
                 }
                 
                 //CATEGORY LINKS FROM CURRENT PAGE 
@@ -2714,8 +2787,10 @@ class DPLMain
         if ($sOneResultHeader != '' && $rowcount==1) {
             $header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',1,$sOneResultHeader));
         } else if ($rowcount==0) {
-            if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $sNoResultsHeader));
-            if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $sNoResultsFooter));
+			$header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sNoResultsHeader));
+            if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $header));
+			$footer = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sNoResultsFooter));
+            if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $footer));
             if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(DPL_i18n::WARN_NORESULTS);
         }
         else {
@@ -2757,6 +2832,9 @@ class DPLMain
         $footer = str_replace('%SCROLLDIR%', 		$scrollDir, $footer);
         
         $output .= $header . $dplResult . $footer;
+		
+		self::defineScrollVariables($firstNamespaceFound,$firstTitleFound,$lastNamespaceFound,$lastTitleFound,
+			$scrollDir,$iCount,"$dplElapsedTime ($nowTimeStamp)",$rowcount,$dpl->getRowCount());
         
         // save generated wiki text to dplcache page if desired
 
@@ -2863,6 +2941,34 @@ class DPLMain
 	// auxiliary functions ===============================================================================
 
 
+	// get a list of valid page names; returns true if valid args found
+	private static function getPageNameList($cmd, $text, &$aLinks, &$bSelectionCriteriaFound, $logger, $mustExist=true) {
+		$theLinks = array();
+		$errorMsg='';
+		$pages = explode('|', trim($text));
+		foreach($pages as $page) {
+			if (($page=trim($page))=='') continue;
+			// sequences like %1a would be translated to hex chars; we avoid this by escaping the cahr after the %
+			$page=str_replace('%','%\\',$page);
+			if ($page[strlen($page)-1]=='\\') $page=substr($page,0,strlen($page)-1);
+			if ($mustExist) {
+				if (!($theTitle = Title::newFromText($page))) {
+					$errorMsg .= $logger->msgWrongParam($cmd, $page)."<br/>\n";
+					continue;
+				}
+				$theLinks[] = $theTitle;
+			}
+			else {
+				$theLinks[] = $page;
+			}
+		}
+		if (!empty($theLinks)) {
+			$aLinks[] = $theLinks;
+			$bSelectionCriteriaFound=true;
+		}
+		return $errorMsg;
+	}
+
     // create keys for TableRow which represent the structure of the "include=" arguments
     private static function updateTableRowKeys(&$aTableRow,$aSecLabels) {
         $tableRow = $aTableRow;
@@ -2968,5 +3074,37 @@ class DPLMain
 			$input=preg_replace('/\{%'.$arg.':.*%\}/U  ', $dplArg ,$input);
 			return str_replace('{%'.$arg.'%}'           , $dplArg ,$input);
 		}
+	}
+
+	// this function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc
+	// in the form of a variable which can be accessed as {{#var:xyz}} if ExtensionVariables is installed
+	private static function getUrlArgs() {
+		global $wgRequest, $wgExtVariables;
+		if (!isset($wgExtVariables)) return;
+		$args = $wgRequest->getValues();
+		$dummy='';
+		foreach ($args as $argName => $argValue) {
+			if (substr($argName,0,4) == 'DPL_') {
+				$wgExtVariables->vardefine($dummy,$argName,$argValue);
+			}
+		}
+	}
+
+	// this function uses the Variables extension to provide navigation aids like DPL_firstTitle, DPL_lastTitle, DPL_findTitle
+	// these variables can be accessed as {{#var:DPL_firstTitle}} etc. if ExtensionVariables is installed
+	private static function defineScrollVariables($firstNamespace,$firstTitle,$lastNamespace,$lastTitle,
+		$scrollDir,$dplCount,$dplElapsedTime,$totalPages,$pages) {
+		global $wgExtVariables;
+		if (!isset($wgExtVariables)) return;
+		$dummy='';
+		$wgExtVariables->vardefine($dummy,'DPL_firstNamespace',$firstNamespace);
+		$wgExtVariables->vardefine($dummy,'DPL_firstTitle',$firstTitle);
+		$wgExtVariables->vardefine($dummy,'DPL_lastNamespace',$lastNamespace);
+		$wgExtVariables->vardefine($dummy,'DPL_lastTitle',$lastTitle);
+		$wgExtVariables->vardefine($dummy,'DPL_scrollDir' ,$scrollDir);
+		$wgExtVariables->vardefine($dummy,'DPL_time' ,$dplElapsedTime);
+		$wgExtVariables->vardefine($dummy,'DPL_count' ,$dplCount);
+		$wgExtVariables->vardefine($dummy,'DPL_totalPages' ,$totalPages);
+		$wgExtVariables->vardefine($dummy,'DPL_pages' ,$pages);
 	}
 }

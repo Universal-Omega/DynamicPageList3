@@ -40,7 +40,7 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupMigration' )
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
-$DPLVersion = '1.8.8';
+$DPLVersion = '1.8.9';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path'           => __FILE__,

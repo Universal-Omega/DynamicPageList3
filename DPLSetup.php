@@ -368,10 +368,38 @@
  *			deleterules: does some kind of permission checking now
  *			various improvements in template editing (calling the edit page now for the real update)
  *			call to parser->clearState() inserted; does this solve the UNIQ-QINU problem without a patch to LnkHolderArray ??
- *			
- *		! when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
+ * @version 1.8.9
+ *          further improvements of updaterules
+ *          include: _ in template names are now treated like spaces
+ *          providing URL-args as variables execandexit = geturlargs
+ *          new command scroll = yes/no
+ *          if %TOTALPAGES% is not used, the number of total hits will not be calculated in SQL
+ *			when searching for a template call the localized word for "Template:" may preceed the template´s name
+ *			when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
+ *			categories= : empty argument is now ignored; use _none_ to list articles with NO category assignment
+ *			include: we use :and whitespace for separation of field names
+ *          {{{%CATLIST%}}} is now available in phantom templates
+ *			%IMAGE% is now translated to the image plus hashpath if used within a tablerow statement
+ *			The function which truncates wiki text was improved (logic to check balance of tags)
+ *			setting execandexit to true will prevent the parser cache from being disabled by successive settings of allowcachedresults
+ *			bug fix: replacing %SECTION% in an include link text did not work wit hregukar expressions as section titles
+ *			command fixcategory added
+ *			adding a way to define an alternate namespace for surrogate templates {ns::xyz}.abc
+ *          accept @ as a synonym for # in the include statement, @@ will match regular expressions
+ *          syntax changed in include: regexp~ must precede all other information, allow multiple regexps :[regex1~regex2~regex3~number linkText]
+ *			allow %CATLIST% in tablerow
+ *          allow '-' as a dummy parameter in include
+ *          allow alternate syntax for surrogate template {tpl|surrogate} in include
+ *			multiple linksto statements are now AND-wired (%PAGESEL%) refers to the FIRST statement only
+ *			multiple linkstoexternal statements are now AND-wired
+ *			new parser function #dplnum
+ *          allow like expressions in LINKSTO (depending on % in target name)
+ *			prevent %xx from being misinterpreted as a hex code when used in linksto (e.g. %2c)
+ *			Added hiddencategories = yes / no / only [dead code - not yet WORKING !]
+ *			added %EDITSUMMARY%
+ 
+ *			when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
-
 
 // changed back to global functions due to trouble with older MW installations, g.s.
 function ExtDynamicPageList__languageGetMagic( &$magicWords, $langCode ) 	{ 
@@ -410,6 +438,10 @@ class ExtDynamicPageList
 													  // .. to be set by DynamicPageList.php and DynamicPageListMigration.php
     public  static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
 													  // .. to be changed in LocalSettings.php
+													  
+	public	static $fixedCategories			 = array(); // an array which holds categories to which the page containing the DPL query
+														// shall be assigned althoug reset_all|categories has been used
+														// see the fixcategory command
 
     /**
      * Map parameters to possible values.
@@ -455,6 +487,10 @@ class ExtDynamicPageList
          * Min and Max of categories allowed for an article
          */
         'categoriesminmax'     => array('default' => '', 'pattern' => '/^\d*,?\d*$/'),
+        /**
+         * hiddencategories
+         */
+        'hiddencategories'     => array('default' => 'include', 'exclude', 'only'),
 		/**
 		 * perform the command and do not query the database
 		 */
@@ -739,6 +775,7 @@ class ExtDynamicPageList
         */
         'title<'	           => NULL,
         'title>'	           => NULL,
+        'scroll'               => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'), 
         'titlematch'           => NULL,
         'titleregexp'          => NULL,
         'userdateformat'	   => NULL,  // depends on behaveAs... mode
@@ -848,6 +885,10 @@ class ExtDynamicPageList
          */
         'reset'                => array( 'default' => '', 'categories', 'templates', 'links', 'images', 'all', 'none'),
         /**
+         * fixcategory=..   prevents a category from being reset
+         */
+        'fixcategory'          => array( 'default' => ''),
+        /**
          * number of rows for output, default is 1
          * note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated
          */
@@ -919,6 +960,7 @@ class ExtDynamicPageList
 					addfirstcategorydate
 					category
 					count
+					hiddencategories
 					mode
 					namespace
 					notcategory
@@ -956,6 +998,7 @@ class ExtDynamicPageList
 					rowcolformat
 					rows
 					rowsize
+					scroll
 					title
 					title<
 					title>
@@ -979,6 +1022,7 @@ class ExtDynamicPageList
 					dplcache
 					dplcacheperiod
 					eliminate
+					fixcategory
 					headingcount
 					headingmode
 					hitemattr
@@ -1071,6 +1115,7 @@ class ExtDynamicPageList
 		$wgParser->setHook( 'DynamicPageList',    array( __CLASS__, 'intersectionTag'          ) );
 		
         $wgParser->setFunctionHook( 'dpl',        array( __CLASS__, 'dplParserFunction'        ) );
+        $wgParser->setFunctionHook( 'dplnum',     array( __CLASS__, 'dplNumParserFunction'     ) );
         $wgParser->setFunctionHook( 'dplchapter', array( __CLASS__, 'dplChapterParserFunction' ) );
         $wgParser->setFunctionHook( 'dplmatrix',  array( __CLASS__, 'dplMatrixParserFunction'  ) );
 
@@ -1113,6 +1158,10 @@ class ExtDynamicPageList
         require_once( 'DynamicPageList.i18n.php' );
 		global $wgMessageCache;
 
+        foreach( DPL_i18n::getMessages() as $sLang => $aMsgs )
+        {
+            $wgMessageCache->addMessages( $aMsgs, $sLang );
+        }
 
         /**
          *  Define codes and map debug message to min debug level above which message can be displayed
@@ -1153,9 +1202,10 @@ class ExtDynamicPageList
             # Add the magic word
             # The first array element is case sensitivity, in this case it is not case sensitive
             # All remaining elements are synonyms for our parser function
-            $magicWords['dpl'] = array( 0, 'dpl' );
-            $magicWords['dplchapter'] = array( 0, 'dplchapter' );
-            $magicWords['dplmatrix'] = array( 0, 'dplmatrix' );
+            $magicWords['dpl']             = array( 0, 'dpl' );
+            $magicWords['dplnum']          = array( 0, 'dplnum' );
+            $magicWords['dplchapter']      = array( 0, 'dplchapter' );
+            $magicWords['dplmatrix']       = array( 0, 'dplmatrix' );
             $magicWords['DynamicPageList'] = array( 0, 'DynamicPageList' );
             # unless we return true, other parser functions extensions won't get loaded.
             return true;
@@ -1257,6 +1307,23 @@ class ExtDynamicPageList
 
     }
 
+    public static function dplNumParserFunction(&$parser, $text='') {
+        $num = str_replace('&nbsp;',' ',$text);
+		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/','\1,\3',$num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/','\1\2 000000 ',$num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mrd/','\1\2 0000000 ',$num);
+		$num = preg_replace('/([0-9.]+),([0-9])\s*Mrd/','\1\2 00000000 ',$num);
+		$num = preg_replace('/\s*Mrd/','000000000 ',$num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mio/','\1\2 000 ',$num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mio/','\1\2 0000 ',$num);
+		$num = preg_replace('/([0-9.]+),([0-9])\s*Mio/','\1\2 00000 ',$num);
+		$num = preg_replace('/\s*Mio/','000000 ',$num);
+		$num = preg_replace('/[. ]/','',$num);
+		$num = preg_replace('/^[^0-9]+/','',$num);
+		$num = preg_replace('/[^0-9].*/','',$num);
+		return $num;
+    } 
+
     public static function dplChapterParserFunction(&$parser, $text='', $heading=' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim=false ) {
         $arg_list = func_get_args();
         $output = DPLInclude::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
@@ -1351,15 +1418,24 @@ class ExtDynamicPageList
         return '';
     }
 
+    public static function fixCategory($cat) {
+		if ($cat!='') self::$fixedCategories[$cat]=1;
+    } 
+
+// reset everything; some categories may have been fixed, however via  fixcategory=
     public static function endReset( &$parser, $text ) {
         if (!self::$createdLinks['resetdone']) {
             self::$createdLinks['resetdone'] = true;
+			foreach ($parser->mOutput->mCategories as $key => $val) {
+				if (array_key_exists($key,self::$fixedCategories)) self::$fixedCategories[$key] = $val;
+			}
             // $text .= self::dumpParsedRefs($parser,"before final reset");
             if (self::$createdLinks['resetLinks'])		$parser->mOutput->mLinks 		= array();
-            if (self::$createdLinks['resetCategories'])	$parser->mOutput->mCategories 	= array();
+            if (self::$createdLinks['resetCategories'])	$parser->mOutput->mCategories 	= self::$fixedCategories;
 			if (self::$createdLinks['resetTemplates'])  $parser->mOutput->mTemplates 	= array();
             if (self::$createdLinks['resetImages'])		$parser->mOutput->mImages 		= array();
             // $text .= self::dumpParsedRefs($parser,"after final reset");
+			self::$fixedCategories=array();
         }
         return true;
     }
@@ -1408,16 +1484,17 @@ class ExtDynamicPageList
 
 class MyBug {
 
-	static function trace($class,$label,$msg) {
+	static function trace($class,$label,$msg='') {
 		$fileName = dirname(__FILE__).'/MyBug';
 		if ($class=='') {
 			if (file_exists($fileName)) unlink(dirname(__FILE__).'/MyBug');
+			self::trace(__CLASS__,'start tracing ..');
 			return;
 		}
 		$bugFile=fopen($fileName,'a');
 		fwrite($bugFile,"$class -------------------------------------------------------------------------------------------- $label\n");
-		fwrite($bugFile,$msg."\n");
-		fclose($bugFile);	
+		if ($msg!='') fwrite($bugFile,$msg."\n");
+		fclose($bugFile);
 	}
 
 }
