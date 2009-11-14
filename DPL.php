@@ -292,7 +292,7 @@ class DPL {
 				if(empty($this->mIncSecLabels) || $this->mIncSecLabels[0]=='*') {        					// include whole article
 					$title = $article->mTitle->getPrefixedText();
 					if ($mode->name == 'userformat') $incwiki = '';
-					else							 $incwiki = '<br/>';
+					else							 $incwiki = '<br />';
 					$text = $this->mParser->fetchTemplate(Title::newFromText($title));
 					if ((count($this->mIncSecLabelsMatch)<=0 || $this->mIncSecLabelsMatch[0] == '' ||
 						 !preg_match($this->mIncSecLabelsMatch[0],$text)==false) &&
@@ -769,7 +769,7 @@ class DPL {
 						if (array_key_exists($parm,$tpv[$call])) $myValue=$tpv[$call][$parm];
 						$form .= $this->editTemplateCall($text,$template,$call,$parm,$myType,$myValue,$myFormat,$myToolTip,$myInstruction,$myOptional,$fieldFormat);
 					}
-					$form .= "</table>\n<br/><br/>";
+					$form .= "</table>\n<br /><br />";
 				}
 				foreach($hidden as $hide) {
 					$form.=	"<input type=hidden ".$hide." />";

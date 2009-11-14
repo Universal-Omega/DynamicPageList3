@@ -721,7 +721,7 @@ class ExtDynamicPageList
         'notlastmodifiedby'           => NULL,
         /**
          * Mode for list of pages (possibly within a heading, see 'headingmode' param).
-         * 'none' mode is implemented as a specific submode of 'inline' with <BR/> as inline text
+         * 'none' mode is implemented as a specific submode of 'inline' with <br /> as inline text
          * 'userformat' does not produce any html tags unless 'listseparators' are specified
          */
         'mode'				   => NULL,  // depends on behaveAs... mode

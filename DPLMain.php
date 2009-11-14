@@ -562,10 +562,10 @@ class DPLMain
                  
                 case 'mode':
                     if( in_array($sArg, ExtDynamicPageList::$options['mode']) )
-                        //'none' mode is implemented as a specific submode of 'inline' with <BR/> as inline text
+                        //'none' mode is implemented as a specific submode of 'inline' with <br /> as inline text
                         if($sArg == 'none') {
                             $sPageListMode = 'inline';
-                            $sInlTxt = '<BR/>';
+                            $sInlTxt = '<br />';
                         } else if ($sArg == 'userformat') {
                             // userformat resets inline text to empty string
                             $sInlTxt = '';
@@ -1579,7 +1579,7 @@ class DPLMain
         // construct internal keys for TableRow according to the structure of "include"
         // this will be needed in the output phase
         self::updateTableRowKeys($aTableRow,$aSecLabels);
-        // foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br>";
+        // foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br />";
             
         $iIncludeCatCount = count($aIncludeCategories);
         $iTotalIncludeCatCount = count($aIncludeCategories, COUNT_RECURSIVE) - $iIncludeCatCount;
@@ -1741,7 +1741,7 @@ class DPLMain
                     $aSecSeparators[2*$i+1]='';
                     if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0]=='#') 	$aMultiSecSeparators[$i] = "\n----\n";
                     if ($aSecLabels[$i][0]=='#') 	$aMultiSecSeparators[$i] = "\n----\n";
-                    else							$aMultiSecSeparators[$i] = "<br/>\n";
+                    else							$aMultiSecSeparators[$i] = "<br />\n";
                 }
             }
         }
@@ -2518,7 +2518,7 @@ class DPLMain
     // ###### DUMP SQL QUERY ######
         if ($logger->iDebugLevel >=3) {
             //DEBUG: output SQL query 
-            $output .= "DPL debug -- Query=<br>\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n";
+            $output .= "DPL debug -- Query=<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n";
         }
 		
 		// Do NOT proces the SQL command if debug==6; this is useful if the SQL statement contains bad code
@@ -2533,11 +2533,11 @@ class DPLMain
             $res = $dbr->query($sSqlSelectFrom . $sSqlWhere);
         }
         catch (Exception $e) {
-            $result = "The DPL extension (version ".ExtDynamicPageList::$DPLVersion.") produced a SQL statement which lead to a Database error.<br>\n"
-                    ."The reason may be an internal error of DPL or an error which you made,<br>\n"
-                    ."especially when using DPL options like titleregexp.<br>\n"
-                    ."Query text is:<br>\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n"
-                    ."Error message is:<br>\n<tt>".$dbr->lastError()."</tt>\n\n";
+            $result = "The DPL extension (version ".ExtDynamicPageList::$DPLVersion.") produced a SQL statement which lead to a Database error.<br />\n"
+                    ."The reason may be an internal error of DPL or an error which you made,<br />\n"
+                    ."especially when using DPL options like titleregexp.<br />\n"
+                    ."Query text is:<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n"
+                    ."Error message is:<br />\n<tt>".$dbr->lastError()."</tt>\n\n";
             return $result;
         }
         
@@ -2953,7 +2953,7 @@ class DPLMain
 			if ($page[strlen($page)-1]=='\\') $page=substr($page,0,strlen($page)-1);
 			if ($mustExist) {
 				if (!($theTitle = Title::newFromText($page))) {
-					$errorMsg .= $logger->msgWrongParam($cmd, $page)."<br/>\n";
+					$errorMsg .= $logger->msgWrongParam($cmd, $page)."<br />\n";
 					continue;
 				}
 				$theLinks[] = $theTitle;
