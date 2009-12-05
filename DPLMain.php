@@ -42,7 +42,7 @@ class DPLMain
 		 
 		$dplStartTime= microtime(true);
 
-         // Local parser created. See http://meta.wikimedia.org/wiki/MediaWiki_extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
+         // Local parser created. See http://www.mediawiki.org/wiki/Extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
         $localParser = new Parser();
         $pOptions = $parser->mOptions;
         $pTitle = $parser->mTitle;
