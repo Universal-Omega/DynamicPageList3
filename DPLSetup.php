@@ -431,7 +431,7 @@ class ExtDynamicPageList
     public  static $categoryStyleListCutoff  = 6;     // Max length to format a list of articles chunked by letter as bullet list, if list bigger, columnar format user (same as cutoff arg for CategoryPage::formatList())
     public  static $allowUnlimitedCategories = true;  // Allow unlimited categories in the Query
     public  static $allowUnlimitedResults    = false; // Allow unlimited results to be shown
-    public  static $allowedNamespaces        = NULL;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
+    public  static $allowedNamespaces        = null;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
 										              // Cannot be customized. Use ExtDynamicPageList::$options['namespace'] or ExtDynamicPageList::$options['notnamespace'] for customization.
 	public  static $behavingLikeIntersection = false; // Changes certain default values to comply with Extension:Intersection
 	public  static $functionalRichness		 = 0;	  // The amount of functionality of DPL that is accesible for the user;
@@ -467,7 +467,7 @@ class ExtDynamicPageList
         /**
          * search for a page with the same title in another namespace (this is normally the article to a talk page)
          */
-        'articlecategory'    => NULL,
+        'articlecategory'    => null,
 
         /**
          * category= Cat11 | Cat12 | ...
@@ -480,9 +480,9 @@ class ExtDynamicPageList
          * Magic words allowed.
          * @todo define 'category' options (retrieve list of categories from 'categorylinks' table?)
          */
-        'category'             => NULL,
-        'categorymatch'        => NULL,
-        'categoryregexp'       => NULL,
+        'category'             => null,
+        'categorymatch'        => null,
+        'categoryregexp'       => null,
         /**
          * Min and Max of categories allowed for an article
          */
@@ -553,7 +553,7 @@ class ExtDynamicPageList
          * html headings (H2, H3, H4), definition list, no heading (none), ordered, unordered.
          */
 
-        'format'       		   => NULL,
+        'format'       		   => null,
 
         'goal'                 => array('default' => 'pages', 'pages', 'categories'),
 
@@ -595,7 +595,7 @@ class ExtDynamicPageList
          * make comparisons (linksto, linksfrom ) case insensitive
          */
         'ignorecase'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-        'include'          	   => NULL,
+        'include'          	   => null,
         /**
          * includesubpages    default is TRUE
          */
@@ -698,33 +698,33 @@ class ExtDynamicPageList
         /**
          * allows to specify a username who must be the first editor of the pages we select
          */
-        'createdby'            => NULL,
+        'createdby'            => null,
         /**
          * allows to specify a username who must not be the first editor of the pages we select
          */
-        'notcreatedby'            => NULL,
+        'notcreatedby'            => null,
         /**
          * allows to specify a username who must be among the editors of the pages we select
          */
-        'modifiedby'           => NULL,
+        'modifiedby'           => null,
         /**
          * allows to specify a username who must not be among the editors of the pages we select
          */
-        'notmodifiedby'           => NULL,
+        'notmodifiedby'           => null,
         /**
          * allows to specify a username who must be the last editor of the pages we select
          */
-        'lastmodifiedby'           => NULL,
+        'lastmodifiedby'           => null,
         /**
          * allows to specify a username who must not be the last editor of the pages we select
          */
-        'notlastmodifiedby'           => NULL,
+        'notlastmodifiedby'           => null,
         /**
          * Mode for list of pages (possibly within a heading, see 'headingmode' param).
          * 'none' mode is implemented as a specific submode of 'inline' with <br /> as inline text
          * 'userformat' does not produce any html tags unless 'listseparators' are specified
          */
-        'mode'				   => NULL,  // depends on behaveAs... mode
+        'mode'				   => null,  // depends on behaveAs... mode
         /**
          * by default links to articles of type image or category are escaped (i.e. they appear as a link and do not
          * actually assign the category or show the image; this can be changed.
@@ -744,7 +744,7 @@ class ExtDynamicPageList
          * Means pages have to be in namespace Ns1 OR Ns2 OR...
          * Magic words allowed.
          */
-        'namespace'            => NULL,
+        'namespace'            => null,
         /**
          * notcategory= Cat1
          * notcategory = Cat2
@@ -752,9 +752,9 @@ class ExtDynamicPageList
          * Means pages can be NEITHER in category Cat1 NOR in Cat2 NOR...
          * @todo define 'notcategory' options (retrieve list of categories from 'categorylinks' table?)
          */
-        'notcategory'          => NULL,
-        'notcategorymatch'     => NULL,
-        'notcategoryregexp'    => NULL,
+        'notcategory'          => null,
+        'notcategorymatch'     => null,
+        'notcategoryregexp'    => null,
         /**
          * notnamespace= Ns1
          * notnamespace= Ns2
@@ -763,22 +763,22 @@ class ExtDynamicPageList
          * Means pages have to be NEITHER in namespace Ns1 NOR Ns2 NOR...
          * Magic words allowed.
         */
-        'notnamespace'         => NULL,
+        'notnamespace'         => null,
         /**
          * title is the exact name of a page; this is useful if you want to use DPL
          * just for contents inclusion; mode=userformat is automatically implied with title=
         */
-        'title'		           => NULL,
+        'title'		           => null,
         /**
          * titlematch is a (SQL-LIKE-expression) pattern
          * which restricts the result to pages matching that pattern
         */
-        'title<'	           => NULL,
-        'title>'	           => NULL,
+        'title<'	           => null,
+        'title>'	           => null,
         'scroll'               => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'), 
-        'titlematch'           => NULL,
-        'titleregexp'          => NULL,
-        'userdateformat'	   => NULL,  // depends on behaveAs... mode
+        'titlematch'           => null,
+        'titleregexp'          => null,
+        'userdateformat'	   => null,  // depends on behaveAs... mode
         'updaterules'          => array('default' => ''),
         'deleterules'          => array('default' => ''),
 
@@ -786,9 +786,9 @@ class ExtDynamicPageList
          * nottitlematch is a (SQL-LIKE-expression) pattern
          * which excludes pages matching that pattern from the result
         */
-        'nottitlematch'        => NULL,
-        'nottitleregexp'       => NULL,
-        'order'				   => NULL,  // depends on behaveAs... mode
+        'nottitlematch'        => null,
+        'nottitleregexp'       => null,
+        'order'				   => null,  // depends on behaveAs... mode
         /**
          * we can specify something like "latin1_swedish_ci" for case insensitive sorting
         */
@@ -797,7 +797,7 @@ class ExtDynamicPageList
          * 'ordermethod=param1,param2' means ordered by param1 first, then by param2.
          * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
          */
-        'ordermethod'          => NULL, // depends on behaveAs... mode
+        'ordermethod'          => null, // depends on behaveAs... mode
         /**
          * minoredits =... (compatible with ordermethod=...,firstedit | lastedit only)
          * - exclude: ignore minor edits when sorting the list (rev_minor_edit = 0 only)

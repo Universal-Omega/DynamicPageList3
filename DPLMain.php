@@ -73,13 +73,13 @@ class DPLMain
             else // Make sure user namespace options are allowed.
                 ExtDynamicPageList::$options['namespace'] = array_intersect(ExtDynamicPageList::$options['namespace'], ExtDynamicPageList::$allowedNamespaces);
             if( !isset(ExtDynamicPageList::$options['namespace']['default']) )
-                ExtDynamicPageList::$options['namespace']['default'] = NULL;
+                ExtDynamicPageList::$options['namespace']['default'] = null;
             if( !is_array(ExtDynamicPageList::$options['notnamespace']) )
                 ExtDynamicPageList::$options['notnamespace'] = ExtDynamicPageList::$allowedNamespaces;
             else
                 ExtDynamicPageList::$options['notnamespace'] = array_intersect(ExtDynamicPageList::$options['notnamespace'], ExtDynamicPageList::$allowedNamespaces);
             if( !isset(ExtDynamicPageList::$options['notnamespace']['default']) )
-                ExtDynamicPageList::$options['notnamespace']['default'] = NULL;
+                ExtDynamicPageList::$options['notnamespace']['default'] = null;
         }	
         
 		// check parameters which can be set via the URL
@@ -178,7 +178,7 @@ class DPLMain
 
         $sHiddenCategories = ExtDynamicPageList::$options['hiddencategories']['default'];
         
-        $sMinorEdits = NULL;
+        $sMinorEdits = null;
         $acceptOpenReferences = self::argBoolean(ExtDynamicPageList::$options['openreferences']['default']);
         
         $sLastRevisionBefore = ExtDynamicPageList::$options['lastrevisionbefore']['default'];
@@ -187,9 +187,9 @@ class DPLMain
         $sAllRevisionsSince  = ExtDynamicPageList::$options['allrevisionssince']['default'];
 
         $_sMinRevisions = ExtDynamicPageList::$options['minrevisions']['default'];
-        $iMinRevisions  = ($_sMinRevisions == '') ? NULL: intval($_sMinRevisions);
+        $iMinRevisions  = ($_sMinRevisions == '') ? null: intval($_sMinRevisions);
         $_sMaxRevisions = ExtDynamicPageList::$options['maxrevisions']['default'];
-        $iMaxRevisions  = ($_sMaxRevisions == '') ? NULL: intval($_sMaxRevisions);
+        $iMaxRevisions  = ($_sMaxRevisions == '') ? null: intval($_sMaxRevisions);
 
         $sRedirects = ExtDynamicPageList::$options['redirects']['default'];
         $sQuality   = ExtDynamicPageList::$options['qualitypages']['default'];
@@ -267,10 +267,10 @@ class DPLMain
         $sRowColFormat= ExtDynamicPageList::$options['rowcolformat']['default'];
         
         $_sRandomSeed = ExtDynamicPageList::$options['randomseed']['default'];
-        $iRandomSeed = ($_sRandomSeed == '') ? NULL: intval($_sRandomSeed);
+        $iRandomSeed = ($_sRandomSeed == '') ? null: intval($_sRandomSeed);
 
         $_sRandomCount = ExtDynamicPageList::$options['randomcount']['default'];
-        $iRandomCount = ($_sRandomCount == '') ? NULL: intval($_sRandomCount);
+        $iRandomCount = ($_sRandomCount == '') ? null: intval($_sRandomCount);
     
         $sDistinctResultSet = 'true';
         
@@ -281,16 +281,16 @@ class DPLMain
         $sHItemHtmlAttr = ExtDynamicPageList::$options['hitemattr']['default'];
 		    
         $_sTitleMaxLen = ExtDynamicPageList::$options['titlemaxlength']['default'];
-        $iTitleMaxLen = ($_sTitleMaxLen == '') ? NULL: intval($_sTitleMaxLen);
+        $iTitleMaxLen = ($_sTitleMaxLen == '') ? null: intval($_sTitleMaxLen);
     
         $aReplaceInTitle[0] = '';
         $aReplaceInTitle[1] = '';
             
         $_sCatMinMax  = ExtDynamicPageList::$options['categoriesminmax']['default'];
-        $aCatMinMax   = ($_sCatMinMax == '') ? NULL: explode(',',$_sCatMinMax);	
+        $aCatMinMax   = ($_sCatMinMax == '') ? null: explode(',',$_sCatMinMax);	
         
         $_sIncludeMaxLen = ExtDynamicPageList::$options['includemaxlength']['default'];
-        $iIncludeMaxLen = ($_sIncludeMaxLen == '') ? NULL: intval($_sIncludeMaxLen);
+        $iIncludeMaxLen = ($_sIncludeMaxLen == '') ? null: intval($_sIncludeMaxLen);
 
         $bScroll = self::argBoolean(ExtDynamicPageList::$options['scroll']['default']);
         
@@ -657,7 +657,7 @@ class DPLMain
                 case 'randomseed':	
                     //ensure that $iRandomSeed is a number;
                         if( preg_match(ExtDynamicPageList::$options['randomseed']['pattern'], $sArg) )
-                        $iRandomSeed = ($sArg == '') ? NULL: intval($sArg);
+                        $iRandomSeed = ($sArg == '') ? null: intval($sArg);
                         else // wrong value
                         $output .= $logger->msgWrongParam('randomseed', $sArg);
                     break;
@@ -665,7 +665,7 @@ class DPLMain
                 case 'randomcount':
                     //ensure that $iRandomCount is a number;
                     if( preg_match(ExtDynamicPageList::$options['randomcount']['pattern'], $sArg) )
-                        $iRandomCount = ($sArg == '') ? NULL: intval($sArg);
+                        $iRandomCount = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('randomcount', $sArg);
                     break;
@@ -806,7 +806,7 @@ class DPLMain
                 case 'titlemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg) )
-                        $iTitleMaxLen = ($sArg == '') ? NULL: intval($sArg);
+                        $iTitleMaxLen = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('titlemaxlength', $sArg);
                     break;
@@ -1039,7 +1039,7 @@ class DPLMain
                     
                 case 'categoriesminmax':
                     if( preg_match(ExtDynamicPageList::$options['categoriesminmax']['pattern'], $sArg) )
-                        $aCatMinMax = ($sArg == '') ? NULL: explode(',',$sArg);
+                        $aCatMinMax = ($sArg == '') ? null: explode(',',$sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('categoriesminmax', $sArg);
                     break;
@@ -1229,7 +1229,7 @@ class DPLMain
                     
                 case 'dominantsection':
                     if( preg_match(ExtDynamicPageList::$options['dominantsection']['pattern'], $sArg) )
-                        $iDominantSection = ($sArg == '') ? NULL: intval($sArg);
+                        $iDominantSection = ($sArg == '') ? null : intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('dominantsection', $sArg);
                     break;
@@ -1237,7 +1237,7 @@ class DPLMain
 				case 'includemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['includemaxlength']['pattern'], $sArg) )
-                        $iIncludeMaxLen = ($sArg == '') ? NULL: intval($sArg);
+                        $iIncludeMaxLen = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('includemaxlength', $sArg);
                     break;
@@ -1417,14 +1417,14 @@ class DPLMain
                 case 'minrevisions':
                     //ensure that $iMinRevisions is a number
                     if( preg_match(ExtDynamicPageList::$options['minrevisions']['pattern'], $sArg) )
-                        $iMinRevisions = ($sArg == '') ? NULL: intval($sArg);
+                        $iMinRevisions = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('minrevisions', $sArg);
                     break;
                 case 'maxrevisions':
                     //ensure that $iMaxRevisions is a number
                     if( preg_match(ExtDynamicPageList::$options['maxrevisions']['pattern'], $sArg) )
-                        $iMaxRevisions = ($sArg == '') ? NULL: intval($sArg);
+                        $iMaxRevisions = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('maxrevisions', $sArg);
                     break;
@@ -2373,10 +2373,10 @@ class DPLMain
         // page_id=rev_page (if revision table required)
         $sSqlWhere .= $sSqlCond_page_rev;
 
-        if ($iMinRevisions != NULL) {
+        if ($iMinRevisions != null) {
 			$sSqlWhere .= " and ((select count(rev_aux2.rev_page) from revision as rev_aux2 where rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
     	}        
-        if ($iMaxRevisions != NULL) {
+        if ($iMaxRevisions != null) {
 			$sSqlWhere .= " and ((select count(rev_aux3.rev_page) from revision as rev_aux3 where rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
     	}        
         
