@@ -12,23 +12,26 @@ class DPLListMode {
 	var $sSectionTags = array();
 	var $aMultiSecSeparators = array();
 	var $iDominantSection = -1;
-	
-	function DPLListMode($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
-						  $listseparators, $iOffset, $dominantSection) {
+
+	function __construct( $listmode, $secseparators, $multisecseparators,
+		$inlinetext, $listattr = '', $itemattr = '', $listseparators, $iOffset,
+		$dominantSection
+	) {
 		// default for inlinetext (if not in mode=userformat)
-		if (($listmode != 'userformat') && ($inlinetext == ''))
+		if ( ( $listmode != 'userformat' ) && ( $inlinetext == '' ) ) {
 			$inlinetext = '&nbsp;-&nbsp;';
+		}
 		$this->name = $listmode;
-		$_listattr = ($listattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
-		$_itemattr = ($itemattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $itemattr, 'li' );
-		
+		$_listattr = ( $listattr == '' ) ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
+		$_itemattr = ( $itemattr == '' ) ? '' : ' ' . Sanitizer::fixTagAttributes( $itemattr, 'li' );
+
 		$this->sSectionTags = $secseparators;
 		$this->aMultiSecSeparators = $multisecseparators;
 		$this->iDominantSection = $dominantSection - 1;  // 0 based index
-		
-		switch ($listmode) {
+
+		switch ( $listmode ) {
 			case 'inline':
-				if( stristr($inlinetext, '<BR />') ) { //one item per line (pseudo-inline)
+				if( stristr( $inlinetext, '<BR />' ) ) { // one item per line (pseudo-inline)
 					$this->sListStart = '<DIV'. $_listattr . '>';
 					$this->sListEnd = '</DIV>';
 				}
@@ -37,8 +40,11 @@ class DPLListMode {
 				$this->sInline = $inlinetext;
 				break;
 			case 'ordered':
-				if ($iOffset==0) $this->sListStart = '<OL start=1 ' . $_listattr . '>';
-				else 			 $this->sListStart = '<OL start=' . ($iOffset+1) . ' ' . $_listattr . '>';
+				if ( $iOffset == 0 ) {
+					$this->sListStart = '<OL start=1 ' . $_listattr . '>';
+				} else {
+					$this->sListStart = '<OL start=' . ( $iOffset + 1 ) . ' ' . $_listattr . '>';
+				}
 				$this->sListEnd = '</OL>';
 				$this->sItemStart = '<LI'. $_itemattr . '>';
 				$this->sItemEnd = '</LI>';
@@ -66,7 +72,7 @@ class DPLListMode {
 				$this->sHeadingEnd = '</' . $listmode . '>';
 				break;
 			case 'userformat':
-				switch(count($listseparators)) {
+				switch( count( $listseparators ) ) {
 					case 4:
 						$this->sListEnd = $listseparators[3];
 					case 3:
