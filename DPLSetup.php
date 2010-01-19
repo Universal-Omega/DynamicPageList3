@@ -1213,7 +1213,7 @@ class ExtDynamicPageList {
 	}
 
 	//------------------------------------------------------------------------------------- ENTRY parser TAG dpl
-	public static function dplTag( $input, $params, &$parser ) {
+	public static function dplTag( $input, $params, $parser ) {
 		self::behaveLikeIntersection( false );
 		return self::executeTag( $input, $params, $parser );
 	}
