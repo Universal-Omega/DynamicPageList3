@@ -1207,7 +1207,7 @@ class ExtDynamicPageList {
 	}
 
 	//------------------------------------------------------------------------------------- ENTRY parser TAG intersection
-	public static function intersectionTag( $input, $params, &$parser ) {
+	public static function intersectionTag( $input, $params, $parser ) {
 		self::behaveLikeIntersection( true );
 		return self::executeTag( $input, $params, $parser );
 	}
