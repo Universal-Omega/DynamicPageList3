@@ -58,4 +58,4 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
 // be extremely restrictive by default: do not allow anything that goes beyond Extension:Intersection
 // can be extended by a different call to this function in LocalSettings.php after the require_once()
-ExtDynamicPageList::setFunctionalRichness(0);
+ExtDynamicPageList::setFunctionalRichness( 0 );
