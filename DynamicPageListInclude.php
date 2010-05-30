@@ -452,7 +452,7 @@ class DPLInclude {
 			// create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
 			$link = $cLink;
 			if ( $link == 'default' ) {
-				$link = ' [[' . $page . '#' . $headLine . '|..&rarr;]]';
+				$link = ' [[' . $page . '#' . $headLine . '|..→]]';
 			} elseif ( strstr( $link, 'img=' ) != false ) {
 				$link = str_replace(
 					'img=',

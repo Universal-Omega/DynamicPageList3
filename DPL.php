@@ -399,7 +399,7 @@ class DPL {
 					) {
 						if ( $this->mIncMaxLen > 0 && ( strlen( $text ) > $this->mIncMaxLen ) ) {
 							$text = DPLInclude::limitTranscludedText(
-								$text, $this->mIncMaxLen, ' [[' . $title . '|..&rarr;]]'
+								$text, $this->mIncMaxLen, ' [[' . $title . '|..→]]'
 							);
 						}
 						$this->filteredCount = $this->filteredCount + 1;
@@ -734,7 +734,7 @@ class DPL {
 					$rBody .= ' . . <SMALL>' . wfMsg( 'categories' ) . ': ' . implode( ' | ', $article->mCategoryLinks ) . '</SMALL>';
 				}
 				if ( $this->mAddExternalLink && $article->mExternalLink != '' ) {
-					$rBody .= ' &rarr; ' . $article->mExternalLink;
+					$rBody .= ' → ' . $article->mExternalLink;
 				}
 			}
 
@@ -1442,7 +1442,7 @@ class DPL {
 				$articleX->doDelete( $reason );
 			}
 		} else {
-			$message .= "set 'exec yes' to delete &nbsp; &nbsp; <big>'''$title'''</big>\n";
+			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
 		}
 		$message .= '<pre><nowiki>'
 			. "\n" . $text . '</nowiki></pre>'; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";

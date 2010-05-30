@@ -19,7 +19,7 @@ class DPLListMode {
 	) {
 		// default for inlinetext (if not in mode=userformat)
 		if ( ( $listmode != 'userformat' ) && ( $inlinetext == '' ) ) {
-			$inlinetext = '&nbsp;-&nbsp;';
+			$inlinetext = '&#160;-&#160;';
 		}
 		$this->name = $listmode;
 		$_listattr = ( $listattr == '' ) ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
