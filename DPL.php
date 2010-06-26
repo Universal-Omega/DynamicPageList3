@@ -1138,7 +1138,8 @@ class DPL {
 		$wgArticle = $articleX = new Article( $titleX );
 		$permission_errors = $articleX->mTitle->getUserPermissionsErrors( 'edit', $wgUser );
 		if ( count( $permission_errors ) == 0 ) {
-			$articleX->updateArticle( $text, $summary, false, $titleX->userIsWatching() );
+			$articleX->doEdit( $text, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES
+				| EDIT_AUTOSUMMARY, false, null, $titleX->userIsWatching(), false, '', true );
 			return '';
 		} else {
 			$wgOut->showPermissionsErrorPage( $permission_errors );
