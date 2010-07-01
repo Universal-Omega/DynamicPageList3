@@ -25,6 +25,11 @@ class DPLMain {
 		// note that this does not affect the article wiki source - a <html> tag in the wiki source
 		// will only be accepted if $rawHtml was set to true in the LocalSettings.php
 		$wgRawHtml = true;
+		//newer mediawiki needs the following:
+		if (method_exists('CoreTagHooks', 'html')) {
+			$parser->setHook( 'html', array( 'CoreTagHooks', 'html' ) );
+		}
+		//note, the above is hacky and insecure....
 
 		// logger (display of debug messages)
 		$logger = new DPLLogger();
@@ -2471,10 +2476,6 @@ class DPLMain {
 		}
 
 		if ( $sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '' ) {
-			// later during output we are going to create html links to the revisions, so we must enable RawHtml
-			// wiki syntax does not support links to revisions as far as I know -- gs
-			global $wgRawHtml;
-			$wgRawHtml = true;
 
 			$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
 			$sSqlRev_timestamp = ', rev_timestamp';
