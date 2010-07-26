@@ -1274,7 +1274,7 @@ class DPL {
 		if ( $noMatches <= 0 ) {
 			return $text;
 		}
-		$rText = '';
+
 		$beginSubst = - 1;
 		$endSubst = - 1;
 		$posInsertAt = 0;

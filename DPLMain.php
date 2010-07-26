@@ -2025,7 +2025,6 @@ class DPLMain {
 		$sSqlCond_MaxCat = '';
 		$sSqlWhere = ' WHERE 1=1 ';
 		$sSqlSelPage = ''; // initial page for selection
-		$sSqlSelectPageTouched = '';
 
 		// normally we create a result of normal pages, but when goal=categories is set, we create a list of categories
 		// as this conflicts with some options we need to avoid producing incoorect SQl code

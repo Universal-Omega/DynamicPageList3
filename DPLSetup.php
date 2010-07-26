@@ -1321,7 +1321,6 @@ class ExtDynamicPageList {
 		$heading = ' ', $maxLength = - 1, $page = '?page?', $link = 'default',
 		$trim = false
 	) {
-		$arg_list = func_get_args();
 		$output = DPLInclude::extractHeadingFromText(
 			$parser, $page, '?title?', $text, $heading, '', $sectionHeading,
 			true, $maxLength, $link, $trim
@@ -1330,7 +1329,6 @@ class ExtDynamicPageList {
 	}
 
 	public static function dplMatrixParserFunction( &$parser, $name, $yes, $no, $flip, $matrix ) {
-		$arg_list = func_get_args();
 		$lines = explode( "\n", $matrix );
 		$m = array();
 		$sources = array();
