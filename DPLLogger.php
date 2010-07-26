@@ -62,7 +62,7 @@ class DPLLogger {
 	 * @return HTML error message
 	 */
 	function msgWrongParam( $paramvar, $val ) {
-		global $wgContLang;
+
 		$msgid = DPL_i18n::WARN_WRONGPARAM;
 		switch( $paramvar ) {
 			case 'namespace':

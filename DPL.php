@@ -239,7 +239,6 @@ class DPL {
 	}
 	
 	function formatCount( $numart ) {
-		global $wgLang;
 		if ( $this->mHeadingType == 'category' ) {
 			$message = 'categoryarticlecount';
 		} else {
