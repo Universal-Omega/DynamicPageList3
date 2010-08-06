@@ -135,8 +135,6 @@ class DPLInclude {
 		$recursionCheck = true, $maxLength = - 1, $link = '',
 		$trim = false, $skipPattern = array()
 	) {
-		global $wgVersion;
-
 		// if someone tries something like<section begin=blah>lst only</section>
 		// text, may as well do the right thing.
 		$text = str_replace( '</section>', '', $text );
@@ -147,10 +145,8 @@ class DPLInclude {
 		}
 
 		if ( self::open( $parser, $part1 ) ) {
-			// Handle recursion here, so we can break cycles.  Although we can't do
-			// feature detection here, r18473 was only a few weeks before the
-			// release, so this is close enough.
-			if ( version_compare( $wgVersion, '1.9' ) < 0 || $recursionCheck == false ) {
+			// Handle recursion here, so we can break cycles.
+			if ( $recursionCheck == false ) {
 				$text = $parser->preprocess( $text, $parser->mTitle, $parser->mOptions );
 				self::close( $parser, $part1 );
 			}
