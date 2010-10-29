@@ -2947,7 +2947,7 @@ class DPLMain {
 		$lastNamespaceFound = '';
 		$lastTitleFound = '';
 
-		while ( $row = $dbr->fetchObject ( $res ) ) {
+		foreach ( $res as $row ) {
 			$iArticle++;
 
 			// in random mode skip articles which were not chosen
@@ -3426,7 +3426,7 @@ class DPLMain {
 			. str_replace( ' ', '_', $cat ) . "'" . " WHERE page_namespace='14'",
 			__METHOD__
 		);
-		while ( $row = $dbr->fetchObject ( $res ) ) {
+		foreach ( $res as $row ) {
 			if ( $depth > 1 ) {
 				$cats .= '|' . self::getSubcategories( $row->page_title, $sPageTable, $depth - 1 );
 			} else {
