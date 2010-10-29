@@ -75,7 +75,6 @@ class DPLLogger {
 				$msgid = DPL_i18n::FATAL_WRONGLINKSTO;
 				break;
 			case 'titlemaxlength':
-				$msgid = DPL_i18n::WARN_WRONGPARAM_INT;
 			case 'includemaxlength':
 				$msgid = DPL_i18n::WARN_WRONGPARAM_INT;
 				break;

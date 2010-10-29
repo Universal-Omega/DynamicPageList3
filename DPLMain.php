@@ -47,7 +47,6 @@ class DPLMain {
 		// Local parser created. See http://www.mediawiki.org/wiki/Extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
 		$localParser = new Parser();
 		$pOptions = $parser->mOptions;
-		$pTitle = $parser->mTitle;
 
 		// check if DPL shall only be executed from protected pages
 		if ( array_key_exists( 'RunFromProtectedPagesOnly', ExtDynamicPageList::$options ) &&
@@ -3379,7 +3378,7 @@ class DPLMain {
 		$aTableRow = array();
 		$groupNr = - 1;
 		$t = - 1;
-		foreach ( $aSecLabels as $colgroup => $label ) {
+		foreach ( $aSecLabels as $label ) {
 			$t++;
 			$groupNr++;
 			$cols = split( '}:', $label );
