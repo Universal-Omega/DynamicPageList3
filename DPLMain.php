@@ -118,7 +118,6 @@ class DPLMain {
 		$sCount = '';
 		$sCountScroll = '';
 		$sTitleGE = '';
-		$findTitle = '';
 		$sTitleLE = '';
 		$scrollDir = '';
 
@@ -260,7 +259,6 @@ class DPLMain {
 		$aSecLabelsNotMatch = array();
 		$bIncParsed = false; // default is to match raw parameters
 
-		$aSecSeparators = array();
 		$aSecSeparators	= explode( ',', ExtDynamicPageList::$options['secseparators']['default'] );
 		$aMultiSecSeparators = explode( ',', ExtDynamicPageList::$options['multisecseparators']['default'] );
 		$iDominantSection = ExtDynamicPageList::$options['dominantsection']['default'];
@@ -3106,7 +3104,7 @@ class DPLMain {
 				// Category links from current page
 				if ( $bAddCategories && $bGoalIsPages && ( $row->cats != '' ) ) {
 					$artCatNames = explode( ' | ', $row->cats );
-					foreach ( $artCatNames as $iArtCat => $artCatName ) {
+					foreach ( $artCatNames as $artCatName ) {
 						$dplArticle->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace( '_', ' ', $artCatName ) . ']]';
 						$dplArticle->mCategoryTexts[] = str_replace( '_', ' ', $artCatName );
 					}

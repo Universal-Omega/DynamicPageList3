@@ -345,7 +345,7 @@ class DPLInclude {
 
 			if ( $noMatches > 0 ) {
 				// calculate tag count (ignoring nesting)
-				foreach ( $matches[1] as $mmInx => $mm ) {
+				foreach ( $matches[1] as $mm ) {
 					if ( $mm[0] == '/' ) {
 						$tags[substr( $mm, 1 )] --;
 					} else {

@@ -102,7 +102,7 @@ class DPL {
 				$greml = $nsize; // remaining lines in current group
 				$g = 0;
 				$offset = 0;
-				foreach ( $headings as $heading => $headingCount ) {
+				foreach ( $headings as $headingCount ) {
 					$headingLink = $articles[$nstart - $offset]->mParentHLink;
 					$this->mOutput .= $hlistmode->sItemStart;
 					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
@@ -159,7 +159,7 @@ class DPL {
 				$this->mHListMode = $hlistmode;
 				$this->mOutput .= $hlistmode->sListStart;
 				$headingStart = 0;
-				foreach ( $headings as $heading => $headingCount ) {
+				foreach ( $headings as $headingCount ) {
 					$headingLink = $articles[$headingStart]->mParentHLink;
 					$this->mOutput .= $hlistmode->sItemStart;
 					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
@@ -441,7 +441,6 @@ class DPL {
 					// ONE section can be marked as "dominant"; if this section contains multiple entries
 					// we will create a separate output row for each value of the dominant section
 					// the values of all other columns will be repeated
-					$secArray = array();
 
 					foreach ( $this->mIncSecLabels as $s => $sSecLabel ) {
 						$sSecLabel = trim( $sSecLabel );
