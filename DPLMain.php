@@ -105,8 +105,6 @@ class DPLMain {
 		$_sOffset = $wgRequest->getVal( 'DPL_offset', ExtDynamicPageList::$options['offset']['default'] );
 		$iOffset = ( $_sOffset == '' ) ? 0: intval( $_sOffset );
 
-		$iCount = - 1;
-
 		// commandline parameters like %DPL_offset% are replaced
 		$input = self::resolveUrlArg( $input, 'DPL_offset' );
 		$input = self::resolveUrlArg( $input, 'DPL_count' );
