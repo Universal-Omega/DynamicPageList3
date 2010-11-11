@@ -3377,13 +3377,13 @@ class DPLMain {
 		foreach ( $aSecLabels as $label ) {
 			$t++;
 			$groupNr++;
-			$cols = split( '}:', $label );
+			$cols = explode( '}:', $label );
 			if ( count( $cols ) <= 1 ) {
 				if ( array_key_exists( $t, $tableRow ) ) {
 					$aTableRow[$groupNr] = $tableRow[$t];
 				}
 			} else {
-				$n = count( split( ':', $cols[1] ) );
+				$n = count( explode( ':', $cols[1] ) );
 				$colNr = - 1;
 				$t--;
 				for ( $i = 1; $i <= $n; $i++ ) {
