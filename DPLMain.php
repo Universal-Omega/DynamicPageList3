@@ -36,7 +36,7 @@ class DPLMain {
 
 		// check that we are not in an infinite transclusion loop
 		if ( isset( $parser->mTemplatePath[$parser->mTitle->getPrefixedText()] ) ) {
-			return $logger->escapeMsg( DPL_i18n::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText() );
+			return $logger->escapeMsg( ExtDynamicPageList::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText() );
 		}
 
 		/**
@@ -367,7 +367,7 @@ class DPLMain {
 			if ( count( $aParam ) < 2 ) {
 				if ( trim( $aParam[0] ) != '' ) {
 					$output .= $logger->escapeMsg(
-						DPL_i18n::WARN_UNKNOWNPARAM,
+						ExtDynamicPageList::WARN_UNKNOWNPARAM,
 						$aParam[0] . " [missing '=']",
 						self::validParametersList()
 					);
@@ -379,7 +379,7 @@ class DPLMain {
 
 			if ( $sType == '' ) {
 				$output .= $logger->escapeMsg(
-					DPL_i18n::WARN_UNKNOWNPARAM,
+					ExtDynamicPageList::WARN_UNKNOWNPARAM,
 					'[empty string]',
 					self::validParametersList()
 				);
@@ -663,7 +663,7 @@ class DPLMain {
 			// the next blocks are only available if $functionalRichness > 0
 			if ( ExtDynamicPageList::$functionalRichness <= 0 ) {
 				$output .= $logger->escapeMsg(
-					DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
+					ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
 				);
 				continue;
 			}
@@ -904,7 +904,7 @@ class DPLMain {
 				case 'debug':
 					if ( in_array( $sArg, ExtDynamicPageList::$options['debug'] ) ) {
 						if ( $iParam > 1 ) {
-							$output .= $logger->escapeMsg( DPL_i18n::WARN_DEBUGPARAMNOTFIRST, $sArg );
+							$output .= $logger->escapeMsg( ExtDynamicPageList::WARN_DEBUGPARAMNOTFIRST, $sArg );
 						}
 						$logger->iDebugLevel = intval( $sArg );
 					} else {
@@ -925,7 +925,7 @@ class DPLMain {
 
 			if ( ExtDynamicPageList::$functionalRichness <= 1 ) {
 				$output .= $logger->escapeMsg(
-					DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
+					ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
 				);
 				continue;
 			}
@@ -1500,7 +1500,7 @@ class DPLMain {
 
 			if ( ExtDynamicPageList::$functionalRichness <= 2 ) {
 				$output .= $logger->escapeMsg(
-					DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
+					ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
 				);
 				continue;
 			}
@@ -1615,7 +1615,7 @@ class DPLMain {
 
 			if ( ExtDynamicPageList::$functionalRichness <= 3 ) {
 				$output .= $logger->escapeMsg(
-					DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
+					ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
 				);
 				continue;
 			}
@@ -1661,7 +1661,7 @@ class DPLMain {
 			}
 
 			$output .= $logger->escapeMsg(
-				DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
+				ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList()
 			);
 
 		}
@@ -1796,12 +1796,12 @@ class DPLMain {
 
 		// too many categories!
 		if ( ( $iTotalCatCount > ExtDynamicPageList::$maxCategoryCount ) && ( !ExtDynamicPageList::$allowUnlimitedCategories ) ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_TOOMANYCATS, ExtDynamicPageList::$maxCategoryCount );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_TOOMANYCATS, ExtDynamicPageList::$maxCategoryCount );
 		}
 
 		// too few categories!
 		if ( $iTotalCatCount < ExtDynamicPageList::$minCategoryCount ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_TOOFEWCATS, ExtDynamicPageList::$minCategoryCount );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_TOOFEWCATS, ExtDynamicPageList::$minCategoryCount );
 		}
 	
 		// no selection criteria! Warn only if no debug level is set
@@ -1809,7 +1809,7 @@ class DPLMain {
 			if ( $logger->iDebugLevel <= 1 ) {
 				return $output;
 			}
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_NOSELECTION );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_NOSELECTION );
 		}
 
 		// ordermethod=sortkey requires ordermethod=category
@@ -1818,32 +1818,32 @@ class DPLMain {
 
 		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
 		if ( $iTotalIncludeCatCount == 0 && ( $aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true ) ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_CATDATEBUTNOINCLUDEDCATS );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_CATDATEBUTNOINCLUDEDCATS );
 		}
 
 		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
 		// we ALLOW this parameter combination, risking ambiguous results
 		// if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $output . $logger->escapeMsg(DPL_i18n::FATAL_CATDATEBUTMORETHAN1CAT);
+		//	return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_CATDATEBUTMORETHAN1CAT);
 
 		// no more than one type of date at a time!
 		if ( $bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1 ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_MORETHAN1TYPEOFDATE );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_MORETHAN1TYPEOFDATE );
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage 	
 		if ( $iDominantSection > 0 && count( $aSecLabels ) < $iDominantSection ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_DOMINANTSECTIONRANGE, count( $aSecLabels ) );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_DOMINANTSECTIONRANGE, count( $aSecLabels ) );
 		}
 	
 		// category-style output requested with not compatible order method
 		if ( $sPageListMode == 'category' && !array_intersect( $aOrderMethods, array( 'sortkey', 'title', 'titlewithoutnamespace' ) ) ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace' );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace' );
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
 		if ( $bAddPageTouchedDate && !array_intersect( $aOrderMethods, array( 'pagetouched', 'title' ) ) ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title' );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title' );
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -1851,7 +1851,7 @@ class DPLMain {
 		if ( $bAddEditDate && !array_intersect( $aOrderMethods, array( 'firstedit', 'lastedit' ) ) &
 			( $sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '' )
 		) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -1863,10 +1863,10 @@ class DPLMain {
 		if ( $bAddUser && !array_intersect( $aOrderMethods, array( 'firstedit', 'lastedit' ) ) &
 			( $sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '' )
 		) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
 		}
 		if ( isset( $sMinorEdits ) && !array_intersect( $aOrderMethods, array( 'firstedit', 'lastedit' ) ) ) {
-			return $output . $logger->escapeMsg( DPL_i18n::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
+			return $output . $logger->escapeMsg( ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
 		}
 
 		/**
@@ -1882,7 +1882,7 @@ class DPLMain {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if ( !$dbr->tableExists( 'dpl_clview' ) ) {
 				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $sDplClView . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $sPageTable . ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' ON ' . $sPageTable . '.page_id=cl_from';
-				$output .= $logger->escapeMsg( DPL_i18n::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview );
+				$output .= $logger->escapeMsg( ExtDynamicPageList::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview );
 				return $output;
 			}
 		}
@@ -1892,18 +1892,18 @@ class DPLMain {
 			|| $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage ||
 			$bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor )
 		) {
-			$output .= $logger->escapeMsg( DPL_i18n::WARN_CATOUTPUTBUTWRONGPARAMS );
+			$output .= $logger->escapeMsg( ExtDynamicPageList::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
 		// headingmode has effects with ordermethod on multiple components only
 		if ( $sHListMode != 'none' && count( $aOrderMethods ) < 2 ) {
-			$output .= $logger->escapeMsg( DPL_i18n::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none' );
+			$output .= $logger->escapeMsg( ExtDynamicPageList::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none' );
 			$sHListMode = 'none';
 		}
 
 		// openreferences is incompatible with many other options
 		if ( $acceptOpenReferences && $bConflictsWithOpenReferences ) {
-			$output .= $logger->escapeMsg( DPL_i18n::FATAL_OPENREFERENCES );
+			$output .= $logger->escapeMsg( ExtDynamicPageList::FATAL_OPENREFERENCES );
 			$acceptOpenReferences = false;
 		}
 
@@ -2895,7 +2895,7 @@ class DPLMain {
 				$output .= str_replace( '\n', "\n", str_replace( "¶", "\n", $footer ) );
 			}
 			if ( $sNoResultsHeader == '' && $sNoResultsFooter == '' ) {
-				$output .= $logger->escapeMsg( DPL_i18n::WARN_NORESULTS );
+				$output .= $logger->escapeMsg( ExtDynamicPageList::WARN_NORESULTS );
 			}
 			$dbr->freeResult( $res );
 			return $output;
@@ -3186,7 +3186,7 @@ class DPLMain {
 				$output .= str_replace( '\n', "\n", str_replace( "¶", "\n", $footer ) );
 			}
 			if ( $sNoResultsHeader == '' && $sNoResultsFooter == '' ) {
-				$output .= $logger->escapeMsg( DPL_i18n::WARN_NORESULTS );
+				$output .= $logger->escapeMsg( ExtDynamicPageList::WARN_NORESULTS );
 			}
 		} else {
 			if ( $sResultsHeader != '' ) {
