@@ -1350,10 +1350,7 @@ class ExtDynamicPageList {
 		// return $dump1.$text.$dump2;
 
 		$dplresult = DPLMain::dynamicPageList( $input, $params, $parser, $reset, 'func' );
-		global $wgVersion;
-		if ( version_compare( $wgVersion, '1.12.0' ) < 0 || $parser instanceof Parser_OldPP ) {
-			return $dplresult;
-		}
+
 		// old parser does further recursive processing by default
 		return array( // normal parser needs to be coaxed to do further recursive processing
 			$parser->getPreprocessor()->preprocessToObj( $dplresult, Parser::PTD_FOR_INCLUSION ),
