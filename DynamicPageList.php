@@ -58,7 +58,7 @@ if( !defined( 'MEDIAWIKI' ) ) {
 // we also register the tag <DynamicPageList> because DPL is downward compatible with Extension:Intersection
 // This means that your LocalSettings.php MUST NO LONGER include Extension:Intersection;
 
-$wgExtensionFunctions[] = array( 'ExtDynamicPageList', 'setupDPL' );
+$wgHooks['ParserFirstCallInit'][] = 'ExtDynamicPageList::setupDPL';
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 

@@ -1173,29 +1173,28 @@ class ExtDynamicPageList {
 		self::$functionalRichness = $level;
 	}
 
-	public static function setupDPL() {
-		global $wgParser;
-
+	public static function setupDPL( $parser ) {
 		// DPL offers the same functionality as Intersection; so we register the <DynamicPageList> tag
 		// in case LabeledSection Extension is not installed we need to remove section markers
-		$wgParser->setHook( 'section',			array( __CLASS__, 'removeSectionMarkers'	 ) );
-		$wgParser->setHook( 'DPL',				array( __CLASS__, 'dplTag'				   ) );
-		$wgParser->setHook( 'DynamicPageList',	array( __CLASS__, 'intersectionTag'		  ) );
+		$parser->setHook( 'section',			array( __CLASS__, 'removeSectionMarkers'	 ) );
+		$parser->setHook( 'DPL',				array( __CLASS__, 'dplTag'				   ) );
+		$parser->setHook( 'DynamicPageList',	array( __CLASS__, 'intersectionTag'		  ) );
 
-		$wgParser->setFunctionHook( 'dpl',		array( __CLASS__, 'dplParserFunction'		) );
-		$wgParser->setFunctionHook( 'dplnum',	 array( __CLASS__, 'dplNumParserFunction'	 ) );
-		$wgParser->setFunctionHook( 'dplchapter', array( __CLASS__, 'dplChapterParserFunction' ) );
-		$wgParser->setFunctionHook( 'dplmatrix',  array( __CLASS__, 'dplMatrixParserFunction'  ) );
+		$parser->setFunctionHook( 'dpl',		array( __CLASS__, 'dplParserFunction'		) );
+		$parser->setFunctionHook( 'dplnum',	 array( __CLASS__, 'dplNumParserFunction'	 ) );
+		$parser->setFunctionHook( 'dplchapter', array( __CLASS__, 'dplChapterParserFunction' ) );
+		$parser->setFunctionHook( 'dplmatrix',  array( __CLASS__, 'dplMatrixParserFunction'  ) );
 
 		self::commonSetup();
+		return true;
 	}
 
 	public static function setupMigration() {
 		// DPL offers the same functionality as Intersection under the tag name <Intersection>
-		global $wgParser;
-		$wgParser->setHook( 'Intersection', array( __CLASS__, 'intersectionTag' ) );
+		$parser->setHook( 'Intersection', array( __CLASS__, 'intersectionTag' ) );
 
 		self::commonSetup();
+		return true;
 	}
 
 	private static function commonSetup() {
