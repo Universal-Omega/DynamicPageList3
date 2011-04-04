@@ -26,7 +26,8 @@ class DPLMain {
 		// will only be accepted if $rawHtml was set to true in the LocalSettings.php
 		$wgRawHtml = true;
 		// newer MediaWiki needs the following:
-		if ( method_exists( 'CoreTagHooks', 'html' ) ) {
+		$realFunction = array( 'CoreTagHooks', 'html' );
+		if ( is_callable( $realFunction ) ) {
 			$parser->setHook( 'html', array( 'CoreTagHooks', 'html' ) );
 		}
 		// note, the above is hacky and insecure....
