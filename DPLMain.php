@@ -2984,6 +2984,9 @@ class DPLMain {
 			$dplArticle = new DPLArticle( $title, $pageNamespace );
 			// Page link
 			$sTitleText = $title->getText();
+			if ( $bShowNamespace ) {
+				$sTitleText = $title->getPrefixedText();
+			}			
 			if ( $aReplaceInTitle[0] != '' ) {
 				$sTitleText = preg_replace( $aReplaceInTitle[0], $aReplaceInTitle[1], $sTitleText );
 			}
@@ -2991,9 +2994,6 @@ class DPLMain {
 			// chop off title if "too long"
 			if ( isset( $iTitleMaxLen ) && ( strlen( $sTitleText ) > $iTitleMaxLen ) ) {
 				$sTitleText = substr( $sTitleText, 0, $iTitleMaxLen ) . '...';
-			}
-			if ( $bShowNamespace ) {
-				$sTitleText = str_replace( '_', ' ', $title->prefix( $sTitleText ) );
 			}
 			if ( $bShowCurID && isset( $row->page_id ) ) {
 				$articleLink = '<html>' . $sk->makeKnownLinkObj( $title, htmlspecialchars( $sTitleText ), 'curid=' . $row->page_id ) . '</html>';
