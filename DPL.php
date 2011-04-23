@@ -1615,7 +1615,7 @@ class DPL {
 			$options = array( $options );
 		}
 
-		$string = wfMsgGetKey( $key, true, false, false );
+		$string = wfMsgNoTrans( $key );
 
 		$string = wfMsgReplaceArgs( $string, $args );
 
