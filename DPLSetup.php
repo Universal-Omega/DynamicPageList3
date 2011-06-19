@@ -1189,7 +1189,7 @@ class ExtDynamicPageList {
 		return true;
 	}
 
-	public static function setupMigration() {
+	public static function setupMigration( $parser ) {
 		// DPL offers the same functionality as Intersection under the tag name <Intersection>
 		$parser->setHook( 'Intersection', array( __CLASS__, 'intersectionTag' ) );
 
