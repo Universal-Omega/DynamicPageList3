@@ -2995,7 +2995,6 @@ class DPLMain {
 			if ( isset( $iTitleMaxLen ) && ( strlen( $sTitleText ) > $iTitleMaxLen ) ) {
 				$sTitleText = substr( $sTitleText, 0, $iTitleMaxLen ) . '...';
 			}
-			
 			if ( $bShowCurID && isset( $row->page_id ) ) {
 				$articleLink = '<html>' . $sk->makeKnownLinkObj( $title, htmlspecialchars( $sTitleText ), 'curid=' . $row->page_id ) . '</html>';
 			} elseif ( !$bEscapeLinks && ( $pageNamespace == 14 || $pageNamespace == 6 ) ) {
