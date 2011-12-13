@@ -70,7 +70,7 @@ $wgExtensionCredits['parserhook'][] = array(
 	'path' => __FILE__,
 	'name' => 'DynamicPageList',
 	'author' => '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
-	'url' => 'http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
+	'url' => 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
 	'descriptionmsg' => 'dpl-desc',
 	'version' => $DPLVersion
 );
