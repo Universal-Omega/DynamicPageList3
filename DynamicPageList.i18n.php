@@ -752,7 +752,7 @@ $messages['nn'] = array(
 /** Norwegian (bokmål)‬ (‪Norsk (bokmål)‬)
  * @author Jon Harald Søby
  */
-$messages['no'] = array(
+$messages['nb'] = array(
 	'intersection-desc' => 'Gir en punktliste over de nyeste elementene i en kategori, eller elementer som er felles i flere kategorier',
 	'intersection_toomanycats' => 'Dynamisk sideliste: For mange kategorier!',
 	'intersection_toofewcats' => 'Dynamisk sidelist: For få kategorier!',
