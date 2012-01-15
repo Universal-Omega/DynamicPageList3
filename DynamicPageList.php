@@ -60,11 +60,10 @@ if( !defined( 'MEDIAWIKI' ) ) {
 
 $wgHooks['ParserFirstCallInit'][] = 'ExtDynamicPageList::setupDPL';
 
-$wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
-
 $wgExtensionMessagesFiles['DynamicPageList'] =  dirname( __FILE__ ) . '/DynamicPageList.i18n.php';
+$wgExtensionMessagesFiles['DynamicPageListMagic'] =  dirname( __FILE__ ) . '/DynamicPageList.i18n.magic.php';
 
-$DPLVersion = '1.8.9';
+$DPLVersion = '1.9.0';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path' => __FILE__,

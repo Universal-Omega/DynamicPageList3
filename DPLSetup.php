@@ -401,10 +401,6 @@
  *			when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
  */
 
-// changed back to global functions due to trouble with older MW installations, g.s.
-function ExtDynamicPageList__languageGetMagic( &$magicWords, $langCode ) {
-	return ExtDynamicPageList::languageGetMagic( $magicWords, $langCode );
-}
 function ExtDynamicPageList__endReset( &$parser, $text ) {
 	return ExtDynamicPageList::endReset( $parser, $text );
 }
@@ -1254,19 +1250,6 @@ class ExtDynamicPageList {
 		require_once( 'DPLLogger.php' );
 
 		self::$modulesLoaded = true;
-	}
-
-	public static function languageGetMagic( &$magicWords, $langCode ) {
-		# Add the magic word
-		# The first array element is case sensitivity, in this case it is not case sensitive
-		# All remaining elements are synonyms for our parser function
-		$magicWords['dpl']			 = array( 0, 'dpl' );
-		$magicWords['dplnum']		  = array( 0, 'dplnum' );
-		$magicWords['dplchapter']	  = array( 0, 'dplchapter' );
-		$magicWords['dplmatrix']	   = array( 0, 'dplmatrix' );
-		$magicWords['DynamicPageList'] = array( 0, 'DynamicPageList' );
-		# unless we return true, other parser functions extensions won't get loaded.
-		return true;
 	}
 
 	// ------------------------------------------------------------------------------------- ENTRY parser TAG intersection
