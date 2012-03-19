@@ -561,7 +561,7 @@ class DPLInclude {
 
 	// template inclusion - find the place(s) where template1 is called,
 	// replace its name by template2, then expand template2 and return the result
-	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
+	// we return an array containing all occurrences of the template call which match the condition "$mustMatch"
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $dpl->formatTemplateArg()
 	public static function includeTemplate( $parser, $dpl, $dplNr, $article,

@@ -1280,8 +1280,8 @@ class DPL {
 
 		foreach ( $matches as $matchA ) {
 			$matchCount = count( $matchA );
-			foreach ( $matchA as $occurence => $matchB ) {
-				if ( $occurence < $call ) {
+			foreach ( $matchA as $occurrence => $matchB ) {
+				if ( $occurrence < $call ) {
 					continue;
 				}
 				$match = $matchB[0];
@@ -1460,12 +1460,12 @@ class DPL {
 		);
  	}
 
-	// format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)
+	// format one item of an entry in the output list (i.e. the collection of occurrences of one item from the include parameter)
 	function formatItem( $piece, $tagStart, $tagEnd ) {
 		return $tagStart . $piece . $tagEnd;
  	}
 
-	// format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter)
+	// format one single item of an entry in the output list (i.e. one occurrence of one item from the include parameter)
 	function formatSingleItems( &$pieces, $s, $article ) {
 		$firstCall = true;
 		foreach ( $pieces as $key => $val ) {
@@ -1500,7 +1500,7 @@ class DPL {
 		}
  	}
 
-	// format one single template argument of one occurence of one item from the include parameter
+	// format one single template argument of one occurrence of one item from the include parameter
 	// is called via a backlink from DPLInclude::includeTemplate()
 	function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxlen, $article ) {
 		// we could try to format fields differently within the first call of a template
