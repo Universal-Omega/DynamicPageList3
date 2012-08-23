@@ -6,7 +6,7 @@ class DPLLogger {
 	
 	var $iDebugLevel;
 	
-	function DPLLogger() {
+	function __construct() {
 		$this->iDebugLevel = ExtDynamicPageList::$options['debug']['default'];
 	}
 
@@ -22,7 +22,7 @@ class DPLLogger {
 		}
 
 
-		if($this->iDebugLevel >= ExtDynamicPageList::$debugMinLevels[ord($msgid)-ord('a')]) {
+		if($this->iDebugLevel >= ExtDynamicPageList::$debugMinLevels[$msgid]) {
 			$args = func_get_args();
 			array_shift( $args );
 			$val='';
@@ -33,10 +33,10 @@ class DPLLogger {
 			 */
 			 $text='';
 			if (ExtDynamicPageList::$behavingLikeIntersection) {
-				if 		($msgid == DPL_i18n::FATAL_TOOMANYCATS) $text = wfMsg('intersection_toomanycats', $args);
-				else if ($msgid == DPL_i18n::FATAL_TOOFEWCATS)  $text = wfMsg('intersection_toofewcats', $args);
-				else if ($msgid == DPL_i18n::WARN_NORESULTS)   	$text = wfMsg('intersection_noresults', $args);
-				else if ($msgid == DPL_i18n::FATAL_NOSELECTION) $text = wfMsg('intersection_noincludecats', $args);
+				if 		($msgid == ExtDynamicPageList::FATAL_TOOMANYCATS) $text = wfMsg('intersection_toomanycats', $args);
+				else if ($msgid == ExtDynamicPageList::FATAL_TOOFEWCATS)  $text = wfMsg('intersection_toofewcats', $args);
+				else if ($msgid == ExtDynamicPageList::WARN_NORESULTS)   	$text = wfMsg('intersection_noresults', $args);
+				else if ($msgid == ExtDynamicPageList::FATAL_NOSELECTION) $text = wfMsg('intersection_noincludecats', $args);
 			}
 			if ($text=='') {
 				$text = wfMsg('dpl_log_' . $msgid, $args);
@@ -64,23 +64,21 @@ class DPLLogger {
 	 * @return HTML error message
 	 */
 	function msgWrongParam($paramvar, $val) {
-		global $wgContLang;
-		$msgid = DPL_i18n::WARN_WRONGPARAM;
+		$msgid = ExtDynamicPageList::WARN_WRONGPARAM;
 		switch($paramvar) {
 			case 'namespace':
 			case 'notnamespace':
-				$msgid = DPL_i18n::FATAL_WRONGNS;
-				
+				$msgid = ExtDynamicPageList::FATAL_WRONGNS;
 				break;
 			case 'linksto':
 			case 'notlinksto':
 			case 'linksfrom':
-				$msgid = DPL_i18n::FATAL_WRONGLINKSTO;
+				$msgid = ExtDynamicPageList::FATAL_WRONGLINKSTO;
 				break;
 			case 'titlemaxlength':
-				$msgid = DPL_i18n::WARN_WRONGPARAM_INT;
 			case 'includemaxlength':
-				$msgid = DPL_i18n::WARN_WRONGPARAM_INT;
+			case 'randomseed':
+				$msgid = ExtDynamicPageList::WARN_WRONGPARAM_INT;
 				break;
 		}
 		$paramoptions = array_unique(ExtDynamicPageList::$options[$paramvar]);

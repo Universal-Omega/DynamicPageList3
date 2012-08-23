@@ -100,8 +100,7 @@
  
  */
 
-class DPLInclude
-{
+class DPLInclude {
 
     ##############################################################
     # To do transclusion from an extension, we need to interact with the parser
@@ -139,7 +138,6 @@ class DPLInclude
      **/
     private static function parse($parser, $title, $text, $part1, $skiphead=0, $recursionCheck=true, $maxLength=-1, $link='', $trim=false, $skipPattern=array()) 
     {
-      global $wgVersion;
 
       // if someone tries something like<section begin=blah>lst only</section>
       // text, may as well do the right thing.
@@ -149,17 +147,11 @@ class DPLInclude
 	  foreach ($skipPattern as $skipPat) {
 		$text=preg_replace($skipPat,'',$text);
 	  }
-    
-
+	  
       if (self::open($parser, $part1)) {
 
-    
-        //Handle recursion here, so we can break cycles.  Although we can't do
-        //feature detection here, r18473 was only a few weeks before the
-        //release, so this is close enough.
-    
-        if(version_compare( $wgVersion, "1.9" ) < 0 || $recursionCheck == false) {
-			
+        //Handle recursion here, so we can break cycles.    
+        if($recursionCheck == false) {
 			$text = $parser->preprocess($text,$parser->mTitle,$parser->mOptions);
 			self::close($parser, $part1);
         }
@@ -206,13 +198,6 @@ class DPLInclude
         "['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=".
         "['\"]?\\1['\"]?".
         "$ws\/?>/s";
-        
-/*      return "/<section$ws\s+(?i:begin)=".
-        "(?:$sec|\"$sec\"|'$sec')".
-        "$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=".
-        "(?:$to_sec|\"$to_sec\"|'$to_sec')".
-        "$ws\/?>/s";
-*/
     }
     
     ///Count headings in skipped text; the $parser arg could go away in the future.
@@ -330,7 +315,7 @@ class DPLInclude
 			
 			if ($noMatches>0) {
 				// calculate tag count (ignoring nesting)
-				foreach ($matches[1] as $mmInx => $mm) {
+				foreach ($matches[1] as $mm) {
 					if ($mm[0]=='/')	$tags[substr($mm,1)] --;
 					else 				$tags[$mm]++;
 				}
@@ -348,8 +333,6 @@ class DPLInclude
 					}
 				}
 			}
-
-			// MyBug::trace(__CLASS__,'truncate',"corrected cut=$cut");
             return $cut.$link;
         }
         else if ($limit==0) {
@@ -422,7 +405,7 @@ class DPLInclude
         }
 		// create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
 		$link=$cLink;
-		if      ($link=='default')                 $link = ' [['.$page.'#'.$headLine.'|..&rarr;]]';
+		if      ($link=='default')                 $link = ' [['.$page.'#'.$headLine.'|..→]]';
 		else if (strstr($link,'img=')!=false)      $link = str_replace('img=',"<linkedimage>page=".$page.'#'.$headLine."\nimg=Image:",$link)."\n</linkedimage>";
 		else if (strstr($link,'%SECTION%')==false) $link = ' [['.$page.'#'.$headLine.'|'.$link.']]';
 		else                                       $link = str_replace('%SECTION%',$page.'#'.$headLine,$link);
@@ -438,8 +421,7 @@ class DPLInclude
             //if $to is supplied, try and match it.  If we don't match, just ignore it.
             if ($isPlain)	$pat = '^(={1,6})\s*' . preg_quote($to, '/') . '\s*\1\s*$' ;
             else		  	$pat = '^(={1,6})\s*' . str_replace('/','\/',$to) . '\s*\1\s*$' ;
-            if (preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off))
-                $end_off = $mm[0][1]-1;
+            if (preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off))	$end_off = $mm[0][1]-1;
         }
         if (! isset($end_off)) {
             if ($nr!=0)	$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';

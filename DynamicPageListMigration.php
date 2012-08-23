@@ -1,5 +1,4 @@
 <?php
-
 /* 
    This is a side entry point for Extension:DPL which is intended for migration purpose ONLY
    -----------------------------------------------------------------------------------------
@@ -29,6 +28,11 @@
 	
 */
 
+if (!defined( 'MEDIAWIKI' ) ) {
+	die( 'This is not a valid entry point to MediaWiki.' );
+}
+
+
 // we do NOT register the tag <dpl> or the function #dpl
 // we do NOT register the tag <DynamicPageList> - so this extension CAN CO-EXIST with Extension:Intersection
 // instead we register the tag <Intersection> - so you can test in parallel
@@ -40,14 +44,13 @@ $wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupMigration' )
 
 $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
-$DPLVersion = '2.0';
+$DPLVersion = '2.01';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path' 				=> __FILE__,
 	'name' 				=> 'DynamicPageList',
 	'author' 			=>  '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
-	'url' 				=> 'http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
-	'description' 		=> 'A highly flexible report generator for MediaWikis - manual and examples: see [http://semeb.com/dpldemo]',
+	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
 	'descriptionmsg' 	=> 'dpl-desc',
   	'version' 			=> $DPLVersion
   );

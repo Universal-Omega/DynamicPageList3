@@ -12,14 +12,14 @@
  * Usage:
  * 	require_once("extensions/DynamicPageList/DynamicPageList.php"); in LocalSettings.php
  * 
- * @package MediaWiki
- * @subpackage Extensions
- * @link http://www.mediawiki.org/wiki/Extension:DynamicPageList   Documentation
+ * @file
+ * @ingroup Extensions
+ * @link http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)  Documentation
  * @author n:en:User:IlyaHaykinson 
  * @author n:en:User:Amgine 
  * @author w:de:Benutzer:Unendlich 
  * @author m:User:Dangerman <cyril.dangerville@gmail.com>
- * @author m:User:Algorithmix <gero.scholz@t-online.de>
+ * @author m:User:Algorithmix <gero.scholz@gmx.de>
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  * @version 0.9.1
  *          problem with adduser solved
@@ -416,13 +416,17 @@
  *			added workaround to eliminate problems with cite extension (DPL calls parser clearState which erases references)
  *			added a CAST to CHAR at all LOWER statemens in SQL (MediaWiki changed to varbinary types since 1.17)
  *
- *			when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
+ * @version 2.01
+ *          re-merged all changes from SVN since DPL 1.8.6
+ *
+ * when making changes here you must update the version field in DynamicPageList.php and DynamicPageListMigration.php !
+ *
  */
 
-// changed back to global functions due to trouble with older MW installations, g.s.
 function ExtDynamicPageList__languageGetMagic( &$magicWords, $langCode ) 	{ 
 	return ExtDynamicPageList::languageGetMagic( $magicWords, $langCode ); 
 }
+
 function ExtDynamicPageList__endReset( &$parser, $text ) 					{ 
 	return ExtDynamicPageList::endReset( $parser, $text ); 
 }
@@ -430,8 +434,7 @@ function ExtDynamicPageList__endEliminate( &$parser, $text )			 	{
 	return ExtDynamicPageList::endEliminate( $parser, $text ); 
 }
 
-class ExtDynamicPageList
-{
+class ExtDynamicPageList {
 
     public static $DPLVersion = '?';               // current version is set by DynamicPageList.php and DynamicPageListMigration.php
 
@@ -439,6 +442,72 @@ class ExtDynamicPageList
 													// to invalidate MediaWiki´s ParserCache if suitable
 
 	public static $modulesLoaded = false;			// php require_once control
+	
+    // Debug stuff
+
+    // FATAL
+    const FATAL_WRONGNS                             = 1;    // $0: 'namespace' or 'notnamespace'
+                                                            // $1: wrong parameter given by user
+                                                            // $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
+															
+    const FATAL_WRONGLINKSTO                        = 2;    // $0: linksto' (left as $0 just in case the parameter is renamed in the future)
+                                                            // $1: the wrong parameter given by user
+	
+    const FATAL_TOOMANYCATS                         = 3;    // $0: max number of categories that can be included
+
+    const FATAL_TOOFEWCATS                          = 4;    // $0: min number of categories that have to be included
+
+    const FATAL_NOSELECTION                         = 5;
+
+    const FATAL_CATDATEBUTNOINCLUDEDCATS            = 6;
+
+    const FATAL_CATDATEBUTMORETHAN1CAT              = 7;
+
+    const FATAL_MORETHAN1TYPEOFDATE                 = 8;
+
+    const FATAL_WRONGORDERMETHOD                    = 9;    // $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+                                                            // $1: last 'ordermethod' parameter required for $0
+
+    const FATAL_DOMINANTSECTIONRANGE                = 10;   // $0: the number of arguments in includepage
+
+    const FATAL_NOCLVIEW                            = 11;   // $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+                                                            // $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+
+    const FATAL_OPENREFERENCES                      = 12;
+	
+    // ERROR
+	
+    // WARN
+	
+    const WARN_UNKNOWNPARAM                         = 13;   // $0: unknown parameter given by user
+                                                            // $1: list of DPL available parameters separated by ', '
+
+    const WARN_WRONGPARAM                           = 14;   // $3: list of valid param values separated by ' | '
+
+    const WARN_WRONGPARAM_INT                       = 15;   // $0: param name
+                                                            // $1: wrong param value given by user
+                                                            // $2: default param value used instead by program
+
+    const WARN_NORESULTS                            = 16;
+
+    const WARN_CATOUTPUTBUTWRONGPARAMS              = 17;
+
+    const WARN_HEADINGBUTSIMPLEORDERMETHOD          = 18;   // $0: 'headingmode' value given by user
+                                                            // $1: value used instead by program (which means no heading)
+
+    const WARN_DEBUGPARAMNOTFIRST                   = 19;   // $0: 'log' value
+
+    const WARN_TRANSCLUSIONLOOP                     = 20;   // $0: title of page that creates an infinite transclusion loop
+
+    // INFO
+
+    // DEBUG
+
+    const DEBUG_QUERY                               = 21;   // $0: SQL query executed to generate the dynamic page list
+
+    // TRACE
+															// Output formatting
+                                                            // $1: number of articles
 	
     /**
      * Extension options
@@ -449,7 +518,7 @@ class ExtDynamicPageList
     public  static $categoryStyleListCutoff  = 6;     // Max length to format a list of articles chunked by letter as bullet list, if list bigger, columnar format user (same as cutoff arg for CategoryPage::formatList())
     public  static $allowUnlimitedCategories = true;  // Allow unlimited categories in the Query
     public  static $allowUnlimitedResults    = false; // Allow unlimited results to be shown
-    public  static $allowedNamespaces        = NULL;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
+    public  static $allowedNamespaces        = null;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
 										              // Cannot be customized. Use ExtDynamicPageList::$options['namespace'] or ExtDynamicPageList::$options['notnamespace'] for customization.
 	public  static $behavingLikeIntersection = false; // Changes certain default values to comply with Extension:Intersection
 	public  static $functionalRichness		 = 0;	  // The amount of functionality of DPL that is accesible for the user;
@@ -480,12 +549,12 @@ class ExtDynamicPageList
         'addpagetoucheddate'   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
         'adduser'              => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
 		
-		// default of allowchacheresults depends on behaveasIntersetion and on LopcalSettings ...
+		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
         'allowcachedresults'   => array( 'true', 'false', 'no', 'yes', 'yes+warn', '0', '1', 'off', 'on'),
         /**
          * search for a page with the same title in another namespace (this is normally the article to a talk page)
          */
-        'articlecategory'    => NULL,
+        'articlecategory'    => null,
 
         /**
          * category= Cat11 | Cat12 | ...
@@ -498,9 +567,9 @@ class ExtDynamicPageList
          * Magic words allowed.
          * @todo define 'category' options (retrieve list of categories from 'categorylinks' table?)
          */
-        'category'             => NULL,
-        'categorymatch'        => NULL,
-        'categoryregexp'       => NULL,
+        'category'             => null,
+        'categorymatch'        => null,
+        'categoryregexp'       => null,
         /**
          * Min and Max of categories allowed for an article
          */
@@ -571,7 +640,7 @@ class ExtDynamicPageList
          * html headings (H2, H3, H4), definition list, no heading (none), ordered, unordered.
          */
 
-        'format'       		   => NULL,
+        'format'       		   => null,
 
         'goal'                 => array('default' => 'pages', 'pages', 'categories'),
 
@@ -613,7 +682,7 @@ class ExtDynamicPageList
          * make comparisons (linksto, linksfrom ) case insensitive
          */
         'ignorecase'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-        'include'          	   => NULL,
+        'include'          	   => null,
         /**
          * includesubpages    default is TRUE
          */
@@ -632,7 +701,7 @@ class ExtDynamicPageList
         /** 
          * Inline text is some wiki text used to separate list items with 'mode=inline'.
          */
-        'inlinetext'           => array('default' => '&nbsp;-&nbsp;'),
+        'inlinetext'           => array('default' => '&#160;-&#160;'),
         /**
          * Max # characters of included page to display.
          * Empty value (default) means no limit.
@@ -716,33 +785,33 @@ class ExtDynamicPageList
         /**
          * allows to specify a username who must be the first editor of the pages we select
          */
-        'createdby'            => NULL,
+        'createdby'            => null,
         /**
          * allows to specify a username who must not be the first editor of the pages we select
          */
-        'notcreatedby'            => NULL,
+        'notcreatedby'            => null,
         /**
          * allows to specify a username who must be among the editors of the pages we select
          */
-        'modifiedby'           => NULL,
+        'modifiedby'           => null,
         /**
          * allows to specify a username who must not be among the editors of the pages we select
          */
-        'notmodifiedby'           => NULL,
+        'notmodifiedby'           => null,
         /**
          * allows to specify a username who must be the last editor of the pages we select
          */
-        'lastmodifiedby'           => NULL,
+        'lastmodifiedby'           => null,
         /**
          * allows to specify a username who must not be the last editor of the pages we select
          */
-        'notlastmodifiedby'           => NULL,
+        'notlastmodifiedby'           => null,
         /**
          * Mode for list of pages (possibly within a heading, see 'headingmode' param).
-         * 'none' mode is implemented as a specific submode of 'inline' with <BR/> as inline text
+         * 'none' mode is implemented as a specific submode of 'inline' with <br /> as inline text
          * 'userformat' does not produce any html tags unless 'listseparators' are specified
          */
-        'mode'				   => NULL,  // depends on behaveAs... mode
+        'mode'				   => null,  // depends on behaveAs... mode
         /**
          * by default links to articles of type image or category are escaped (i.e. they appear as a link and do not
          * actually assign the category or show the image; this can be changed.
@@ -762,7 +831,7 @@ class ExtDynamicPageList
          * Means pages have to be in namespace Ns1 OR Ns2 OR...
          * Magic words allowed.
          */
-        'namespace'            => NULL,
+        'namespace'            => null,
         /**
          * notcategory= Cat1
          * notcategory = Cat2
@@ -770,9 +839,9 @@ class ExtDynamicPageList
          * Means pages can be NEITHER in category Cat1 NOR in Cat2 NOR...
          * @todo define 'notcategory' options (retrieve list of categories from 'categorylinks' table?)
          */
-        'notcategory'          => NULL,
-        'notcategorymatch'     => NULL,
-        'notcategoryregexp'    => NULL,
+        'notcategory'          => null,
+        'notcategorymatch'     => null,
+        'notcategoryregexp'    => null,
         /**
          * notnamespace= Ns1
          * notnamespace= Ns2
@@ -781,22 +850,22 @@ class ExtDynamicPageList
          * Means pages have to be NEITHER in namespace Ns1 NOR Ns2 NOR...
          * Magic words allowed.
         */
-        'notnamespace'         => NULL,
+        'notnamespace'         => null,
         /**
          * title is the exact name of a page; this is useful if you want to use DPL
          * just for contents inclusion; mode=userformat is automatically implied with title=
         */
-        'title'		           => NULL,
+        'title'		           => null,
         /**
          * titlematch is a (SQL-LIKE-expression) pattern
          * which restricts the result to pages matching that pattern
         */
-        'title<'	           => NULL,
-        'title>'	           => NULL,
+        'title<'	           => null,
+        'title>'	           => null,
         'scroll'               => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'), 
-        'titlematch'           => NULL,
-        'titleregexp'          => NULL,
-        'userdateformat'	   => NULL,  // depends on behaveAs... mode
+        'titlematch'           => null,
+        'titleregexp'          => null,
+        'userdateformat'	   => null,  // depends on behaveAs... mode
         'updaterules'          => array('default' => ''),
         'deleterules'          => array('default' => ''),
 
@@ -804,9 +873,9 @@ class ExtDynamicPageList
          * nottitlematch is a (SQL-LIKE-expression) pattern
          * which excludes pages matching that pattern from the result
         */
-        'nottitlematch'        => NULL,
-        'nottitleregexp'       => NULL,
-        'order'				   => NULL,  // depends on behaveAs... mode
+        'nottitlematch'        => null,
+        'nottitleregexp'       => null,
+        'order'				   => null,  // depends on behaveAs... mode
         /**
          * we can specify something like "latin1_swedish_ci" for case insensitive sorting
         */
@@ -815,7 +884,7 @@ class ExtDynamicPageList
          * 'ordermethod=param1,param2' means ordered by param1 first, then by param2.
          * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
          */
-        'ordermethod'          => NULL, // depends on behaveAs... mode
+        'ordermethod'          => null, // depends on behaveAs... mode
         /**
          * minoredits =... (compatible with ordermethod=...,firstedit | lastedit only)
          * - exclude: ignore minor edits when sorting the list (rev_minor_edit = 0 only)
@@ -1172,7 +1241,6 @@ class ExtDynamicPageList
 		}
 
         require_once( 'DPLVariables.php' );
-
 	}
 
 	private static function loadMessages() {
@@ -1214,18 +1282,18 @@ class ExtDynamicPageList
 	}
 	
     public static function languageGetMagic( &$magicWords, $langCode ) {
-            # Add the magic word
-            # The first array element is case sensitivity, in this case it is not case sensitive
-            # All remaining elements are synonyms for our parser function
-            $magicWords['dpl']             = array( 0, 'dpl' );
-            $magicWords['dplnum']          = array( 0, 'dplnum' );
-            $magicWords['dplvar']          = array( 0, 'dplvar' );
-            $magicWords['dplreplace']      = array( 0, 'dplreplace' );
-            $magicWords['dplchapter']      = array( 0, 'dplchapter' );
-            $magicWords['dplmatrix']       = array( 0, 'dplmatrix' );
-            $magicWords['DynamicPageList'] = array( 0, 'DynamicPageList' );
-            # unless we return true, other parser functions extensions won't get loaded.
-            return true;
+        # Add the magic word
+        # The first array element is case sensitivity, in this case it is not case sensitive
+        # All remaining elements are synonyms for our parser function
+        $magicWords['dpl']             = array( 0, 'dpl' );
+        $magicWords['dplnum']          = array( 0, 'dplnum' );
+        $magicWords['dplvar']          = array( 0, 'dplvar' );
+        $magicWords['dplreplace']      = array( 0, 'dplreplace' );
+        $magicWords['dplchapter']      = array( 0, 'dplchapter' );
+        $magicWords['dplmatrix']       = array( 0, 'dplmatrix' );
+        $magicWords['DynamicPageList'] = array( 0, 'DynamicPageList' );
+        # unless we return true, other parser functions extensions won't get loaded.
+        return true;
     }
 
     //------------------------------------------------------------------------------------- ENTRY parser TAG intersection
@@ -1313,10 +1381,7 @@ class ExtDynamicPageList
         // return $dump1.$text.$dump2;
         
         $dplresult = DPLMain::dynamicPageList($input, $params, $parser, $reset, 'func');
-        global $wgVersion;
-        if (version_compare($wgVersion, '1.12.0')<0 || $parser instanceof Parser_OldPP) return $dplresult;
-        // old parser does further recursive processing by default
-        return array( // normal parser needs to be coaxed to do further recursive processing
+        return array( // parser needs to be coaxed to do further recursive processing
 	        $parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
     	    'isLocalObj' => true,
     	    'title' => $parser->getTitle()
@@ -1325,6 +1390,7 @@ class ExtDynamicPageList
     }
 
     public static function dplNumParserFunction(&$parser, $text='') {
+        $num = str_replace('&#160;',' ',$text);
         $num = str_replace('&nbsp;',' ',$text);
 		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/','\1,\3',$num);
 		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/','\1\2 000000 ',$num);
@@ -1369,14 +1435,12 @@ class ExtDynamicPageList
     } 
 
     public static function dplChapterParserFunction(&$parser, $text='', $heading=' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim=false ) {
-        $arg_list = func_get_args();
         $output = DPLInclude::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
         return $output[0];
     } 
 
     public static function dplMatrixParserFunction(&$parser, $name, $yes, $no, $flip, $matrix ) {
-        $arg_list = func_get_args();
-        $lines = split("\n",$matrix);
+        $lines = explode("\n",$matrix);
         $m = array();
         $sources = array();
         $targets = array();
@@ -1384,9 +1448,9 @@ class ExtDynamicPageList
         $to = '';
         if ($flip=='' | $flip=='normal') 	$flip=false;
         else								$flip=true;
-        if ($name=='') $name='&nbsp;';
+        if ($name=='') $name='&#160;';
         if ($yes=='') $yes= ' x ';
-        if ($no=='') $no = '&nbsp;';
+        if ($no=='') $no = '&#160;';
         if ($no[0]=='-') $no = " $no ";
         foreach ($lines as $line) {
 	        if (strlen($line)<=0) continue;
@@ -1523,91 +1587,5 @@ class ExtDynamicPageList
         //        'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
         return true;
     }
-
-}
-
-class DPL_i18n
-{
-    // FATAL
-	
-    const FATAL_WRONGNS						= 'a';	// $0: 'namespace' or 'notnamespace'
-													// $1: wrong parameter given by user
-													// $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
-
-    const FATAL_WRONGLINKSTO				= 'b';	// $0: linksto' (left as $0 just in case the parameter is renamed in the future)
-													// $1: the wrong parameter given by user
-												
-    const FATAL_TOOMANYCATS					= 'c';	// $0: max number of categories that can be included
-	
-    const FATAL_TOOFEWCATS					= 'd';	// $0: min number of categories that have to be included
-	
-    const FATAL_NOSELECTION					= 'e';
-
-    const FATAL_CATDATEBUTNOINCLUDEDCATS	= 'f';
-
-    const FATAL_CATDATEBUTMORETHAN1CAT		= 'g';
-
-    const FATAL_MORETHAN1TYPEOFDATE			= 'h';
-
-    const FATAL_WRONGORDERMETHOD			= 'i';	// $0: param=val that is possible only with $1 as last 'ordermethod' parameter
-													// $1: last 'ordermethod' parameter required for $0
-
-    const FATAL_DOMINANTSECTIONRANGE		= 'j';	// $0: the number of arguments in includepage
-
-    const FATAL_NOCLVIEW					= 'k';	// $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
-													// $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
-
-    const FATAL_OPENREFERENCES				= 'l';
-
-    // ERROR
-
-    // WARN
-	
-    const WARN_UNKNOWNPARAM					= 'm';	// $0: unknown parameter given by user
-													// $1: list of DPL available parameters separated by ', '
-
-    const WARN_WRONGPARAM					= 'n';	// $3: list of valid param values separated by ' | '
-
-    const WARN_WRONGPARAM_INT				= 'o';	// $0: param name
-													// $1: wrong param value given by user
-													// $2: default param value used instead by program
-
-    const WARN_NORESULTS					= 'p';
-    
-	const WARN_CATOUTPUTBUTWRONGPARAMS		= 'q';
-	
-    const WARN_HEADINGBUTSIMPLEORDERMETHOD	= 'r';	// $0: 'headingmode' value given by user
-													// $1: value used instead by program (which means no heading)
-
-    const WARN_DEBUGPARAMNOTFIRST			= 's';	// $0: 'log' value
-
-    const WARN_TRANSCLUSIONLOOP				= 't';	// $0: title of page that creates an infinite transclusion loop
-
-
-    // INFO
-
-    // DEBUG
-
-    const DEBUG_QUERY						= 'u';	// $0: SQL query executed to generate the dynamic page list
-
-    // TRACE
-
-}
-
-
-class MyBug {
-
-	static function trace($class,$label,$msg='') {
-		$fileName = dirname(__FILE__).'/MyBug';
-		if ($class=='') {
-			if (file_exists($fileName)) unlink(dirname(__FILE__).'/MyBug');
-			self::trace(__CLASS__,'start tracing ..');
-			return;
-		}
-		$bugFile=fopen($fileName,'a');
-		fwrite($bugFile,"$class -------------------------------------------------------------------------------------------- $label\n");
-		if ($msg!='') fwrite($bugFile,$msg."\n");
-		fclose($bugFile);
-	}
 
 }

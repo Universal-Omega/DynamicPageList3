@@ -26,7 +26,7 @@ class DPLArticle {
 	var $mContrib= '';      // short string indicating the size of a contribution
 	var $mContributor= '';  // user who made the changes
 	
-	function DPLArticle($title, $namespace) {
+	function __construct($title, $namespace) {
 		$this->mTitle     = $title;
 		$this->mNamespace = $namespace;
 	}

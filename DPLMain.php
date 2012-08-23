@@ -2,8 +2,7 @@
 // this file is UTF-8 encoded and contains some special characters.
 // Editing this file with an ASCII editor will potentially destroy it!
 
-class DPLMain
-{
+class DPLMain {
 
 	/* ============================================================================================================
 	/                                      MAIN FUNCTION
@@ -18,15 +17,16 @@ class DPLMain
 
         error_reporting(E_ALL);
 
-        global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgRawHtml;
-        global $wgTitle, $wgArticle, $wgNonincludableNamespaces;
+        global $wgUser, $wgLang, $wgContLang, $wgRequest;
+        global $wgTitle, $wgNonincludableNamespaces;
+		// global $wgArticle;
 		
         //logger (display of debug messages)
         $logger = new DPLLogger();
         
         //check that we are not in an infinite transclusion loop
         if ( isset( $parser->mTemplatePath[$parser->mTitle->getPrefixedText()] ) ) {
-            return $logger->escapeMsg(DPL_i18n::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+            return $logger->escapeMsg(ExtDynamicPageList::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
         }
         
         /**
@@ -35,10 +35,9 @@ class DPLMain
 		 
 		$dplStartTime= microtime(true);
 
-         // Local parser created. See http://meta.wikimedia.org/wiki/MediaWiki_extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
+         // Local parser created. See http://www.mediawiki.org/wiki/Extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
         $localParser = new Parser();
         $pOptions = $parser->mOptions;
-        $pTitle = $parser->mTitle;
 
         // check if DPL shall only be executed from protected pages
         if (array_key_exists('RunFromProtectedPagesOnly',ExtDynamicPageList::$options) &&
@@ -66,13 +65,13 @@ class DPLMain
             else // Make sure user namespace options are allowed.
                 ExtDynamicPageList::$options['namespace'] = array_intersect(ExtDynamicPageList::$options['namespace'], ExtDynamicPageList::$allowedNamespaces);
             if( !isset(ExtDynamicPageList::$options['namespace']['default']) )
-                ExtDynamicPageList::$options['namespace']['default'] = NULL;
+                ExtDynamicPageList::$options['namespace']['default'] = null;
             if( !is_array(ExtDynamicPageList::$options['notnamespace']) )
                 ExtDynamicPageList::$options['notnamespace'] = ExtDynamicPageList::$allowedNamespaces;
             else
                 ExtDynamicPageList::$options['notnamespace'] = array_intersect(ExtDynamicPageList::$options['notnamespace'], ExtDynamicPageList::$allowedNamespaces);
             if( !isset(ExtDynamicPageList::$options['notnamespace']['default']) )
-                ExtDynamicPageList::$options['notnamespace']['default'] = NULL;
+                ExtDynamicPageList::$options['notnamespace']['default'] = null;
         }	
         
 		// check parameters which can be set via the URL
@@ -85,12 +84,9 @@ class DPLMain
 			}
 		}
 
-
 		$_sOffset=$wgRequest->getVal('DPL_offset',ExtDynamicPageList::$options['offset']['default']);
         $iOffset  = ($_sOffset == '') ? 0: intval($_sOffset);
     
-		$iCount = -1;
-		
 		// commandline parameters like %DPL_offset% are replaced
 		$input = self::resolveUrlArg($input,'DPL_offset');
 		$input = self::resolveUrlArg($input,'DPL_count');
@@ -102,7 +98,6 @@ class DPLMain
 		$sCount       = '';
 		$sCountScroll = '';
 		$sTitleGE     = '';
-		$findTitle    = '';
 		$sTitleLE     = '';
 		$scrollDir    = '';
 
@@ -171,7 +166,7 @@ class DPLMain
 
         $sHiddenCategories = ExtDynamicPageList::$options['hiddencategories']['default'];
         
-        $sMinorEdits = NULL;
+        $sMinorEdits = null;
         $acceptOpenReferences = self::argBoolean(ExtDynamicPageList::$options['openreferences']['default']);
         
         $sLastRevisionBefore = ExtDynamicPageList::$options['lastrevisionbefore']['default'];
@@ -180,9 +175,9 @@ class DPLMain
         $sAllRevisionsSince  = ExtDynamicPageList::$options['allrevisionssince']['default'];
 
         $_sMinRevisions = ExtDynamicPageList::$options['minrevisions']['default'];
-        $iMinRevisions  = ($_sMinRevisions == '') ? NULL: intval($_sMinRevisions);
+        $iMinRevisions  = ($_sMinRevisions == '') ? null: intval($_sMinRevisions);
         $_sMaxRevisions = ExtDynamicPageList::$options['maxrevisions']['default'];
-        $iMaxRevisions  = ($_sMaxRevisions == '') ? NULL: intval($_sMaxRevisions);
+        $iMaxRevisions  = ($_sMaxRevisions == '') ? null: intval($_sMaxRevisions);
 
         $sRedirects = ExtDynamicPageList::$options['redirects']['default'];
         $sQuality   = ExtDynamicPageList::$options['qualitypages']['default'];
@@ -243,7 +238,6 @@ class DPLMain
         $aSecLabelsNotMatch = array();
         $bIncParsed = false;  // default is to match raw parameters
             
-        $aSecSeparators = array();
         $aSecSeparators      = explode(',', ExtDynamicPageList::$options['secseparators']['default']);
         $aMultiSecSeparators = explode(',', ExtDynamicPageList::$options['multisecseparators']['default']);
         $iDominantSection = ExtDynamicPageList::$options['dominantsection']['default'];
@@ -260,10 +254,10 @@ class DPLMain
         $sRowColFormat= ExtDynamicPageList::$options['rowcolformat']['default'];
         
         $_sRandomSeed = ExtDynamicPageList::$options['randomseed']['default'];
-        $iRandomSeed = ($_sRandomSeed == '') ? NULL: intval($_sRandomSeed);
+        $iRandomSeed = ($_sRandomSeed == '') ? null: intval($_sRandomSeed);
 
         $_sRandomCount = ExtDynamicPageList::$options['randomcount']['default'];
-        $iRandomCount = ($_sRandomCount == '') ? NULL: intval($_sRandomCount);
+        $iRandomCount = ($_sRandomCount == '') ? null: intval($_sRandomCount);
     
         $sDistinctResultSet = 'true';
         
@@ -274,16 +268,16 @@ class DPLMain
         $sHItemHtmlAttr = ExtDynamicPageList::$options['hitemattr']['default'];
 		    
         $_sTitleMaxLen = ExtDynamicPageList::$options['titlemaxlength']['default'];
-        $iTitleMaxLen = ($_sTitleMaxLen == '') ? NULL: intval($_sTitleMaxLen);
+        $iTitleMaxLen = ($_sTitleMaxLen == '') ? null: intval($_sTitleMaxLen);
     
         $aReplaceInTitle[0] = '';
         $aReplaceInTitle[1] = '';
             
         $_sCatMinMax  = ExtDynamicPageList::$options['categoriesminmax']['default'];
-        $aCatMinMax   = ($_sCatMinMax == '') ? NULL: explode(',',$_sCatMinMax);	
+        $aCatMinMax   = ($_sCatMinMax == '') ? null: explode(',',$_sCatMinMax);	
         
         $_sIncludeMaxLen = ExtDynamicPageList::$options['includemaxlength']['default'];
-        $iIncludeMaxLen = ($_sIncludeMaxLen == '') ? NULL: intval($_sIncludeMaxLen);
+        $iIncludeMaxLen = ($_sIncludeMaxLen == '') ? null: intval($_sIncludeMaxLen);
 
         $bScroll = self::argBoolean(ExtDynamicPageList::$options['scroll']['default']);
         
@@ -355,14 +349,14 @@ class DPLMain
         foreach($aParams as $iParam => $sParam) {		
             $aParam = explode('=', $sParam, 2);
             if( count( $aParam ) < 2 ) {
-                if (trim($aParam[0])!='') $output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $aParam[0]. " [missing '=']", self::validParametersList());
+                if (trim($aParam[0])!='') $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $aParam[0]. " [missing '=']", self::validParametersList());
                 continue;
             }
             $sType = trim($aParam[0]);
             $sArg = trim($aParam[1]);
     
             if( $sType=='') {
-                $output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
+                $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
                 continue;
             }
             
@@ -561,10 +555,10 @@ class DPLMain
                  
                 case 'mode':
                     if( in_array($sArg, ExtDynamicPageList::$options['mode']) )
-                        //'none' mode is implemented as a specific submode of 'inline' with <BR/> as inline text
+                        //'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
                         if($sArg == 'none') {
                             $sPageListMode = 'inline';
-                            $sInlTxt = '<BR/>';
+                            $sInlTxt = '<br/>';
                         } else if ($sArg == 'userformat') {
                             // userformat resets inline text to empty string
                             $sInlTxt = '';
@@ -624,7 +618,7 @@ class DPLMain
 			
 			// the next blocks are only available if $functionalRichness > 0
             if (ExtDynamicPageList::$functionalRichness <= 0) {
-				$output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 				continue;
 			}
 			
@@ -657,7 +651,7 @@ class DPLMain
                 case 'randomseed':	
                     //ensure that $iRandomSeed is a number;
                         if( preg_match(ExtDynamicPageList::$options['randomseed']['pattern'], $sArg) )
-                        $iRandomSeed = ($sArg == '') ? NULL: intval($sArg);
+                        $iRandomSeed = ($sArg == '') ? null: intval($sArg);
                         else // wrong value
                         $output .= $logger->msgWrongParam('randomseed', $sArg);
                     break;
@@ -665,7 +659,7 @@ class DPLMain
                 case 'randomcount':
                     //ensure that $iRandomCount is a number;
                     if( preg_match(ExtDynamicPageList::$options['randomcount']['pattern'], $sArg) )
-                        $iRandomCount = ($sArg == '') ? NULL: intval($sArg);
+                        $iRandomCount = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('randomcount', $sArg);
                     break;
@@ -719,11 +713,11 @@ class DPLMain
                     break;
                 
                 case 'rowcolformat':
-                    $sRowColFormat= $sArg;
+                    $sRowColFormat= self::killHtmlTags($sArg);
                     break;
     
                 case 'userdateformat':
-                    $sUserDateFormat = $sArg;
+                    $sUserDateFormat = self::killHtmlTags($sArg);
                     break;
                     
                 case 'escapelinks':
@@ -734,14 +728,15 @@ class DPLMain
                     break;
     
                 case 'inlinetext':
-                    $sInlTxt = $sArg;
+                    $sInlTxt = self::killHtmlTags($sArg);
                     break;
                 
                 case 'format':
                 case 'listseparators':
                     // parsing of wikitext will happen at the end of the output phase
                     // we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
-                    $sArg = str_replace( '\n', "\n", $sArg );
+                    $sArg = self::killHtmlTags($sArg);
+					$sArg = str_replace( '\n', "\n", $sArg );
                     $sArg = str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
                     $aListSeparators = explode (',', $sArg, 4);
                     // mode=userformat will be automatically assumed
@@ -809,7 +804,7 @@ class DPLMain
                 case 'titlemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg) )
-                        $iTitleMaxLen = ($sArg == '') ? NULL: intval($sArg);
+                        $iTitleMaxLen = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('titlemaxlength', $sArg);
                     break;
@@ -817,25 +812,28 @@ class DPLMain
                 case 'replaceintitle':
                     // we offer a possibility to replace some part of the title
                     $aReplaceInTitle = explode (',',$sArg,2);
+					if (isset($aReplaceInTitle[1])) {
+						$aReplaceInTitle[1] = self::killHtmlTags( $aReplaceInTitle[1] );
+					}
                     break;
                                     
                 case 'resultsheader':
-                    $sResultsHeader = $sArg;
+                    $sResultsHeader = self::killHtmlTags( $sArg );
                     break;
                 case 'resultsfooter':
-                    $sResultsFooter = $sArg;
+                    $sResultsFooter = self::killHtmlTags( $sArg );
                     break;
                 case 'noresultsheader':
-                    $sNoResultsHeader = $sArg;
+                    $sNoResultsHeader = self::killHtmlTags( $sArg );
                     break;
                 case 'noresultsfooter':
-                    $sNoResultsFooter = $sArg;
+                    $sNoResultsFooter = self::killHtmlTags( $sArg );
                     break;
                 case 'oneresultheader':
-                    $sOneResultHeader = $sArg;
+                    $sOneResultHeader = self::killHtmlTags( $sArg );
                     break;
                 case 'oneresultfooter':
-                    $sOneResultFooter = $sArg;
+                    $sOneResultFooter = self::killHtmlTags( $sArg );
                     break;
                     
                 /**
@@ -846,7 +844,7 @@ class DPLMain
                 case 'debug':
                     if( in_array($sArg, ExtDynamicPageList::$options['debug']) ) {
                         if($iParam > 1)
-                            $output .= $logger->escapeMsg(DPL_i18n::WARN_DEBUGPARAMNOTFIRST, $sArg );
+                            $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_DEBUGPARAMNOTFIRST, $sArg );
                         $logger->iDebugLevel = intval($sArg);
                     }
                     else
@@ -863,7 +861,7 @@ class DPLMain
 			if ($validOptionFound) continue;
 			
             if (ExtDynamicPageList::$functionalRichness <= 1) {
-				$output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 				continue;
 			}
 
@@ -1043,7 +1041,7 @@ class DPLMain
                     
                 case 'categoriesminmax':
                     if( preg_match(ExtDynamicPageList::$options['categoriesminmax']['pattern'], $sArg) )
-                        $aCatMinMax = ($sArg == '') ? NULL: explode(',',$sArg);
+                        $aCatMinMax = ($sArg == '') ? null: explode(',',$sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('categoriesminmax', $sArg);
                     break;
@@ -1233,7 +1231,7 @@ class DPLMain
                     
                 case 'dominantsection':
                     if( preg_match(ExtDynamicPageList::$options['dominantsection']['pattern'], $sArg) )
-                        $iDominantSection = ($sArg == '') ? NULL: intval($sArg);
+                        $iDominantSection = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('dominantsection', $sArg);
                     break;
@@ -1241,7 +1239,7 @@ class DPLMain
 				case 'includemaxlength':
                     //processed like 'count' param
                     if( preg_match(ExtDynamicPageList::$options['includemaxlength']['pattern'], $sArg) )
-                        $iIncludeMaxLen = ($sArg == '') ? NULL: intval($sArg);
+                        $iIncludeMaxLen = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('includemaxlength', $sArg);
                     break;
@@ -1282,10 +1280,8 @@ class DPLMain
 
                 case 'dplcache':
                     if ($sArg!='') {
-						if (isset($wgArticle)) {
-							$DPLCache = $wgArticle->getID().'_'.$sArg.'.txt';
-							$DPLCachePath = $wgArticle->getID() % 10;
-						}
+						$DPLCache = $parser->mTitle->getArticleID() . '_' . str_replace("/","_",$sArg) . '.dplc';
+						$DPLCachePath = $parser->mTitle->getArticleID() % 10;
                    }
                     else {
 	                    $output .= $logger->msgWrongParam('dplcache', $sArg);
@@ -1351,7 +1347,7 @@ class DPLMain
 			if ($validOptionFound) continue;
 			
             if (ExtDynamicPageList::$functionalRichness <= 2) {
-				$output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 				continue;
 			}
 
@@ -1422,14 +1418,14 @@ class DPLMain
                 case 'minrevisions':
                     //ensure that $iMinRevisions is a number
                     if( preg_match(ExtDynamicPageList::$options['minrevisions']['pattern'], $sArg) )
-                        $iMinRevisions = ($sArg == '') ? NULL: intval($sArg);
+                        $iMinRevisions = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('minrevisions', $sArg);
                     break;
                 case 'maxrevisions':
                     //ensure that $iMaxRevisions is a number
                     if( preg_match(ExtDynamicPageList::$options['maxrevisions']['pattern'], $sArg) )
-                        $iMaxRevisions = ($sArg == '') ? NULL: intval($sArg);
+                        $iMaxRevisions = ($sArg == '') ? null: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('maxrevisions', $sArg);
                     break;
@@ -1456,7 +1452,7 @@ class DPLMain
 			if ($validOptionFound) continue;
 			
             if (ExtDynamicPageList::$functionalRichness <= 3) {
-				$output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 				continue;
 			}
 
@@ -1503,7 +1499,7 @@ class DPLMain
 
 			if ($validOptionFound) continue;
 
-			$output .= $logger->escapeMsg(DPL_i18n::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+			$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 
         }
 		
@@ -1584,7 +1580,7 @@ class DPLMain
         // construct internal keys for TableRow according to the structure of "include"
         // this will be needed in the output phase
         self::updateTableRowKeys($aTableRow,$aSecLabels);
-        // foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br>";
+        // foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br/>";
             
         $iIncludeCatCount = count($aIncludeCategories);
         $iTotalIncludeCatCount = count($aIncludeCategories, COUNT_RECURSIVE) - $iIncludeCatCount;
@@ -1618,16 +1614,16 @@ class DPLMain
 		
         // too many categories!
         if ( ($iTotalCatCount > ExtDynamicPageList::$maxCategoryCount) && (!ExtDynamicPageList::$allowUnlimitedCategories) )
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_TOOMANYCATS, ExtDynamicPageList::$maxCategoryCount);
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_TOOMANYCATS, ExtDynamicPageList::$maxCategoryCount);
     
         // too few categories!
         if ($iTotalCatCount < ExtDynamicPageList::$minCategoryCount)
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_TOOFEWCATS, ExtDynamicPageList::$minCategoryCount);
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_TOOFEWCATS, ExtDynamicPageList::$minCategoryCount);
     
         // no selection criteria! Warn only if no debug level is set
         if ($iTotalCatCount == 0 && $bSelectionCriteriaFound==false) {
             if ($logger->iDebugLevel <= 1) return $output;
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_NOSELECTION);
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_NOSELECTION);
         }
             
         // ordermethod=sortkey requires ordermethod=category
@@ -1636,33 +1632,33 @@ class DPLMain
         
         // no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
         if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_CATDATEBUTNOINCLUDEDCATS);
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_CATDATEBUTNOINCLUDEDCATS);
     
         // more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
         // we ALLOW this parameter combination, risking ambiguous results
         //if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-        //	return $output . $logger->escapeMsg(DPL_i18n::FATAL_CATDATEBUTMORETHAN1CAT);
+        //	return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_CATDATEBUTMORETHAN1CAT);
             
         // no more than one type of date at a time!
         if($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1)
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_MORETHAN1TYPEOFDATE);
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_MORETHAN1TYPEOFDATE);
     
         // the dominant section must be one of the sections mentioned in includepage 	
         if($iDominantSection>0 && count($aSecLabels)<$iDominantSection)
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
     
         // category-style output requested with not compatible order method
         if ($sPageListMode == 'category' && !array_intersect($aOrderMethods, array('sortkey', 'title','titlewithoutnamespace')) )
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_WRONGORDERMETHOD,  'mode=category', 'sortkey | title | titlewithoutnamespace' );
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_WRONGORDERMETHOD,  'mode=category', 'sortkey | title | titlewithoutnamespace' );
         
         // addpagetoucheddate=true with unappropriate order methods
         if( $bAddPageTouchedDate && !array_intersect($aOrderMethods, array('pagetouched', 'title')) )
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_WRONGORDERMETHOD,  'addpagetoucheddate=true', 'pagetouched | title' );
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_WRONGORDERMETHOD,  'addpagetoucheddate=true', 'pagetouched | title' );
         
         // addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
         //firstedit (resp. lastedit) -> add date of first (resp. last) revision
         if( $bAddEditDate && !array_intersect($aOrderMethods, array('firstedit', 'lastedit')) & ($sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince == '')) {
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
         }
 		
         // adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -1672,10 +1668,10 @@ class DPLMain
          * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
         */
         if( $bAddUser && !array_intersect($aOrderMethods, array('firstedit', 'lastedit')) & ($sLastRevisionBefore.$sAllRevisionsBefore.$sFirstRevisionSince.$sAllRevisionsSince == '')) {
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
 		}
         if( isset($sMinorEdits) && !array_intersect($aOrderMethods, array('firstedit', 'lastedit')) )
-            return $output . $logger->escapeMsg(DPL_i18n::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
+            return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
                 
         /**
          * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
@@ -1686,7 +1682,7 @@ class DPLMain
             // If the view is not there, we can't perform logical operations on the Uncategorized.
             if ( !$dbr->tableExists( 'dpl_clview' ) ) {
                 $sSqlCreate_dpl_clview = 'CREATE VIEW ' . $sDplClView . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $sPageTable . ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' ON '.$sPageTable.'.page_id=cl_from';
-                $output .= $logger->escapeMsg(DPL_i18n::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview);
+                $output .= $logger->escapeMsg(ExtDynamicPageList::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview);
                 return $output;
             }
         }
@@ -1694,17 +1690,17 @@ class DPLMain
         //add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
         if( $sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate 
                                             || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor ) )
-            $output .= $logger->escapeMsg(DPL_i18n::WARN_CATOUTPUTBUTWRONGPARAMS);
+            $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_CATOUTPUTBUTWRONGPARAMS);
             
         //headingmode has effects with ordermethod on multiple components only
         if( $sHListMode != 'none' && count($aOrderMethods) < 2 ) {
-            $output .= $logger->escapeMsg(DPL_i18n::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+            $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
             $sHListMode = 'none';
         }
     
         // openreferences is incompatible with many other options
         if( $acceptOpenReferences && $bConflictsWithOpenReferences ) {
-            $output .= $logger->escapeMsg(DPL_i18n::FATAL_OPENREFERENCES);
+            $output .= $logger->escapeMsg(ExtDynamicPageList::FATAL_OPENREFERENCES);
             $acceptOpenReferences=false;
         }
     
@@ -1800,7 +1796,6 @@ class DPLMain
         $sSqlCond_MaxCat = '';
         $sSqlWhere = ' WHERE 1=1 ';
         $sSqlSelPage = ''; // initial page for selection
-		$sSqlSelectPageTouched = '';
         
         // normally we create a result of normal pages, but when goal=categories is set, we create a list of categories
         // as this conflicts with some options we need to avoid producing incoorect SQl code
@@ -1865,14 +1860,14 @@ class DPLMain
 					}
                     break;
                 case 'pagesel':
-                    $sSqlSortkey = ", CONCAT(pl.pl_namespace,pl.pl_title) ".$sOrderCollation." as sortkey";
+                    $sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) '.$sOrderCollation.' as sortkey';
                     break;
                 case 'titlewithoutnamespace':
                     $sSqlSortkey = ", $sPageTable.page_title ".$sOrderCollation." as sortkey";
                     break;
                 case 'title':
                     $aStrictNs = array_slice(ExtDynamicPageList::$allowedNamespaces, 1, count(ExtDynamicPageList::$allowedNamespaces), true);
-                    // map ns index to name
+                    // map namespace index to name
                     if ($acceptOpenReferences) {
                         $sSqlNsIdToText = 'CASE pl_namespace';
                         foreach($aStrictNs as $iNs => $sNs)
@@ -1901,9 +1896,9 @@ class DPLMain
         // linksto
 				
         if ( count($aLinksTo)>0 ) {
-            $sSqlPageLinksTable .= $sPageLinksTable . ' as pl, ';
+            $sSqlPageLinksTable .= $sPageLinksTable . ' AS pl, ';
             $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id=pl.pl_from AND '; 
-            $sSqlSelPage = ', pl.pl_title as sel_title, pl.pl_namespace as sel_ns';
+            $sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
             $n=0;
             foreach ($aLinksTo as $linkGroup) {
                 if (++$n>1) break;
@@ -1924,7 +1919,7 @@ class DPLMain
             foreach ($aLinksTo as $linkGroup) {
                 if (++$n == 1) continue;
 				$m=0;
-				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from from '.$sPageLinksTable.' where ('.$sPageLinksTable.'.pl_from=page_id AND (';
+				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM '.$sPageLinksTable.' WHERE ('.$sPageLinksTable.'.pl_from=page_id AND (';
 				foreach ($linkGroup as $link) {
 					if (++$m>1) $sSqlCond_page_pl .= ' OR ';
 					$sSqlCond_page_pl.= '('.$sPageLinksTable.'.pl_namespace=' . intval( $link->getNamespace() );
@@ -1939,7 +1934,7 @@ class DPLMain
     
         // notlinksto
         if ( count($aNotLinksTo)>0 ) {
-            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id not in (select '.$sPageLinksTable.'.pl_from from '.$sPageLinksTable.' where (';
+            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id NOT IN (SELECT '.$sPageLinksTable.'.pl_from FROM '.$sPageLinksTable.' WHERE (';
             $n=0;
             foreach ($aNotLinksTo as $links) {
 				foreach ($links as $link) {
@@ -1969,9 +1964,9 @@ class DPLMain
                 $sSqlCond_page_pl .= ')';
             }
             else {
-                $sSqlPageLinksTable .= $sPageLinksTable . ' as plf, '. $sPageTable . 'as pagesrc, ';
+                $sSqlPageLinksTable .= $sPageLinksTable . ' AS plf, '. $sPageTable . 'AS pagesrc, ';
                 $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_namespace = plf.pl_namespace AND '.$sPageTable.'.page_title = plf.pl_title  AND pagesrc.page_id=plf.pl_from AND ('; 
-                $sSqlSelPage = ', pagesrc.page_title as sel_title, pagesrc.page_namespace as sel_ns';
+                $sSqlSelPage = ', pagesrc.page_title AS sel_title, pagesrc.page_namespace AS sel_ns';
                 $n=0;
                 foreach ($aLinksFrom as $links) {
 					foreach ($links as $link) {
@@ -1999,8 +1994,8 @@ class DPLMain
                 $sSqlCond_page_pl .= ')'; 
             }
             else {
-                $sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) not in (select CONCAT('.$sPageLinksTable.'.pl_namespace,'
-                                    .$sPageLinksTable.'.pl_title) from '.$sPageLinksTable.' where (';
+                $sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$sPageLinksTable.'.pl_namespace,'
+                                    .$sPageLinksTable.'.pl_title) from '.$sPageLinksTable.' WHERE (';
                 $n=0;
                 foreach ($aNotLinksFrom as $links) {
 					foreach ($links as $link) {
@@ -2015,7 +2010,7 @@ class DPLMain
     
         // linkstoexternal
         if ( count($aLinksToExternal)>0 ) {
-            $sSqlExternalLinksTable .= $sExternalLinksTable . ' as el, ';
+            $sSqlExternalLinksTable .= $sExternalLinksTable . ' AS el, ';
             $sSqlCond_page_el .= ' AND '.$sPageTable.'.page_id=el.el_from AND ('; 
             $sSqlSelPage = ', el.el_to as el_to';
             $n=0;
@@ -2034,7 +2029,7 @@ class DPLMain
             foreach ($aLinksToExternal as $linkGroup) {
                 if (++$n == 1) continue;
 				$m=0;
-				$sSqlCond_page_el .= ' AND EXISTS(select el_from from '.$sExternalLinksTable.' where ('.$sExternalLinksTable.'.el_from=page_id AND (';
+				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM '.$sExternalLinksTable.' WHERE ('.$sExternalLinksTable.'.el_from=page_id AND (';
 				foreach ($linkGroup as $link) {
 					if (++$m>1) $sSqlCond_page_el .= ' OR ';
 					$sSqlCond_page_el .= '('.$sExternalLinksTable.'.el_to LIKE ' . $dbr->addQuotes( $link ).')';
@@ -2045,9 +2040,9 @@ class DPLMain
 
         // imageused
         if ( count($aImageUsed)>0 ) {
-            $sSqlPageLinksTable .= $sImageLinksTable . ' as il, ';
+            $sSqlPageLinksTable .= $sImageLinksTable . ' AS il, ';
             $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id=il.il_from AND (';
-            $sSqlSelPage = ', il.il_to as image_sel_title';
+            $sSqlSelPage = ', il.il_to AS image_sel_title';
             $n=0;
             foreach ($aImageUsed as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
@@ -2060,7 +2055,7 @@ class DPLMain
     
         // imagecontainer
         if ( count($aImageContainer)>0 ) {
-            $sSqlPageLinksTable .= $sImageLinksTable . ' as ic, ';
+            $sSqlPageLinksTable .= $sImageLinksTable . ' AS ic, ';
             if ($acceptOpenReferences) {
 				$sSqlCond_page_pl .= ' AND (';
             }
@@ -2094,7 +2089,7 @@ class DPLMain
     
         // notuses
         if ( count($aNotUses)>0 ) {
-            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id not in (select '.$sTemplateLinksTable.'.tl_from from '.$sTemplateLinksTable.' where (';
+            $sSqlCond_page_pl .= ' AND '.$sPageTable.'.page_id NOT IN (SELECT '.$sTemplateLinksTable.'.tl_from FROM '.$sTemplateLinksTable.' WHERE (';
             $n=0;
             foreach ($aNotUses as $link) {
                 if ($n>0) $sSqlCond_page_pl .= ' OR ';
@@ -2119,9 +2114,9 @@ class DPLMain
                 $sSqlCond_page_tpl .= ')';
             }
             else {
-                $sSqlPageLinksTable .= $sTemplateLinksTable . ' as tpl, '. $sPageTable . 'as tplsrc, ';
+                $sSqlPageLinksTable .= $sTemplateLinksTable . ' AS tpl, '. $sPageTable . 'AS tplsrc, ';
                 $sSqlCond_page_tpl .= ' AND '.$sPageTable.'.page_title = tpl.tl_title  AND tplsrc.page_id=tpl.tl_from AND ('; 
-                $sSqlSelPage = ', tplsrc.page_title as tpl_sel_title, tplsrc.page_namespace as tpl_sel_ns';
+                $sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
                 $n=0;
                 foreach ($aUsedBy as $link) {
                     if ($n>0) $sSqlCond_page_tpl .= ' OR ';
@@ -2137,7 +2132,7 @@ class DPLMain
         
         if ( $bAddContribution ) {
             $sSqlRCTable = $sRCTable . ' AS rc, ';
-            $sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text as contributor';
+            $sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
             $sSqlWhere   .= ' AND page.page_id=rc.rc_cur_id';
             if ($sSqlGroupBy != '') $sSqlGroupBy .= ', ';
             $sSqlGroupBy .= 'rc.rc_cur_id';
@@ -2145,27 +2140,27 @@ class DPLMain
         
         // Revisions ==================================
         if ( $sCreatedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sCreatedBy) . ' = (select rev_user_text from '.$sRevisionTable
-                                .' where '.$sRevisionTable.'.rev_page=page_id order by '.$sRevisionTable.'.rev_timestamp ASC limit 1)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sCreatedBy) . ' = (SELECT rev_user_text FROM '.$sRevisionTable
+                                .' WHERE '.$sRevisionTable.'.rev_page=page_id ORDER BY '.$sRevisionTable.'.rev_timestamp ASC LIMIT 1)';
         }
         if ( $sNotCreatedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotCreatedBy) . ' != (select rev_user_text from '.$sRevisionTable
-                                .' where '.$sRevisionTable.'.rev_page=page_id order by '.$sRevisionTable.'.rev_timestamp ASC limit 1)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotCreatedBy) . ' != (SELECT rev_user_text FROM '.$sRevisionTable
+                                .' WHERE '.$sRevisionTable.'.rev_page=page_id ORDER BY '.$sRevisionTable.'.rev_timestamp ASC LIMIT 1)';
         }
         if ( $sModifiedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sModifiedBy) . ' in (select rev_user_text from '.$sRevisionTable
-                                .' where '.$sRevisionTable.'.rev_page=page_id)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sModifiedBy) . ' IN (SELECT rev_user_text FROM '.$sRevisionTable
+                                .' WHERE '.$sRevisionTable.'.rev_page=page_id)';
         }
         if ( $sNotModifiedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotModifiedBy) . ' not in (select rev_user_text from '.$sRevisionTable.' where '.$sRevisionTable.'.rev_page=page_id)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotModifiedBy) . ' NOT IN (SELECT rev_user_text FROM '.$sRevisionTable.' WHERE '.$sRevisionTable.'.rev_page=page_id)';
         }
         if ( $sLastModifiedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sLastModifiedBy) . ' = (select rev_user_text from '.$sRevisionTable
-                                .' where '.$sRevisionTable.'.rev_page=page_id order by '.$sRevisionTable.'.rev_timestamp DESC limit 1)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sLastModifiedBy) . ' = (SELECT rev_user_text FROM '.$sRevisionTable
+                                .' WHERE '.$sRevisionTable.'.rev_page=page_id ORDER BY '.$sRevisionTable.'.rev_timestamp DESC LIMIT 1)';
         }
         if ( $sNotLastModifiedBy != "" ) {
-            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotLastModifiedBy) . ' != (select rev_user_text from '.$sRevisionTable
-                                .' where '.$sRevisionTable.'.rev_page=page_id order by '.$sRevisionTable.'.rev_timestamp DESC limit 1)';
+            $sSqlCond_page_rev .= ' AND ' . $dbr->addQuotes($sNotLastModifiedBy) . ' != (SELECT rev_user_text FROM '.$sRevisionTable
+                                .' WHERE '.$sRevisionTable.'.rev_page=page_id ORDER BY '.$sRevisionTable.'.rev_timestamp DESC LIMIT 1)';
         }
         
         if ($bAddAuthor && $sSqlRevisionTable =='') {
@@ -2196,24 +2191,24 @@ class DPLMain
         }
         
         if ( isset($aCatMinMax[0]) && $aCatMinMax[0]!='' ) {
-            $sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (select count(*) from ' . $sCategorylinksTable .
-            ' where '.$sCategorylinksTable.'.cl_from=page_id)';
+            $sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (SELECT count(*) FROM ' . $sCategorylinksTable .
+            ' WHERE '.$sCategorylinksTable.'.cl_from=page_id)';
         }
         if ( isset($aCatMinMax[1]) && $aCatMinMax[1]!='') {
-            $sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (select count(*) from ' . $sCategorylinksTable .
-            ' where '.$sCategorylinksTable.'.cl_from=page_id)';
+            $sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (SELECT count(*) FROM ' . $sCategorylinksTable .
+            ' WHERE '.$sCategorylinksTable.'.cl_from=page_id)';
         }
         
         if ($bAddFirstCategoryDate)
-            //format cl_timestamp field (type timestamp) to string in same format as rev_timestamp field
+            //format cl_timestamp field (type timestamp) to string in same format AS rev_timestamp field
             //to make it compatible with $wgLang->date() function used in function DPLOutputListStyle() to show "firstcategorydate"
             $sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
         if ($bAddPageCounter)
-            $sSqlPage_counter = ", $sPageTable.page_counter as page_counter";
+            $sSqlPage_counter = ", $sPageTable.page_counter AS page_counter";
         if ($bAddPageSize)
-            $sSqlPage_size = ", $sPageTable.page_len as page_len";
+            $sSqlPage_size = ", $sPageTable.page_len AS page_len";
         if ($bAddPageTouchedDate && $sSqlPage_touched=='')
-            $sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
+            $sSqlPage_touched = ", $sPageTable.page_touched AS page_touched";
         if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sSqlRevisionTable != '')
             $sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
         if ($bAddCategories) {
@@ -2230,14 +2225,14 @@ class DPLMain
         if ($acceptOpenReferences)
                  // SELECT ... FROM
         	if (count($aImageContainer)>0) {
-	        	$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to as sortkey" . ' FROM ' . $sImageLinksTable . ' AS ic';
+	        	$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $sImageLinksTable . ' AS ic';
         	}
         	else {
 	        	$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $sPageLinksTable;
         	}
         else
-			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $sPageTable.'.page_namespace as page_namespace,'.
-            					$sPageTable.'.page_title as page_title,'.$sPageTable.'.page_id as page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter .
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $sPageTable.'.page_namespace AS page_namespace,'.
+            					$sPageTable.'.page_title AS page_title,'.$sPageTable.'.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter .
                                 $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user .
                                 $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . 
                                 ' FROM ' . $sSqlRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $sPageTable;
@@ -2373,11 +2368,11 @@ class DPLMain
         // page_id=rev_page (if revision table required)
         $sSqlWhere .= $sSqlCond_page_rev;
 
-        if ($iMinRevisions != NULL) {
-			$sSqlWhere .= " and ((select count(rev_aux2.rev_page) from revision as rev_aux2 where rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
+        if ($iMinRevisions != null) {
+			$sSqlWhere .= " and ((SELECT count(rev_aux2.rev_page) FROM revision AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
     	}        
-        if ($iMaxRevisions != NULL) {
-			$sSqlWhere .= " and ((select count(rev_aux3.rev_page) from revision as rev_aux3 where rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+        if ($iMaxRevisions != null) {
+			$sSqlWhere .= " and ((SELECT count(rev_aux3.rev_page) FROM revision AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
     	}        
         
         // count(all categories) <= max no of categories
@@ -2386,7 +2381,7 @@ class DPLMain
         // check against forbidden namespaces
 		if(is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0
 			&& implode(',', $wgNonincludableNamespaces)!='') {
-	        $sSqlWhere .= ' AND ' .$sPageTable. '.page_namespace not in (' . implode(',', $wgNonincludableNamespaces) . ')';
+	        $sSqlWhere .= ' AND ' .$sPageTable. '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
         }
               
         // page_id=pl.pl_from (if pagelinks table required)
@@ -2400,10 +2395,10 @@ class DPLMain
 
         if ( isset($sArticleCategory) && $sArticleCategory !== null ) {
             $sSqlWhere .= " AND $sPageTable.page_title IN (
-                select p2.page_title
-                from $sPageTable p2
-                inner join $sCategorylinksTable clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".$dbr->addQuotes($sArticleCategory)." )
-                where p2.page_namespace = 0
+                SELECT p2.page_title
+                FROM $sPageTable p2
+                INNER JOIN $sCategorylinksTable clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".$dbr->addQuotes($sArticleCategory)." )
+                WHERE p2.page_namespace = 0
                 ) ";
         }
 		
@@ -2508,17 +2503,17 @@ class DPLMain
         // of a selection on the categorylinks
          
         if ($sGoal=='categories') {
-            $sSqlSelectFrom = 'select distinct cl3.cl_to from '.$sCategorylinksTable.' as cl3 where cl3.cl_from in ( ' . 
+            $sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM '.$sCategorylinksTable.' AS cl3 WHERE cl3.cl_from IN ( ' . 
                                 preg_replace('/SELECT +DISTINCT +.* FROM /','SELECT DISTINCT '.$sPageTable.'.page_id FROM ',$sSqlSelectFrom);
-            if ($sOrder == 'descending')	$sSqlWhere .= ' ) order by cl3.cl_to DESC';
-            else							$sSqlWhere .= ' ) order by cl3.cl_to ASC';
+            if ($sOrder == 'descending')	$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
+            else							$sSqlWhere .= ' ) ORDER BY cl3.cl_to ASC';
         }
 
 
     // ###### DUMP SQL QUERY ######
         if ($logger->iDebugLevel >=3) {
             //DEBUG: output SQL query 
-            $output .= "DPL debug -- Query=<br>\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n";
+            $output .= "DPL debug -- Query=<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n";
         }
 		
 		// Do NOT proces the SQL command if debug==6; this is useful if the SQL statement contains bad code
@@ -2534,10 +2529,10 @@ class DPLMain
         }
         catch (Exception $e) {
             $result = "The DPL extension (version ".ExtDynamicPageList::$DPLVersion.") produced a SQL statement which lead to a Database error.<br>\n"
-                    ."The reason may be an internal error of DPL or an error which you made,<br>\n"
-                    ."especially when using DPL options like titleregexp.<br>\n"
-                    ."Query text is:<br>\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n"
-                    ."Error message is:<br>\n<tt>".$dbr->lastError()."</tt>\n\n";
+                    ."The reason may be an internal error of DPL or an error which you made,<br />\n"
+                    ."especially when using DPL options like titleregexp.<br />\n"
+                    ."Query text is:<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n"
+                    ."Error message is:<br />\n<tt>".$dbr->lastError()."</tt>\n\n";
             return $result;
         }
        
@@ -2546,7 +2541,7 @@ class DPLMain
             if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $header));
 			$footer = str_replace('%TOTALPAGES%','0',str_replace('%PAGES%','0',$sNoResultsFooter));
             if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $footer));
-            if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(DPL_i18n::WARN_NORESULTS);
+            if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_NORESULTS);
             $dbr->freeResult( $res );
             return $output;
         }
@@ -2583,7 +2578,7 @@ class DPLMain
 		$lastNamespaceFound = '';
 		$lastTitleFound = '';
     
-        while($row = $dbr->fetchObject ( $res ) ) {
+        foreach ($res as $row) {
             $iArticle++;
 
             // in random mode skip articles which were not chosen
@@ -2624,11 +2619,11 @@ class DPLMain
             $dplArticle = new DPLArticle( $title, $pageNamespace );
             //PAGE LINK
             $sTitleText = $title->getText();
+            if ($bShowNamespace) $sTitleText = $title->getPrefixedText();
             if ($aReplaceInTitle[0]!='') $sTitleText = preg_replace($aReplaceInTitle[0],$aReplaceInTitle[1],$sTitleText);
     
             //chop off title if "too long"
 			if( isset($iTitleMaxLen) && (strlen($sTitleText) > $iTitleMaxLen) )  $sTitleText = substr($sTitleText, 0, $iTitleMaxLen) . '...';
-            if ($bShowNamespace) $sTitleText = $title->getPrefixedText();
             if ($bShowCurID && isset($row->page_id)) {
 				//$articleLink = '<html>'.$sk->makeKnownLinkObj($title, htmlspecialchars($sTitleText),'curid='.$row->page_id).'</html>';
 				$articleLink = '[{{fullurl:'.$title->getText().'|curid='.$row->page_id.'}} '.htmlspecialchars($sTitleText).']';
@@ -2729,7 +2724,7 @@ class DPLMain
                 //CATEGORY LINKS FROM CURRENT PAGE 
                 if($bAddCategories && $bGoalIsPages && ($row->cats != '')) {
                     $artCatNames = explode(' | ', $row->cats);
-                    foreach($artCatNames as $iArtCat => $artCatName) {
+                    foreach($artCatNames as $artCatName) {
                         $dplArticle->mCategoryLinks[] = '[[:Category:'.$artCatName.'|'.str_replace('_',' ',$artCatName).']]';
                         $dplArticle->mCategoryTexts[] = str_replace('_',' ',$artCatName);
                     }
@@ -2765,7 +2760,7 @@ class DPLMain
         $dbr->freeResult( $res );
 		$rowcount = -1;
 		if ( $sSqlCalcFoundRows != '') {
-			$res = $dbr->query('SELECT FOUND_ROWS() as rowcount');
+			$res = $dbr->query('SELECT FOUND_ROWS() AS rowcount');
 			$row = $dbr->fetchObject ( $res );
 			$rowcount = $row->rowcount;
 			$dbr->freeResult( $res );
@@ -2801,7 +2796,7 @@ class DPLMain
             if ($sNoResultsHeader != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $header));
 			$footer = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sNoResultsFooter));
             if ($sNoResultsFooter != '')	$output .= 	str_replace( '\n', "\n", str_replace( "¶", "\n", $footer));
-            if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(DPL_i18n::WARN_NORESULTS);
+            if ($sNoResultsHeader == '' && $sNoResultsFooter == '')	$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_NORESULTS);
         }
         else {
             if ($sResultsHeader != '')	$header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sResultsHeader));
@@ -2873,7 +2868,8 @@ class DPLMain
 		
 		if (ExtDynamicPageList::$useCacheAPI && $bAllowCachedResults && $wgRequest->getVal('action','view')=='submit') {
 /*
-			CacheAPI::remDependencies ( $wgArticle->getID());
+			// CacheAPI::remDependencies ( $wgArticle->getID());
+			CacheAPI::remDependencies( $parser->mTitle->getArticleID());
 			
 			// add category dependencies
 
@@ -2896,6 +2892,7 @@ class DPLMain
 			// add general dependencies
 
 			// CacheAPI::addDependencies ( $wgArticle->getID(), $conditionTypes, $conditions); 
+			// CacheAPI::addDependencies ( $parser->mTitle->getArticleID(), $conditionTypes, $conditions); 
 */
 		}
 
@@ -2937,14 +2934,7 @@ class DPLMain
             ExtDynamicPageList::$createdLinks[3] = $parserOutput->mImages;
         }
 
-		// $file=fopen("d:/a1",'a');
-		// fwrite($file,$parser->mTitle->getPrefixedText().'   '.microtime()."\n");
-		// fclose($file);
-
-		// MyBug::trace(__CLASS__,'main END',$output);
-
-        return $output;
-        
+        return $output;   
     }
 
 
@@ -2985,15 +2975,15 @@ class DPLMain
         $aTableRow=array();
         $groupNr=-1;
         $t= -1;
-        foreach ($aSecLabels as $colgroup => $label) {
+        foreach ($aSecLabels as $label) {
             $t++;
             $groupNr++;
-            $cols = preg_split('/\}:/',$label);
+            $cols = explode('}:',$label);
             if (count($cols)<=1) {
                 if (array_key_exists($t,$tableRow)) $aTableRow[$groupNr]=$tableRow[$t];
             }
             else {
-                $n=count(preg_split('/:/',$cols[1]));
+                $n=count( explode(':',$cols[1]));
                 $colNr=-1;
                 $t--;
                 for ($i=1;$i<=$n;$i++) {
@@ -3021,10 +3011,10 @@ class DPLMain
     private static function getSubcategories($cat,$sPageTable,$depth) {
         $dbr =& wfGetDB( DB_SLAVE );
         $cats=$cat;	        
-        $res = $dbr->query("select distinct page_title from ".$dbr->tableName('page')." inner join "
-                .$dbr->tableName('categorylinks')." as cl0 on ".$sPageTable.".page_id = cl0.cl_from and cl0.cl_to='"
-               .str_replace(' ','_',$cat)."'"." where page_namespace='14'");
-        while( $row = $dbr->fetchObject ( $res ) ) {
+        $res = $dbr->query("SELECT DISTINCT page_title FROM ".$dbr->tableName('page')." INNER JOIN "
+                .$dbr->tableName('categorylinks')." AS cl0 ON ".$sPageTable.".page_id = cl0.cl_from AND cl0.cl_to='"
+               .str_replace(' ','_',$cat)."'"." WHERE page_namespace='14'");
+        foreach ($res as $row) {
 			if ($depth>1) {
 				$cats .= '|'. self::getSubcategories($row->page_title,$sPageTable,$depth -1) ;
 			}
@@ -3129,6 +3119,26 @@ class DPLMain
 		$wgExtVariables->vardefine($dummy,'DPL_totalPages' ,$totalPages);
 		$wgExtVariables->vardefine($dummy,'DPL_pages' ,$pages);
 	}
+	
+	/**
+        * turn <html> -> &lt;html&gt;
+        * older versions of DPL used $wgRawHtml; the current version does NOT use rawHtml,
+		* so prevention against <html> is no longer needed. But should not do no harm anyway.
+		* So it is left in here.
+        * Note, $text should be from user. It should never contain <html> in it unless someone is
+        * being naughty.
+    */
+    private static function killHtmlTags( $text ) {
+		//escape <html>
+		$text = preg_replace('/<([^>]*[hH][tT][mM][lL][^>]*)>/', '&lt;$1&gt;', $text);
+		//if we still have <html>, someone is doing something weird, like double nesting to get
+		//around the escaping - just escape it all. <html> should never be here unless someone
+		// is being naughty, so it shouldn't cause problems.
+		if (preg_match('/<[^>]*[hH][tT][mM][lL][^>]*>/', $text)) {
+			$text = htmlspecialchars($text);
+		}
+		return $text;
+    }
 	
 	private static function cardSuitSort(&$articles) {
 		$skey = array();

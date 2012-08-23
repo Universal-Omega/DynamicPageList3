@@ -13,11 +13,11 @@ class DPLListMode {
 	var $aMultiSecSeparators = array();
 	var $iDominantSection = -1;
 	
-	function DPLListMode($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
+	function __construct($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
 						  $listseparators, $iOffset, $dominantSection) {
 		// default for inlinetext (if not in mode=userformat)
 		if (($listmode != 'userformat') && ($inlinetext == ''))
-			$inlinetext = '&nbsp;-&nbsp;';
+			$inlinetext = '&#160;-&#160;';
 		$this->name = $listmode;
 		$_listattr = ($listattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
 		$_itemattr = ($itemattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $itemattr, 'li' );

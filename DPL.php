@@ -26,7 +26,7 @@ class DPL {
 	var $nameSpaces;
 	var $mTableRow;	// formatting rules for table fields
 	
-	function DPL($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, 
+	function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, 
 				 $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, 
 				 $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen,
 				 $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules ) {
@@ -115,7 +115,7 @@ class DPL {
 				$greml = $nsize; // remaining lines in current group
 				$g=0;
 				$offset=0;
-				foreach($headings as $heading => $headingCount) {
+				foreach($headings as $headingCount) {
 					$headingLink = $articles[$nstart-$offset]->mParentHLink;
 					$this->mOutput .= $hlistmode->sItemStart;
 					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
@@ -156,7 +156,7 @@ class DPL {
 				$this->mHListMode = $hlistmode;
 				$this->mOutput .= $hlistmode->sListStart;
 				$headingStart = 0;
-				foreach($headings as $heading => $headingCount) {
+				foreach($headings as $headingCount) {
 					$headingLink = $articles[$headingStart]->mParentHLink;
 					$this->mOutput .= $hlistmode->sItemStart;
 					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
@@ -202,10 +202,7 @@ class DPL {
 			$this->mOutput .= "\n|}\n";
 		} else {
 			$this->mOutput .= $this->formatList(0, count($articles), $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-		}
-	
-		// MyBug::trace(__CLASS__,'DPL end',$this->mOutput);
-	
+		}	
 	}
 	
 	function formatCount($numart) {
@@ -327,7 +324,7 @@ class DPL {
 						(count($this->mIncSecLabelsNotMatch)<=0 || $this->mIncSecLabelsNotMatch[0] == '' || 
 						  preg_match($this->mIncSecLabelsNotMatch[0],$text)==false)) {
 						if( $this->mIncMaxLen > 0 && (strlen($text) > $this->mIncMaxLen) ) {
-							$text = DPLInclude::limitTranscludedText($text, $this->mIncMaxLen, ' [['.$title.'|..&rarr;]]');
+							$text = DPLInclude::limitTranscludedText($text, $this->mIncMaxLen, ' [['.$title.'|..→]]');
 						}
 						$this->filteredCount = $this->filteredCount + 1;
 	
@@ -364,7 +361,6 @@ class DPL {
 					// ONE section can be marked as "dominant"; if this section contains multiple entries
 					// we will create a separate output row for each value of the dominant section
 					// the values of all other columns will be repeated
-					$secArray=array();
 					
 					foreach ($this->mIncSecLabels as $s => $sSecLabel) {
 						$sSecLabel = trim($sSecLabel);
@@ -563,7 +559,7 @@ class DPL {
 
 
 				if( !empty($article->mCategoryLinks) )	$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
-				if( $this->mAddExternalLink && $article->mExternalLink!= '') $rBody .= ' &rarr; ' . $article->mExternalLink;
+				if( $this->mAddExternalLink && $article->mExternalLink!= '') $rBody .= ' → ' . $article->mExternalLink;
 			}
 			
 			// add included contents
@@ -629,7 +625,7 @@ class DPL {
 		$rulesText = str_replace(";",'°',$rulesText);
 		$rulesText = str_replace('\°',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('°',$rulesText);
+		$rules=explode('°',$rulesText);
 		$exec='edit';
 		$replaceThis='';
 		$replacement='';
@@ -858,7 +854,7 @@ class DPL {
     }
 	
 	function updateArticle($title, $text, $summary) {
-		global $wgUser, $wgRequest, $wgArticle, $wgOut;
+		global $wgUser, $wgRequest, $wgOut;
 
 		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
 			$wgOut->addWikiMsg( 'sessionfailure' );
@@ -866,11 +862,11 @@ class DPL {
 		}
 
 		$titleX = Title::newFromText($title);
-
-		$wgArticle = $articleX = new Article($titleX);
-		$permission_errors = $articleX->mTitle->getUserPermissionsErrors( 'edit', $wgUser );
+		$permission_errors = $titleX->getUserPermissionsErrors( 'edit', $wgUser );
 		if (count($permission_errors)==0) {
-			$articleX->updateArticle($text, $summary, false, $titleX->userIsWatching());
+			$articleX = new Article($titleX);
+			$articleX->doEdit( $text, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY );
+			$wgOut->redirect( $titleX->getFullUrl( $articleX->isRedirect() ? 'redirect=no' : '' ) );
 			return '';
 		}
 		else {
@@ -960,7 +956,6 @@ class DPL {
 		$matches=array();
 		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template,'/').'\s*[|}]/i',$text,$matches,PREG_OFFSET_CAPTURE);
 		if ($noMatches<=0) return $text;
-		$rText='';
 		$beginSubst=-1;
 		$endSubst=-1;
 		$posInsertAt=0;
@@ -994,7 +989,7 @@ class DPL {
 						if (($cbrackets==2 && $c=='|') || ($cbrackets==1 && $c=='}')) {
 							// parameter (name / value) found
 							
-							$token = split('=',$parm,2);
+							$token = explode('=',$parm,2);
 							if (count($token)==2) {
 								// we need a pair of name / value
 								$parmName=trim($token[0]);
@@ -1016,7 +1011,6 @@ class DPL {
 									}
 									$beginSubst=$pos+strlen($token[0])+2;
 									$endSubst=$i;
-									// MyBug::trace(__CLASS__,'split',"pos=$pos,substitution=$substitution,...$token[0]...$token[1]...");
 									break;
 								}
 								else {
@@ -1061,8 +1055,6 @@ class DPL {
 		}
 
 		if ($beginSubst<0) return $text;
-		// MyBug::trace(__CLASS__,'updParm',"at $beginSubst,$endSubst : .1.".substr($text,$beginSubst-10,10)
-		//		.".2.".substr($text,$beginSubst,$endSubst-$beginSubst).".3.".substr($text,$endSubst,10).".4.$substitution.5.");
 
 		return  substr($text,0,$beginSubst).$substitution.substr($text,$endSubst);
 		
@@ -1080,7 +1072,7 @@ class DPL {
 		$rulesText = str_replace(";",'°',$rulesText);
 		$rulesText = str_replace('\°',';',$rulesText);
 		$rulesText = str_replace("\\n","\n",$rulesText);
-		$rules=split('°',$rulesText);
+		$rules=explode('°',$rulesText);
 		$exec=false;
 		$message= '';
 		$reason='';
@@ -1107,11 +1099,9 @@ class DPL {
 		$reason .= "\nbulk delete by DPL query";
 		
 		$titleX = Title::newFromText($title);
-		global $wgArticle;
-		$wgArticle = $articleX = new Article($titleX);
 		if ($exec) {
 			# Check permissions
-			$permission_errors = $articleX->mTitle->getUserPermissionsErrors( 'delete', $wgUser );
+			$permission_errors = $titleX->getUserPermissionsErrors( 'delete', $wgUser );
 			if (count($permission_errors)>0) {
 				$wgOut->showPermissionsErrorPage( $permission_errors );
 				return 'permission error';
@@ -1121,10 +1111,11 @@ class DPL {
 				return 'DPL: read only mode';
 			}
 			else {
+				$articleX = new Article($titleX);
 				$articleX->doDelete($reason);
 			}
 		}
-		else $message .= "set 'exec yes' to delete &nbsp; &nbsp; <big>'''$title'''</big>\n";
+		else $message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
 		$message .= "<pre><nowiki>"
 			."\n".$text."</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
 		return $message;
@@ -1280,7 +1271,7 @@ class DPL {
 			$options = array($options);
 		}
 	
-		$string = wfMsgGetKey( $key, true, false, false );
+		$string = wfMsgNoTrans( $key );
 	
 		$string = wfMsgReplaceArgs( $string, $args );
 	
