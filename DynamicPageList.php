@@ -64,11 +64,11 @@ $wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
 
 $wgExtensionMessagesFiles['DynamicPageList'] =  dirname( __FILE__ ) . '/DynamicPageList.i18n.php';
 
-$DPLVersion = '2.01';
+$DPLVersion = '2.02';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path' 				=> __FILE__,
-	'name' 				=> 'DynamicPageList',
+	'name' 				=> 'DynamicPageList (third party)',
 	'author' 			=>  '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
 	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
 	'descriptionmsg' 	=> 'dpl-desc',
