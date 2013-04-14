@@ -2,7 +2,7 @@
 
 class DPLLogger {
 
-	static $loaded = false;
+	static $loaded = true;
 	
 	var $iDebugLevel;
 	
@@ -15,12 +15,6 @@ class DPLLogger {
 	 * Parameters from user input must be escaped for HTML *before* passing to this function
 	 */
 	function msg($msgid) {
-
-		if (!self::$loaded) {
-			wfLoadExtensionMessages ('DynamicPageList');
-			self::$loaded = true;
-		}
-
 
 		if($this->iDebugLevel >= ExtDynamicPageList::$debugMinLevels[$msgid]) {
 			$args = func_get_args();
