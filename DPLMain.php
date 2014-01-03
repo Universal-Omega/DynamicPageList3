@@ -415,13 +415,11 @@ class DPLMain {
 								if ($sParam[1]=='*') 	$sParamList = explode('|',self::getSubcategories(substr($sParam,2),$sPageTable,2));
                                 else					$sParamList = explode('|',self::getSubcategories(substr($sParam,1),$sPageTable,1));
                                 foreach ($sParamList as $sPar) {
-                                    // $title = Title::newFromText($localParser->transformMsg($sPar, $pOptions));
                                     $title = Title::newFromText($sPar);
                                     if( !is_null($title) )	$aCategories[] = $title->getDbKey();
                                 }
                             }
                             else {
-                                // $title = Title::newFromText($localParser->transformMsg($sParam, $pOptions));
                                 $title = Title::newFromText($sParam);
                                 if( !is_null($title) )	$aCategories[] = $title->getDbKey();
                             }
@@ -451,7 +449,6 @@ class DPLMain {
                         $output .= $logger->msgWrongParam('hiddencategories', $sArg);
                     break;
                 case 'notcategory':
-                    //$title = Title::newFromText($localParser->transformMsg($sArg, $pOptions));
                     $title = Title::newFromText($sArg);
                     if( !is_null($title) ) {
                         $aExcludeCategories[] = $title->getDbKey();
@@ -463,7 +460,6 @@ class DPLMain {
                     $aParams = explode('|', $sArg);
                     foreach($aParams as $sParam) {
                         $sParam=trim($sParam);
-                        //$sNs = $localParser->transformMsg($sParam, $pOptions);
                         $sNs = $sParam;
                         if        ( in_array($sNs, ExtDynamicPageList::$options['namespace']) ) {
 	                        $aNamespaces[] = $wgContLang->getNsIndex($sNs);
@@ -631,7 +627,6 @@ class DPLMain {
                  */
                 case 'notnamespace':
                     $sArg=trim($sArg);
-                    // $sNs = $localParser->transformMsg($sArg, $pOptions);
                     $sNs = $sArg;
                     if( !in_array($sNs, ExtDynamicPageList::$options['notnamespace']) )
                         return $logger->msgWrongParam('notnamespace', $sArg);
@@ -762,7 +757,6 @@ class DPLMain {
                 case 'title>':
                     // we replace blanks by underscores to meet the internal representation
                     // of page names in the database
-                    // $sTitleGE = str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions));
                     $sTitleGE = str_replace(' ','_',$sArg);
                     $bSelectionCriteriaFound=true;
                     break;
@@ -770,7 +764,6 @@ class DPLMain {
                 case 'title<':
                     // we replace blanks by underscores to meet the internal representation
                     // of page names in the database
-                    // $sTitleLE = str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions));
                     $sTitleLE = str_replace(' ','_',$sArg);
                     $bSelectionCriteriaFound=true;
                     break;
@@ -1006,7 +999,6 @@ class DPLMain {
                 case 'titlematch':
                     // we replace blanks by underscores to meet the internal representation
                     // of page names in the database
-                    // $aTitleMatch = explode('|', str_replace(' ','\_',$localParser->transformMsg($sArg, $pOptions)));
                     $aTitleMatch = explode('|', str_replace(' ','\_',$sArg));
                     $bSelectionCriteriaFound=true;
                     break;
@@ -1393,7 +1385,6 @@ class DPLMain {
                 case 'nottitlematch':
                     // we replace blanks by underscores to meet the internal representation
                     // of page names in the database
-                    // $aNotTitleMatch = explode('|', str_replace(' ','_',$localParser->transformMsg($sArg, $pOptions)));
                     $aNotTitleMatch = explode('|', str_replace(' ','_',$sArg));
                     $bSelectionCriteriaFound=true;
                     break;
