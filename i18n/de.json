@@ -1,0 +1,34 @@
+{
+    "@metadata": {
+        "authors": [
+            "Gero Scholz"
+        ]
+    },
+    "intersection-desc": "Ausgabe einer Liste der aktuellsten Einträge in einer Kategorie, oder der Schnittmenge mehrerer Kategorien",
+    "intersection_toomanycats": "DynamicPageList: Zuviele Kategorien!",
+    "intersection_toofewcats": "DynamicPageList: Zuwenige Kategorien!",
+    "intersection_noresults": "DynamicPageList: Kein Ergebnis!",
+    "intersection_noincludecats": "DynamicPageList: Es muss mindestens eine Kategorie eingebunden werden oder gebe einen Namensraum an!",
+    "dpl_log_1": "Fehler: bei '$0' Parameter: '$1'! Hilfe:  <code>$0= <i>(leer)</i> (Hauptnamensraum)$3</code>.",
+    "dpl_log_2": "Fehler: bei '$0' Parameter: '$1'! Hilfe:  <code>$0= <i>vollständiger Seitenname</i></code>.",
+    "dpl_log_3": "Fehler: Zu viele Kategorien angegeben! Maximum: $0.",
+    "dpl_log_4": "Fehler: Zu wenige Kategorien angegeben! Minimum: $0.",
+    "dpl_log_5": "Fehler: Keine Auswahlkriterien angegeben! Mindestens einer der folgenden Parameter ist erforderlich: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby oder die 'not'-Varianten davon.",
+    "dpl_log_6": "Fehler: Sie müssen mindestens eine Kategorie angeben, wenn Sie 'addfirstcategorydate=true' oder 'ordermethod=categoryadd' benutzen.",
+    "dpl_log_7": "Fehler: Wenn Sie mehr als eine Kategorie angeben, können Sie 'addfirstcategorydate=true' oder 'ordermethod=categoryadd' nicht benutzen.",
+    "dpl_log_8": "Fehler: Es ist nur eine einzige Art der Datumsangabe möglich.",
+    "dpl_log_9": "Fehler: Sie können '$0' nur in Verbindung mit 'ordermethod=[...,]$1' benutzen.",
+    "dpl_log_10": "Fehler: Die Indexangabe bei 'dominantsection' muss zwischen 1 und  der Anzahl der Argumente von 'includepage' liegen ($0 in diesem Fall).",
+    "dpl_log_11": "Fehler: Abfragen auf unkategorisierte Seiten sind nicht möglich, da die Datenbank nicht dafür eingerichtet wurde. Ein Administrator kann dies ändern.",
+    "dpl_log_12": "Fehler: Die Angabe von \"openreferences\" ist nicht vereinbar mit bestimmten anderen Optionen, die Sie angegegeben haben. Details dazu stehen im DPL-Manual.",
+    "dpl_log_13": "Warnung: Der unbekannte Parameter '$0' wird ignoriert. Hilfe: Verfügbare Parameter: <code>$1</code>.",
+    "dpl_log_14": "Warnung: Parameter '$0': Der Wert '$1' ist unzulässig. Es wird der Defaultwert benutzt: '$2'. Hilfe: <code>$0= $3</code>.",
+    "dpl_log_15": "Warnung: Parameter '$0': Der Wert '$1' ist unzulässig. Es wird der Defaultwert benutzt: '$2'. Help: <code>$0= <i>(leer)</i> (unbegrenzt) | n</code>, wobei <code>n</code> eine positive Ganzzahl sein muss.",
+    "dpl_log_16": "Warnung: Kein passender Eintrag gefunden!",
+    "dpl_log_17": "Warnung: Add* Parameter ('adduser', 'addeditdate', etc.)' und 'includepage' haben keinen Effekt in Verbindung mit 'mode=category'. Es kann nur der Artikel und der Namensraum angezeigt werden.",
+    "dpl_log_18": "Warnung: 'headingmode=$0' hat keinen Effekt, wenn 'ordermethod' sich auf eine einzelne Komponente bezieht. Es wird '$1' verwendet. Hilfe: Sie können nicht not-$1 'headingmode' Werte in verbindung mit 'ordermethod' für mehrfache Komponenten verwenden. Die erste Konponente wird als Überschrift verwendet. Z.B. 'ordermethod=category,<i>comp</i>' (<i>comp</i> ist eine andere Komponente) für Kategorie-Überschriften.",
+    "dpl_log_19": "Warnung: 'debug=$0' steht nicht an erster Stelle in der DPL-Anweisung. Die Einstellung wird erst wirksam, nachdem die vorausgehenden Parameter geprüft und verarbeitet sind.",
+    "dpl_log_20": "Warnung: Endlosschleife beim Inkludieren von Inhalten der Seite '$0'.",
+    "dpl_log_21": "Datenbank-Abfrage: <code>$0</code>",
+    "dpl_articlecount": "Diese Gruppe enthält {{PLURAL:$1|einen|$1}} Artikel."
+}

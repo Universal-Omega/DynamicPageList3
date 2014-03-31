@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "authors": [
+            "Naudefj"
+        ]
+    },
+    "intersection_toomanycats": "Fout: Te veel kategorieë!",
+    "intersection_toofewcats": "Fout: Te min kategorieë!",
+    "intersection_noresults": "Fout: Geen resultate!"
+}
