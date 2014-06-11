@@ -71,7 +71,6 @@ class DPLLogger {
 				break;
 			case 'titlemaxlength':
 			case 'includemaxlength':
-			case 'randomseed':
 				$msgid = ExtDynamicPageList::WARN_WRONGPARAM_INT;
 				break;
 		}

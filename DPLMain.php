@@ -15,8 +15,6 @@ class DPLMain {
         // Output
         $output = '';
 
-        error_reporting(E_ALL);
-
         global $wgUser, $wgLang, $wgContLang, $wgRequest;
         global $wgNonincludableNamespaces;
 
@@ -251,9 +249,6 @@ class DPLMain {
         $iRowSize  = ($_sRowSize == '') ? 0: intval($_sRowSize);
 
         $sRowColFormat= ExtDynamicPageList::$options['rowcolformat']['default'];
-
-        $_sRandomSeed = ExtDynamicPageList::$options['randomseed']['default'];
-        $iRandomSeed = ($_sRandomSeed == '') ? null: intval($_sRandomSeed);
 
         $_sRandomCount = ExtDynamicPageList::$options['randomcount']['default'];
         $iRandomCount = ($_sRandomCount == '') ? null: intval($_sRandomCount);
@@ -640,14 +635,6 @@ class DPLMain {
                         $iOffset = ($sArg == '') ? 0: intval($sArg);
                     else // wrong value
                         $output .= $logger->msgWrongParam('offset', $sArg);
-                    break;
-
-                case 'randomseed':
-                    //ensure that $iRandomSeed is a number;
-                        if( preg_match(ExtDynamicPageList::$options['randomseed']['pattern'], $sArg) )
-                        $iRandomSeed = ($sArg == '') ? null: intval($sArg);
-                        else // wrong value
-                        $output .= $logger->msgWrongParam('randomseed', $sArg);
                     break;
 
                 case 'randomcount':
@@ -2542,23 +2529,17 @@ class DPLMain {
         $aHeadings = array(); // maps heading to count (# of pages under each heading)
         $aArticles = array();
 
-        // pick some elements by random
-        $pick[0]=true;
-
-        if (isset($iRandomCount)) {
+        if (isset($iRandomCount) && $iRandomCount > 0) {
             $nResults = $dbr->numRows( $res );
-            if (isset($iRandomSeed)) mt_srand($iRandomSeed);
-            else mt_srand((float) microtime() * 10000000);
-            if ($iRandomCount>$nResults) $iRandomCount = $nResults;
-            $r=0;
-            while (true) {
-                $rnum = mt_rand(1,$nResults);
-                if (!isset($pick[$rnum])) {
-                    $pick[$rnum] = true;
-                    $r++;
-                    if ($r>=$iRandomCount) break;
-                }
-            }
+			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
+            if ($iRandomCount > $nResults) {
+				$iRandomCount = $nResults;
+			}
+
+			//This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
+			$pick = range(1, $nResults);
+			shuffle($pick);
+			$pick = array_slice($pick, 0, $iRandomCount);
         }
 
         $iArticle = 0;
@@ -2571,7 +2552,9 @@ class DPLMain {
             $iArticle++;
 
             // in random mode skip articles which were not chosen
-            if (isset($iRandomCount) && !isset($pick[$iArticle]))  continue;
+            if (isset($iRandomCount) && $iRandomCount > 0 && !in_array($iArticle, $pick)) {
+				continue;
+			}
 
             if ($sGoal=='categories') {
                 $pageNamespace = 14;  // CATEGORY

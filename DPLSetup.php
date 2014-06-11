@@ -593,10 +593,6 @@ class ExtDynamicPageList {
          */
         'count'                => array('default' => '500', 'pattern' => '/^\d*$/'),
         /**
-          * Seed to be used when calling random.
-          */
-        'randomseed'           => array('default' => '', 'pattern' => '/^\d*$/'),
-        /**
          * Max number of results to display, selection is based on random.
          */
         'randomcount'          => array('default' => '', 'pattern' => '/^\d*$/'),
@@ -1078,7 +1074,6 @@ class ExtDynamicPageList {
 					noresultsfooter
 					noresultsheader
 					randomcount
-					randomseed	
 					replaceintitle
 					resultsfooter
 					resultsheader
