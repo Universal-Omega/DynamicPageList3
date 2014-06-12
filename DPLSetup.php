@@ -1232,6 +1232,16 @@ class ExtDynamicPageList {
 		return $valid;
 	}
 
+	/**
+	 * Returns the functional richness paramters list list.
+	 *
+	 * @access	public
+	 * @return	array	The functional richness paramters list list.
+	 */
+	static public function getParametersForFunctionalRichness() {
+		return self::$validParametersForRichnessLevel;
+	}
+
     public static function setupDPL() {
 
 		global $wgParser;

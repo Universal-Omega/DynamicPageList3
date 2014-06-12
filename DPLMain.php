@@ -3014,9 +3014,11 @@ class DPLMain {
 
 	private static function validParametersList() {
 		$plist='';
-		foreach (ExtDynamicPageList::$validParametersForRichnessLevel as $level => $p) {
+		foreach (ExtDynamicPageList::getParametersForFunctionalRichness() as $level => $p) {
 			$plist .= $p;
-			if ($level >= ExtDynamicPageList::$functionalRichness) break;
+			if ($level >= ExtDynamicPageList::getFunctionalRichness()) {
+				break;
+			}
 		}
 		return $plist;
 	}
