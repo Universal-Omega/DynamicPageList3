@@ -357,29 +357,30 @@ class DPLMain {
 			}
 			$sType = trim($aParam[0]);
 			$sArg  = trim($aParam[1]);
-	
+
 			if ($sType == '') {
 				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
 				continue;
 			}
-	
+
 			// ignore comment lines
-			if ($sType[0] == '#')
+			if ($sType[0] == '#') {
 				continue;
-	
+			}
+
 			// ignore parameter settings without argument (except namespace and category)
 			if ($sArg == '') {
 				if ($sType != 'namespace' && $sType != 'notnamespace' && $sType != 'category' && array_key_exists($sType, ExtDynamicPageList::$options)) {
 					continue;
 				}
 			}
-	
+
 			if (!ExtDynamicPageList::testFunctionalRichness($sType)) {
 				continue;
 			}
-	
+
 			$validOptionFound = true;
-	
+
 			switch ($sType) {
 				/**
 				 * FILTER PARAMETERS
@@ -511,8 +512,9 @@ class DPLMain {
 		
 				case 'count':
 					// setting by URL overwrites other settings, hence we ignore the command
-					if ($sCount == '')
+					if ($sCount == '') {
 						$sCount = trim($sArg);
+					}
 					break;
 		
 				/**
@@ -773,17 +775,21 @@ class DPLMain {
 						// based on URL arguments
 						if ($bScroll) {
 							$sTitleGE = $wgRequest->getVal('DPL_fromTitle', '');
-							if (strlen($sTitleGE) > 0)
+							if (strlen($sTitleGE) > 0) {
 								$sTitleGE[0] = strtoupper($sTitleGE[0]);
+							}
 							// findTitle has priority over fromTitle
 							$findTitle = $wgRequest->getVal('DPL_findTitle', '');
-							if (strlen($findTitle) > 0)
+							if (strlen($findTitle) > 0) {
 								$findTitle[0] = strtoupper($findTitle[0]);
-							if ($findTitle != '')
+							}
+							if ($findTitle != '') {
 								$sTitleGE = '=_' . $findTitle;
+							}
 							$sTitleLE = $wgRequest->getVal('DPL_toTitle', '');
-							if (strlen($sTitleLE) > 0)
+							if (strlen($sTitleLE) > 0) {
 								$sTitleLE[0] = strtoupper($sTitleLE[0]);
+							}
 							$sTitleGE     = str_replace(' ', '_', $sTitleGE);
 							$sTitleLE     = str_replace(' ', '_', $sTitleLE);
 							$scrollDir    = $wgRequest->getVal('DPL_scrollDir', '');
@@ -1515,7 +1521,7 @@ class DPLMain {
 					$validOptionFound = false;
 					break;
 			}
-	
+
 			if ($validOptionFound === false) {
 				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
 			}
