@@ -10,7 +10,7 @@
 **/
 
 $magicWords = [];
- 
+
 $magicWords['en'] = [
 	'dpl'				= [0, 'dpl'],
 	'dplnum'			= [0, 'dplnum'],
