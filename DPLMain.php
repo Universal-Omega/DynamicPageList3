@@ -1,6 +1,13 @@
 <?php
-// this file is UTF-8 encoded and contains some special characters.
-// Editing this file with an ASCII editor will potentially destroy it!
+/**
+ * DynamicPageList
+ * Parameters
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
 
 class DPLMain {
 
@@ -340,252 +347,265 @@ class DPLMain {
 		// parse the result recursively. This allows to build complex structures in the output
 		// which are only understood by the parser if seen as a whole
 
-		foreach($aParams as $iParam => $sParam) {
+		foreach ($aParams as $iParam => $sParam) {
 			$aParam = explode('=', $sParam, 2);
-			if( count( $aParam ) < 2 ) {
-				if (trim($aParam[0])!='') $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $aParam[0]. " [missing '=']", self::validParametersList());
-				continue;
+			if (count($aParam) < 2) {
+				if (trim($aParam[0]) != '') {
+					$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", self::validParametersList());
+					continue;
+				}
 			}
 			$sType = trim($aParam[0]);
-			$sArg = trim($aParam[1]);
-
-			if( $sType=='') {
+			$sArg  = trim($aParam[1]);
+	
+			if ($sType == '') {
 				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
 				continue;
 			}
-
+	
 			// ignore comment lines
-			if ($sType[0] == '#') continue;
-
+			if ($sType[0] == '#')
+				continue;
+	
 			// ignore parameter settings without argument (except namespace and category)
-			if ($sArg=='') {
-				if ($sType!='namespace' && $sType!='notnamespace' && $sType != 'category' && array_key_exists($sType,ExtDynamicPageList::$options)) continue;
+			if ($sArg == '') {
+				if ($sType != 'namespace' && $sType != 'notnamespace' && $sType != 'category' && array_key_exists($sType, ExtDynamicPageList::$options)) {
+					continue;
+				}
 			}
-
-
-			// for each level of functionalRichness we have a separate block of options
-			// the first block is always active ($functionalRichness>=0)
-
-
-			//------------------------------------------------------------------------------------------- level 0
-
+	
+			if (!ExtDynamicPageList::testFunctionalRichness($sType)) {
+				continue;
+			}
+	
 			$validOptionFound = true;
-
+	
 			switch ($sType) {
-
 				/**
 				 * FILTER PARAMETERS
 				 */
 				case 'category':
 					// Init array of categories to include
 					$aCategories = array();
-					$bHeading = false;
+					$bHeading    = false;
 					$bNotHeading = false;
-					if($sArg != '' && $sArg[0] == '+') {// categories are headings
+					if ($sArg != '' && $sArg[0] == '+') { // categories are headings
 						$bHeading = true;
-						$sArg[0] = '';
+						$sArg[0]  = '';
 					}
-					if($sArg != '' && $sArg[0] == '-') {// categories are NOT headings
+					if ($sArg != '' && $sArg[0] == '-') { // categories are NOT headings
 						$bNotHeading = true;
-						$sArg[0] = '';
+						$sArg[0]     = '';
 					}
-					$op='OR';
+					$op   = 'OR';
 					// we expand html entities because they contain an '& 'which would be interpreted as an AND condition
-					$sArg=html_entity_decode($sArg,ENT_QUOTES);
-					if (strpos($sArg,'&')!==false) {
+					$sArg = html_entity_decode($sArg, ENT_QUOTES);
+					if (strpos($sArg, '&') !== false) {
 						$aParams = explode('&', $sArg);
-						$op = 'AND';
+						$op      = 'AND';
 					} else {
 						$aParams = explode('|', $sArg);
 					}
-					foreach($aParams as $sParam) {
-						$sParam=trim($sParam);
-						if($sParam == '') { // ignore empty line
-						} else if($sParam == '_none_') { // include uncategorized pages (special value: empty string)
-							$aParams[$sParam]='';
-							$bIncludeUncat = true;
-							$aCategories[] = '';
-						} else {
-							if ($sParam[0]=='*' && strlen($sParam)>=2) {
-								if ($sParam[1]=='*')	$sParamList = explode('|',self::getSubcategories(substr($sParam,2),$sPageTable,2));
-								else					$sParamList = explode('|',self::getSubcategories(substr($sParam,1),$sPageTable,1));
+					foreach ($aParams as $sParam) {
+						$sParam = trim($sParam);
+						if ($sParam == '_none_') {
+							$aParams[$sParam] = '';
+							$bIncludeUncat    = true;
+							$aCategories[]    = '';
+						} elseif ($sParam != '') {
+							if ($sParam[0] == '*' && strlen($sParam) >= 2) {
+								if ($sParam[1] == '*') {
+									$sParamList = explode('|', self::getSubcategories(substr($sParam, 2), $sPageTable, 2));
+								} else {
+									$sParamList = explode('|', self::getSubcategories(substr($sParam, 1), $sPageTable, 1));
+								}
 								foreach ($sParamList as $sPar) {
 									$title = Title::newFromText($sPar);
-									if( !is_null($title) )	$aCategories[] = $title->getDbKey();
+									if (!is_null($title))
+										$aCategories[] = $title->getDbKey();
 								}
-							}
-							else {
+							} else {
 								$title = Title::newFromText($sParam);
-								if( !is_null($title) )	$aCategories[] = $title->getDbKey();
+								if (!is_null($title))
+									$aCategories[] = $title->getDbKey();
 							}
 						}
 					}
-					if( !empty($aCategories) ) {
-						if ($op=='OR') {
+					if (!empty($aCategories)) {
+						if ($op == 'OR') {
 							$aIncludeCategories[] = $aCategories;
-						}
-						else {
-							foreach($aCategories as $aParams) {
-								$sParam=array();
-								$sParam[] = $aParams;
+						} else {
+							foreach ($aCategories as $aParams) {
+								$sParam               = array();
+								$sParam[]             = $aParams;
 								$aIncludeCategories[] = $sParam;
 							}
 						}
-						if($bHeading)		$aCatHeadings	 = array_unique($aCatHeadings + $aCategories);
-						if($bNotHeading)	$aCatNotHeadings = array_unique($aCatNotHeadings + $aCategories);
-						$bConflictsWithOpenReferences=true;
+						if ($bHeading) {
+							$aCatHeadings = array_unique($aCatHeadings + $aCategories);
+						}
+						if ($bNotHeading) {
+							$aCatNotHeadings = array_unique($aCatNotHeadings + $aCategories);
+						}
+						$bConflictsWithOpenReferences = true;
 					}
 					break;
 				case 'hiddencategories':
-					if( in_array($sArg, ExtDynamicPageList::$options['hiddencategories']) ) {
+					if (in_array($sArg, ExtDynamicPageList::$options['hiddencategories'])) {
 						$sHiddenCategories = $sArg;
-					}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('hiddencategories', $sArg);
+					}
 					break;
 				case 'notcategory':
 					$title = Title::newFromText($sArg);
-					if( !is_null($title) ) {
-						$aExcludeCategories[] = $title->getDbKey();
-						$bConflictsWithOpenReferences=true;
+					if (!is_null($title)) {
+						$aExcludeCategories[]         = $title->getDbKey();
+						$bConflictsWithOpenReferences = true;
 					}
 					break;
-
+		
 				case 'namespace':
 					$aParams = explode('|', $sArg);
-					foreach($aParams as $sParam) {
-						$sParam=trim($sParam);
-						$sNs = $sParam;
-						if		  ( in_array($sNs, ExtDynamicPageList::$options['namespace']) ) {
-							$aNamespaces[] = $wgContLang->getNsIndex($sNs);
-							$bSelectionCriteriaFound=true;
-						} else if ( array_key_exists($sNs, array_keys(ExtDynamicPageList::$options['namespace'])) ) {
-							$aNamespaces[] = $sNs;
-							$bSelectionCriteriaFound=true;
+					foreach ($aParams as $sParam) {
+						$sParam = trim($sParam);
+						$sNs    = $sParam;
+						if (in_array($sNs, ExtDynamicPageList::$options['namespace'])) {
+							$aNamespaces[]           = $wgContLang->getNsIndex($sNs);
+							$bSelectionCriteriaFound = true;
+						} else if (array_key_exists($sNs, array_keys(ExtDynamicPageList::$options['namespace']))) {
+							$aNamespaces[]           = $sNs;
+							$bSelectionCriteriaFound = true;
 						} else {
 							return $logger->msgWrongParam('namespace', $sParam);
 						}
 					}
 					break;
-
+		
 				case 'redirects':
-					if( in_array($sArg, ExtDynamicPageList::$options['redirects']) ) {
-						$sRedirects = $sArg;
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['redirects'])) {
+						$sRedirects                   = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('redirects', $sArg);
+					}
 					break;
-
+		
 				case 'stablepages':
-					if( in_array($sArg, ExtDynamicPageList::$options['stablepages']) ) {
-						$sStable = $sArg;
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['stablepages'])) {
+						$sStable                      = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('stablepages', $sArg);
-					break;
-
-				case 'qualitypages':
-					if( in_array($sArg, ExtDynamicPageList::$options['qualitypages']) ) {
-						$sQuality = $sArg;
-						$bConflictsWithOpenReferences=true;
 					}
-					else
-						$output .= $logger->msgWrongParam('qualitypages', $sArg);
 					break;
-
+		
+				case 'qualitypages':
+					if (in_array($sArg, ExtDynamicPageList::$options['qualitypages'])) {
+						$sQuality                     = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('qualitypages', $sArg);
+					}
+					break;
+		
 				case 'count':
 					// setting by URL overwrites other settings, hence we ignore the command
-					if ($sCount=='') $sCount=trim($sArg);
+					if ($sCount == '')
+						$sCount = trim($sArg);
 					break;
-
+		
 				/**
 				 * CONTENT PARAMETERS
 				 */
-
+		
 				case 'addfirstcategorydate':
-					if( in_array($sArg, ExtDynamicPageList::$options['addfirstcategorydate'])) {
-						$bAddFirstCategoryDate = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addfirstcategorydate'])) {
+						$bAddFirstCategoryDate        = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addfirstcategorydate', $sArg);
+					}
 					break;
-
+		
 				/**
 				 * ORDER PARAMETERS
 				 */
 				case 'ordermethod':
-					$methods = explode(',', $sArg);
+					$methods   = explode(',', $sArg);
 					$breakaway = false;
-					foreach ( $methods as $method ) {
-						if( !in_array($method, ExtDynamicPageList::$options['ordermethod']) ) {
+					foreach ($methods as $method) {
+						if (!in_array($method, ExtDynamicPageList::$options['ordermethod'])) {
 							$output .= $logger->msgWrongParam('ordermethod', $method);
 							$breakaway = true;
 						}
 					}
-					if ( !$breakaway ) {
+					if (!$breakaway) {
 						$aOrderMethods = $methods;
-						if ($methods[0]!='none') $bConflictsWithOpenReferences=true;
+						if ($methods[0] != 'none')
+							$bConflictsWithOpenReferences = true;
 					}
 					break;
-
+		
 				case 'order':
-					if( in_array($sArg, ExtDynamicPageList::$options['order']) )
+					if (in_array($sArg, ExtDynamicPageList::$options['order'])) {
 						$sOrder = $sArg;
-					else
+					} else {
 						$output .= $logger->msgWrongParam('order', $sArg);
+					}
 					break;
-
+		
 				/**
 				 * FORMAT/HTML PARAMETERS
 				 * @todo allow addpagetoucheddate, addeditdate, adduser, addcategories to have effect with 'mode=category'
 				 */
-
+		
 				case 'mode':
-					if( in_array($sArg, ExtDynamicPageList::$options['mode']) )
+					if (in_array($sArg, ExtDynamicPageList::$options['mode'])) {
 						//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
-						if($sArg == 'none') {
+						if ($sArg == 'none') {
 							$sPageListMode = 'inline';
-							$sInlTxt = '<br/>';
+							$sInlTxt       = '<br/>';
 						} else if ($sArg == 'userformat') {
 							// userformat resets inline text to empty string
-							$sInlTxt = '';
+							$sInlTxt       = '';
 							$sPageListMode = $sArg;
 						} else {
 							$sPageListMode = $sArg;
 						}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('mode', $sArg);
-					break;
-
-				case 'showcurid':
-					if( in_array($sArg, ExtDynamicPageList::$options['showcurid'])) {
-						$bShowCurID = self::argBoolean($sArg);
-						if ($bShowCurID==true) $bConflictsWithOpenReferences=true;
 					}
-					else
+					break;
+		
+				case 'showcurid':
+					if (in_array($sArg, ExtDynamicPageList::$options['showcurid'])) {
+						$bShowCurID = self::argBoolean($sArg);
+						if ($bShowCurID == true)
+							$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('showcurid', $sArg);
+					}
 					break;
-
+		
 				case 'shownamespace':
-					if( in_array($sArg, ExtDynamicPageList::$options['shownamespace']))
+					if (in_array($sArg, ExtDynamicPageList::$options['shownamespace'])) {
 						$bShowNamespace = self::argBoolean($sArg);
-					else
+					} else {
 						$output .= $logger->msgWrongParam('shownamespace', $sArg);
+					}
 					break;
-
+		
 				case 'suppresserrors':
-				   if( in_array($sArg, ExtDynamicPageList::$options['suppresserrors'])) {
-					   $bSuppressErrors = self::argBoolean($sArg);
-					   if( $bSuppressErrors )  $sNoResultsHeader = ' ';
-				   }
-				   else {
-					   $output .= $logger->msgWrongParam('suppresserrors', $sArg);
-				   }
-				   break;
-
+					if (in_array($sArg, ExtDynamicPageList::$options['suppresserrors'])) {
+						$bSuppressErrors = self::argBoolean($sArg);
+						if ($bSuppressErrors)
+							$sNoResultsHeader = ' ';
+					} else {
+						$output .= $logger->msgWrongParam('suppresserrors', $sArg);
+					}
+					break;
+		
 				/**
 				 * OTHER PARAMETER
 				 */
@@ -595,633 +615,661 @@ class DPLMain {
 					// in this case we prevent the parser cache from being disabled by later statements
 					$sExecAndExit = $sArg;
 					break;
-
-
-				/**
-				 * UNKNOWN PARAMETER
-				 */
-				default:
-					$validOptionFound = false;
-			}
-
-			if ($validOptionFound) continue;
-
-			// the next blocks are only available if $functionalRichness > 0
-			if (ExtDynamicPageList::$functionalRichness <= 0) {
-				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
-				continue;
-			}
-
-			//------------------------------------------------------------------------------------------- level 1
-
-			$validOptionFound = true;
-			switch ($sType) {
-
 				/**
 				 * FILTER PARAMETERS
 				 */
 				case 'notnamespace':
-					$sArg=trim($sArg);
-					$sNs = $sArg;
-					if( !in_array($sNs, ExtDynamicPageList::$options['notnamespace']) )
+					$sArg = trim($sArg);
+					$sNs  = $sArg;
+					if (!in_array($sNs, ExtDynamicPageList::$options['notnamespace'])) {
 						return $logger->msgWrongParam('notnamespace', $sArg);
-					$aExcludeNamespaces[] = $wgContLang->getNsIndex($sNs);
-					$bSelectionCriteriaFound=true;
+					}
+					$aExcludeNamespaces[]    = $wgContLang->getNsIndex($sNs);
+					$bSelectionCriteriaFound = true;
 					break;
-
+		
 				case 'offset':
 					//ensure that $iOffset is a number
-					if( preg_match(ExtDynamicPageList::$options['offset']['pattern'], $sArg) )
-						$iOffset = ($sArg == '') ? 0: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['offset']['pattern'], $sArg)) {
+						$iOffset = ($sArg == '') ? 0 : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('offset', $sArg);
+					}
 					break;
-
+		
 				case 'randomcount':
 					//ensure that $iRandomCount is a number;
-					if( preg_match(ExtDynamicPageList::$options['randomcount']['pattern'], $sArg) )
-						$iRandomCount = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['randomcount']['pattern'], $sArg)) {
+						$iRandomCount = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('randomcount', $sArg);
-					break;
-
-				case 'distinct':
-					if( in_array($sArg, ExtDynamicPageList::$options['distinct'])) {
-						if ($sArg=='strict')			$sDistinctResultSet = 'strict';
-						else if (self::argBoolean($sArg))	$sDistinctResultSet = 'true';
-						else							$sDistinctResultSet = 'false';
 					}
-					else
-						$output .= $logger->msgWrongParam('distinct', $sArg);
 					break;
-
+		
+				case 'distinct':
+					if (in_array($sArg, ExtDynamicPageList::$options['distinct'])) {
+						if ($sArg == 'strict')
+							$sDistinctResultSet = 'strict';
+						else if (self::argBoolean($sArg))
+							$sDistinctResultSet = 'true';
+						else
+							$sDistinctResultSet = 'false';
+					} else {
+						$output .= $logger->msgWrongParam('distinct', $sArg);
+					}
+					break;
+		
 				/*
 				 * ORDER PARAMETERS
 				 */
-
+		
 				case 'ordercollation':
-					if($sArg=='bridge') $bOrderSuitSymbols = true;
-					else if($sArg!='') $sOrderCollation= "COLLATE $sArg";
+					if ($sArg == 'bridge') {
+						$bOrderSuitSymbols = true;
+					} elseif ($sArg != '') {
+						$sOrderCollation = "COLLATE $sArg";
+					}
 					break;
-
+		
 				/**
 				 * FORMAT/HTML PARAMETERS
 				 * @todo allow addpagetoucheddate, addeditdate, adduser, addcategories to have effect with 'mode=category'
 				 */
-
+		
 				case 'columns':
 					//ensure that $iColumns is a number
-					if( preg_match(ExtDynamicPageList::$options['columns']['pattern'], $sArg) )
-						$iColumns = ($sArg == '') ? 1: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['columns']['pattern'], $sArg)) {
+						$iColumns = ($sArg == '') ? 1 : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('columns', $sArg);
+					}
 					break;
-
+		
 				case 'rows':
 					//ensure that $iRows is a number
-					if( preg_match(ExtDynamicPageList::$options['rows']['pattern'], $sArg) )
-						$iRows = ($sArg == '') ? 1: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['rows']['pattern'], $sArg)) {
+						$iRows = ($sArg == '') ? 1 : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('rows', $sArg);
+					}
 					break;
-
+		
 				case 'rowsize':
 					//ensure that $iRowSize is a number
-					if( preg_match(ExtDynamicPageList::$options['rowsize']['pattern'], $sArg) )
-						$iRowSize = ($sArg == '') ? 0: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['rowsize']['pattern'], $sArg)) {
+						$iRowSize = ($sArg == '') ? 0 : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('rowsize', $sArg);
+					}
 					break;
-
+		
 				case 'rowcolformat':
-					$sRowColFormat= self::killHtmlTags($sArg);
+					$sRowColFormat = self::killHtmlTags($sArg);
 					break;
-
+		
 				case 'userdateformat':
 					$sUserDateFormat = self::killHtmlTags($sArg);
 					break;
-
+		
 				case 'escapelinks':
-					if( in_array($sArg, ExtDynamicPageList::$options['escapelinks']))
+					if (in_array($sArg, ExtDynamicPageList::$options['escapelinks'])) {
 						$bEscapeLinks = self::argBoolean($sArg);
-					else
+					} else {
 						$output .= $logger->msgWrongParam('escapelinks', $sArg);
+					}
 					break;
-
+		
 				case 'inlinetext':
 					$sInlTxt = self::killHtmlTags($sArg);
 					break;
-
+		
 				case 'format':
 				case 'listseparators':
 					// parsing of wikitext will happen at the end of the output phase
 					// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
-					$sArg = self::killHtmlTags($sArg);
-					$sArg = str_replace( '\n', "\n", $sArg );
-					$sArg = str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
-					$aListSeparators = explode (',', $sArg, 4);
+					$sArg            = self::killHtmlTags($sArg);
+					$sArg            = str_replace('\n', "\n", $sArg);
+					$sArg            = str_replace("¶", "\n", $sArg); // the paragraph delimiter is utf8-escaped
+					$aListSeparators = explode(',', $sArg, 4);
 					// mode=userformat will be automatically assumed
-					$sPageListMode='userformat';
-					$sInlTxt = '';
+					$sPageListMode   = 'userformat';
+					$sInlTxt         = '';
 					break;
-
+		
 				case 'title':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
 					$title = Title::newFromText($sArg);
 					if ($title) {
-						$sNamespace= $title->getNamespace();
-						$sTitleIs = str_replace(' ','_',$title->getText());
-						$aNamespaces[0] = $sNamespace;
-						$sPageListMode='userformat';
-						$aOrderMethods = explode(',','');
-						$bSelectionCriteriaFound=true;
-						$bConflictsWithOpenReferences=true;
-						$bAllowCachedResults = true;
+						$sNamespace                   = $title->getNamespace();
+						$sTitleIs                     = str_replace(' ', '_', $title->getText());
+						$aNamespaces[0]               = $sNamespace;
+						$sPageListMode                = 'userformat';
+						$aOrderMethods                = explode(',', '');
+						$bSelectionCriteriaFound      = true;
+						$bConflictsWithOpenReferences = true;
+						$bAllowCachedResults          = true;
 					}
 					break;
-
+		
 				case 'title>':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
-					$sTitleGE = str_replace(' ','_',$sArg);
-					$bSelectionCriteriaFound=true;
+					$sTitleGE                = str_replace(' ', '_', $sArg);
+					$bSelectionCriteriaFound = true;
 					break;
-
+		
 				case 'title<':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
-					$sTitleLE = str_replace(' ','_',$sArg);
-					$bSelectionCriteriaFound=true;
+					$sTitleLE                = str_replace(' ', '_', $sArg);
+					$bSelectionCriteriaFound = true;
 					break;
-
+		
 				case 'scroll':
-					if( in_array($sArg, ExtDynamicPageList::$options['scroll'])) {
+					if (in_array($sArg, ExtDynamicPageList::$options['scroll'])) {
 						$bScroll = self::argBoolean($sArg);
 						// if scrolling is active we adjust the values for certain other parameters
 						// based on URL arguments
 						if ($bScroll) {
-							$sTitleGE  = $wgRequest->getVal('DPL_fromTitle','');
-							if (strlen($sTitleGE)>0) $sTitleGE[0] = strtoupper($sTitleGE[0]);
+							$sTitleGE = $wgRequest->getVal('DPL_fromTitle', '');
+							if (strlen($sTitleGE) > 0)
+								$sTitleGE[0] = strtoupper($sTitleGE[0]);
 							// findTitle has priority over fromTitle
-							$findTitle = $wgRequest->getVal('DPL_findTitle','');
-							if (strlen($findTitle)>0) $findTitle[0] = strtoupper($findTitle[0]);
-							if ($findTitle !='') $sTitleGE = '=_'.$findTitle;
-							$sTitleLE  = $wgRequest->getVal('DPL_toTitle','');
-							if (strlen($sTitleLE)>0) $sTitleLE[0] = strtoupper($sTitleLE[0]);
-							$sTitleGE = str_replace(' ','_',$sTitleGE);
-							$sTitleLE = str_replace(' ','_',$sTitleLE);
-							$scrollDir = $wgRequest->getVal('DPL_scrollDir','');
+							$findTitle = $wgRequest->getVal('DPL_findTitle', '');
+							if (strlen($findTitle) > 0)
+								$findTitle[0] = strtoupper($findTitle[0]);
+							if ($findTitle != '')
+								$sTitleGE = '=_' . $findTitle;
+							$sTitleLE = $wgRequest->getVal('DPL_toTitle', '');
+							if (strlen($sTitleLE) > 0)
+								$sTitleLE[0] = strtoupper($sTitleLE[0]);
+							$sTitleGE     = str_replace(' ', '_', $sTitleGE);
+							$sTitleLE     = str_replace(' ', '_', $sTitleLE);
+							$scrollDir    = $wgRequest->getVal('DPL_scrollDir', '');
 							// also set count limit from URL if not otherwise set
-							$sCountScroll = $wgRequest->getVal('DPL_count','');
+							$sCountScroll = $wgRequest->getVal('DPL_count', '');
 						}
-					}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('scroll', $sArg);
+					}
 					break;
-
+		
 				case 'titlemaxlength':
 					//processed like 'count' param
-					if( preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg) )
-						$iTitleMaxLen = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['titlemaxlength']['pattern'], $sArg)) {
+						$iTitleMaxLen = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('titlemaxlength', $sArg);
-					break;
-
-				case 'replaceintitle':
-					// we offer a possibility to replace some part of the title
-					$aReplaceInTitle = explode (',',$sArg,2);
-					if (isset($aReplaceInTitle[1])) {
-						$aReplaceInTitle[1] = self::killHtmlTags( $aReplaceInTitle[1] );
 					}
 					break;
-
+		
+				case 'replaceintitle':
+					// we offer a possibility to replace some part of the title
+					$aReplaceInTitle = explode(',', $sArg, 2);
+					if (isset($aReplaceInTitle[1])) {
+						$aReplaceInTitle[1] = self::killHtmlTags($aReplaceInTitle[1]);
+					}
+					break;
+		
 				case 'resultsheader':
-					$sResultsHeader = self::killHtmlTags( $sArg );
+					$sResultsHeader = self::killHtmlTags($sArg);
 					break;
 				case 'resultsfooter':
-					$sResultsFooter = self::killHtmlTags( $sArg );
+					$sResultsFooter = self::killHtmlTags($sArg);
 					break;
 				case 'noresultsheader':
-					$sNoResultsHeader = self::killHtmlTags( $sArg );
+					$sNoResultsHeader = self::killHtmlTags($sArg);
 					break;
 				case 'noresultsfooter':
-					$sNoResultsFooter = self::killHtmlTags( $sArg );
+					$sNoResultsFooter = self::killHtmlTags($sArg);
 					break;
 				case 'oneresultheader':
-					$sOneResultHeader = self::killHtmlTags( $sArg );
+					$sOneResultHeader = self::killHtmlTags($sArg);
 					break;
 				case 'oneresultfooter':
-					$sOneResultFooter = self::killHtmlTags( $sArg );
+					$sOneResultFooter = self::killHtmlTags($sArg);
 					break;
-
+		
 				/**
 				 * DEBUG, RESET and CACHE PARAMETER
 				 */
-
-
 				case 'debug':
-					if( in_array($sArg, ExtDynamicPageList::$options['debug']) ) {
-						if($iParam > 1)
-							$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_DEBUGPARAMNOTFIRST, $sArg );
+					if (in_array($sArg, ExtDynamicPageList::$options['debug'])) {
+						if ($iParam > 1) {
+							$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_DEBUGPARAMNOTFIRST, $sArg);
+						}
 						$logger->iDebugLevel = intval($sArg);
-					}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('debug', $sArg);
+					}
 					break;
-
-				/**
-				 * UNKNOWN PARAMETER
-				 */
-				default:
-					$validOptionFound = false;
-			}
-
-			if ($validOptionFound) continue;
-
-			if (ExtDynamicPageList::$functionalRichness <= 1) {
-				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
-				continue;
-			}
-
-
-			//------------------------------------------------------------------------------------------- level 2
-
-			$validOptionFound = true;
-			switch ($sType) {
-
-				/**
-				 * FILTER PARAMETERS
-				 */
-
 				case 'linksto':
 					$problems = self::getPageNameList('linksto', $sArg, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
-					if ($problems!='') return $problems;
-					$bConflictsWithOpenReferences=true;
+					if ($problems != '') {
+						return $problems;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'notlinksto':
 					$problems = self::getPageNameList('notlinksto', $sArg, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
-					if ($problems!='') return $problems;
-					$bConflictsWithOpenReferences=true;
+					if ($problems != '') {
+						return $problems;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'linksfrom':
 					$problems = self::getPageNameList('linksfrom', $sArg, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
-					if ($problems!='') return $problems;
+					if ($problems != '') {
+						return $problems;
+					}
 					// $bConflictsWithOpenReferences=true;
 					break;
-
+		
 				case 'notlinksfrom':
 					$problems = self::getPageNameList('notlinksfrom', $sArg, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
-					if ($problems!='') return $problems;
+					if ($problems != '') {
+						return $problems;
+					}
 					break;
-
+		
 				case 'linkstoexternal':
 					$problems = self::getPageNameList('linkstoexternal', $sArg, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
-					if ($problems!='') return $problems;
-					$bConflictsWithOpenReferences=true;
+					if ($problems != '') {
+						return $problems;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'imageused':
 					$pages = explode('|', trim($sArg));
-					$n=0;
-					foreach($pages as $page) {
-						if (trim($page)=='') continue;
-						if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('imageused', $sArg);
-						$aImageUsed[$n++] = $theTitle;
-						$bSelectionCriteriaFound=true;
+					$n     = 0;
+					foreach ($pages as $page) {
+						if (trim($page) == '') {
+							continue;
+						}
+						if (!($theTitle = Title::newFromText(trim($page)))) {
+							return $logger->msgWrongParam('imageused', $sArg);
+						}
+						$aImageUsed[$n++]        = $theTitle;
+						$bSelectionCriteriaFound = true;
 					}
-					if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('imageused', $sArg);
-					$bConflictsWithOpenReferences=true;
+					if (!$bSelectionCriteriaFound) {
+						return $logger->msgWrongParam('imageused', $sArg);
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'imagecontainer':
 					$pages = explode('|', trim($sArg));
-					$n=0;
-					foreach($pages as $page) {
-						if (trim($page)=='') continue;
-						if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('imagecontainer', $sArg);
-						$aImageContainer[$n++] = $theTitle;
-						$bSelectionCriteriaFound=true;
+					$n     = 0;
+					foreach ($pages as $page) {
+						if (trim($page) == '') {
+							continue;
+						}
+						if (!($theTitle = Title::newFromText(trim($page)))) {
+							return $logger->msgWrongParam('imagecontainer', $sArg);
+						}
+						$aImageContainer[$n++]   = $theTitle;
+						$bSelectionCriteriaFound = true;
 					}
-					if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('imagecontainer', $sArg);
+					if (!$bSelectionCriteriaFound) {
+						return $logger->msgWrongParam('imagecontainer', $sArg);
+					}
 					break;
-
+		
 				case 'uses':
 					$pages = explode('|', $sArg);
-					$n=0;
-					foreach($pages as $page) {
-						if (trim($page)=='') continue;
-						if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('uses', $sArg);
-						$aUses[$n++] = $theTitle;
-						$bSelectionCriteriaFound=true;
+					$n     = 0;
+					foreach ($pages as $page) {
+						if (trim($page) == '') {
+							continue;
+						}
+						if (!($theTitle = Title::newFromText(trim($page)))) {
+							return $logger->msgWrongParam('uses', $sArg);
+						}
+						$aUses[$n++]             = $theTitle;
+						$bSelectionCriteriaFound = true;
 					}
-					if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('uses', $sArg);
-					$bConflictsWithOpenReferences=true;
+					if (!$bSelectionCriteriaFound) {
+						return $logger->msgWrongParam('uses', $sArg);
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'notuses':
 					$pages = explode('|', $sArg);
-					$n=0;
-					foreach($pages as $page) {
-						if (trim($page)=='') continue;
-						if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('notuses', $sArg);
-						$aNotUses[$n++] = $theTitle;
-						$bSelectionCriteriaFound=true;
+					$n     = 0;
+					foreach ($pages as $page) {
+						if (trim($page) == '')
+							continue;
+						if (!($theTitle = Title::newFromText(trim($page))))
+							return $logger->msgWrongParam('notuses', $sArg);
+						$aNotUses[$n++]          = $theTitle;
+						$bSelectionCriteriaFound = true;
 					}
-					if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('notuses', $sArg);
-					$bConflictsWithOpenReferences=true;
+					if (!$bSelectionCriteriaFound) {
+						return $logger->msgWrongParam('notuses', $sArg);
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'usedby':
 					$pages = explode('|', $sArg);
-					$n=0;
-					foreach($pages as $page) {
-						if (trim($page)=='') continue;
-						if (!($theTitle = Title::newFromText(trim($page)))) return $logger->msgWrongParam('usedby', $sArg);
-						$aUsedBy[$n++] = $theTitle;
-						$bSelectionCriteriaFound=true;
+					$n     = 0;
+					foreach ($pages as $page) {
+						if (trim($page) == '') {
+							continue;
+						}
+						if (!($theTitle = Title::newFromText(trim($page)))) {
+							return $logger->msgWrongParam('usedby', $sArg);
+						}
+						$aUsedBy[$n++]           = $theTitle;
+						$bSelectionCriteriaFound = true;
 					}
-					if(!$bSelectionCriteriaFound) return $logger->msgWrongParam('usedby', $sArg);
-					$bConflictsWithOpenReferences=true;
+					if (!$bSelectionCriteriaFound) {
+						return $logger->msgWrongParam('usedby', $sArg);
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'createdby':
 					$sCreatedBy = $sArg;
-					if ($sCreatedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sCreatedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'notcreatedby':
 					$sNotCreatedBy = $sArg;
-					if ($sNotCreatedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sNotCreatedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'modifiedby':
 					$sModifiedBy = $sArg;
-					if ($sModifiedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sModifiedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'notmodifiedby':
 					$sNotModifiedBy = $sArg;
-					if ($sNotModifiedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sNotModifiedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'lastmodifiedby':
 					$sLastModifiedBy = $sArg;
-					if ($sLastModifiedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sLastModifiedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'notlastmodifiedby':
 					$sNotLastModifiedBy = $sArg;
-					if ($sNotLastModifiedBy != '') $bSelectionCriteriaFound=true;
-					$bConflictsWithOpenReferences=true;
+					if ($sNotLastModifiedBy != '') {
+						$bSelectionCriteriaFound = true;
+					}
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'titlematch':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
-					$aTitleMatch = explode('|', str_replace(' ','\_',$sArg));
-					$bSelectionCriteriaFound=true;
+					$aTitleMatch             = explode('|', str_replace(' ', '\_', $sArg));
+					$bSelectionCriteriaFound = true;
 					break;
-
+		
 				case 'minoredits':
-					if( in_array($sArg, ExtDynamicPageList::$options['minoredits']) ) {
-						$sMinorEdits = $sArg;
-						$bConflictsWithOpenReferences=true;
-					}
-					else { //wrong param val, using default
+					if (in_array($sArg, ExtDynamicPageList::$options['minoredits'])) {
+						$sMinorEdits                  = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else { //wrong param val, using default
 						$sMinorEdits = ExtDynamicPageList::$options['minoredits']['default'];
 						$output .= $logger->msgWrongParam('minoredits', $sArg);
 					}
 					break;
-
+		
 				case 'includesubpages':
-					if( in_array($sArg, ExtDynamicPageList::$options['includesubpages'])) {
+					if (in_array($sArg, ExtDynamicPageList::$options['includesubpages'])) {
 						$bIncludeSubpages = self::argBoolean($sArg);
-					}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('includesubpages', $sArg);
-					break;
-
-				case 'ignorecase':
-					if( in_array($sArg, ExtDynamicPageList::$options['ignorecase'])) {
-						$bIgnoreCase = self::argBoolean($sArg);
 					}
-					else
+					break;
+		
+				case 'ignorecase':
+					if (in_array($sArg, ExtDynamicPageList::$options['ignorecase'])) {
+						$bIgnoreCase = self::argBoolean($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('ignorecase', $sArg);
+					}
 					break;
-
+		
 				case 'categoriesminmax':
-					if( preg_match(ExtDynamicPageList::$options['categoriesminmax']['pattern'], $sArg) )
-						$aCatMinMax = ($sArg == '') ? null: explode(',',$sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['categoriesminmax']['pattern'], $sArg)) {
+						$aCatMinMax = ($sArg == '') ? null : explode(',', $sArg);
+					} else { // wrong value
 						$output .= $logger->msgWrongParam('categoriesminmax', $sArg);
+					}
 					break;
-
+		
 				case 'skipthispage':
-					if( in_array($sArg, ExtDynamicPageList::$options['skipthispage']))
+					if (in_array($sArg, ExtDynamicPageList::$options['skipthispage'])) {
 						$bSkipThisPage = self::argBoolean($sArg);
-					else
+					} else {
 						$output .= $logger->msgWrongParam('skipthispage', $sArg);
+					}
 					break;
-
+		
 				/**
 				 * CONTENT PARAMETERS
 				 */
 				case 'addcategories':
-					if( in_array($sArg, ExtDynamicPageList::$options['addcategories'])) {
-						$bAddCategories = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addcategories'])) {
+						$bAddCategories               = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addcategories', $sArg);
+					}
 					break;
-
+		
 				case 'addeditdate':
-					if( in_array($sArg, ExtDynamicPageList::$options['addeditdate'])) {
-						$bAddEditDate = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addeditdate'])) {
+						$bAddEditDate                 = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addeditdate', $sArg);
+					}
 					break;
-
+		
 				case 'addexternallink':
-					if( in_array($sArg, ExtDynamicPageList::$options['addexternallink'])) {
-						$bAddExternalLink = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addexternallink'])) {
+						$bAddExternalLink             = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addexternallink', $sArg);
+					}
 					break;
-
+		
 				case 'addpagecounter':
-					if( in_array($sArg, ExtDynamicPageList::$options['addpagecounter'])) {
-						$bAddPageCounter = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addpagecounter'])) {
+						$bAddPageCounter              = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addpagecounter', $sArg);
+					}
 					break;
-
+		
 				case 'addpagesize':
-					if( in_array($sArg, ExtDynamicPageList::$options['addpagesize'])) {
-						$bAddPageSize = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['addpagesize'])) {
+						$bAddPageSize                 = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('addpagesize', $sArg);
-					break;
-
-				case 'addpagetoucheddate':
-					if( in_array($sArg, ExtDynamicPageList::$options['addpagetoucheddate'])) {
-						$bAddPageTouchedDate = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
 					}
-					else
-						$output .= $logger->msgWrongParam('addpagetoucheddate', $sArg);
 					break;
-
+		
+				case 'addpagetoucheddate':
+					if (in_array($sArg, ExtDynamicPageList::$options['addpagetoucheddate'])) {
+						$bAddPageTouchedDate          = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('addpagetoucheddate', $sArg);
+					}
+					break;
+		
 				case 'include':
 				case 'includepage':
-					$bIncPage =	 $sArg !== '';
-					if($bIncPage)
-						$aSecLabels= explode(',', $sArg);
+					$bIncPage = $sArg !== '';
+					if ($bIncPage) {
+						$aSecLabels = explode(',', $sArg);
+					}
 					break;
-
+		
 				case 'includematchparsed':
-					$bIncParsed=true;
+					$bIncParsed = true;
 				case 'includematch':
-					$aSecLabelsMatch= explode(',', $sArg);
+					$aSecLabelsMatch = explode(',', $sArg);
 					break;
-
+		
 				case 'includenotmatchparsed':
-					$bIncParsed=true;
+					$bIncParsed = true;
 				case 'includenotmatch':
-					$aSecLabelsNotMatch= explode(',', $sArg);
+					$aSecLabelsNotMatch = explode(',', $sArg);
 					break;
-
+		
 				case 'includetrim':
-					if( in_array($sArg, ExtDynamicPageList::$options['includetrim'])) {
+					if (in_array($sArg, ExtDynamicPageList::$options['includetrim'])) {
 						$bIncludeTrim = self::argBoolean($sArg);
-					}
-					else
-						$output .= $logger->msgWrongParam('includetrim', $sArg);
-					break;
-
-				case 'adduser':
-					if( in_array($sArg, ExtDynamicPageList::$options['adduser'])) {
-						$bAddUser = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
-						$output .= $logger->msgWrongParam('adduser', $sArg);
-					break;
-
-				case 'addauthor':
-					if( in_array($sArg, ExtDynamicPageList::$options['addauthor'])) {
-						$bAddAuthor = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
-						$output .= $logger->msgWrongParam('addauthor', $sArg);
-					break;
-
-				case 'addcontribution':
-					if( in_array($sArg, ExtDynamicPageList::$options['addcontribution'])) {
-						$bAddContribution = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					} else {
 						$output .= $logger->msgWrongParam('addcontribution', $sArg);
-					break;
-
-				case 'addlasteditor':
-					if( in_array($sArg, ExtDynamicPageList::$options['addlasteditor'])) {
-						$bAddLastEditor = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
 					}
-					else
-						$output .= $logger->msgWrongParam('addlasteditor', $sArg);
 					break;
-
+		
+				case 'adduser':
+					if (in_array($sArg, ExtDynamicPageList::$options['adduser'])) {
+						$bAddUser                     = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('adduser', $sArg);
+					}
+					break;
+		
+				case 'addauthor':
+					if (in_array($sArg, ExtDynamicPageList::$options['addauthor'])) {
+						$bAddAuthor                   = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('addauthor', $sArg);
+					}
+					break;
+		
+				case 'addcontribution':
+					if (in_array($sArg, ExtDynamicPageList::$options['addcontribution'])) {
+						$bAddContribution             = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('addcontribution', $sArg);
+					}
+					break;
+		
+				case 'addlasteditor':
+					if (in_array($sArg, ExtDynamicPageList::$options['addlasteditor'])) {
+						$bAddLastEditor               = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('addlasteditor', $sArg);
+					}
+					break;
+		
 				/**
 				 * FORMAT/HTML PARAMETERS
 				 * @todo allow addpagetoucheddate, addeditdate, adduser, addcategories to have effect with 'mode=category'
 				 */
-
+		
 				case 'headingmode':
-					if( in_array($sArg, ExtDynamicPageList::$options['headingmode']) ) {
-						$sHListMode = $sArg;
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['headingmode'])) {
+						$sHListMode                   = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('headingmode', $sArg);
-					break;
-
-				case 'headingcount':
-					if( in_array($sArg, ExtDynamicPageList::$options['headingcount'])) {
-						$bHeadingCount = self::argBoolean($sArg);
-						$bConflictsWithOpenReferences=true;
 					}
-					else
-						$output .= $logger->msgWrongParam('headingcount', $sArg);
 					break;
-
+		
+				case 'headingcount':
+					if (in_array($sArg, ExtDynamicPageList::$options['headingcount'])) {
+						$bHeadingCount                = self::argBoolean($sArg);
+						$bConflictsWithOpenReferences = true;
+					} else {
+						$output .= $logger->msgWrongParam('headingcount', $sArg);
+					}
+					break;
+		
 				case 'secseparators':
 					// we replace '\n' by newline to support wiki syntax within the section separators
-					$sArg = str_replace( '\n', "\n", $sArg );
-					$sArg = str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
-					$aSecSeparators = explode (',',$sArg);
+					$sArg           = str_replace('\n', "\n", $sArg);
+					$sArg           = str_replace("¶", "\n", $sArg); // the paragraph delimiter is utf8-escaped
+					$aSecSeparators = explode(',', $sArg);
 					break;
-
+		
 				case 'multisecseparators':
 					// we replace '\n' by newline to support wiki syntax within the section separators
-					$sArg = str_replace( '\n', "\n", $sArg );
-					$sArg = str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
-					$aMultiSecSeparators = explode (',',$sArg);
+					$sArg                = str_replace('\n', "\n", $sArg);
+					$sArg                = str_replace("¶", "\n", $sArg); // the paragraph delimiter is utf8-escaped
+					$aMultiSecSeparators = explode(',', $sArg);
 					break;
-
+		
 				case 'table':
-					$sArg	= str_replace( '\n', "\n", $sArg );
-					$sTable = str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
+					$sArg   = str_replace('\n', "\n", $sArg);
+					$sTable = str_replace("¶", "\n", $sArg); // the paragraph delimiter is utf8-escaped
 					break;
-
+		
 				case 'tablerow':
-					$sArg	= str_replace( '\n', "\n", $sArg );
-					$sArg	= str_replace( "¶", "\n", $sArg ); // the paragraph delimiter is utf8-escaped
-					if (trim($sArg)=='')	$aTableRow = array();
-					else					$aTableRow = explode (',',$sArg);
+					$sArg = str_replace('\n', "\n", $sArg);
+					$sArg = str_replace("¶", "\n", $sArg); // the paragraph delimiter is utf8-escaped
+					if (trim($sArg) == '') {
+						$aTableRow = array();
+					} else {
+						$aTableRow = explode(',', $sArg);
+					}
 					break;
-
+		
 				case 'tablesortcol':
-					if( preg_match(ExtDynamicPageList::$options['tablesortcol']['pattern'], $sArg) )
+					if (preg_match(ExtDynamicPageList::$options['tablesortcol']['pattern'], $sArg)) {
 						$iTableSortCol = ($sArg == '') ? 0 : intval($sArg);
-					else // wrong value
+					} else {
 						$output .= $logger->msgWrongParam('tablesortcol', $sArg);
+					}
 					break;
-
+		
 				case 'dominantsection':
-					if( preg_match(ExtDynamicPageList::$options['dominantsection']['pattern'], $sArg) )
-						$iDominantSection = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['dominantsection']['pattern'], $sArg)) {
+						$iDominantSection = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('dominantsection', $sArg);
+					}
 					break;
-
+		
 				case 'includemaxlength':
 					//processed like 'count' param
-					if( preg_match(ExtDynamicPageList::$options['includemaxlength']['pattern'], $sArg) )
-						$iIncludeMaxLen = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['includemaxlength']['pattern'], $sArg)) {
+						$iIncludeMaxLen = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('includemaxlength', $sArg);
+					}
 					break;
-
+		
 				case 'listattr':
 					$sListHtmlAttr = $sArg;
 					break;
@@ -1234,250 +1282,243 @@ class DPLMain {
 				case 'hitemattr':
 					$sHItemHtmlAttr = $sArg;
 					break;
-
-				/**
-				 * DEBUG, RESET and CACHE PARAMETER
-				 */
-
 				case 'allowcachedresults':
 					// if execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings
 					// which are placed AFTER the execandexit statement
 					// thus we make sure that the cache will only become invalid if the query is really executed
-					if ($sExecAndExit=='') {
-						if( in_array($sArg, ExtDynamicPageList::$options['allowcachedresults'])) {
+					if ($sExecAndExit == '') {
+						if (in_array($sArg, ExtDynamicPageList::$options['allowcachedresults'])) {
 							$bAllowCachedResults = self::argBoolean($sArg);
-							if ($sArg=='yes+warn') {
+							if ($sArg == 'yes+warn') {
 								$bAllowCachedResults = true;
-								$bWarnCachedResults = true;
+								$bWarnCachedResults  = true;
 							}
-						}
-						else
+						} else {
 							$output .= $logger->msgWrongParam('allowcachedresults', $sArg);
+						}
 					}
 					break;
-
+		
 				case 'dplcache':
-					if ($sArg!='') {
-						$DPLCache = $parser->mTitle->getArticleID() . '_' . str_replace("/","_",$sArg) . '.dplc';
+					if ($sArg != '') {
+						$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $sArg) . '.dplc';
 						$DPLCachePath = $parser->mTitle->getArticleID() % 10;
-				   }
-					else {
+					} else {
 						$output .= $logger->msgWrongParam('dplcache', $sArg);
 					}
 					break;
-
+		
 				case 'dplcacheperiod':
-					if( preg_match(ExtDynamicPageList::$options['dplcacheperiod']['pattern'], $sArg) )
-						$iDPLCachePeriod = ($sArg == '') ? ExtDynamicPageList::$options['dplcacheperiod']['default']: intval($sArg);
-					else
+					if (preg_match(ExtDynamicPageList::$options['dplcacheperiod']['pattern'], $sArg)) {
+						$iDPLCachePeriod = ($sArg == '') ? ExtDynamicPageList::$options['dplcacheperiod']['default'] : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('dplcacheperiod', $sArg);
+					}
 					break;
-
+		
 				case 'fixcategory':
 					ExtDynamicPageList::fixCategory($sArg);
 					break;
-
+		
 				case 'reset':
-					foreach (preg_split('/[;,]/',$sArg) as $arg) {
-						$arg=trim($arg);
-						if ($arg=='') continue;
-						if( !in_array($arg, ExtDynamicPageList::$options['reset'])) {
+					foreach (preg_split('/[;,]/', $sArg) as $arg) {
+						$arg = trim($arg);
+						if ($arg == '') {
+							continue;
+						}
+						if (!in_array($arg, ExtDynamicPageList::$options['reset'])) {
 							$output .= $logger->msgWrongParam('reset', $arg);
+						} elseif ($arg == 'links') {
+							$bReset[0] = true;
+						} elseif ($arg == 'templates') {
+							$bReset[1] = true;
+						} elseif ($arg == 'categories') {
+							$bReset[2] = true;
+						} elseif ($arg == 'images') {
+							$bReset[3] = true;
+						} elseif ($arg == 'all') {
+							$bReset[0] = true;
+							$bReset[1] = true;
+							$bReset[2] = true;
+							$bReset[3] = true;
 						}
-						else if ($arg=='links')		$bReset[0]=true;
-						else if ($arg=='templates') $bReset[1]=true;
-						else if ($arg=='categories')$bReset[2]=true;
-						else if ($arg=='images')	$bReset[3]=true;
-						else if ($arg=='all')  {
-							$bReset[0]=true; $bReset[1]=true; $bReset[2]=true; $bReset[3]=true;
-						}
-						else if ($arg=='none') ; // do nothing
 					}
 					break;
-
+		
 				case 'eliminate':
-					foreach (preg_split('/[;,]/',$sArg) as $arg) {
-						$arg=trim($arg);
-						if ($arg=='') continue;
-						if( !in_array($arg, ExtDynamicPageList::$options['eliminate'])) {
+					foreach (preg_split('/[;,]/', $sArg) as $arg) {
+						$arg = trim($arg);
+						if ($arg == '') {
+							continue;
+						}
+						if (!in_array($arg, ExtDynamicPageList::$options['eliminate'])) {
 							$output .= $logger->msgWrongParam('eliminate', $arg);
-						}
-						else if ($arg=='links')		$bReset[4]=true;
-						else if ($arg=='templates') $bReset[5]=true;
-						else if ($arg=='categories')$bReset[6]=true;
-						else if ($arg=='images')	$bReset[7]=true;
-						else if ($arg=='all')  {
-							$bReset[4]=true; $bReset[5]=true; $bReset[6]=true; $bReset[7]=true;
-						}
-						else if ($arg=='none') {
-							$bReset[4]=false;$bReset[5]=false;$bReset[6]=false;$bReset[7]=false;
+						} elseif ($arg == 'links') {
+							$bReset[4] = true;
+						} elseif ($arg == 'templates') {
+							$bReset[5] = true;
+						} elseif ($arg == 'categories') {
+							$bReset[6] = true;
+						} elseif ($arg == 'images') {
+							$bReset[7] = true;
+						} elseif ($arg == 'all') {
+							$bReset[4] = true;
+							$bReset[5] = true;
+							$bReset[6] = true;
+							$bReset[7] = true;
+						} elseif ($arg == 'none') {
+							$bReset[4] = false;
+							$bReset[5] = false;
+							$bReset[6] = false;
+							$bReset[7] = false;
 						}
 					}
 					break;
-
-				/**
-				 * UNKNOWN PARAMETER
-				 */
-				default:
-					$validOptionFound = false;
-			}
-
-			if ($validOptionFound) continue;
-
-			if (ExtDynamicPageList::$functionalRichness <= 2) {
-				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
-				continue;
-			}
-
-
-			//------------------------------------------------------------------------------------------- level 3
-
-			$validOptionFound = true;
-			switch ($sType) {
-
 				/**
 				 * FILTER PARAMETERS
 				 */
 				case 'categoryregexp':
-					$sCategoryComparisonMode = ' REGEXP ';
-					$aIncludeCategories[] = array($sArg);
-					$bConflictsWithOpenReferences=true;
+					$sCategoryComparisonMode      = ' REGEXP ';
+					$aIncludeCategories[]         = array(
+						$sArg
+					);
+					$bConflictsWithOpenReferences = true;
 					break;
 				case 'categorymatch':
-					$sCategoryComparisonMode = ' LIKE ';
-					$aIncludeCategories[] = explode('|', $sArg);
-					$bConflictsWithOpenReferences=true;
+					$sCategoryComparisonMode      = ' LIKE ';
+					$aIncludeCategories[]         = explode('|', $sArg);
+					$bConflictsWithOpenReferences = true;
 					break;
 				case 'notcategoryregexp':
-					$sNotCategoryComparisonMode = ' REGEXP ';
-					$aExcludeCategories[] = $sArg;
-					$bConflictsWithOpenReferences=true;
+					$sNotCategoryComparisonMode   = ' REGEXP ';
+					$aExcludeCategories[]         = $sArg;
+					$bConflictsWithOpenReferences = true;
 					break;
 				case 'notcategorymatch':
-					$sNotCategoryComparisonMode = ' LIKE ';
-					$aExcludeCategories[] = $sArg;
-					$bConflictsWithOpenReferences=true;
+					$sNotCategoryComparisonMode   = ' LIKE ';
+					$aExcludeCategories[]         = $sArg;
+					$bConflictsWithOpenReferences = true;
 					break;
-
+		
 				case 'titleregexp':
-					$sTitleMatchMode = ' REGEXP ';
-					$aTitleMatch = array($sArg);
-					$bSelectionCriteriaFound=true;
+					$sTitleMatchMode         = ' REGEXP ';
+					$aTitleMatch             = array(
+						$sArg
+					);
+					$bSelectionCriteriaFound = true;
 					break;
 				case 'nottitleregexp':
-					$sNotTitleMatchMode = ' REGEXP ';
-					$aNotTitleMatch = array($sArg);
-					$bSelectionCriteriaFound=true;
+					$sNotTitleMatchMode      = ' REGEXP ';
+					$aNotTitleMatch          = array(
+						$sArg
+					);
+					$bSelectionCriteriaFound = true;
 					break;
 				case 'nottitlematch':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
-					$aNotTitleMatch = explode('|', str_replace(' ','_',$sArg));
-					$bSelectionCriteriaFound=true;
+					$aNotTitleMatch          = explode('|', str_replace(' ', '_', $sArg));
+					$bSelectionCriteriaFound = true;
 					break;
-
+		
 				case 'lastrevisionbefore':
 				case 'allrevisionsbefore':
 				case 'firstrevisionsince':
 				case 'allrevisionssince':
-					if( preg_match(ExtDynamicPageList::$options[$sType]['pattern'], $sArg) ) {
-						$date = str_pad(preg_replace('/[^0-9]/','',$sArg),14,'0');
+					if (preg_match(ExtDynamicPageList::$options[$sType]['pattern'], $sArg)) {
+						$date = str_pad(preg_replace('/[^0-9]/', '', $sArg), 14, '0');
 						$date = $wgLang->userAdjust($date);
-						if (($sType) == 'lastrevisionbefore')	$sLastRevisionBefore = $date;
-						if (($sType) == 'allrevisionsbefore')	$sAllRevisionsBefore = $date;
-						if (($sType) == 'firstrevisionsince')	$sFirstRevisionSince = $date;
-						if (($sType) == 'allrevisionssince')	$sAllRevisionsSince	 = $date;
-						$bConflictsWithOpenReferences=true;
-					}
-					else // wrong value
+						if (($sType) == 'lastrevisionbefore') {
+							$sLastRevisionBefore = $date;
+						}
+						if (($sType) == 'allrevisionsbefore') {
+							$sAllRevisionsBefore = $date;
+						}
+						if (($sType) == 'firstrevisionsince') {
+							$sFirstRevisionSince = $date;
+						}
+						if (($sType) == 'allrevisionssince') {
+							$sAllRevisionsSince = $date;
+						}
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam($sType, $sArg);
+					}
 					break;
 				case 'minrevisions':
 					//ensure that $iMinRevisions is a number
-					if( preg_match(ExtDynamicPageList::$options['minrevisions']['pattern'], $sArg) )
-						$iMinRevisions = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['minrevisions']['pattern'], $sArg)) {
+						$iMinRevisions = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('minrevisions', $sArg);
+					}
 					break;
 				case 'maxrevisions':
 					//ensure that $iMaxRevisions is a number
-					if( preg_match(ExtDynamicPageList::$options['maxrevisions']['pattern'], $sArg) )
-						$iMaxRevisions = ($sArg == '') ? null: intval($sArg);
-					else // wrong value
+					if (preg_match(ExtDynamicPageList::$options['maxrevisions']['pattern'], $sArg)) {
+						$iMaxRevisions = ($sArg == '') ? null : intval($sArg);
+					} else {
 						$output .= $logger->msgWrongParam('maxrevisions', $sArg);
+					}
 					break;
-
-
+		
+		
 				case 'openreferences':
-					if( in_array($sArg, ExtDynamicPageList::$options['openreferences']) )
+					if (in_array($sArg, ExtDynamicPageList::$options['openreferences'])) {
 						$acceptOpenReferences = self::argBoolean($sArg);
-					else
+					} else {
 						$output .= $logger->msgWrongParam('openreferences', $sArg);
+					}
 					break;
-
+		
 				case 'articlecategory':
-					$sArticleCategory =	 str_replace(' ','_',$sArg);
+					$sArticleCategory = str_replace(' ', '_', $sArg);
 					break;
-
+		
 				/**
 				 * UNKNOWN PARAMETER
 				 */
 				default:
 					$validOptionFound = false;
-			}
-
-			if ($validOptionFound) continue;
-
-			if (ExtDynamicPageList::$functionalRichness <= 3) {
-				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
-				continue;
-			}
-
-
-			//------------------------------------------------------------------------------------------- level 4
-
-			$validOptionFound = true;
-			switch ($sType) {
-
 				/**
 				 * GOAL
 				 */
 				case 'goal':
-					if( in_array($sArg, ExtDynamicPageList::$options['goal']) ) {
-						$sGoal = $sArg;
-						$bConflictsWithOpenReferences=true;
-					}
-					else
+					if (in_array($sArg, ExtDynamicPageList::$options['goal'])) {
+						$sGoal                        = $sArg;
+						$bConflictsWithOpenReferences = true;
+					} else {
 						$output .= $logger->msgWrongParam('goal', $sArg);
+					}
 					break;
-
+		
 				/**
 				 * UPDATERULES
 				 */
-
+		
 				case 'updaterules':
 					$sUpdateRules = $sArg;
 					break;
-
+		
 				/**
 				 * DELETERULES
 				 */
-
+		
 				case 'deleterules':
 					$sDeleteRules = $sArg;
 					break;
-
+		
 				/**
 				 * UNKNOWN PARAMETER
 				 */
 				default:
 					$validOptionFound = false;
+					break;
 			}
-
-			if ($validOptionFound) continue;
-
-			$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
-
+	
+			if ($validOptionFound === false) {
+				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, $sType, self::validParametersList());
+			}
 		}
 
 		// set COUNT

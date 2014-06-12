@@ -521,12 +521,19 @@ class ExtDynamicPageList {
     public  static $allowedNamespaces        = null;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
 										              // Cannot be customized. Use ExtDynamicPageList::$options['namespace'] or ExtDynamicPageList::$options['notnamespace'] for customization.
 	public  static $behavingLikeIntersection = false; // Changes certain default values to comply with Extension:Intersection
-	public  static $functionalRichness		 = 0;	  // The amount of functionality of DPL that is accesible for the user;
-													  // .. to be set by DynamicPageList.php and DynamicPageListMigration.php
-    public  static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
+
+	/**
+	 * Functional Richness
+	 * The amount of functionality of DPL that is accesible for the user.
+	 *
+	 * @var		integer
+	 */
+	static private $functionalRichness		 = 0;
+
+    public static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
 													  // .. to be changed in LocalSettings.php
 													  
-	public	static $fixedCategories			 = array(); // an array which holds categories to which the page containing the DPL query
+	public static $fixedCategories			 = array(); // an array which holds categories to which the page containing the DPL query
 														// shall be assigned althoug reset_all|categories has been used
 														// see the fixcategory command
 
@@ -1038,137 +1045,142 @@ class ExtDynamicPageList {
 	// ExtDynamicPageList::$options['RunFromProtectedPagesOnly'] = "<small><i>Extension DPL (warning): current configuration allows execution from protected pages only.</i></small>";
 
 
-	public static $validParametersForRichnessLevel = array(
-			0 =>	'
-					addfirstcategorydate
-					category
-					count
-					hiddencategories
-					mode
-					namespace
-					notcategory
-					order
-					ordermethod
-					qualitypages
-					redirects
-					showcurid
-					shownamespace
-					stablepages
-					suppresserrors
-					',
-			1 => 	'
-					allowcachedresults
-					execandexit
-					columns
-					debug
-					distinct
-					escapelinks
-					format
-					inlinetext
-					listseparators
-					notnamespace
-					offset
-					oneresultfooter
-					oneresultheader
-					ordercollation
-					noresultsfooter
-					noresultsheader
-					randomcount
-					replaceintitle
-					resultsfooter
-					resultsheader
-					rowcolformat
-					rows
-					rowsize
-					scroll
-					title
-					title<
-					title>
-					titlemaxlength
-					userdateformat
-					',
-			2 =>	'
-					addauthor
-					addcategories
-					addcontribution
-					addeditdate
-					addexternallink
-					addlasteditor
-					addpagecounter
-					addpagesize
-					addpagetoucheddate
-					adduser
-					categoriesminmax
-					createdby
-					dominantsection
-					dplcache
-					dplcacheperiod
-					eliminate
-					fixcategory
-					headingcount
-					headingmode
-					hitemattr
-					hlistattr
-					ignorecase
-					imagecontainer
-					imageused
-					include
-					includematch
-					includematchparsed
-					includemaxlength
-					includenotmatch
-					includenotmatchparsed
-					includepage
-					includesubpages
-					includetrim
-					itemattr
-					lastmodifiedby
-					linksfrom
-					linksto
-					linkstoexternal
-					listattr
-					minoredits
-					modifiedby
-					multisecseparators
-					notcreatedby
-					notlastmodifiedby
-					notlinksfrom
-					notlinksto
-					notmodifiedby
-					notuses
-					reset
-					secseparators
-					skipthispage
-					table
-					tablerow
-					tablesortcol
-					titlematch
-					usedby
-					uses
-					',
-			3 =>	'
-					allrevisionsbefore
-					allrevisionssince
-					articlecategory
-					categorymatch
-					categoryregexp
-					firstrevisionsince
-					lastrevisionbefore
-					maxrevisions
-					minrevisions
-					notcategorymatch
-					notcategoryregexp
-					nottitlematch
-					nottitleregexp
-					openreferences
-					titleregexp
-					',
-			4 => 	'
-					deleterules
-					goal
-					updaterules
-					',
-		);
+	/**
+	 * List of all the valid parameters that can be used per level of functional richness.
+	 *
+	 * @var		array
+	 */
+	static private $validParametersForRichnessLevel = [
+		0 => [
+			'addfirstcategorydate',
+			'category',
+			'count',
+			'hiddencategories',
+			'mode',
+			'namespace',
+			'notcategory',
+			'order',
+			'ordermethod',
+			'qualitypages',
+			'redirects',
+			'showcurid',
+			'shownamespace',
+			'stablepages',
+			'suppresserrors'
+		],
+		1 => [
+			'allowcachedresults',
+			'execandexit',
+			'columns',
+			'debug',
+			'distinct',
+			'escapelinks',
+			'format',
+			'inlinetext',
+			'listseparators',
+			'notnamespace',
+			'offset',
+			'oneresultfooter',
+			'oneresultheader',
+			'ordercollation',
+			'noresultsfooter',
+			'noresultsheader',
+			'randomcount',
+			'replaceintitle',
+			'resultsfooter',
+			'resultsheader',
+			'rowcolformat',
+			'rows',
+			'rowsize',
+			'scroll',
+			'title',
+			'title<',
+			'title>',
+			'titlemaxlength',
+			'userdateformat'
+		],
+		2 => [
+			'addauthor',
+			'addcategories',
+			'addcontribution',
+			'addeditdate',
+			'addexternallink',
+			'addlasteditor',
+			'addpagecounter',
+			'addpagesize',
+			'addpagetoucheddate',
+			'adduser',
+			'categoriesminmax',
+			'createdby',
+			'dominantsection',
+			'dplcache',
+			'dplcacheperiod',
+			'eliminate',
+			'fixcategory',
+			'headingcount',
+			'headingmode',
+			'hitemattr',
+			'hlistattr',
+			'ignorecase',
+			'imagecontainer',
+			'imageused',
+			'include',
+			'includematch',
+			'includematchparsed',
+			'includemaxlength',
+			'includenotmatch',
+			'includenotmatchparsed',
+			'includepage',
+			'includesubpages',
+			'includetrim',
+			'itemattr',
+			'lastmodifiedby',
+			'linksfrom',
+			'linksto',
+			'linkstoexternal',
+			'listattr',
+			'minoredits',
+			'modifiedby',
+			'multisecseparators',
+			'notcreatedby',
+			'notlastmodifiedby',
+			'notlinksfrom',
+			'notlinksto',
+			'notmodifiedby',
+			'notuses',
+			'reset',
+			'secseparators',
+			'skipthispage',
+			'table',
+			'tablerow',
+			'tablesortcol',
+			'titlematch',
+			'usedby',
+			'uses'
+		],
+		3 => [
+			'allrevisionsbefore',
+			'allrevisionssince',
+			'articlecategory',
+			'categorymatch',
+			'categoryregexp',
+			'firstrevisionsince',
+			'lastrevisionbefore',
+			'maxrevisions',
+			'minrevisions',
+			'notcategorymatch',
+			'notcategoryregexp',
+			'nottitlematch',
+			'nottitleregexp',
+			'openreferences',
+			'titleregexp'
+		],
+		4 => 	[
+			'deleterules',
+			'goal',
+			'updaterules'
+		]
+	];
 		
 
 
@@ -1181,8 +1193,43 @@ class ExtDynamicPageList {
 		self::$behavingLikeIntersection = $mode;
 	}
 
+	/**
+	 * Sets the current functional richness.
+	 *
+	 * @access	public
+	 * @param	integer	Integer level.
+	 * @return	void
+	 */
     public static function setFunctionalRichness($level) {
-		self::$functionalRichness = $level;
+		self::$functionalRichness = intval($level);
+	}
+
+	/**
+	 * Returns the current functional richness.
+	 *
+	 * @access	public
+	 * @return	integer
+	 */
+	static public function getFunctionalRichness() {
+		return self::$functionalRichness;
+	}
+
+	/**
+	 * Tests if the function is valid for the current functional richness level.
+	 *
+	 * @access	public
+	 * @param	string	Function to test.
+	 * @return	boolean	Valid for this functional richness level.
+	 */
+	static public function testFunctionalRichness($function) {
+		$valid = false;
+		for ($i = 0; $i <= self::getFunctionalRichness(); $i++) {
+			if (in_array($function, self::$validParametersForRichnessLevel[$i])) {
+				$valid = true;
+				break;
+			}
+		}
+		return $valid;
 	}
 
     public static function setupDPL() {
