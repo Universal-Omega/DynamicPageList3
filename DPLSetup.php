@@ -1273,7 +1273,7 @@ class ExtDynamicPageList {
 	 * @return	boolean	true
 	 */
 	static public function setupMigration(Parser &$parser) {
-		$wgParser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
+		$parser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
 		
 		self::init();
 

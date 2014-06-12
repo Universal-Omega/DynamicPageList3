@@ -89,9 +89,9 @@ $wgExtensionCredits['parserhook'][] = $credits;
 $extDir = __DIR__;
 
 if ($dplMigrationTesting === true) {
-	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::onParserFirstCallInit';
-} else {
 	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::setupMigration';
+} else {
+	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::onParserFirstCallInit';
 }
 
 $wgMessagesDirs['DynamicPageList']					= "{$extDir}/i18n";
