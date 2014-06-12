@@ -55,17 +55,17 @@
 // we also register the tag <DynamicPageList> because DPL is downward compatible with Extension:Intersection
 // This means that your LocalSettings.php MUST NO LONGER include Extension:Intersection;
 
-if( !defined( 'MEDIAWIKI' ) ) {
-    die( 'This is not a valid entry point to MediaWiki.' );
+if (!defined('MEDIAWIKI')) {
+    die('This is not a valid entry point to MediaWiki.');
 }
 
-$wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupDPL' );
-$wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
+$wgHooks['ParserFirstCallInit'][]				= 'ExtDynamicPageList::onParserFirstCallInit';
+$wgHooks['LanguageGetMagic'][]					= 'ExtDynamicPageList::onLanguageGetMagic';
 
 $wgMessagesDirs['DynamicPageList'] = __DIR__ . '/i18n';
 $wgExtensionMessagesFiles['DynamicPageList'] =  dirname( __FILE__ ) . '/DynamicPageList.i18n.php';
 
-$DPLVersion = '2.3.0';
+$DPLVersion = '3.0';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path' 				=> __FILE__,
@@ -82,4 +82,4 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
 // use full functionality by default
 ExtDynamicPageList::setFunctionalRichness(4);
-
+?>

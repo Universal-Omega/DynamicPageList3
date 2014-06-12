@@ -423,10 +423,6 @@
  *
  */
 
-function ExtDynamicPageList__languageGetMagic( &$magicWords, $langCode ) 	{ 
-	return ExtDynamicPageList::languageGetMagic( $magicWords, $langCode ); 
-}
-
 function ExtDynamicPageList__endReset( &$parser, $text ) 					{ 
 	return ExtDynamicPageList::endReset( $parser, $text ); 
 }
@@ -1242,37 +1238,45 @@ class ExtDynamicPageList {
 		return self::$validParametersForRichnessLevel;
 	}
 
-    public static function setupDPL() {
-
-		global $wgParser;
-
+	/**
+	 * Sets up this extension's parser functions.
+	 *
+	 * @access	public
+	 * @param	object	Parser object passed as a reference.
+	 * @return	boolean	true
+	 */
+	static public function onParserFirstCallInit(Parser &$parser) {
 		// DPL offers the same functionality as Intersection; so we register the <DynamicPageList> tag
 		// in case LabeledSection Extension is not installed we need to remove section markers
 
-        $wgParser->setHook( 'section',            array( __CLASS__, 'removeSectionMarkers'     ) );
-        $wgParser->setHook( 'DPL',                array( __CLASS__, 'dplTag'                   ) );
-		$wgParser->setHook( 'DynamicPageList',    array( __CLASS__, 'intersectionTag'          ) );
+        $parser->setHook('section', 			[__CLASS__, 'dplTag']);
+        $parser->setHook('DPL',					[__CLASS__, 'dplTag']);
+		$parser->setHook('DynamicPageList',		[__CLASS__, 'intersectionTag']);
 		
-        $wgParser->setFunctionHook( 'dpl',        array( __CLASS__, 'dplParserFunction'        ) );
-        $wgParser->setFunctionHook( 'dplnum',     array( __CLASS__, 'dplNumParserFunction'     ) );
-        $wgParser->setFunctionHook( 'dplvar',     array( __CLASS__, 'dplVarParserFunction'     ) );
-        $wgParser->setFunctionHook( 'dplreplace', array( __CLASS__, 'dplReplaceParserFunction' ) );
-        $wgParser->setFunctionHook( 'dplchapter', array( __CLASS__, 'dplChapterParserFunction' ) );
-        $wgParser->setFunctionHook( 'dplmatrix',  array( __CLASS__, 'dplMatrixParserFunction'  ) );
+        $parser->setFunctionHook('dpl',			[__CLASS__, 'dplParserFunction']);
+        $parser->setFunctionHook('dplnum',		[__CLASS__, 'dplNumParserFunction']);
+        $parser->setFunctionHook('dplvar',		[__CLASS__, 'dplVarParserFunction']);
+        $parser->setFunctionHook('dplreplace',	[__CLASS__, 'dplReplaceParserFunction']);
+        $parser->setFunctionHook('dplchapter',	[__CLASS__, 'dplChapterParserFunction']);
+        $parser->setFunctionHook('dplmatrix',	[__CLASS__, 'dplMatrixParserFunction']);
 
-		self::commonSetup();
-    }
-	
-    public static function setupMigration() {
-
-		// DPL offers the same functionality as Intersection under the tag name <Intersection>
-        global $wgParser;
-		$wgParser->setHook( 'Intersection', array( __CLASS__, 'intersectionTag' ) );
-		
-		self::commonSetup();
+		self::init();
     }
 
-	private static function commonSetup() {
+	/**
+	 * Sets up this extension's parser functions for migration from Intersection.
+	 *
+	 * @access	public
+	 * @param	object	Parser object passed as a reference.
+	 * @return	boolean	true
+	 */
+	static public function setupMigration(Parser &$parser) {
+		$wgParser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
+		
+		self::init();
+    }
+
+	private static function init() {
 		
         if (!isset(self::$createdLinks)) {
             self::$createdLinks=array( 
@@ -1579,7 +1583,9 @@ class ExtDynamicPageList {
     }
 
     public static function fixCategory($cat) {
-		if ($cat!='') self::$fixedCategories[$cat]=1;
+		if ($cat!='') {
+			self::$fixedCategories[$cat] = 1;
+		}
     } 
 
 // reset everything; some categories may have been fixed, however via  fixcategory=
@@ -1590,39 +1596,54 @@ class ExtDynamicPageList {
 				if (array_key_exists($key,self::$fixedCategories)) self::$fixedCategories[$key] = $val;
 			}
             // $text .= self::dumpParsedRefs($parser,"before final reset");
-            if (self::$createdLinks['resetLinks'])		$parser->mOutput->mLinks 		= array();
-            if (self::$createdLinks['resetCategories'])	$parser->mOutput->mCategories 	= self::$fixedCategories;
-			if (self::$createdLinks['resetTemplates'])  $parser->mOutput->mTemplates 	= array();
-            if (self::$createdLinks['resetImages'])		$parser->mOutput->mImages 		= array();
+            if (self::$createdLinks['resetLinks']) {
+				$parser->mOutput->mLinks = [];
+			}
+            if (self::$createdLinks['resetCategories']) {
+				$parser->mOutput->mCategories = self::$fixedCategories;
+			}
+			if (self::$createdLinks['resetTemplates']) {
+				$parser->mOutput->mTemplates = [];
+			}
+            if (self::$createdLinks['resetImages']) {
+				$parser->mOutput->mImages = [];
+			}
             // $text .= self::dumpParsedRefs($parser,"after final reset");
-			self::$fixedCategories=array();
+			self::$fixedCategories = [];
         }
         return true;
     }
 
     public static function endEliminate( &$parser, &$text ) {
-
         // called during the final output phase; removes links created by DPL
         if (isset(self::$createdLinks)) {
 			// self::dumpParsedRefs($parser,"before final eliminate");
             if (array_key_exists(0,self::$createdLinks)) {
                 foreach ($parser->mOutput->getLinks() as $nsp => $link) {
-					if (!array_key_exists($nsp,self::$createdLinks[0])) continue;
+					if (!array_key_exists($nsp,self::$createdLinks[0])) {
+						continue;
+					}
 					// echo ("<pre> elim: created Links [$nsp] = ". count(ExtDynamicPageList::$createdLinks[0][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Links [$nsp] = ". count($parser->mOutput->mLinks[$nsp])            ."</pre>\n");
 					$parser->mOutput->mLinks[$nsp] = array_diff_assoc($parser->mOutput->mLinks[$nsp],self::$createdLinks[0][$nsp]);
 					// echo ("<pre> elim: parser  Links [$nsp] nachher = ". count($parser->mOutput->mLinks[$nsp])     ."</pre>\n");
-					if (count($parser->mOutput->mLinks[$nsp])==0) unset ($parser->mOutput->mLinks[$nsp]);
+					if (count($parser->mOutput->mLinks[$nsp])==0) {
+						unset ($parser->mOutput->mLinks[$nsp]);
+					}
                 }
             }
             if (isset(self::$createdLinks) && array_key_exists(1,self::$createdLinks)) {
                 foreach ($parser->mOutput->mTemplates as $nsp => $tpl) {
-					if (!array_key_exists($nsp,self::$createdLinks[1])) continue;
+					if (!array_key_exists($nsp,self::$createdLinks[1])) {
+						continue;
+					}
 					// echo ("<pre> elim: created Tpls [$nsp] = ". count(ExtDynamicPageList::$createdLinks[1][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Tpls [$nsp] = ". count($parser->mOutput->mTemplates[$nsp])            ."</pre>\n");
 					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc($parser->mOutput->mTemplates[$nsp],self::$createdLinks[1][$nsp]);
 					// echo ("<pre> elim: parser  Tpls [$nsp] nachher = ". count($parser->mOutput->mTemplates[$nsp])     ."</pre>\n");
-					if (count($parser->mOutput->mTemplates[$nsp])==0) unset ($parser->mOutput->mTemplates[$nsp]);
+					if (count($parser->mOutput->mTemplates[$nsp])==0) {
+						unset ($parser->mOutput->mTemplates[$nsp]);
+					}
                 }
             }
             if (isset(self::$createdLinks) && array_key_exists(2,self::$createdLinks)) {
@@ -1641,3 +1662,4 @@ class ExtDynamicPageList {
     }
 
 }
+?>

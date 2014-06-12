@@ -40,11 +40,10 @@ if (!defined( 'MEDIAWIKI' ) ) {
 // A call to ExtDynamicPageList::setFunctionalRichness(n) with n>0 will provide additional functionality
 // for the <Intersection> tag; so you can try out additional features without bothering anyone.
 
-$wgExtensionFunctions[]        = array( 'ExtDynamicPageList', 'setupMigration' );
+$wgHooks['ParserFirstCallInit'][]				= 'ExtDynamicPageList::setupMigration';
+$wgHooks['LanguageGetMagic'][]					= 'ExtDynamicPageList::onLanguageGetMagic';
 
-$wgHooks['LanguageGetMagic'][] = 'ExtDynamicPageList__languageGetMagic';
-
-$DPLVersion = '2.01';
+$DPLVersion = '3.0';
 
 $wgExtensionCredits['parserhook'][] = array(
 	'path' 				=> __FILE__,
@@ -55,7 +54,7 @@ $wgExtensionCredits['parserhook'][] = array(
   	'version' 			=> $DPLVersion
   );
 
-require_once( 'DPLSetup.php' );
+require_once('DPLSetup.php');
 
 $wgMessagesDirs['DynamicPageList'] = __DIR__ . '/i18n';
 $wgExtensionMessagesFiles['DynamicPageList'] = dirname(__FILE__).'/DynamicPageList.i18n.php';
@@ -65,3 +64,4 @@ ExtDynamicPageList::$DPLVersion = $DPLVersion;
 // be extremely restrictive by default: do not allow anything that goes beyond Extension:Intersection
 // can be extended by a different call to this function in LocalSettings.php after the require_once()
 ExtDynamicPageList::setFunctionalRichness(0);
+?>
