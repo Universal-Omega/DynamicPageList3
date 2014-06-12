@@ -1261,6 +1261,8 @@ class ExtDynamicPageList {
         $parser->setFunctionHook('dplmatrix',	[__CLASS__, 'dplMatrixParserFunction']);
 
 		self::init();
+
+		return true;
     }
 
 	/**
@@ -1274,6 +1276,8 @@ class ExtDynamicPageList {
 		$wgParser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
 		
 		self::init();
+
+		return true;
     }
 
 	private static function init() {
