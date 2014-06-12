@@ -1,4 +1,13 @@
 <?php
+/**
+ * DynamicPageList
+ * DynamicPageList Master File
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
 
 /*
    This is the main entry point for DPL installations
@@ -59,27 +68,40 @@ if (!defined('MEDIAWIKI')) {
     die('This is not a valid entry point to MediaWiki.');
 }
 
-$wgHooks['ParserFirstCallInit'][]				= 'ExtDynamicPageList::onParserFirstCallInit';
-$wgHooks['LanguageGetMagic'][]					= 'ExtDynamicPageList::onLanguageGetMagic';
-
-$wgMessagesDirs['DynamicPageList'] = __DIR__ . '/i18n';
-$wgExtensionMessagesFiles['DynamicPageList'] =  dirname( __FILE__ ) . '/DynamicPageList.i18n.php';
-
+/******************************************/
+/* Credits								  */
+/******************************************/
 $DPLVersion = '3.0';
 
-$wgExtensionCredits['parserhook'][] = array(
+$credits = [
 	'path' 				=> __FILE__,
 	'name' 				=> 'DynamicPageList (third party)',
-	'author' 			=>  '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]',
+	'author' 			=> '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz], Alexia E. Smith',
 	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
 	'descriptionmsg' 	=> 'dpl-desc',
   	'version' 			=> $DPLVersion
-  );
+];
+$wgExtensionCredits['parserhook'][] = $credits;
 
-require_once( 'DPLSetup.php' );
+/******************************************/
+/* Language Strings, Page Aliases, Hooks  */
+/******************************************/
+$extDir = __DIR__;
+
+$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::onParserFirstCallInit';
+$wgHooks['LanguageGetMagic'][]						= 'ExtDynamicPageList::onLanguageGetMagic';
+
+$wgMessagesDirs['DynamicPageList']					= "{$extDir}/i18n";
+$wgExtensionMessagesFiles['DynamicPageList']		= "{$extDir}/DynamicPageList.i18n.php";
+$wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i18n.magic.php";
+
+/******************************************/
+/* Final Setup                            */
+/******************************************/
+require_once('DPLSetup.php');
 
 ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
-// use full functionality by default
+//Use full functionality by default.
 ExtDynamicPageList::setFunctionalRichness(4);
 ?>

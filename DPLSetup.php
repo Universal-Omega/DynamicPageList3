@@ -1337,7 +1337,7 @@ class ExtDynamicPageList {
 		self::$modulesLoaded = true;
 	}
 	
-    public static function languageGetMagic( &$magicWords, $langCode ) {
+    public static function onLanguageGetMagic( &$magicWords, $langCode ) {
         # Add the magic word
         # The first array element is case sensitivity, in this case it is not case sensitive
         # All remaining elements are synonyms for our parser function
