@@ -73,10 +73,20 @@ class DPLLogger {
 			case 'includemaxlength':
 				$msgid = ExtDynamicPageList::WARN_WRONGPARAM_INT;
 				break;
+			default:
+				$msgid = ExtDynamicPageList::WARN_UNKNOWNPARAM;
+				break;
 		}
-		$paramoptions = array_unique(ExtDynamicPageList::$options[$paramvar]);
-		sort($paramoptions);
-		return $this->escapeMsg( $msgid, $paramvar, htmlspecialchars( $val ), ExtDynamicPageList::$options[$paramvar]['default'], implode(' | ', $paramoptions ));
+
+		if (ExtDynamicPageList::$options[$paramvar] != null) {
+			$paramoptions = array_unique(ExtDynamicPageList::$options[$paramvar]);
+			sort($paramoptions);
+			$paramoptions = implode(' | ', $paramoptions);
+		} else {
+			$paramoptions = null;
+		}
+
+		return $this->escapeMsg( $msgid, $paramvar, htmlspecialchars( $val ), ExtDynamicPageList::$options[$paramvar]['default'], $paramoptions);
 	}
 
 }

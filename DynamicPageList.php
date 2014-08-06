@@ -92,7 +92,7 @@ $wgMessagesDirs['DynamicPageList']					= "{$extDir}/i18n";
 $wgExtensionMessagesFiles['DynamicPageList']		= "{$extDir}/DynamicPageList.i18n.php";
 $wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i18n.magic.php";
 
-if ($dplMigrationTesting === true) {
+if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::setupMigration';
 } else {
 	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::onParserFirstCallInit';
@@ -105,7 +105,7 @@ require_once('DPLSetup.php');
 
 ExtDynamicPageList::$DPLVersion = $DPLVersion;
 
-if ($dplMigrationTesting === true) {
+if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	//Use full functionality by default.
 	ExtDynamicPageList::setFunctionalRichness(0);
 } else {
