@@ -338,6 +338,8 @@ class DPLMain {
 		$input = str_replace('²{','{{',$input);
 		$input = str_replace('}²','}}',$input);
 
+		$input = str_replace("\r\n", "\n", $input);
+		$input = trim($input, "\n");
 		$aParams = explode("\n", $input);
 		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
 
@@ -359,7 +361,8 @@ class DPLMain {
 			$sArg  = trim($aParam[1]);
 
 			if ($sType == '') {
-				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
+				//This was the dumbest error.
+				//$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_UNKNOWNPARAM, '[empty string]', self::validParametersList());
 				continue;
 			}
 
