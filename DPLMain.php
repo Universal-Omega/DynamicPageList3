@@ -2537,7 +2537,7 @@ class DPLMain {
 		}
 
 
-	// ###### DUMP SQL QUERY ######
+		// ###### DUMP SQL QUERY ######
 		if ($logger->iDebugLevel >=3) {
 			//DEBUG: output SQL query
 			$output .= "DPL debug -- Query=<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n";
@@ -2549,17 +2549,17 @@ class DPLMain {
 		}
 
 
-	// ###### PROCESS SQL QUERY ######
-
+		// ###### PROCESS SQL QUERY ######
+		$queryError = false;
 		try {
 			$res = $dbr->query($sSqlSelectFrom . $sSqlWhere);
+		} catch (Exception $e) {
+			$queryError = true;
 		}
-		catch (Exception $e) {
-			$result = "The DPL extension (version ".ExtDynamicPageList::$DPLVersion.") produced a SQL statement which lead to a Database error.<br>\n"
-					."The reason may be an internal error of DPL or an error which you made,<br />\n"
-					."especially when using DPL options like titleregexp.<br />\n"
-					."Query text is:<br />\n<tt>".$sSqlSelectFrom . $sSqlWhere."</tt>\n\n"
-					."Error message is:<br />\n<tt>".$dbr->lastError()."</tt>\n\n";
+		if ($queryError == true || $res === false) {
+			$result = "The DPL extension (version ".ExtDynamicPageList::$DPLVersion.") produced a SQL statement which lead to a Database error.<br/>\n
+The reason may be an internal error of DPL or an error which you made, especially when using DPL options like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>\n
+Error message was:<br />\n<tt>".$dbr->lastError()."</tt>\n\n";
 			return $result;
 		}
 
