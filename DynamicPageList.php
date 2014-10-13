@@ -38,12 +38,12 @@ $wgExtensionMessagesFiles['DynamicPageList']		= "{$extDir}/DynamicPageList.i18n.
 $wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i18n.magic.php";
 
 $wgAutoloadClasses['ExtDynamicPageList']			= "{$extDir}/DPLSetup.php";
-$wgAutoloadClasses['DPL']							= "{$extDir}/DPL.php";
-$wgAutoloadClasses['DPL\Main']						= "{$extDir}/classes/Main.php";
 $wgAutoloadClasses['DPL\Article']					= "{$extDir}/classes/Article.php";
+$wgAutoloadClasses['DPL\DynamicPageList']			= "{$extDir}/classes/DynamicPageList.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
 $wgAutoloadClasses['DPL\Include']					= "{$extDir}/classes/Include.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
+$wgAutoloadClasses['DPL\Main']						= "{$extDir}/classes/Main.php";
 $wgAutoloadClasses['DPL\Options']					= "{$extDir}/classes/Options.php";
 $wgAutoloadClasses['DPL\Parameters']				= "{$extDir}/classes/Parameters.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";

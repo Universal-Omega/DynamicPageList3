@@ -10,7 +10,7 @@
  **/
 namespace DPL;
 
-class DPL {
+class DynamicPageList {
 	public $mArticles;
 	public $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
 	public $mHListMode; // html list mode for headings
