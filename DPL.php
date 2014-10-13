@@ -1,4 +1,14 @@
 <?php
+/**
+ * DynamicPageList
+ * DPL Class
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+ **/
+namespace DPL;
 
 class DPL {
 	public $mArticles;
@@ -375,7 +385,7 @@ class DPL {
 					$text = $this->mParser->fetchTemplate(Title::newFromText($title));
 					if ((count($this->mIncSecLabelsMatch) <= 0 || $this->mIncSecLabelsMatch[0] == '' || !preg_match($this->mIncSecLabelsMatch[0], $text) == false) && (count($this->mIncSecLabelsNotMatch) <= 0 || $this->mIncSecLabelsNotMatch[0] == '' || preg_match($this->mIncSecLabelsNotMatch[0], $text) == false)) {
 						if ($this->mIncMaxLen > 0 && (strlen($text) > $this->mIncMaxLen)) {
-							$text = DPLInclude::limitTranscludedText($text, $this->mIncMaxLen, ' [[' . $title . '|..→]]');
+							$text = Include::limitTranscludedText($text, $this->mIncMaxLen, ' [[' . $title . '|..→]]');
 						}
 						$this->filteredCount = $this->filteredCount + 1;
 						
@@ -468,15 +478,15 @@ class DPL {
 							$mustNotMatch = '';
 						}
 						
-						// if chapters are selected by number, text or regexp we get the heading from DPLInclude::includeHeading
+						// if chapters are selected by number, text or regexp we get the heading from Include::includeHeading
 						$sectionHeading[0] = '';
 						if ($sSecLabel == '-') {
 							$secPiece[$s] = $secPieces[0];
 							
 						} else if ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 							$sectionHeading[0] = substr($sSecLabel, 1);
-							// Uses DPLInclude::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-							$secPieces         = DPLInclude::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
+							// Uses Include::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
+							$secPieces         = Include::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
 							if ($mustMatch != '' || $mustNotMatch != '') {
 								$secPiecesTmp = $secPieces;
 								$offset       = 0;
@@ -519,7 +529,7 @@ class DPL {
 							}
 							
 						} else if ($sSecLabel[0] == '{') {
-							// Uses DPLInclude::includeTemplate() from LabeledSectionTransclusion extension to include templates from the page
+							// Uses Include::includeTemplate() from LabeledSectionTransclusion extension to include templates from the page
 							// primary syntax {template}suffix
 							$template1 = trim(substr($sSecLabel, 1, strpos($sSecLabel, '}') - 1));
 							$template2 = trim(str_replace('}', '', substr($sSecLabel, 1)));
@@ -528,7 +538,7 @@ class DPL {
 								$template1 = preg_replace('/\|.*/', '', $template1);
 								$template2 = preg_replace('/^.+\|/', '', $template2);
 							}
-							$secPieces    = DPLInclude::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2 . $defaultTemplateSuffix, $mustMatch, $mustNotMatch, $this->mIncParsed, $iTitleMaxLen, implode(', ', $article->mCategoryLinks));
+							$secPieces    = Include::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2 . $defaultTemplateSuffix, $mustMatch, $mustNotMatch, $this->mIncParsed, $iTitleMaxLen, implode(', ', $article->mCategoryLinks));
 							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
 							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
 								$dominantPieces = $secPieces;
@@ -538,8 +548,8 @@ class DPL {
 								break;
 							}
 						} else {
-							// Uses DPLInclude::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-							$secPieces    = DPLInclude::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $bIncludeTrim, $skipPattern);
+							// Uses Include::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
+							$secPieces    = Include::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $bIncludeTrim, $skipPattern);
 							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
 							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
 								$dominantPieces = $secPieces;
@@ -655,9 +665,9 @@ class DPL {
 			// add included contents
 			
 			if ($this->mIncPage) {
-				DPLInclude::open($this->mParser, $this->mParserTitle->getPrefixedText());
+				Include::open($this->mParser, $this->mParserTitle->getPrefixedText());
 				$rBody .= $incwiki;
-				DPLInclude::close($this->mParser, $this->mParserTitle->getPrefixedText());
+				Include::close($this->mParser, $this->mParserTitle->getPrefixedText());
 			}
 			
 			if ($mode->name == 'userformat') {
@@ -899,7 +909,7 @@ class DPL {
 					$legendTitle = '';
 					global $wgParser, $wgUser;
 					$parser = clone $wgParser;
-					DPLInclude::text($parser, $legendPage, $legendTitle, $legendText);
+					Include::text($parser, $legendPage, $legendTitle, $legendText);
 					$legendText = preg_replace('/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s', '', $legendText);
 					$legendText = preg_replace('/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText);
 				}
@@ -909,7 +919,7 @@ class DPL {
 					$instructionTitle = '';
 					global $wgParser, $wgUser;
 					$parser = clone $wgParser;
-					DPLInclude::text($parser, $instructionPage, $instructionTitle, $instructionText);
+					Include::text($parser, $instructionPage, $instructionTitle, $instructionText);
 					$instructions = $this->getTemplateParmValues($instructionText, 'Template field');
 				}
 				// construct an edit form containing all template invocations
@@ -1352,7 +1362,7 @@ class DPL {
 	}
 	
 	//format one single template argument of one occurence of one item from the include parameter
-	// is called via a backlink from DPLInclude::includeTemplate()
+	// is called via a backlink from Include::includeTemplate()
 	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxlen, $article) {
 		// we could try to format fields differently within the first call of a template
 		// currently we do not make such a difference
@@ -1405,7 +1415,7 @@ class DPL {
 		if ($lim < 0) {
 			return $text;
 		}
-		return DPLInclude::limitTranscludedText($text, $lim);
+		return Include::limitTranscludedText($text, $lim);
 	}
 	
 	//slightly different from CategoryViewer::formatList() (no need to instantiate a CategoryViewer object)
