@@ -11,13 +11,12 @@
 namespace DPL;
 
 class Main {
-
-	/* ============================================================================================================
-	/									   MAIN FUNCTION
-	/  ============================================================================================================
-	*/
-
-	// The real callback function for converting the input text to wiki text output
+	/**
+	 * The real callback function for converting the input text to wiki text output
+	 *
+	 * @access	public
+	 * @return	????
+	 */
 	public static function dynamicPageList($input, $params, $parser, &$bReset, $calledInMode) {
 
 		// Output
@@ -238,7 +237,7 @@ class Main {
 		$sUserDateFormat = Options::$options['userdateformat']['default'];
 
 		$sHListMode    = Options::$options['headingmode']['default'];
-		$bHeadingCount = self::argBoolean(Options::$options['headingcount']['default']);
+		$bHeadingCount = self::filterBoolean(Options::$options['headingcount']['default']);
 
 		$bEscapeLinks  = Options::$options['escapelinks']['default'];
 		$bSkipThisPage = Options::$options['skipthispage']['default'];
@@ -246,7 +245,7 @@ class Main {
 		$sHiddenCategories = Options::$options['hiddencategories']['default'];
 
 		$sMinorEdits          = null;
-		$acceptOpenReferences = self::argBoolean(Options::$options['openreferences']['default']);
+		$acceptOpenReferences = self::filterBoolean(Options::$options['openreferences']['default']);
 
 		$sLastRevisionBefore = Options::$options['lastrevisionbefore']['default'];
 		$sAllRevisionsBefore = Options::$options['allrevisionsbefore']['default'];
@@ -262,7 +261,7 @@ class Main {
 		$sQuality   = Options::$options['qualitypages']['default'];
 		$sStable    = Options::$options['stablepages']['default'];
 
-		$bSuppressErrors  = self::argBoolean(Options::$options['suppresserrors']['default']);
+		$bSuppressErrors  = self::filterBoolean(Options::$options['suppresserrors']['default']);
 		$sResultsHeader   = Options::$options['resultsheader']['default'];
 		$sResultsFooter   = Options::$options['resultsfooter']['default'];
 		$sNoResultsHeader = Options::$options['noresultsheader']['default'];
@@ -277,35 +276,35 @@ class Main {
 
 		$sInlTxt = Options::$options['inlinetext']['default'];
 
-		$bShowNamespace = self::argBoolean(Options::$options['shownamespace']['default']);
-		$bShowCurID     = self::argBoolean(Options::$options['showcurid']['default']);
+		$bShowNamespace = self::filterBoolean(Options::$options['shownamespace']['default']);
+		$bShowCurID     = self::filterBoolean(Options::$options['showcurid']['default']);
 
-		$bAddFirstCategoryDate = self::argBoolean(Options::$options['addfirstcategorydate']['default']);
+		$bAddFirstCategoryDate = self::filterBoolean(Options::$options['addfirstcategorydate']['default']);
 
-		$bAddPageCounter = self::argBoolean(Options::$options['addpagecounter']['default']);
+		$bAddPageCounter = self::filterBoolean(Options::$options['addpagecounter']['default']);
 
-		$bAddPageSize = self::argBoolean(Options::$options['addpagesize']['default']);
+		$bAddPageSize = self::filterBoolean(Options::$options['addpagesize']['default']);
 
-		$bAddPageTouchedDate = self::argBoolean(Options::$options['addpagetoucheddate']['default']);
+		$bAddPageTouchedDate = self::filterBoolean(Options::$options['addpagetoucheddate']['default']);
 
-		$bAddEditDate = self::argBoolean(Options::$options['addeditdate']['default']);
+		$bAddEditDate = self::filterBoolean(Options::$options['addeditdate']['default']);
 
-		$bAddUser         = self::argBoolean(Options::$options['adduser']['default']);
-		$bAddAuthor       = self::argBoolean(Options::$options['addauthor']['default']);
-		$bAddContribution = self::argBoolean(Options::$options['addcontribution']['default']);
-		$bAddLastEditor   = self::argBoolean(Options::$options['addlasteditor']['default']);
+		$bAddUser         = self::filterBoolean(Options::$options['adduser']['default']);
+		$bAddAuthor       = self::filterBoolean(Options::$options['addauthor']['default']);
+		$bAddContribution = self::filterBoolean(Options::$options['addcontribution']['default']);
+		$bAddLastEditor   = self::filterBoolean(Options::$options['addlasteditor']['default']);
 
-		$bAddExternalLink = self::argBoolean(Options::$options['addexternallink']['default']);
+		$bAddExternalLink = self::filterBoolean(Options::$options['addexternallink']['default']);
 
-		$bAllowCachedResults = self::argBoolean(Options::$options['allowcachedresults']['default']);
+		$bAllowCachedResults = self::filterBoolean(Options::$options['allowcachedresults']['default']);
 		$bWarnCachedResults  = false;
 
-		$bAddCategories = self::argBoolean(Options::$options['addcategories']['default']);
+		$bAddCategories = self::filterBoolean(Options::$options['addcategories']['default']);
 
-		$bIncludeSubpages = self::argBoolean(Options::$options['includesubpages']['default']);
-		$bIncludeTrim     = self::argBoolean(Options::$options['includetrim']['default']);
+		$bIncludeSubpages = self::filterBoolean(Options::$options['includesubpages']['default']);
+		$bIncludeTrim     = self::filterBoolean(Options::$options['includetrim']['default']);
 
-		$bIgnoreCase = self::argBoolean(Options::$options['ignorecase']['default']);
+		$bIgnoreCase = self::filterBoolean(Options::$options['ignorecase']['default']);
 
 		$_incpage = Options::$options['includepage']['default'];
 		$bIncPage = is_string($_incpage) && $_incpage !== '';
@@ -357,7 +356,7 @@ class Main {
 		$_sIncludeMaxLen = Options::$options['includemaxlength']['default'];
 		$iIncludeMaxLen  = ($_sIncludeMaxLen == '') ? null : intval($_sIncludeMaxLen);
 
-		$bScroll = self::argBoolean(Options::$options['scroll']['default']);
+		$bScroll = self::filterBoolean(Options::$options['scroll']['default']);
 
 		$aLinksTo      = array();
 		$aNotLinksTo   = array();
@@ -603,7 +602,7 @@ class Main {
 
 				case 'addfirstcategorydate':
 					if (in_array($sArg, Options::$options['addfirstcategorydate'])) {
-						$bAddFirstCategoryDate        = self::argBoolean($sArg);
+						$bAddFirstCategoryDate        = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addfirstcategorydate', $sArg);
@@ -663,7 +662,7 @@ class Main {
 
 				case 'showcurid':
 					if (in_array($sArg, Options::$options['showcurid'])) {
-						$bShowCurID = self::argBoolean($sArg);
+						$bShowCurID = self::filterBoolean($sArg);
 						if ($bShowCurID == true) {
 							$bConflictsWithOpenReferences = true;
 						}
@@ -674,7 +673,7 @@ class Main {
 
 				case 'shownamespace':
 					if (in_array($sArg, Options::$options['shownamespace'])) {
-						$bShowNamespace = self::argBoolean($sArg);
+						$bShowNamespace = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('shownamespace', $sArg);
 					}
@@ -682,7 +681,7 @@ class Main {
 
 				case 'suppresserrors':
 					if (in_array($sArg, Options::$options['suppresserrors'])) {
-						$bSuppressErrors = self::argBoolean($sArg);
+						$bSuppressErrors = self::filterBoolean($sArg);
 						if ($bSuppressErrors) {
 							$sNoResultsHeader = ' ';
 						}
@@ -735,7 +734,7 @@ class Main {
 					if (in_array($sArg, Options::$options['distinct'])) {
 						if ($sArg == 'strict') {
 							$sDistinctResultSet = 'strict';
-						} else if (self::argBoolean($sArg)) {
+						} else if (self::filterBoolean($sArg)) {
 							$sDistinctResultSet = 'true';
 						} else {
 							$sDistinctResultSet = 'false';
@@ -799,7 +798,7 @@ class Main {
 
 				case 'escapelinks':
 					if (in_array($sArg, Options::$options['escapelinks'])) {
-						$bEscapeLinks = self::argBoolean($sArg);
+						$bEscapeLinks = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('escapelinks', $sArg);
 					}
@@ -854,7 +853,7 @@ class Main {
 
 				case 'scroll':
 					if (in_array($sArg, Options::$options['scroll'])) {
-						$bScroll = self::argBoolean($sArg);
+						$bScroll = self::filterBoolean($sArg);
 						// if scrolling is active we adjust the values for certain other parameters
 						// based on URL arguments
 						if ($bScroll) {
@@ -1134,7 +1133,7 @@ class Main {
 
 				case 'includesubpages':
 					if (in_array($sArg, Options::$options['includesubpages'])) {
-						$bIncludeSubpages = self::argBoolean($sArg);
+						$bIncludeSubpages = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('includesubpages', $sArg);
 					}
@@ -1142,7 +1141,7 @@ class Main {
 
 				case 'ignorecase':
 					if (in_array($sArg, Options::$options['ignorecase'])) {
-						$bIgnoreCase = self::argBoolean($sArg);
+						$bIgnoreCase = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('ignorecase', $sArg);
 					}
@@ -1158,7 +1157,7 @@ class Main {
 
 				case 'skipthispage':
 					if (in_array($sArg, Options::$options['skipthispage'])) {
-						$bSkipThisPage = self::argBoolean($sArg);
+						$bSkipThisPage = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('skipthispage', $sArg);
 					}
@@ -1169,7 +1168,7 @@ class Main {
 				 */
 				case 'addcategories':
 					if (in_array($sArg, Options::$options['addcategories'])) {
-						$bAddCategories               = self::argBoolean($sArg);
+						$bAddCategories               = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addcategories', $sArg);
@@ -1178,7 +1177,7 @@ class Main {
 
 				case 'addeditdate':
 					if (in_array($sArg, Options::$options['addeditdate'])) {
-						$bAddEditDate                 = self::argBoolean($sArg);
+						$bAddEditDate                 = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addeditdate', $sArg);
@@ -1187,7 +1186,7 @@ class Main {
 
 				case 'addexternallink':
 					if (in_array($sArg, Options::$options['addexternallink'])) {
-						$bAddExternalLink             = self::argBoolean($sArg);
+						$bAddExternalLink             = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addexternallink', $sArg);
@@ -1196,7 +1195,7 @@ class Main {
 
 				case 'addpagecounter':
 					if (in_array($sArg, Options::$options['addpagecounter'])) {
-						$bAddPageCounter              = self::argBoolean($sArg);
+						$bAddPageCounter              = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addpagecounter', $sArg);
@@ -1205,7 +1204,7 @@ class Main {
 
 				case 'addpagesize':
 					if (in_array($sArg, Options::$options['addpagesize'])) {
-						$bAddPageSize                 = self::argBoolean($sArg);
+						$bAddPageSize                 = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addpagesize', $sArg);
@@ -1214,7 +1213,7 @@ class Main {
 
 				case 'addpagetoucheddate':
 					if (in_array($sArg, Options::$options['addpagetoucheddate'])) {
-						$bAddPageTouchedDate          = self::argBoolean($sArg);
+						$bAddPageTouchedDate          = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addpagetoucheddate', $sArg);
@@ -1243,7 +1242,7 @@ class Main {
 
 				case 'includetrim':
 					if (in_array($sArg, Options::$options['includetrim'])) {
-						$bIncludeTrim = self::argBoolean($sArg);
+						$bIncludeTrim = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('addcontribution', $sArg);
 					}
@@ -1251,7 +1250,7 @@ class Main {
 
 				case 'adduser':
 					if (in_array($sArg, Options::$options['adduser'])) {
-						$bAddUser                     = self::argBoolean($sArg);
+						$bAddUser                     = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('adduser', $sArg);
@@ -1260,7 +1259,7 @@ class Main {
 
 				case 'addauthor':
 					if (in_array($sArg, Options::$options['addauthor'])) {
-						$bAddAuthor                   = self::argBoolean($sArg);
+						$bAddAuthor                   = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addauthor', $sArg);
@@ -1269,7 +1268,7 @@ class Main {
 
 				case 'addcontribution':
 					if (in_array($sArg, Options::$options['addcontribution'])) {
-						$bAddContribution             = self::argBoolean($sArg);
+						$bAddContribution             = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addcontribution', $sArg);
@@ -1278,7 +1277,7 @@ class Main {
 
 				case 'addlasteditor':
 					if (in_array($sArg, Options::$options['addlasteditor'])) {
-						$bAddLastEditor               = self::argBoolean($sArg);
+						$bAddLastEditor               = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('addlasteditor', $sArg);
@@ -1301,7 +1300,7 @@ class Main {
 
 				case 'headingcount':
 					if (in_array($sArg, Options::$options['headingcount'])) {
-						$bHeadingCount                = self::argBoolean($sArg);
+						$bHeadingCount                = self::filterBoolean($sArg);
 						$bConflictsWithOpenReferences = true;
 					} else {
 						$output .= $logger->msgWrongParam('headingcount', $sArg);
@@ -1380,7 +1379,7 @@ class Main {
 					// thus we make sure that the cache will only become invalid if the query is really executed
 					if ($sExecAndExit == '') {
 						if (in_array($sArg, Options::$options['allowcachedresults'])) {
-							$bAllowCachedResults = self::argBoolean($sArg);
+							$bAllowCachedResults = self::filterBoolean($sArg);
 							if ($sArg == 'yes+warn') {
 								$bAllowCachedResults = true;
 								$bWarnCachedResults  = true;
@@ -1557,7 +1556,7 @@ class Main {
 
 				case 'openreferences':
 					if (in_array($sArg, Options::$options['openreferences'])) {
-						$acceptOpenReferences = self::argBoolean($sArg);
+						$acceptOpenReferences = self::filterBoolean($sArg);
 					} else {
 						$output .= $logger->msgWrongParam('openreferences', $sArg);
 					}
@@ -3283,8 +3282,15 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		}
 	}
 
-	private static function argBoolean($arg) {
-		return ($arg == 'true' || $arg == 'yes' || $arg == '1' || $arg == 'on');
+	/**
+	 * Filter a standard boolean like value into an actual boolean.
+	 *
+	 * @access	private
+	 * @param	mixed	Integer or string to evaluated through filter_var().
+	 * @return	boolean
+	 */
+	private function filterBoolean($boolean) {
+		return filter_var($boolean, FILTER_VALIDATE_BOOLEAN);
 	}
 
 	private static function getSubcategories($cat, $sPageTable, $depth) {
