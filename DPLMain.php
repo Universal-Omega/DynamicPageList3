@@ -2817,7 +2817,7 @@ class DPLMain {
 			$queryError = true;
 		}
 		if ($queryError == true || $res === false) {
-			$result = "The DPL extension (version " . ExtDynamicPageList::$DPLVersion . ") produced a SQL statement which lead to a Database error.<br/>\n
+			$result = "The DPL extension (version " . DPL_VERSION . ") produced a SQL statement which lead to a Database error.<br/>\n
 The reason may be an internal error of DPL or an error which you made, especially when using DPL options like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>\n
 Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			return $result;
@@ -3116,7 +3116,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			}
 		}
 		$header = str_replace('\n', "\n", str_replace("¶", "\n", $header));
-		$header = str_replace('%VERSION%', ExtDynamicPageList::$DPLVersion, $header);
+		$header = str_replace('%VERSION%', DPL_VERSION, $header);
 		$footer = '';
 		if ($sOneResultFooter != '' && $rowcount == 1) {
 			$footer = str_replace('%PAGES%', 1, $sOneResultFooter);
@@ -3126,7 +3126,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			}
 		}
 		$footer = str_replace('\n', "\n", str_replace("¶", "\n", $footer));
-		$footer = str_replace('%VERSION%', ExtDynamicPageList::$DPLVersion, $footer);
+		$footer = str_replace('%VERSION%', DPL_VERSION, $footer);
 
 		// replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp   = self::prettyTimeStamp(date('YmdHis'));

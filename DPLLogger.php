@@ -36,7 +36,7 @@ class DPLLogger {
 				$text = wfMsg('dpl_log_' . $msgid, $args);
 				$text = str_replace('$0',$val,$text);
 			}
-			return '<p>Extension:DynamicPageList (DPL), version ' . ExtDynamicPageList::$DPLVersion . ' : ' .  $text . '</p>';
+			return '<p>Extension:DynamicPageList (DPL), version ' . DPL_VERSION . ' : ' .  $text . '</p>';
 		}
 		return '';
 	}
