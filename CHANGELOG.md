@@ -1,18 +1,23 @@
 #Version 0.9.1
 * Problem with adduser solved
+
 #Version 0.9.2
 * Problem with headlines in headingmode corrected
 * Addcategories: bug fixed
 * CATLIST variable defined
+
 #Version 0.9.3
 * Allow ¦ as an alias for |
 * Escapelinks= introduced
+
 #Version 0.9.4
 * Allow "-" with categories = 
 * Disable UTF8 conversion for sortkey
 * Headingcount= added
+
 #Version 0.9.5
 * "offset=" added (basic mechanism for scrolling through result lists)
+
 #Version 0.9.6
 * When including templates (includepage={xx}yy) spaces between {{ and the template name now will be accepted
 * Syntax and semantics of secseparators changed
@@ -22,18 +27,22 @@
 * Userdateformat introduced
 * Changed call-time reference passing to avoid warn message
 * TITLE var added
+
 #Version 0.9.7
 * Bug corrected with transclusion of labeled sections
 * Addfirstcategory works with more than one category selected (risking to produce ambiguous results)
+
 #Version 0.9.8
 * Fixed problem with section inclusion (multipl einclusion of same page did not work wit user tag variant
 * NOTOC and NOEDITSECTION are automatically placed before mode=category
 * PAGE and TITLE variables passed to templates
 * Linksto, uses, titlematch and their not-equivalents now understand a set arguments which form an OR-group
+
 #Version 0.9.9
 * Default template inclusion added
 * Rowcolformat added
 * Multicol tag understands now %PAGE% and other parameters
+
 #Version 1.0.0
 * Lastrevisionbefore added
 * Allrevisionsbefore added
@@ -41,92 +50,124 @@
 * Allrevisionssince  added
 * Dominantsection added
 * Replaceintitle added
+
 #Version 1.0.1
 * Include as an alias for pageinclude
 * Title= introduced
+
 #Version 1.0.2
 * Categorymatch  and notcategorymatch  introduced
 * Categoryregexp and notcategoryregexp introduced
 * Titleregexp and nottitleregexp introduced
+
 #Version 1.0.3
 * Behaviour of categoryregexp slightly changed
+
 #Version 1.0.4
 * Added linksfrom
+
 #Version 1.0.5
 * Added createdby, notcreatedby, modifiedby, notmodifiedby, lastmodifiedby, notlastmodifiedby
+
 #Version 1.0.6
 * Allow selection criteria based on included contents
+
 #Version 1.0.7
 * Some improvements of includematch (regarding multiple occurencies of the same section)
+
 #Version 1.0.8
 * Added notlinksfrom
 * Solved problem with invalid arguments at linksto, linksfrom etc.
 * Includematch now tests template INPUT against the regexp
 * Replaceintitle now also works in standard mode
+
 #Version 1.0.9
 * Added openreferences
+
 #Version 1.1.0
 * Changed parser cache disabling
+
 #Version 1.1.1
 * Experimental support for simple category hierarchies
+
 #Version 1.1.2
 * Allow to include sections by number
+
 #Version 1.1.3
 * Bug fix for 1.1.2 (pass by reference warning)
+
 #Version 1.1.4
 * Technical improvement, more flexible argument parsing at DynamicPageList4()
 * Easy access at include for one single template parameter
 * Activation of first version of special page (require once)
 * Allow comment syntax with #
 * Date parameters now accept separation characters
+
 #Version 1.1.5
 * Allow cache control via new parameter
+
 #Version 1.1.6
 * Bug fix for template inclusion
+
 #Version 1.1.7
 * Removed path from require_once for special page php source
+
 #Version 1.1.8
 * Addauthor, addlasteditor, goal=categories
+
 #Version 1.1.9
 * Ordermethod=titlewithoutnamespace
+
 #Version 1.2.0
 * Replaced " by ' in SQL statements
+
 #Version 1.2.1
 * Added missing $dbr->addQuotes() on SQL arguments
 * Titlemaxlength now also works with mode=userformat
+
 #Version 1.2.2
 * Added variable CATNAMES (i.e. category list without links)
 * Changed code to allow multiple selection conditions on revisions
+
 #Version 1.2.3
 * Accept %0 for transclusion of text before the first chapter
 * Added experimental feature for graph generation
+
 #Version 1.2.4
 * Error corrected: ordermethod "sortkey" did not work because of missing break in case statement
 * Removed experimental feature for graph generation
 * Repair error with wrong counting of selected articles
+
 #Version 1.2.5
 * Added includenotmatch
+
 #Version 1.2.6
 * Added 'distinct' option
 * Added '%PAGESEL%' variable
 * Linksto, linksfrom etc. no longer complain about empty parameters
 * Changed SQL query basics to allow duplicate use of page table;
 * Linksto and linksfrom may cause SQL syntax trouble if something was missed
+
 #Version 1.2.7
 * Bugfix with %PAGES% and multicolumn output
 * Bugfix with undefined variable sPageTable near #2257
+
 #Version 1.2.8
 * Syntax - allow 'format' as an alias for 'listseparators'
 * Syntax - if 'format' or 'listseparators' is set, 'mode=userformat' will be automatically assumed
 * Internal - empty parameters are silently ignored
+
 #Version 1.2.9
 * Resultsfooter
 * \n and Para will be replaced by linefeed in resultsheader and -footer
 * Parameter recognition in 'include={template}:nameOrNumber' improved; nested template calls are now handled correctly
+
 #Version 1.3.0
 * Accept 'yes' and 'no' as synonyms for 'true' and 'false' at all boolean parameters
+
 #Version 1.3.1
 * Minor modification: resultsheader and resultsfooter do no longer automatically write a newline
+
 #Version 1.3.2
 * The warning caused by missing selection criteria will now only be issued if no DEBUG level was set
 * %NAMESPACE% added
@@ -139,14 +180,18 @@
 * Had been matched using ereg
 * ?? includematch should be checked to be a valid preg_match argument
 * Added oneresultheader
+
 #Version 1.3.3
 * Bugfix: parameter checking fixed at 'ordermethod'; multiple parameters were not checked correctly
+
 #Version 1.3.4
 * Column size calculation changed at multi column output
 * Ambiguity of page_id at linksfrom+...(e.g. uses) eliminated.
 * Subcategory expansion: replace ' ' by '_' in query
+
 #Version 1.3.5
 * Bug at ordermethod=category,sortkey resolved
+
 #Version 1.3.6
 * Special page for DPL deleted
 * Allow individual collations for sorting, this makes case insensitive sorting possible
@@ -154,20 +199,26 @@
 * So that the club suit will always appear AFTER the diamond suit
 * Bugfix: %PAGES% did not work in mode=category
 * Added a switch to include/exclude subpages
+
 #Version 1.3.7
 * Allow 0 and 1 for boolean parameters, and on / off
 * Bugfix: in release 1.3.6 using odermethod=sortkey led to a SQL syntax error
+
 #Version 1.3.8
 * Bugfix at template parameter etxraction: balance of square brackets is now checked when extracting a single parameter
+
 #Version 1.3.9
 * Added pagesel as sortkey in ordermethod
 * Added noresultsfooter, oneresultfooter
 * Added 'table' parameter -- needs a {xyz}.dpl construct as first include parameter
+
 #Version 1.4.0
 * Added option 'strict' to 'distinct'
+
 #Version 1.4.1
 * Minor bugfix at option 'strict' of 'distinct'
 * Behaviour of DEBUG changed
+
 #Version 1.4.2
 * Bug fix SQL error in 'group by' clause (with table prefix)
 * Bugfix: ordermethod sortkey now implies ordermethod category
@@ -178,30 +229,41 @@
 * Debug=5 added
 * Added 'tablerow'
 * Added 'ignorecase' (for (not)linksto, (not)uses, (not)titlematch, (not)titleregexp, title,
+
 #Version 1.4.3
 * Allow regular expression for heading match at include
+
 #Version 1.4.4
 * Bugfix: handling of numeric template parameters
+
 #Version 1.4.5
 * Bugfix: make Call extension aware of browser differences in session variable handling
+
 #Version 1.4.6
 * Added: recent contributions per page/user
+
 #Version 1.4.7
 * Added: skipthispage
+
 #Version 1.4.8
 * Nothing changed in DPL, but there were changes in Call and Wgraph
+
 #Version 1.4.9
 * Improved error handling: parameters without "=" were silently ignored and now raise a warning
 * Parameters starting with '=' lead to a runtime error and now are caught
+
 #Version 1.5.0
 * Changed algorithm of parameter recognition in the Call extension (nothing changed in DPL)
+
 #Version 1.5.1
 * Bugfix at addcontributions:; table name prefix led to invalid SQL statement
 * Check for 0 results after titlematch was applied
+
 #Version 1.5.2
 * Includematch now understands parameter limits like {abc}:x[10]:y[20]
 * Bug fix in parameter limits (limit of 1 led to 2 characters being shown)
 * Offset and count are now implemented directly in SQL
+
 #Version 1.5.3
 * When using title= together with include=* there was a false warning about empty result set
 * New parser function {{#dplchapter:text|heading|limit|page|linktext}}
@@ -209,47 +271,63 @@
 * Added provision fpr pre and nowiki in wiki text truncation fuction
 * Support %DATE% and %USER% within phantom templates
 * Added randomseed
+
 #Version 1.6.0
 * Internal changes in the code; (no more globals etc ...) 
+
 #Version 1.6.1
 * Ordermethod= sortkey & categories decoupled, see line 2011
 * Hooks changed back to global functions due to problems with older MW installations
 * Escaping of "/" improved. In some cases a slash in a page name or in a template parameter could lead to php errors at INCLUDE
+
 #Version 1.6.2
 * Template matching in include improved. "abc" must not match "abc def" but did so previously.
+
 #Version 1.6.3
 * Changed section matching to allow wildcards.
+
 #Version 1.6.4
 * Syntax error fixed (self::$createdLinks must not be unset as it is static, near line 3020)
 * Dplmatrix added
+
 #Version 1.6.5
 * Added include(not)matchparsed
 * Bug fix missing array key , line 2248
 * Bug fix in DPLInclude (call time reference in extractHeadings)
 * Added %VERSION%
+
 #Version 1.6.6
 * SQL escaping (protection against injection) added at "revisions"
 * %TOTALPAGES% added
+
 #Version 1.6.7
 * Bugfix at goal=categories (due to change in 1.6.6)
+
 #Version 1.6.8
 * Allow & at category 
+
 #Version 1.6.9
 * Added check against non-includable namespaces
 * Added includetrim' command
+
 #Version 1.7.0
 * Bug fix at articlecategory (underscore)
 * Bug fix in installation checking (#2128)
 * New command 'imageused'
+
 #Version 1.7.1
 * Allow % within included template parameters
+
 #Version 1.7.2
 * Experimental sorting of result tables (tablesortcol)
+
 #Version 1.7.3
 * %SECTION% can now be used within multiseseparators
 * Preliminary patch for MW 1.12 (recursive template expansion)
+
 #Version 1.7.4
 * New command: imagecontainer
+
 #Version 1.7.5
 * Suppresserrors
 * Changed UPPER to LOWER in all SQL statements which ignore case
@@ -258,16 +336,20 @@
 * Allowcachedresults accepts now 'yes+warn'
 * Usedby
 * CATBULLETS variable
+
 #Version 1.7.6
 * Error correction: non existing array index 0 when trying to includematch content in a non-existing chapter (near #3887) 
+
 #Version 1.7.7
 * Configuration switch allows to run DPL from protected pages only (ExtDynamicPageList::$options['RunFromProtectedPagesOnly'])
+
 #Version 1.7.8
 * Allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageListInclude.php)
 * Accept include=* together with table=
 * Bugfix: %PAGES% was wrong (showing total pages in some cases
 * Bugfix: labeled section inclusion did not work because content was automatically truncated to a length of zero
 * Added minrevisions & maxrevisions
+
 #Version 1.7.9
 * Bugfix in errorhandling: parameter substitution within error message did not work.
 * Bugfix in ordermethod=lastedit, firstedit -- led to the effect that too few pages/revisions were shown
@@ -276,6 +358,7 @@
 * New variable %IMAGE% contains image path
 * New variable: %PAGEID%
 * DPL command line argument: DPL_offset
+
 #Version 1.8.0
 * Execution time logging
 * Added downward compatibility with Extension:Intersection:
@@ -289,17 +372,21 @@
 * Reset/eliminate = none eingeführt
 * DPL_count, DPL_offset, DPL_refresh eingeführt
 * New feature: execandexit
+
 #Version 1.8.1
 * Bugfix: %DATE% was not expanded when addedit=true and ordermethod=lastedit were chosen
 * Bugfix: allrevisionssince delivered wrong results
+
 #Version 1.8.2
 * Bugfix: ordermethod=lastedit AND minoredits=exclude produced a SQL error
 
 * Bugfix dplcache
 * Config switch: respectParserCache
 * Date timestamp adapt to user preferences
+
 #Version 1.8.3
 * Bugfix: URL variable expansion
+
 #Version 1.8.4
 * Bugfix: title= & allrevisionssince caused SQL error
 * Added ordermethod = none
@@ -309,6 +396,7 @@
 * Changed default for userdateformat to show also seconds DPL only; Intersection will show only the date for compatibility reasons)
 * Bugfix date/time problem 1977
 * Time conditions in query are now also translated according to timezone of server/client
+
 #Version 1.8.5
 * Changed the php source files to UTF8 encoding (i18n was already utf8)
 * Removed all closing ?> php tags at source file end
@@ -323,8 +411,10 @@
 * Removed replacement of card suit symbols in SQL query due to collation incompatibilities
 * Added special logic to DPL_fromTitle: reversed sort order for backward scrolling
 * Changed default sort in DPL to 'titlewithoutnamespace (as this is more efficient than 'title')
+
 #Version 1.8.6
 * Bugfix at ordermethod = titlewithoutnamespace (led to invalid SQL statements)
+
 #Version 1.8.7
 * Experimental calls to the CacheAPI; can be switched off by $useCacheAPI = false;
 * One can set option[eliminate] to 'all' in LocalSettings now as a default
@@ -338,6 +428,7 @@
 * UNIQ-QINU Bug resolved
 * Convert spaces to underscores in all category (regexp) statements
 * We convert html entities in the category command to avoid false interpretation of & as AND
+
 #Version 1.8.8
 * Offset by one error in updaterules corrected
 * Bugfix in checking includematch on chapter content
@@ -345,6 +436,7 @@
 * Deleterules: does some kind of permission checking now
 * Various improvements in template editing (calling the edit page now for the real update)
 * Call to parser->clearState() inserted; does this solve the UNIQ-QINU problem without a patch to LnkHolderArray ??
+
 #Version 1.8.9
 * Further improvements of updaterules
 * Include: _ in template names are now treated like spaces
@@ -373,16 +465,19 @@
 * Prevent %xx from being misinterpreted as a hex code when used in linksto (e.g. %2c)
 * Added hiddencategories = yes / no / only [dead code - not yet WORKING !]
 * Added %EDITSUMMARY%
+
 #Version 1.9.0
 * Added dplvar
 * Added dplreplace
 * Changed DLPLogger, getting rid of deprecated methods like addMessage()
 * Minor bugfix in include {tpl¦phantom tpl} , problem with different namespaces
 * #dplvar accepts all variables from the URL
+
 #Version 1.9.1
 * Ordermethod=titlewithoutnamespace now creates capitals in mode=categories according to page title
 * Bug fix in namespace= , invalid values now lead to an error message (had been silently translated to the main namespace before)
 * Category mode: first char bugfix
+
 #Version 2.0
 * Added %ARGS% to template surrogate call
 * Replaced "makeKnownLinkObjects" by "fullurl:" to get rid of the need to change $rawHtml
