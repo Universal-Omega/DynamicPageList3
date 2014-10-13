@@ -11,23 +11,24 @@
 namespace DPL;
 
 class ListMode {
-	var $name;
-	var $sListStart = '';
-	var $sListEnd = '';
-	var $sHeadingStart = '';
-	var $sHeadingEnd = '';
-	var $sItemStart = '';
-	var $sItemEnd = '';
-	var $sInline = '';
-	var $sSectionTags = array();
-	var $aMultiSecSeparators = array();
-	var $iDominantSection = -1;
+	public $name;
+	public $sListStart = '';
+	public $sListEnd = '';
+	public $sHeadingStart = '';
+	public $sHeadingEnd = '';
+	public $sItemStart = '';
+	public $sItemEnd = '';
+	public $sInline = '';
+	public $sSectionTags = array();
+	public $aMultiSecSeparators = array();
+	public $iDominantSection = -1;
 	
-	function __construct($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
+	public function __construct($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
 						  $listseparators, $iOffset, $dominantSection) {
 		// default for inlinetext (if not in mode=userformat)
-		if (($listmode != 'userformat') && ($inlinetext == ''))
+		if (($listmode != 'userformat') && ($inlinetext == '')) {
 			$inlinetext = '&#160;-&#160;';
+		}
 		$this->name = $listmode;
 		$_listattr = ($listattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
 		$_itemattr = ($itemattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $itemattr, 'li' );

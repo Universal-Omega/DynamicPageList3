@@ -1,32 +1,29 @@
 <?php
-// this file is UTF-8 encoded and contains some special characters.
-// Editing this file with an ASCII editor will potentially destroy it!
 
 class DPL {
-	
-	var $mArticles;
-	var $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
-	var $mHListMode; // html list mode for headings
-	var $mListMode; // html list mode for pages
-	var $mEscapeLinks; // whether to escape img/cat or not
-	var $mAddExternalLink; // whether to add the text of an external link or not
-	var $mIncPage; // true only if page transclusion is enabled
-	var $mIncMaxLen; // limit for text to include
-	var $mIncSecLabels = array(); // array of labels of sections to transclude
-	var $mIncSecLabelsMatch = array(); // array of match patterns for sections to transclude
-	var $mIncSecLabelsNotMatch = array(); // array of NOT match patterns for sections to transclude
-	var $mIncParsed; // whether to match raw parameters or parsed contents
-	var $mParser;
-	var $mParserOptions;
-	var $mParserTitle;
-	var $mLogger; // DPLLogger
-	var $mOutput;
-	var $mReplaceInTitle;
-	var $filteredCount = 0; // number of (filtered) row count
-	var $nameSpaces;
-	var $mTableRow; // formatting rules for table fields
+	public $mArticles;
+	public $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
+	public $mHListMode; // html list mode for headings
+	public $mListMode; // html list mode for pages
+	public $mEscapeLinks; // whether to escape img/cat or not
+	public $mAddExternalLink; // whether to add the text of an external link or not
+	public $mIncPage; // true only if page transclusion is enabled
+	public $mIncMaxLen; // limit for text to include
+	public $mIncSecLabels = array(); // array of labels of sections to transclude
+	public $mIncSecLabelsMatch = array(); // array of match patterns for sections to transclude
+	public $mIncSecLabelsNotMatch = array(); // array of NOT match patterns for sections to transclude
+	public $mIncParsed; // whether to match raw parameters or parsed contents
+	public $mParser;
+	public $mParserOptions;
+	public $mParserTitle;
+	public $mLogger; // DPLLogger
+	public $mOutput;
+	public $mReplaceInTitle;
+	public $filteredCount = 0; // number of (filtered) row count
+	public $nameSpaces;
+	public $mTableRow; // formatting rules for table fields
 
-	function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
+	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
 		
 		global $wgContLang;
 		$this->nameSpaces       = $wgContLang->getNamespaces();
@@ -235,7 +232,7 @@ class DPL {
 		}
 	}
 	
-	function formatCount($numart) {
+	public function formatCount($numart) {
 		global $wgLang;
 		if ($this->mHeadingType == 'category') {
 			$message = 'categoryarticlecount';
@@ -246,7 +243,7 @@ class DPL {
 	}
 	
 	// substitute symbolic names within a user defined format tag
-	function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
+	public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
 		global $wgLang;
 		if (strchr($tag, '%') < 0) {
 			return $tag;
@@ -329,7 +326,7 @@ class DPL {
 		return $sTag;
 	}
 	
-	function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
+	public function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
 		global $wgUser, $wgLang, $wgContLang;
 		
 		$mode = $this->mListMode;
@@ -709,12 +706,11 @@ class DPL {
 	 * (2) set template parameters to  values specified in the query (exec=set)v
 	 * (2) preview the source code including any changes of these parameters made in the edit form or with other changes (exec=preview)
 	 * (3) save the article with the changed value set or with other changes (exec=save)
-	 
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
 	 */
 	
-	function updateArticleByRule($title, $text, $rulesText) {
+	public function updateArticleByRule($title, $text, $rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText       = str_replace(";", '°', $rulesText);
@@ -1010,7 +1006,7 @@ class DPL {
 		return "exec must be one of the following: edit, preview, set";
 	}
 	
-	function updateArticle($title, $text, $summary) {
+	public function updateArticle($title, $text, $summary) {
 		global $wgUser, $wgRequest, $wgOut;
 		
 		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
@@ -1031,7 +1027,7 @@ class DPL {
 		}
 	}
 	
-	function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
+	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
 		$matches = array();
 		$nlCount = preg_match_all('/\n/', $value, $matches);
 		if ($nlCount > 0) {
@@ -1053,7 +1049,7 @@ class DPL {
 	/**
 	 * return an array of template invocations; each element is an associative array of parameter and value
 	 */
-	function getTemplateParmValues($text, $template) {
+	public function getTemplateParmValues($text, $template) {
 		$matches   = array();
 		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
@@ -1120,7 +1116,7 @@ class DPL {
 	/*
 	 * Changes a single parameter value within a certain call of a tempplate
 	 */
-	function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
+	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
 		
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value == '') {
@@ -1244,7 +1240,7 @@ class DPL {
 		
 	}
 	
-	function deleteArticleByRule($title, $text, $rulesText) {
+	public function deleteArticleByRule($title, $text, $rulesText) {
 		
 		global $wgUser, $wgOut;
 		
@@ -1308,7 +1304,7 @@ class DPL {
 	}
 	
 	// generate a hyperlink to the article
-	function articleLink($tag, $article, $iTitleMaxLen) {
+	public function articleLink($tag, $article, $iTitleMaxLen) {
 		$pagename = $article->mTitle->getPrefixedText();
 		if ($this->mEscapeLinks && ($article->mNamespace == 14 || $article->mNamespace == 6)) {
 			// links to categories or images need an additional ":"
@@ -1318,12 +1314,12 @@ class DPL {
 	}
 	
 	//format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)
-	function formatItem($piece, $tagStart, $tagEnd) {
+	public function formatItem($piece, $tagStart, $tagEnd) {
 		return $tagStart . $piece . $tagEnd;
 	}
 	
 	//format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter)
-	function formatSingleItems(&$pieces, $s, $article) {
+	public function formatSingleItems(&$pieces, $s, $article) {
 		$firstCall = true;
 		foreach ($pieces as $key => $val) {
 			if (array_key_exists($s, $this->mTableRow)) {
@@ -1357,7 +1353,7 @@ class DPL {
 	
 	//format one single template argument of one occurence of one item from the include parameter
 	// is called via a backlink from DPLInclude::includeTemplate()
-	function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxlen, $article) {
+	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxlen, $article) {
 		// we could try to format fields differently within the first call of a template
 		// currently we do not make such a difference
 		
@@ -1390,7 +1386,7 @@ class DPL {
 	}
 	
 	//return the total number of rows (filtered)
-	function getRowCount() {
+	public function getRowCount() {
 		return $this->filteredCount;
 	}
 	
@@ -1405,7 +1401,7 @@ class DPL {
 	 *         if the text is alread shorter than the limit or if the limit is negative, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	function cutAt($lim, $text) {
+	public function cutAt($lim, $text) {
 		if ($lim < 0) {
 			return $text;
 		}
@@ -1413,7 +1409,7 @@ class DPL {
 	}
 	
 	//slightly different from CategoryViewer::formatList() (no need to instantiate a CategoryViewer object)
-	function formatCategoryList($iStart, $iCount) {
+	public function formatCategoryList($iStart, $iCount) {
 		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
 			$aArticles[]            = $this->mArticles[$i]->mLink;
 			$aArticles_start_char[] = $this->mArticles[$i]->mStartChar;
@@ -1435,7 +1431,7 @@ class DPL {
 	 * @param  $imgName name of the image (may start with Image: or File:)
 	 * @return $uniq_prefix
 	 */
-	static function imageWithPath($imgName) {
+	static public function imageWithPath($imgName) {
 		$title = Title::newfromText('Image:' . $imgName);
 		if (!is_null($title)) {
 			$iTitle   = Title::makeTitleSafe(6, $title->getDBKey());
@@ -1450,7 +1446,7 @@ class DPL {
 	 * Returns message in the requested format after parsing wikitext to html
 	 * This is meant to be equivalent to wfMsgExt() with parse, parsemag and escape as available options but using the DPL local parser instead of the global one (bugfix).
 	 */
-	function msgExt($key, $options) {
+	public function msgExt($key, $options) {
 		$args = func_get_args();
 		array_shift($args);
 		array_shift($args);
@@ -1476,7 +1472,7 @@ class DPL {
 		return $string;
 	}
 	
-	function getText() {
+	public function getText() {
 		return $this->mOutput;
 	}
 	

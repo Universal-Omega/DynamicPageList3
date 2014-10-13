@@ -12,11 +12,17 @@ namespace DPL;
 
 class Logger {
 
-	static $loaded = true;
+	static public $loaded = true;
 	
-	var $iDebugLevel;
-	
-	function __construct() {
+	public $iDebugLevel;
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __construct() {
 		$this->iDebugLevel = ExtDynamicPageList::$options['debug']['default'];
 	}
 
@@ -24,7 +30,7 @@ class Logger {
 	 * Get a message, with optional parameters
 	 * Parameters from user input must be escaped for HTML *before* passing to this function
 	 */
-	function msg($msgid) {
+	public function msg($msgid) {
 
 		if($this->iDebugLevel >= ExtDynamicPageList::$debugMinLevels[$msgid]) {
 			$args = func_get_args();
@@ -55,7 +61,7 @@ class Logger {
 	 * Get a message. 
 	 * Parameters may be unescaped, this function will escape them for HTML.
 	 */
-	function escapeMsg( $msgid ) {
+	public function escapeMsg( $msgid ) {
 		$args = func_get_args();
 		$args = array_map( 'htmlspecialchars', $args );
 		return call_user_func_array( array( $this, 'msg' ), $args );
@@ -67,7 +73,7 @@ class Logger {
 	 * @param $val The unescaped input value
 	 * @return HTML error message
 	 */
-	function msgWrongParam($paramvar, $val) {
+	public function msgWrongParam($paramvar, $val) {
 		$msgid = ExtDynamicPageList::WARN_WRONGPARAM;
 		switch($paramvar) {
 			case 'namespace':

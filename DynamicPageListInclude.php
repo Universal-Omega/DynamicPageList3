@@ -1,8 +1,5 @@
 <?php
-// this file is UTF-8 encoded and contains some special characters.
-// Editing this file with an ASCII editor will potentially destroy it!
-
-/**#@+
+/**
  * This is a modified and enhanced copy of a mediawiki extension called
  *
  *       LabeledSectionTransclusion
@@ -26,78 +23,6 @@
  *
  * Thanks to Steve for his great work!
  * -- Algorithmix
- *
- * @version 0.9.8
- * %PAGE% and %TITLE% passed to templates
- * @version 0.9.8 patch 1
- * error in template inclusion corrected
- * @version 0.9.9
- *    default template inclusion added
- * @version 1.0.0
- *    internal changes due to dominantsection
- * @version 1.0.8
- *    added regexp matching condition at template based inclusion
- * @version 1.1.2
- *    changed heading matcher to allow selection of the n-th chapter
- * @version 1.1.3
- *    bug fix for 1.1.2 (avoid warning regarding parameter passing by reference)
- * @version 1.1.4
- *    easy access for one single template parameter
- * @version 1.1.6
- *    corrected strlen bug at template inclusion
- * @version 1.2.3
- *    allow %0 to transclude the contents before the first chapter
- * @version 1.2.5
- *    added includenotmatch
- * @version 1.2.9
- *    parameter recognition improved; nested template calls are now handled correctly
- * @version 1.3.8
- *    parameter recognition improved; nested hyperlinks are now handled correctly (balanced square brackets)
- * @version 1.3.9
- *    changed behaviour if template not found: now return null string if only one parameter was to be fetched
- * @version 1.4.2
- *    allow multiple parameters of a template to be returned directly as table columns
- *	  added field formatting via dpl call back for templates
- * @version 1.4.3
- *    allow regular expression for heading match at include
- * @version 1.4.4
- *    bugfix: handling of numeric template parameters
- * @version 1.5.2
- * 			includematch now understands parameter limits like {abc}:x[10]:y[20]
- *			error corrected in reduceToText (limit=1 delivered string of length 2)
- * @version 1.5.4
- * 			new parser function {{#dplchapter:text|heading|limit|page|linktext}}
- *			added provision fpr pre and nowiki in wiki text truncation fuction
- *			support %DATE% and %USER% within phantom templates
- * @version 1.6.1
- *			Escaping of "/" improved. In some cases a slash in a page name or in a template parameter could lead to php errors at INCLUDE
- * @version 1.6.2
- *			Template matching in include improved. "abc" must not match "abc def" but did so previously.
- * @version 1.6.3
- *			Changed section matching to allow wildcards.
- * @version 1.6.5
- *			changed call time by reference in extract Heading
- * @version 1.6.5
- *			changed call time by reference in extract Heading
- * @version 1.6.9
- *			added include trimming
- * @version 1.7.1
- *			allow % within included template parameters
- * @version 1.7.3
- *			%SECTION% can now be used within multiseseparators (see includeHeading)
- * @version 1.7.8
- *			allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageListInclude.php)
- * @version 1.7.9
- *			bug fix (near line #150): section inclusion did not work because all content was truncated to 0 bytes
- * @version 1.8.0
- *			removal of html-comments within template calls
- * @version 1.8.5
- *			includeTemplate understands parser function syntax now
- * @version 1.8.7
- *			UNIQ-QINU-Bug: replaced parser->replaceVariables by parser->preprocess
- * @version 2.0
- *			added %ARGS% to template surrogate call
- 
  */
 
 class DPLInclude {

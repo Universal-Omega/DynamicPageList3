@@ -11,12 +11,12 @@
 namespace DPL;
 
 class Variables {
-    static $memoryVar   = array();
-    static $memoryArray = array();
+    static public $memoryVar   = array();
+    static public $memoryArray = array();
 
 	// expects pairs of 'variable name' and 'value'
 	// if the first parameter is empty it will be ignored {{#vardefine:|a|b}} is the same as {{#vardefine:a|b}}
-    static function setVar($arg) {
+    static public function setVar($arg) {
         $numargs  = count($arg);
 		if ($numargs>=3 && $arg[2]=='')	$start=3;
 		else									$start=2;
@@ -28,7 +28,7 @@ class Variables {
         return '';
     }
  
-    static function setVarDefault($arg) {
+    static public function setVarDefault($arg) {
         $numargs  = count($arg);
         if ($numargs >3) $value = $arg[3];
 		else return '';
@@ -39,12 +39,12 @@ class Variables {
 		return '';
     }
 
-    static function getVar($var) {
+    static public function getVar($var) {
 	    if (array_key_exists($var,self::$memoryVar)) return self::$memoryVar[$var];
 	    return '';
     }
 
-    static function setArray($arg) {
+    static public function setArray($arg) {
         $numargs  = count($arg);
 		if ($numargs<5) return '';
 		$var = trim($arg[2]);
@@ -66,7 +66,7 @@ class Variables {
         return "value=$value, delimiter=$delimiter," . count(self::$memoryArray[$var]);
     }
 
-    static function dumpArray($arg) {
+    static public function dumpArray($arg) {
         $numargs  = count($arg);
 		if ($numargs<3) return '';
 		$var = trim($arg[2]);
@@ -81,7 +81,7 @@ class Variables {
 		return $text."}\n";
     }
 
-    static function printArray($var, $delimiter, $search, $subject) {
+    static public function printArray($var, $delimiter, $search, $subject) {
 		$var = trim($var);
 		if ($var=='') return '';
 		if (!array_key_exists($var,self::$memoryArray)) return '';
