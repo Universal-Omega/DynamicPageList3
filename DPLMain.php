@@ -2819,8 +2819,7 @@ Error message was:<br />\n<tt>".$dbr->lastError()."</tt>\n\n";
 			$footer = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sNoResultsFooter));
 			if ($sNoResultsFooter != '')	$output .=	str_replace( '\n', "\n", str_replace( "¶", "\n", $footer));
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') $output .= $logger->escapeMsg(ExtDynamicPageList::WARN_NORESULTS);
-		}
-		else {
+		} else {
 			if ($sResultsHeader != '')	$header = str_replace('%TOTALPAGES%',$rowcount,str_replace('%PAGES%',$dpl->getRowCount(),$sResultsHeader));
 		}
 		$header = str_replace( '\n', "\n", str_replace( "¶", "\n", $header ));
