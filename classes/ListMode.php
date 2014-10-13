@@ -22,9 +22,23 @@ class ListMode {
 	public $sSectionTags = array();
 	public $aMultiSecSeparators = array();
 	public $iDominantSection = -1;
-	
-	public function __construct($listmode, $secseparators, $multisecseparators, $inlinetext, $listattr = '', $itemattr = '',
-						  $listseparators, $iOffset, $dominantSection) {
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @param	string	List Mode
+	 * @param	string	Section Separators
+	 * @param	string	Multi-Section Separators
+	 * @param	string	Inline Text
+	 * @param	string	[Optional] List Attributes
+	 * @param	string	[Optional] Item Attributes
+	 * @param	string	List Separators
+	 * @param	integer	Offset
+	 * @param	integer	Dominant Section
+	 * @return	void
+	 */
+	public function __construct($listmode, $sectionSeparators, $multiSectionSeparators, $inlinetext, $listattr = '', $itemattr = '', $listseparators, $iOffset, $dominantSection) {
 		// default for inlinetext (if not in mode=userformat)
 		if (($listmode != 'userformat') && ($inlinetext == '')) {
 			$inlinetext = '&#160;-&#160;';
@@ -33,8 +47,8 @@ class ListMode {
 		$_listattr = ($listattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $listattr, 'ul' );
 		$_itemattr = ($itemattr == '') ? '' : ' ' . Sanitizer::fixTagAttributes( $itemattr, 'li' );
 		
-		$this->sSectionTags = $secseparators;
-		$this->aMultiSecSeparators = $multisecseparators;
+		$this->sSectionTags = $sectionSeparators;
+		$this->aMultiSecSeparators = $multiSectionSeparators;
 		$this->iDominantSection = $dominantSection - 1;  // 0 based index
 		
 		switch ($listmode) {
