@@ -54,8 +54,6 @@ if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 /******************************************/
 /* Final Setup                            */
 /******************************************/
-require_once('DPLSetup.php');
-
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	//Use full functionality by default.
 	ExtDynamicPageList::setFunctionalRichness(0);
