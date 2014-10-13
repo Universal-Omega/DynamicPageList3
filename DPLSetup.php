@@ -13,24 +13,7 @@
  *
  */
 
-function ExtDynamicPageList__endReset( &$parser, $text ) {
-	return ExtDynamicPageList::endReset( $parser, $text ); 
-}
-function ExtDynamicPageList__endEliminate( &$parser, $text ) { 
-	return ExtDynamicPageList::endEliminate( $parser, $text ); 
-}
-
 class ExtDynamicPageList {
-
-    public static $DPLVersion = '?';               // current version is set by DynamicPageList.php and DynamicPageListMigration.php
-
-	public static $useCacheAPI = true;				// decide whether we use another extension called CachePI which can help us
-													// to invalidate MediaWiki´s ParserCache if suitable
-
-	public static $modulesLoaded = false;			// php require_once control
-	
-    // Debug stuff
-
     // FATAL
     const FATAL_WRONGNS                             = 1;    // $0: 'namespace' or 'notnamespace'
                                                             // $1: wrong parameter given by user
@@ -889,8 +872,6 @@ class ExtDynamicPageList {
 							  $title, EDIT_NEW | EDIT_FORCE_BOT );
 			die(header('Location: '.Title::newFromText('Template:Extension DPL')->getFullURL()));
 		}
-
-        require_once( 'DPLVariables.php' );
 	}
 
 	private static function loadMessages() {
@@ -914,23 +895,6 @@ class ExtDynamicPageList {
 
 	}
 
-	private static function loadModules() {
-	
-		if (self::$modulesLoaded == true) return;
-		
-		self::loadMessages();
-
-        require_once( 'DynamicPageListInclude.php' );
-        require_once( 'DPL.php' );
-        require_once( 'DPLMain.php' );
-        require_once( 'DPLArticle.php' );
-        require_once( 'DPLListMode.php' );
-        require_once( 'DPLVariables.php' );
-        require_once( 'DPLLogger.php' );
-
-		self::$modulesLoaded = true;
-	}
-
     //------------------------------------------------------------------------------------- ENTRY parser TAG intersection
     public static function intersectionTag( $input, $params, $parser ) {
 		self::behaveLikeIntersection(true);
@@ -948,13 +912,13 @@ class ExtDynamicPageList {
     private static function executeTag( $input, $params, $parser ) {
 
 		// late loading of php modules, only if needed
-		self::loadModules();
+		self::loadMessages();
 
         // entry point for user tag <dpl>  or  <DynamicPageList>
         // create list and do a recursive parse of the output
     
         // $dump1   = self::dumpParsedRefs($parser,"before DPL tag");
-        $text    = DPLMain::dynamicPageList($input, $params, $parser, $reset, 'tag');
+        $text    = \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'tag');
         // $dump2   = self::dumpParsedRefs($parser,"after DPL tag");
         if ($reset[1]) {	// we can remove the templates by save/restore
             $saveTemplates = $parser->mOutput->mTemplates;
@@ -984,9 +948,7 @@ class ExtDynamicPageList {
 
     //------------------------------------------------------------------------------------- ENTRY parser FUNCTION #dpl
     public static function dplParserFunction(&$parser) {
-
-		// late loading of php modules, only if needed
-		self::loadModules();
+		self::loadMessages();
 
 		self::behaveLikeIntersection(false);
 		
@@ -1011,11 +973,11 @@ class ExtDynamicPageList {
     
         
         // $dump1   = self::dumpParsedRefs($parser,"before DPL func");
-        // $text    = DPLMain::dynamicPageList($input, $params, $parser, $reset, 'func');
+        // $text    = \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'func');
         // $dump2   = self::dumpParsedRefs($parser,"after DPL func");
         // return $dump1.$text.$dump2;
         
-        $dplresult = DPLMain::dynamicPageList($input, $params, $parser, $reset, 'func');
+        $dplresult = \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'func');
         return array( // parser needs to be coaxed to do further recursive processing
 	        $parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
     	    'isLocalObj' => true,
@@ -1044,13 +1006,18 @@ class ExtDynamicPageList {
 
     public static function dplVarParserFunction(&$parser, $cmd) {
 		$args = func_get_args();
-        if      ($cmd=='set')     return DPLVariables::setVar($args);
-        else if ($cmd=='default') return DPLVariables::setVarDefault($args);
-		return DPLVariables::getVar($cmd);
+        if ($cmd=='set') {
+			return \DPL\Variables::setVar($args);
+        } elseif ($cmd=='default') {
+			return \DPL\Variables::setVarDefault($args);
+		}
+		return \DPL\Variables::getVar($cmd);
     } 
 
     private static function isRegexp ($needle) {
-        if (strlen($needle)<3) return false;
+        if (strlen($needle)<3) {
+			return false;
+		}
         if (ctype_alnum($needle[0])) return false;
         $nettoNeedle = preg_replace('/[ismu]*$/','',$needle);
         if (strlen($nettoNeedle)<2) return false;

@@ -1,6 +1,16 @@
 <?php
- 
-class DPLVariables {
+/**
+ * DynamicPageList
+ * DPL Variables Class
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
+namespace DPL;
+
+class Variables {
     static $memoryVar   = array();
     static $memoryArray = array();
 

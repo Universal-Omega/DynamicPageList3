@@ -1,6 +1,16 @@
 <?php
+/**
+ * DynamicPageList
+ * DPL Logger Class
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
+namespace DPL;
 
-class DPLLogger {
+class Logger {
 
 	static $loaded = true;
 	

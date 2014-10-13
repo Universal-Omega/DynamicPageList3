@@ -8,8 +8,9 @@
  * @package		DynamicPageList
  *
  **/
+namespace DPL;
 
-class DPLMain {
+class Main {
 
 	/* ============================================================================================================
 	/									   MAIN FUNCTION
@@ -26,7 +27,7 @@ class DPLMain {
 		global $wgNonincludableNamespaces;
 
 		//logger (display of debug messages)
-		$logger = new DPLLogger();
+		$logger = new Logger();
 
 		//check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
@@ -2904,7 +2905,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				continue;
 			}
 
-			$dplArticle = new DPLArticle($title, $pageNamespace);
+			$dplArticle = new Article($title, $pageNamespace);
 			//PAGE LINK
 			$sTitleText = $title->getText();
 			if ($bShowNamespace) {
@@ -3085,9 +3086,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 
 		// ###### SHOW OUTPUT ######
 
-		$listMode = new DPLListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+		$listMode = new ListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
 
-		$hListMode = new DPLListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
 
 		$dpl = new DPL($aHeadings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $aArticles, $aOrderMethods[0], $hListMode, $listMode, $bEscapeLinks, $bAddExternalLink, $bIncPage, $iIncludeMaxLen, $aSecLabels, $aSecLabelsMatch, $aSecLabelsNotMatch, $bIncParsed, $parser, $logger, $aReplaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $sUpdateRules, $sDeleteRules);
 
@@ -3178,37 +3179,6 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			}
 			$parser->disableCache();
 		}
-
-		// update dependencies to CacheAPI if DPL is to respect the MW ParserCache and the page containing the DPL query is changed
-
-		if (ExtDynamicPageList::$useCacheAPI && $bAllowCachedResults && $wgRequest->getVal('action', 'view') == 'submit') {
-			/*
-			CacheAPI::remDependencies( $parser->mTitle->getArticleID());
-
-			// add category dependencies
-
-			$conditionTypes = array ( CACHETYPE_CATEGORY );
-			$conditions = array();
-			$conditions[0] = array();
-			$categorylist = array();
-			foreach ($aIncludeCategories as $categorygroup) {
-			$c=0;
-			foreach ($categorygroup as $category) {
-			if ($c==0) $conditions[0][]= $category;
-			$c++;
-			}
-			}
-
-			// add template dependencies
-
-			// add link dependencies
-
-			// add general dependencies
-
-			// CacheAPI::addDependencies ( $parser->mTitle->getArticleID(), $conditionTypes, $conditions);
-			*/
-		}
-
 
 		// The following requires an extra parser step which may consume some time
 		// we parse the DPL output and save all references found in that output in a global list
@@ -3383,7 +3353,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		global $wgRequest, $wgExtVariables;
 		$args = $wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
-			DPLVariables::setVar(array(
+			Variables::setVar(array(
 				'',
 				'',
 				$argName,
@@ -3404,55 +3374,55 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 	// these variables can be accessed as {{#var:DPL_firstTitle}} etc. if ExtensionVariables is installed
 	private static function defineScrollVariables($firstNamespace, $firstTitle, $lastNamespace, $lastTitle, $scrollDir, $dplCount, $dplElapsedTime, $totalPages, $pages) {
 		global $wgExtVariables;
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_firstNamespace',
 			$firstNamespace
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_firstTitle',
 			$firstTitle
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_lastNamespace',
 			$lastNamespace
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_lastTitle',
 			$lastTitle
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_scrollDir',
 			$scrollDir
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_time',
 			$dplElapsedTime
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_count',
 			$dplCount
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_totalPages',
 			$totalPages
 		));
-		DPLVariables::setVar(array(
+		Variables::setVar(array(
 			'',
 			'',
 			'DPL_pages',

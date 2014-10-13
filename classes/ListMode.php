@@ -1,6 +1,16 @@
 <?php
+/**
+ * DynamicPageList
+ * DPL ListMode Class
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
+namespace DPL;
 
-class DPLListMode {
+class ListMode {
 	var $name;
 	var $sListStart = '';
 	var $sListEnd = '';

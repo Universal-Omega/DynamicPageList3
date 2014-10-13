@@ -1,7 +1,16 @@
 <?php
+/**
+ * DynamicPageList
+ * DPL Article Class
+ *
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @license		GPL
+ * @package		DynamicPageList
+ *
+**/
+namespace DPL;
 
-// Simple Article/Page class with properties used in the DPL
-class DPLArticle {
+class Article {
 	var $mTitle = ''; 		// title
 	var $mNamespace = -1;	// namespace (number)
 	var $mID = 0;			// page_id
