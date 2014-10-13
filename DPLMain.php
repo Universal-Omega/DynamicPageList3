@@ -311,8 +311,9 @@ class DPLMain {
 
 
 		$aSecLabels = array();
-		if ($bIncPage)
+		if ($bIncPage) {
 			$aSecLabels = explode(',', $_incpage);
+		}
 		$aSecLabelsMatch    = array();
 		$aSecLabelsNotMatch = array();
 		$bIncParsed         = false; // default is to match raw parameters
@@ -1615,8 +1616,9 @@ class DPLMain {
 
 		// set COUNT
 
-		if ($sCount == '')
+		if ($sCount == '') {
 			$sCount = $sCountScroll;
+		}
 		if ($sCount == '') {
 			$iCount = -1;
 		} else {
@@ -1639,15 +1641,17 @@ class DPLMain {
 			$parser->disableCache();
 		}
 		// place cache warning in resultsheader
-		if ($bWarnCachedResults)
+		if ($bWarnCachedResults) {
 			$sResultsHeader = '{{DPL Cache Warning}}' . $sResultsHeader;
+		}
 
 
 
 		if ($sExecAndExit != '') {
 			// the keyword "geturlargs" is used to return the Url arguments and do nothing else.
-			if ($sExecAndExit == 'geturlargs')
+			if ($sExecAndExit == 'geturlargs') {
 				return '';
+			}
 			// in all other cases we return the value of the argument (which may contain parser function calls)
 			return $sExecAndExit;
 		}
@@ -1674,8 +1678,9 @@ class DPLMain {
 						$cachePeriod    = self::durationTime($iDPLCachePeriod);
 						$diffTime       = self::durationTime($diff);
 						$output .= substr($cachedOutput, $cachedOutputPos + 4);
-						if ($logger->iDebugLevel >= 2)
+						if ($logger->iDebugLevel >= 2) {
 							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$iOffset}}";
+						}
 						// ignore further parameters, stop processing, return cache content
 						return $output;
 					}
@@ -1715,16 +1720,20 @@ class DPLMain {
 				$bReset[7] = false;
 			}
 		} else {
-			if ($bReset[1])
+			if ($bReset[1]) {
 				ExtDynamicPageList::$createdLinks['resetTemplates'] = true;
-			if ($bReset[2])
+			}
+			if ($bReset[2]) {
 				ExtDynamicPageList::$createdLinks['resetCategories'] = true;
-			if ($bReset[3])
+			}
+			if ($bReset[3]) {
 				ExtDynamicPageList::$createdLinks['resetImages'] = true;
+			}
 		}
 		if (($calledInMode == 'tag' && $bReset[0]) || $calledInMode == 'func') {
-			if ($bReset[0])
+			if ($bReset[0]) {
 				ExtDynamicPageList::$createdLinks['resetLinks'] = true;
+			}
 			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
 			if (!isset($wgHooks['ParserAfterTidy']) || !(in_array('ExtDynamicPageList::endReset', $wgHooks['ParserAfterTidy']) || in_array(array(
@@ -1750,8 +1759,9 @@ class DPLMain {
 
 		// no selection criteria! Warn only if no debug level is set
 		if ($iTotalCatCount == 0 && $bSelectionCriteriaFound == false) {
-			if ($logger->iDebugLevel <= 1)
+			if ($logger->iDebugLevel <= 1) {
 				return $output;
+			}
 			return $output . $logger->escapeMsg(ExtDynamicPageList::FATAL_NOSELECTION);
 		}
 
@@ -1839,8 +1849,9 @@ class DPLMain {
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor))
+		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
 			$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_CATOUTPUTBUTWRONGPARAMS);
+		}
 
 		//headingmode has effects with ordermethod on multiple components only
 		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
@@ -1864,23 +1875,26 @@ class DPLMain {
 			$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
 			foreach (explode(',', $sTable) as $tabnr => $tab) {
 				if ($tabnr == 0) {
-					if ($tab == '')
+					if ($tab == '') {
 						$tab = 'class=wikitable';
+					}
 					$aListSeparators[0] = '{|' . $tab;
 				} else {
 					if ($tabnr == 1 && $tab == '-') {
 						$withHLink = '';
 						continue;
 					}
-					if ($tabnr == 1 && $tab == '')
+					if ($tabnr == 1 && $tab == '') {
 						$tab = 'Article';
+					}
 					$aListSeparators[0] .= "\n!$tab";
 				}
 			}
 			$aListSeparators[1] = '';
 			// the user may have specified the third parameter of 'format' to add meta attributes of articles to the table
-			if (!array_key_exists(2, $aListSeparators))
+			if (!array_key_exists(2, $aListSeparators)) {
 				$aListSeparators[2] = '';
+			}
 			$aListSeparators[3] = "\n|}";
 
 			for ($i = 0; $i < count($aSecLabels); $i++) {
@@ -1891,20 +1905,23 @@ class DPLMain {
 				} else {
 					$aSecSeparators[2 * $i]     = "\n|"; // ."\n";
 					$aSecSeparators[2 * $i + 1] = '';
-					if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0] == '#')
+					if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0] == '#') {
 						$aMultiSecSeparators[$i] = "\n----\n";
-					if ($aSecLabels[$i][0] == '#')
+					}
+					if ($aSecLabels[$i][0] == '#') {
 						$aMultiSecSeparators[$i] = "\n----\n";
-					else
+					} else {
 						$aMultiSecSeparators[$i] = "<br/>\n";
+					}
 				}
 			}
 		}
 
 		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
 		if ($sTitleLE != '' && $sTitleGE == '') {
-			if ($sOrder == 'ascending')
+			if ($sOrder == 'ascending') {
 				$sOrder = 'descending';
+			}
 		}
 
 		$output .= '{{Extension DPL}}';
@@ -1916,15 +1933,18 @@ class DPLMain {
 		$sSqlPage_size     = '';
 		$sSqlPage_touched  = '';
 		$sSqlCalcFoundRows = '';
-		if (!ExtDynamicPageList::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false)
+		if (!ExtDynamicPageList::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
 			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
-		if ($sDistinctResultSet == 'false')
+		}
+		if ($sDistinctResultSet == 'false') {
 			$sSqlDistinct = '';
-		else
+		} else {
 			$sSqlDistinct = 'DISTINCT';
+		}
 		$sSqlGroupBy = '';
-		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0)
+		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0) {
 			$sSqlGroupBy = 'page_title';
+		}
 		$sSqlSortkey            = '';
 		$sSqlCl_to              = '';
 		$sSqlCats               = '';
@@ -2056,22 +2076,26 @@ class DPLMain {
 			$sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
 			$n           = 0;
 			foreach ($aLinksTo as $linkGroup) {
-				if (++$n > 1)
+				if (++$n > 1) {
 					break;
+				}
 				$sSqlCond_page_pl .= '( ';
 				$m = 0;
 				foreach ($linkGroup as $link) {
-					if (++$m > 1)
+					if (++$m > 1) {
 						$sSqlCond_page_pl .= ' OR ';
+					}
 					$sSqlCond_page_pl .= '(pl.pl_namespace=' . intval($link->getNamespace());
-					if (strpos($link->getDbKey(), '%') >= 0)
+					if (strpos($link->getDbKey(), '%') >= 0) {
 						$operator = ' LIKE ';
-					else
+					} else {
 						$operator = '=';
-					if ($bIgnoreCase)
+					}
+					if ($bIgnoreCase) {
 						$sSqlCond_page_pl .= ' AND LOWER(CAST(pl.pl_title AS char))' . $operator . 'LOWER(' . $dbr->addQuotes($link->getDbKey()) . '))';
-					else
+					} else {
 						$sSqlCond_page_pl .= ' AND pl.pl_title' . $operator . $dbr->addQuotes($link->getDbKey()) . ')';
+					}
 				}
 				$sSqlCond_page_pl .= ')';
 			}
@@ -2079,22 +2103,26 @@ class DPLMain {
 		if (count($aLinksTo) > 1) {
 			$n = 0;
 			foreach ($aLinksTo as $linkGroup) {
-				if (++$n == 1)
+				if (++$n == 1) {
 					continue;
+				}
 				$m = 0;
 				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM ' . $sPageLinksTable . ' WHERE (' . $sPageLinksTable . '.pl_from=page_id AND (';
 				foreach ($linkGroup as $link) {
-					if (++$m > 1)
+					if (++$m > 1) {
 						$sSqlCond_page_pl .= ' OR ';
+					}
 					$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
-					if (strpos($link->getDbKey(), '%') >= 0)
+					if (strpos($link->getDbKey(), '%') >= 0) {
 						$operator = ' LIKE ';
-					else
+					} else {
 						$operator = '=';
-					if ($bIgnoreCase)
+					}
+					if ($bIgnoreCase) {
 						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . $dbr->addQuotes($link->getDbKey()) . ')';
-					else
+					} else {
 						$sSqlCond_page_pl .= ' AND ' . $sPageLinksTable . '.pl_title' . $operator . $dbr->addQuotes($link->getDbKey());
+					}
 					$sSqlCond_page_pl .= ')';
 				}
 				$sSqlCond_page_pl .= ')))';
@@ -2107,17 +2135,20 @@ class DPLMain {
 			$n = 0;
 			foreach ($aNotLinksTo as $links) {
 				foreach ($links as $link) {
-					if ($n > 0)
+					if ($n > 0) {
 						$sSqlCond_page_pl .= ' OR ';
+					}
 					$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
-					if (strpos($link->getDbKey(), '%') >= 0)
+					if (strpos($link->getDbKey(), '%') >= 0) {
 						$operator = ' LIKE ';
-					else
+					} else {
 						$operator = '=';
-					if ($bIgnoreCase)
+					}
+					if ($bIgnoreCase) {
 						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . $dbr->addQuotes($link->getDbKey()) . '))';
-					else
+					} else {
 						$sSqlCond_page_pl .= ' AND		 ' . $sPageLinksTable . '.pl_title' . $operator . $dbr->addQuotes($link->getDbKey()) . ')';
+					}
 					$n++;
 				}
 			}
@@ -2131,8 +2162,9 @@ class DPLMain {
 				$n = 0;
 				foreach ($aLinksFrom as $links) {
 					foreach ($links as $link) {
-						if ($n > 0)
+						if ($n > 0) {
 							$sSqlCond_page_pl .= ' OR ';
+						}
 						$sSqlCond_page_pl .= '(pl_from=' . $link->getArticleID() . ')';
 						$n++;
 					}
@@ -2145,8 +2177,9 @@ class DPLMain {
 				$n           = 0;
 				foreach ($aLinksFrom as $links) {
 					foreach ($links as $link) {
-						if ($n > 0)
+						if ($n > 0) {
 							$sSqlCond_page_pl .= ' OR ';
+						}
 						$sSqlCond_page_pl .= '(plf.pl_from=' . $link->getArticleID() . ')';
 						$n++;
 					}
@@ -2162,8 +2195,9 @@ class DPLMain {
 				$n = 0;
 				foreach ($aNotLinksFrom as $links) {
 					foreach ($links as $link) {
-						if ($n > 0)
+						if ($n > 0) {
 							$sSqlCond_page_pl .= ' AND ';
+						}
 						$sSqlCond_page_pl .= 'pl_from <> ' . $link->getArticleID() . ' ';
 						$n++;
 					}
@@ -2174,8 +2208,9 @@ class DPLMain {
 				$n = 0;
 				foreach ($aNotLinksFrom as $links) {
 					foreach ($links as $link) {
-						if ($n > 0)
+						if ($n > 0) {
 							$sSqlCond_page_pl .= ' OR ';
+						}
 						$sSqlCond_page_pl .= $sPageLinksTable . '.pl_from=' . $link->getArticleID() . ' ';
 						$n++;
 					}
@@ -2191,12 +2226,14 @@ class DPLMain {
 			$sSqlSelPage = ', el.el_to as el_to';
 			$n           = 0;
 			foreach ($aLinksToExternal as $linkGroup) {
-				if (++$n > 1)
+				if (++$n > 1) {
 					break;
+				}
 				$m = 0;
 				foreach ($linkGroup as $link) {
-					if (++$m > 1)
+					if (++$m > 1) {
 						$sSqlCond_page_el .= ' OR ';
+					}
 					$sSqlCond_page_el .= '(el.el_to LIKE ' . $dbr->addQuotes($link) . ')';
 				}
 			}
@@ -2205,13 +2242,15 @@ class DPLMain {
 		if (count($aLinksToExternal) > 1) {
 			$n = 0;
 			foreach ($aLinksToExternal as $linkGroup) {
-				if (++$n == 1)
+				if (++$n == 1) {
 					continue;
+				}
 				$m = 0;
 				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM ' . $sExternalLinksTable . ' WHERE (' . $sExternalLinksTable . '.el_from=page_id AND (';
 				foreach ($linkGroup as $link) {
-					if (++$m > 1)
+					if (++$m > 1) {
 						$sSqlCond_page_el .= ' OR ';
+					}
 					$sSqlCond_page_el .= '(' . $sExternalLinksTable . '.el_to LIKE ' . $dbr->addQuotes($link) . ')';
 				}
 				$sSqlCond_page_el .= ')))';
@@ -2225,12 +2264,14 @@ class DPLMain {
 			$sSqlSelPage = ', il.il_to AS image_sel_title';
 			$n           = 0;
 			foreach ($aImageUsed as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlCond_page_pl .= ' OR ';
-				if ($bIgnoreCase)
+				}
+				if ($bIgnoreCase) {
 					$sSqlCond_page_pl .= "LOWER(CAST(il.il_to AS char))=LOWER(" . $dbr->addQuotes($link->getDbKey()) . ')';
-				else
+				} else {
 					$sSqlCond_page_pl .= "il.il_to=" . $dbr->addQuotes($link->getDbKey());
+				}
 				$n++;
 			}
 			$sSqlCond_page_pl .= ')';
@@ -2246,12 +2287,14 @@ class DPLMain {
 			}
 			$n = 0;
 			foreach ($aImageContainer as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlCond_page_pl .= ' OR ';
-				if ($bIgnoreCase)
+				}
+				if ($bIgnoreCase) {
 					$sSqlCond_page_pl .= "LOWER(CAST(ic.il_from AS char)=LOWER(" . $dbr->addQuotes($link->getArticleID()) . ')';
-				else
+				} else {
 					$sSqlCond_page_pl .= "ic.il_from=" . $dbr->addQuotes($link->getArticleID());
+				}
 				$n++;
 			}
 			$sSqlCond_page_pl .= ')';
@@ -2263,13 +2306,15 @@ class DPLMain {
 			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id=tl.tl_from  AND (';
 			$n = 0;
 			foreach ($aUses as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlCond_page_pl .= ' OR ';
+				}
 				$sSqlCond_page_pl .= '(tl.tl_namespace=' . intval($link->getNamespace());
-				if ($bIgnoreCase)
+				if ($bIgnoreCase) {
 					$sSqlCond_page_pl .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(" . $dbr->addQuotes($link->getDbKey()) . '))';
-				else
+				} else {
 					$sSqlCond_page_pl .= " AND		 tl.tl_title=" . $dbr->addQuotes($link->getDbKey()) . ')';
+				}
 				$n++;
 			}
 			$sSqlCond_page_pl .= ')';
@@ -2280,13 +2325,15 @@ class DPLMain {
 			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id NOT IN (SELECT ' . $sTemplateLinksTable . '.tl_from FROM ' . $sTemplateLinksTable . ' WHERE (';
 			$n = 0;
 			foreach ($aNotUses as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlCond_page_pl .= ' OR ';
+				}
 				$sSqlCond_page_pl .= '(' . $sTemplateLinksTable . '.tl_namespace=' . intval($link->getNamespace());
-				if ($bIgnoreCase)
+				if ($bIgnoreCase) {
 					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sTemplateLinksTable . '.tl_title AS char))=LOWER(' . $dbr->addQuotes($link->getDbKey()) . '))';
-				else
+				} else {
 					$sSqlCond_page_pl .= ' AND ' . $sTemplateLinksTable . '.tl_title=' . $dbr->addQuotes($link->getDbKey()) . ')';
+				}
 				$n++;
 			}
 			$sSqlCond_page_pl .= ') )';
@@ -2298,8 +2345,9 @@ class DPLMain {
 				$sSqlCond_page_tpl .= ' AND (';
 				$n = 0;
 				foreach ($aUsedBy as $link) {
-					if ($n > 0)
+					if ($n > 0) {
 						$sSqlCond_page_tpl .= ' OR ';
+					}
 					$sSqlCond_page_tpl .= '(tpl_from=' . $link->getArticleID() . ')';
 					$n++;
 				}
@@ -2310,8 +2358,9 @@ class DPLMain {
 				$sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
 				$n           = 0;
 				foreach ($aUsedBy as $link) {
-					if ($n > 0)
+					if ($n > 0) {
 						$sSqlCond_page_tpl .= ' OR ';
+					}
 					$sSqlCond_page_tpl .= '(tpl.tl_from=' . $link->getArticleID() . ')';
 					$n++;
 				}
@@ -2326,8 +2375,9 @@ class DPLMain {
 			$sSqlRCTable = $sRCTable . ' AS rc, ';
 			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
 			$sSqlWhere .= ' AND page.page_id=rc.rc_cur_id';
-			if ($sSqlGroupBy != '')
+			if ($sSqlGroupBy != '') {
 				$sSqlGroupBy .= ', ';
+			}
 			$sSqlGroupBy .= 'rc.rc_cur_id';
 		}
 
@@ -2408,8 +2458,9 @@ class DPLMain {
 			$sSqlClTableForGC    = $sCategorylinksTable . ' AS cl_gc';
 			// Categorylinks table used by the Group Concat (GC) function above
 			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
-			if ($sSqlGroupBy != '')
+			if ($sSqlGroupBy != '') {
 				$sSqlGroupBy .= ', ';
+			}
 			$sSqlGroupBy .= $sSqlCl_to . $sPageTable . '.page_id';
 		}
 
@@ -2469,25 +2520,28 @@ class DPLMain {
 
 		// TitleIs
 		if ($sTitleIs != '') {
-			if ($bIgnoreCase)
+			if ($bIgnoreCase) {
 				$sSqlWhere .= ' AND LOWER(CAST(' . $sPageTable . '.page_title AS char)) = LOWER(' . $dbr->addQuotes($sTitleIs) . ')';
-			else
+			} else {
 				$sSqlWhere .= ' AND ' . $sPageTable . '.page_title = ' . $dbr->addQuotes($sTitleIs);
+			}
 		}
 
 		// TitleGE ...
 		if ($sTitleGE != '') {
 			$sSqlWhere .= ' AND (';
 			if (substr($sTitleGE, 0, 2) == '=_') {
-				if ($acceptOpenReferences)
+				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title >=' . $dbr->addQuotes(substr($sTitleGE, 2));
-				else
+				} else {
 					$sSqlWhere .= $sPageTable . '.page_title >=' . $dbr->addQuotes(substr($sTitleGE, 2));
+				}
 			} else {
-				if ($acceptOpenReferences)
+				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title >' . $dbr->addQuotes($sTitleGE);
-				else
+				} else {
 					$sSqlWhere .= $sPageTable . '.page_title >' . $dbr->addQuotes($sTitleGE);
+				}
 			}
 			$sSqlWhere .= ')';
 		}
@@ -2496,15 +2550,17 @@ class DPLMain {
 		if ($sTitleLE != '') {
 			$sSqlWhere .= ' AND (';
 			if (substr($sTitleLE, 0, 2) == '=_') {
-				if ($acceptOpenReferences)
+				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title <=' . $dbr->addQuotes(substr($sTitleLE, 2));
-				else
+				} else {
 					$sSqlWhere .= $sPageTable . '.page_title <=' . $dbr->addQuotes(substr($sTitleLE, 2));
+				}
 			} else {
-				if ($acceptOpenReferences)
+				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title <' . $dbr->addQuotes($sTitleLE);
-				else
+				} else {
 					$sSqlWhere .= $sPageTable . '.page_title <' . $dbr->addQuotes($sTitleLE);
+				}
 			}
 			$sSqlWhere .= ')';
 		}
@@ -2514,18 +2570,21 @@ class DPLMain {
 			$sSqlWhere .= ' AND (';
 			$n = 0;
 			foreach ($aTitleMatch as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlWhere .= ' OR ';
+				}
 				if ($acceptOpenReferences) {
-					if ($bIgnoreCase)
+					if ($bIgnoreCase) {
 						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))' . $sTitleMatchMode . strtolower($dbr->addQuotes($link));
-					else
+					} else {
 						$sSqlWhere .= 'pl_title' . $sTitleMatchMode . $dbr->addQuotes($link);
+					}
 				} else {
-					if ($bIgnoreCase)
+					if ($bIgnoreCase) {
 						$sSqlWhere .= 'LOWER(CAST(' . $sPageTable . '.page_title AS char))' . $sTitleMatchMode . strtolower($dbr->addQuotes($link));
-					else
+					} else {
 						$sSqlWhere .= $sPageTable . '.page_title' . $sTitleMatchMode . $dbr->addQuotes($link);
+					}
 				}
 				$n++;
 			}
@@ -2537,18 +2596,21 @@ class DPLMain {
 			$sSqlWhere .= ' AND NOT (';
 			$n = 0;
 			foreach ($aNotTitleMatch as $link) {
-				if ($n > 0)
+				if ($n > 0) {
 					$sSqlWhere .= ' OR ';
+				}
 				if ($acceptOpenReferences) {
-					if ($bIgnoreCase)
+					if ($bIgnoreCase) {
 						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . $dbr->addQuotes($link) . ')';
-					else
+					} else {
 						$sSqlWhere .= 'pl_title' . $sNotTitleMatchMode . $dbr->addQuotes($link);
+					}
 				} else {
-					if ($bIgnoreCase)
+					if ($bIgnoreCase) {
 						$sSqlWhere .= 'LOWER(CAST(' . $sPageTable . '.page_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . $dbr->addQuotes($link) . ')';
-					else
+					} else {
 						$sSqlWhere .= $sPageTable . '.page_title' . $sNotTitleMatchMode . $dbr->addQuotes($link);
+					}
 				}
 				$n++;
 			}
@@ -2645,8 +2707,9 @@ class DPLMain {
 			$sSqlWhere .= ' ORDER BY ';
 			foreach ($aOrderMethods as $i => $sOrderMethod) {
 
-				if ($i > 0)
+				if ($i > 0) {
 					$sSqlWhere .= ', ';
+				}
 
 				switch ($sOrderMethod) {
 					case 'category':
@@ -2666,10 +2729,11 @@ class DPLMain {
 						break;
 					case 'lastedit':
 						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
-						if (ExtDynamicPageList::$behavingLikeIntersection)
+						if (ExtDynamicPageList::$behavingLikeIntersection) {
 							$sSqlWhere .= 'page_touched';
-						else
+						} else {
 							$sSqlWhere .= 'rev_timestamp';
+						}
 						break;
 					case 'pagetouched':
 						$sSqlWhere .= 'page_touched';
@@ -2680,10 +2744,11 @@ class DPLMain {
 						$sSqlWhere .= 'sortkey';
 						break;
 					case 'titlewithoutnamespace':
-						if ($acceptOpenReferences)
+						if ($acceptOpenReferences) {
 							$sSqlWhere .= "pl_title";
-						else
+						} else {
 							$sSqlWhere .= "page_title";
+						}
 						break;
 					case 'user':
 						// rev_user_text can discriminate anonymous users (e.g. based on IP), rev_user cannot (=' 0' for all)
@@ -2692,17 +2757,19 @@ class DPLMain {
 					default:
 				}
 			}
-			if ($sOrder == 'descending')
+			if ($sOrder == 'descending') {
 				$sSqlWhere .= ' DESC';
-			else
+			} else {
 				$sSqlWhere .= ' ASC';
+			}
 		}
 
 		if ($sAllRevisionsSince != '' || $sAllRevisionsBefore != '') {
-			if ($aOrderMethods[0] == '' || $aOrderMethods[0] == 'none')
+			if ($aOrderMethods[0] == '' || $aOrderMethods[0] == 'none') {
 				$sSqlWhere .= ' ORDER BY ';
-			else
+			} else {
 				$sSqlWhere .= ', ';
+			}
 			$sSqlWhere .= 'rev_id DESC';
 		}
 
@@ -2710,8 +2777,9 @@ class DPLMain {
 		// we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
 		if ((!ExtDynamicPageList::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
 			$sSqlWhere .= " LIMIT $iOffset, ";
-			if ($iCount < 0)
+			if ($iCount < 0) {
 				$iCount = intval(ExtDynamicPageList::$options['count']['default']);
+			}
 			$sSqlWhere .= $iCount;
 		}
 
@@ -2720,10 +2788,11 @@ class DPLMain {
 
 		if ($sGoal == 'categories') {
 			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $sCategorylinksTable . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $sPageTable . '.page_id FROM ', $sSqlSelectFrom);
-			if ($sOrder == 'descending')
+			if ($sOrder == 'descending') {
 				$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
-			else
+			} else {
 				$sSqlWhere .= ' ) ORDER BY cl3.cl_to ASC';
+			}
 		}
 
 
@@ -2756,13 +2825,16 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 
 		if ($dbr->numRows($res) <= 0) {
 			$header = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsHeader));
-			if ($sNoResultsHeader != '')
+			if ($sNoResultsHeader != '') {
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
+			}
 			$footer = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsFooter));
-			if ($sNoResultsFooter != '')
+			if ($sNoResultsFooter != '') {
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
-			if ($sNoResultsHeader == '' && $sNoResultsFooter == '')
+			}
+			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
 				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_NORESULTS);
+			}
 			$dbr->freeResult($res);
 			return $output;
 		}
@@ -2819,8 +2891,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			}
 
 			// if subpages are to be excluded: skip them
-			if (!$bIncludeSubpages && (!(strpos($pageTitle, '/') === false)))
+			if (!$bIncludeSubpages && (!(strpos($pageTitle, '/') === false))) {
 				continue;
+			}
 
 			$title     = Title::makeTitle($pageNamespace, $pageTitle);
 			$thisTitle = $parser->getTitle();
@@ -2834,14 +2907,17 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			$dplArticle = new DPLArticle($title, $pageNamespace);
 			//PAGE LINK
 			$sTitleText = $title->getText();
-			if ($bShowNamespace)
+			if ($bShowNamespace) {
 				$sTitleText = $title->getPrefixedText();
-			if ($aReplaceInTitle[0] != '')
+			}
+			if ($aReplaceInTitle[0] != '') {
 				$sTitleText = preg_replace($aReplaceInTitle[0], $aReplaceInTitle[1], $sTitleText);
+			}
 
 			//chop off title if "too long"
-			if (isset($iTitleMaxLen) && (strlen($sTitleText) > $iTitleMaxLen))
+			if (isset($iTitleMaxLen) && (strlen($sTitleText) > $iTitleMaxLen)) {
 				$sTitleText = substr($sTitleText, 0, $iTitleMaxLen) . '...';
+			}
 			if ($bShowCurID && isset($row->page_id)) {
 				//$articleLink = '<html>'.Linker::makeKnownLinkObj($title, htmlspecialchars($sTitleText),'curid='.$row->page_id).'</html>';
 				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row->page_id . '}} ' . htmlspecialchars($sTitleText) . ']';
@@ -2866,14 +2942,16 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			}
 
 			// page_id
-			if (isset($row->page_id))
+			if (isset($row->page_id)) {
 				$dplArticle->mID = $row->page_id;
-			else
+			} else {
 				$dplArticle->mID = 0;
+			}
 
 			// external link
-			if (isset($row->el_to))
+			if (isset($row->el_to)) {
 				$dplArticle->mExternalLink = $row->el_to;
+			}
 
 			//SHOW PAGE_COUNTER
 			if (isset($row->page_counter)) {
@@ -2913,14 +2991,15 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				}
 
 				//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
-				if ($bAddPageTouchedDate)
+				if ($bAddPageTouchedDate) {
 					$dplArticle->mDate = $row->page_touched;
-				elseif ($bAddFirstCategoryDate)
+				} elseif ($bAddFirstCategoryDate) {
 					$dplArticle->mDate = $row->cl_timestamp;
-				elseif ($bAddEditDate && isset($row->rev_timestamp))
+				} elseif ($bAddEditDate && isset($row->rev_timestamp)) {
 					$dplArticle->mDate = $row->rev_timestamp;
-				elseif ($bAddEditDate && isset($row->page_touched))
+				} elseif ($bAddEditDate && isset($row->page_touched)) {
 					$dplArticle->mDate = $row->page_touched;
+				}
 
 				// time zone adjustment
 				if ($dplArticle->mDate != '') {
@@ -2994,12 +3073,14 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		}
 
 		// backward scrolling: if the user specified titleLE we reverse the output order
-		if ($sTitleLE != '' && $sTitleGE == '' && $sOrder == 'descending')
+		if ($sTitleLE != '' && $sTitleGE == '' && $sOrder == 'descending') {
 			$aArticles = array_reverse($aArticles);
+		}
 
 		// special sort for card suits (Bridge)
-		if ($bOrderSuitSymbols)
+		if ($bOrderSuitSymbols) {
 			self::cardSuitSort($aArticles);
+		}
 
 
 		// ###### SHOW OUTPUT ######
@@ -3010,24 +3091,29 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 
 		$dpl = new DPL($aHeadings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $aArticles, $aOrderMethods[0], $hListMode, $listMode, $bEscapeLinks, $bAddExternalLink, $bIncPage, $iIncludeMaxLen, $aSecLabels, $aSecLabelsMatch, $aSecLabelsNotMatch, $bIncParsed, $parser, $logger, $aReplaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $sUpdateRules, $sDeleteRules);
 
-		if ($rowcount == -1)
+		if ($rowcount == -1) {
 			$rowcount = $dpl->getRowCount();
+		}
 		$dplResult = $dpl->getText();
 		$header    = '';
 		if ($sOneResultHeader != '' && $rowcount == 1) {
 			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', 1, $sOneResultHeader));
 		} else if ($rowcount == 0) {
 			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsHeader));
-			if ($sNoResultsHeader != '')
+			if ($sNoResultsHeader != '') {
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
+			}
 			$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsFooter));
-			if ($sNoResultsFooter != '')
+			if ($sNoResultsFooter != '') {
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
-			if ($sNoResultsHeader == '' && $sNoResultsFooter == '')
+			}
+			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
 				$output .= $logger->escapeMsg(ExtDynamicPageList::WARN_NORESULTS);
+			}
 		} else {
-			if ($sResultsHeader != '')
+			if ($sResultsHeader != '') {
 				$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsHeader));
+			}
 		}
 		$header = str_replace('\n', "\n", str_replace("¶", "\n", $header));
 		$header = str_replace('%VERSION%', ExtDynamicPageList::$DPLVersion, $header);
@@ -3035,8 +3121,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		if ($sOneResultFooter != '' && $rowcount == 1) {
 			$footer = str_replace('%PAGES%', 1, $sOneResultFooter);
 		} else {
-			if ($sResultsFooter != '')
+			if ($sResultsFooter != '') {
 				$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsFooter));
+			}
 		}
 		$footer = str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 		$footer = str_replace('%VERSION%', ExtDynamicPageList::$DPLVersion, $footer);
@@ -3086,8 +3173,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			fwrite($cFile, $output);
 			fclose($cFile);
 			$dplElapsedTime = time() - $dplStartTime;
-			if ($logger->iDebugLevel >= 2)
+			if ($logger->iDebugLevel >= 2) {
 				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$iOffset}}";
+			}
 			$parser->disableCache();
 		}
 
@@ -3173,12 +3261,14 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		$errorMsg = '';
 		$pages    = explode('|', trim($text));
 		foreach ($pages as $page) {
-			if (($page = trim($page)) == '')
+			if (($page = trim($page)) == '') {
 				continue;
+			}
 			// sequences like %1a would be translated to hex chars; we avoid this by escaping the cahr after the %
 			$page = str_replace('%', '%\\', $page);
-			if ($page[strlen($page) - 1] == '\\')
+			if ($page[strlen($page) - 1] == '\\') {
 				$page = substr($page, 0, strlen($page) - 1);
+			}
 			if ($mustExist) {
 				if (!($theTitle = Title::newFromText($page))) {
 					$errorMsg .= $logger->msgWrongParam($cmd, $page) . "<br/>\n";
@@ -3207,8 +3297,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			$groupNr++;
 			$cols = explode('}:', $label);
 			if (count($cols) <= 1) {
-				if (array_key_exists($t, $tableRow))
+				if (array_key_exists($t, $tableRow)) {
 					$aTableRow[$groupNr] = $tableRow[$t];
+				}
 			} else {
 				$n     = count(explode(':', $cols[1]));
 				$colNr = -1;
@@ -3216,8 +3307,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				for ($i = 1; $i <= $n; $i++) {
 					$colNr++;
 					$t++;
-					if (array_key_exists($t, $tableRow))
+					if (array_key_exists($t, $tableRow)) {
 						$aTableRow[$groupNr . '.' . $colNr] = $tableRow[$t];
+					}
 				}
 			}
 		}
@@ -3258,14 +3350,18 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 	}
 
 	private static function durationTime($t) {
-		if ($t < 60)
+		if ($t < 60) {
 			return "00:00:" . str_pad($t, 2, "0", STR_PAD_LEFT);
-		if ($t < 3600)
+		}
+		if ($t < 3600) {
 			return "00:" . str_pad(floor($t / 60), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod($t, 60)), 2, "0", STR_PAD_LEFT);
-		if ($t < 86400)
+		}
+		if ($t < 86400) {
 			return str_pad(floor($t / 3600), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod(floor($t / 60), 60)), 2, "0", STR_PAD_LEFT) . ':' . str_pad(fmod($t, 60), 2, "0", STR_PAD_LEFT);
-		if ($t < 2 * 86400)
+		}
+		if ($t < 2 * 86400) {
 			return "1 day";
+		}
 		return floor($t / 86400) . ' days';
 	}
 
@@ -3294,8 +3390,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				$argValue
 			));
 		}
-		if (!isset($wgExtVariables))
+		if (!isset($wgExtVariables)) {
 			return;
+		}
 		$args  = $wgRequest->getValues();
 		$dummy = '';
 		foreach ($args as $argName => $argValue) {
@@ -3362,8 +3459,9 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 			$pages
 		));
 
-		if (!isset($wgExtVariables))
+		if (!isset($wgExtVariables)) {
 			return;
+		}
 		$dummy = '';
 		$wgExtVariables->vardefine($dummy, 'DPL_firstNamespace', $firstNamespace);
 		$wgExtVariables->vardefine($dummy, 'DPL_firstTitle', $firstTitle);
@@ -3407,18 +3505,19 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				if ($initial >= '1' && $initial <= '7') {
 					$newkey .= $initial;
 					$suit = substr($tok, 1);
-					if ($suit == '♣')
+					if ($suit == '♣') {
 						$newkey .= '1';
-					else if ($suit == '♦')
+					} else if ($suit == '♦') {
 						$newkey .= '2';
-					else if ($suit == '♥')
+					} else if ($suit == '♥') {
 						$newkey .= '3';
-					else if ($suit == '♠')
+					} else if ($suit == '♠') {
 						$newkey .= '4';
-					else if ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT')
+					} else if ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
 						$newkey .= '5 ';
-					else
+					} else {
 						$newkey .= $suit;
+					}
 				} else if ($initial == 'P' || $initial == 'p')
 					$newkey .= '0 ';
 				else if ($initial == 'X' || $initial == 'x')
