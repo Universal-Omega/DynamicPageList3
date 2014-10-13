@@ -41,7 +41,8 @@ $wgAutoloadClasses['ExtDynamicPageList']			= "{$extDir}/DPLSetup.php";
 $wgAutoloadClasses['DPL']							= "{$extDir}/DPL.php";
 $wgAutoloadClasses['DPL\Main']						= "{$extDir}/classes/Main.php";
 $wgAutoloadClasses['DPL\Article']					= "{$extDir}/classes/Article.php";
-$wgAutoloadClasses['DPL\ListMode']					= "{$extDir}/classes/ListMode.php";
+$wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
+$wgAutoloadClasses['DPL\Include']					= "{$extDir}/classes/Include.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";
 

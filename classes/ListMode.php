@@ -97,16 +97,16 @@ class ListMode {
 				switch (count($listseparators)) {
 					case 4:
 						$this->sListEnd = $listseparators[3];
-						break:
+						break;
 					case 3:
 						$this->sItemEnd = $listseparators[2];
-						break:
+						break;
 					case 2:
 						$this->sItemStart = $listseparators[1];
-						break:
+						break;
 					case 1:
 						$this->sListStart = $listseparators[0];
-						break:
+						break;
 				}
 				$this->sInline = $inlinetext;
 				break;

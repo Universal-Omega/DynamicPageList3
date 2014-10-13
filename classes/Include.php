@@ -24,8 +24,9 @@
  * Thanks to Steve for his great work!
  * -- Algorithmix
  */
+namespace DPL;
 
-class DPLInclude {
+class Include {
 
     ##############################################################
     # To do transclusion from an extension, we need to interact with the parser
