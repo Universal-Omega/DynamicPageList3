@@ -499,13 +499,13 @@ class Main {
 									$sParamList = explode('|', self::getSubcategories(substr($sParam, 1), $sPageTable, 1));
 								}
 								foreach ($sParamList as $sPar) {
-									$title = Title::newFromText($sPar);
+									$title = \Title::newFromText($sPar);
 									if (!is_null($title)) {
 										$aCategories[] = $title->getDbKey();
 									}
 								}
 							} else {
-								$title = Title::newFromText($sParam);
+								$title = \Title::newFromText($sParam);
 								if (!is_null($title)) {
 									$aCategories[] = $title->getDbKey();
 								}
@@ -539,7 +539,7 @@ class Main {
 					}
 					break;
 				case 'notcategory':
-					$title = Title::newFromText($sArg);
+					$title = \Title::newFromText($sArg);
 					if (!is_null($title)) {
 						$aExcludeCategories[]         = $title->getDbKey();
 						$bConflictsWithOpenReferences = true;
@@ -825,7 +825,7 @@ class Main {
 				case 'title':
 					// we replace blanks by underscores to meet the internal representation
 					// of page names in the database
-					$title = Title::newFromText($sArg);
+					$title = \Title::newFromText($sArg);
 					if ($title) {
 						$sNamespace                   = $title->getNamespace();
 						$sTitleIs                     = str_replace(' ', '_', $title->getText());
@@ -980,7 +980,7 @@ class Main {
 						if (trim($page) == '') {
 							continue;
 						}
-						if (!($theTitle = Title::newFromText(trim($page)))) {
+						if (!($theTitle = \Title::newFromText(trim($page)))) {
 							return $logger->msgWrongParam('imageused', $sArg);
 						}
 						$aImageUsed[$n++]        = $theTitle;
@@ -999,7 +999,7 @@ class Main {
 						if (trim($page) == '') {
 							continue;
 						}
-						if (!($theTitle = Title::newFromText(trim($page)))) {
+						if (!($theTitle = \Title::newFromText(trim($page)))) {
 							return $logger->msgWrongParam('imagecontainer', $sArg);
 						}
 						$aImageContainer[$n++]   = $theTitle;
@@ -1017,7 +1017,7 @@ class Main {
 						if (trim($page) == '') {
 							continue;
 						}
-						if (!($theTitle = Title::newFromText(trim($page)))) {
+						if (!($theTitle = \Title::newFromText(trim($page)))) {
 							return $logger->msgWrongParam('uses', $sArg);
 						}
 						$aUses[$n++]             = $theTitle;
@@ -1036,7 +1036,7 @@ class Main {
 						if (trim($page) == '') {
 							continue;
 						}
-						if (!($theTitle = Title::newFromText(trim($page)))) {
+						if (!($theTitle = \Title::newFromText(trim($page)))) {
 							return $logger->msgWrongParam('notuses', $sArg);
 						}
 						$aNotUses[$n++]          = $theTitle;
@@ -1055,7 +1055,7 @@ class Main {
 						if (trim($page) == '') {
 							continue;
 						}
-						if (!($theTitle = Title::newFromText(trim($page)))) {
+						if (!($theTitle = \Title::newFromText(trim($page)))) {
 							return $logger->msgWrongParam('usedby', $sArg);
 						}
 						$aUsedBy[$n++]           = $theTitle;
@@ -1735,11 +1735,8 @@ class Main {
 			}
 			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
-			if (!isset($wgHooks['ParserAfterTidy']) || !(in_array('ExtDynamicPageList::endReset', $wgHooks['ParserAfterTidy']) || in_array(array(
-				'ExtDynamicPageList',
-				'endReset'
-			), $wgHooks['ParserAfterTidy'], true))) {
-				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList' . '__endReset';
+			if (!in_array('ExtDynamicPageList::endReset', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList::endReset';
 			}
 		}
 
@@ -2900,7 +2897,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				continue;
 			}
 
-			$title     = Title::makeTitle($pageNamespace, $pageTitle);
+			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
 			$thisTitle = $parser->getTitle();
 
 			// block recursion: avoid to show the page which contains the DPL statement as part of the result
@@ -3192,11 +3189,8 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 		if ($bReset[4] || $bReset[5] || $bReset[6] || $bReset[7]) {
 			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
-			if (!isset($wgHooks['ParserAfterTidy']) || !(in_array('ExtDynamicPageList::endEliminate', $wgHooks['ParserAfterTidy']) || in_array(array(
-				'ExtDynamicPageList',
-				'endEliminate'
-			), $wgHooks['ParserAfterTidy'], true))) {
-				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList' . '__endEliminate';
+			if (!in_array('ExtDynamicPageList::endEliminate', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList::endEliminate';
 			}
 			$parserOutput = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
 		}
@@ -3244,7 +3238,7 @@ Error message was:<br />\n<tt>" . $dbr->lastError() . "</tt>\n\n";
 				$page = substr($page, 0, strlen($page) - 1);
 			}
 			if ($mustExist) {
-				if (!($theTitle = Title::newFromText($page))) {
+				if (!($theTitle = \Title::newFromText($page))) {
 					$errorMsg .= $logger->msgWrongParam($cmd, $page) . "<br/>\n";
 					continue;
 				}

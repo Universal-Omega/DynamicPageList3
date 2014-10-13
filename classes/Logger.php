@@ -35,7 +35,7 @@ class Logger {
 	 * @return	string
 	 */
 	public function msg($msgid) {
-		if ($this->iDebugLevel >= ExtDynamicPageList::$debugMinLevels[$msgid]) {
+		if ($this->iDebugLevel >= \ExtDynamicPageList::$debugMinLevels[$msgid]) {
 			$args = func_get_args();
 			array_shift($args);
 			$val = '';
@@ -47,14 +47,14 @@ class Logger {
 			 * @todo add a DPL id to identify the DPL tag that generates the message, in case of multiple DPLs in the page
 			 */
 			$text = '';
-			if (ExtDynamicPageList::$behavingLikeIntersection) {
-				if ($msgid == ExtDynamicPageList::FATAL_TOOMANYCATS)
+			if (\ExtDynamicPageList::$behavingLikeIntersection) {
+				if ($msgid == \ExtDynamicPageList::FATAL_TOOMANYCATS)
 					$text = wfMessage('intersection_toomanycats', $args)->text();
-				else if ($msgid == ExtDynamicPageList::FATAL_TOOFEWCATS)
+				else if ($msgid == \ExtDynamicPageList::FATAL_TOOFEWCATS)
 					$text = wfMessage('intersection_toofewcats', $args)->text();
-				else if ($msgid == ExtDynamicPageList::WARN_NORESULTS)
+				else if ($msgid == \ExtDynamicPageList::WARN_NORESULTS)
 					$text = wfMessage('intersection_noresults', $args)->text();
-				else if ($msgid == ExtDynamicPageList::FATAL_NOSELECTION)
+				else if ($msgid == \ExtDynamicPageList::FATAL_NOSELECTION)
 					$text = wfMessage('intersection_noincludecats', $args)->text();
 			}
 			if ($text == '') {
@@ -89,23 +89,23 @@ class Logger {
 	 * @return	string	HTML error message
 	 */
 	public function msgWrongParam($paramvar, $val) {
-		$msgid = ExtDynamicPageList::WARN_WRONGPARAM;
+		$msgid = \ExtDynamicPageList::WARN_WRONGPARAM;
 		switch ($paramvar) {
 			case 'namespace':
 			case 'notnamespace':
-				$msgid = ExtDynamicPageList::FATAL_WRONGNS;
+				$msgid = \ExtDynamicPageList::FATAL_WRONGNS;
 				break;
 			case 'linksto':
 			case 'notlinksto':
 			case 'linksfrom':
-				$msgid = ExtDynamicPageList::FATAL_WRONGLINKSTO;
+				$msgid = \ExtDynamicPageList::FATAL_WRONGLINKSTO;
 				break;
 			case 'titlemaxlength':
 			case 'includemaxlength':
-				$msgid = ExtDynamicPageList::WARN_WRONGPARAM_INT;
+				$msgid = \ExtDynamicPageList::WARN_WRONGPARAM_INT;
 				break;
 			default:
-				$msgid = ExtDynamicPageList::WARN_UNKNOWNPARAM;
+				$msgid = \ExtDynamicPageList::WARN_UNKNOWNPARAM;
 				break;
 		}
 
