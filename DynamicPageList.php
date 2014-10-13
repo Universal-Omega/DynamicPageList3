@@ -44,6 +44,8 @@ $wgAutoloadClasses['DPL\Article']					= "{$extDir}/classes/Article.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
 $wgAutoloadClasses['DPL\Include']					= "{$extDir}/classes/Include.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
+$wgAutoloadClasses['DPL\Options']					= "{$extDir}/classes/Options.php";
+$wgAutoloadClasses['DPL\Parameters']				= "{$extDir}/classes/Parameters.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";
 
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
@@ -57,8 +59,8 @@ if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 /******************************************/
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	//Use full functionality by default.
-	ExtDynamicPageList::setFunctionalRichness(0);
+	\DPL\Parameters::setRichness(0);
 } else {
-	ExtDynamicPageList::setFunctionalRichness(4);
+	\DPL\Parameters::setRichness(4);
 }
 ?>

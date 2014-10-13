@@ -23,7 +23,7 @@ class Logger {
 	 * @return	void
 	 */
 	public function __construct() {
-		$this->iDebugLevel = ExtDynamicPageList::$options['debug']['default'];
+		$this->iDebugLevel = Options::$options['debug']['default'];
 	}
 
 	/**
@@ -109,15 +109,15 @@ class Logger {
 				break;
 		}
 
-		if (ExtDynamicPageList::$options[$paramvar] != null) {
-			$paramoptions = array_unique(ExtDynamicPageList::$options[$paramvar]);
+		if (Options::$options[$paramvar] != null) {
+			$paramoptions = array_unique(Options::$options[$paramvar]);
 			sort($paramoptions);
 			$paramoptions = implode(' | ', $paramoptions);
 		} else {
 			$paramoptions = null;
 		}
 
-		return $this->escapeMsg($msgid, $paramvar, htmlspecialchars($val), ExtDynamicPageList::$options[$paramvar]['default'], $paramoptions);
+		return $this->escapeMsg($msgid, $paramvar, htmlspecialchars($val), Options::$options[$paramvar]['default'], $paramoptions);
 	}
 }
 ?>

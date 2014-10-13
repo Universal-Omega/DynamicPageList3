@@ -341,7 +341,7 @@
 * Error correction: non existing array index 0 when trying to includematch content in a non-existing chapter (near #3887) 
 
 #Version 1.7.7
-* Configuration switch allows to run DPL from protected pages only (ExtDynamicPageList::$options['RunFromProtectedPagesOnly'])
+* Configuration switch allows to run DPL from protected pages only (Options::$options['RunFromProtectedPagesOnly'])
 
 #Version 1.7.8
 * Allow html/wiki comments within template parameter assignments (include statement, line 540ff of DynamicPageListInclude.php)
