@@ -26,7 +26,7 @@
  */
 namespace DPL;
 
-class Include {
+class LST {
 
     ##############################################################
     # To do transclusion from an extension, we need to interact with the parser

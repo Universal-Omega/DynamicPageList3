@@ -345,7 +345,7 @@ class ExtDynamicPageList {
 	}
 
 	public static function dplChapterParserFunction(&$parser, $text='', $heading=' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim=false ) {
-		$output = DPLInclude::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
+		$output = \DPL\LST::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
 		return $output[0];
 	}
 
