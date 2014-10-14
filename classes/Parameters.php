@@ -12,13 +12,6 @@ namespace DPL;
 
 class Parameters extends ParametersData {
 	/**
-	 * \DPL\Options object.
-	 *
-	 * @var		objects
-	 */
-	private $options;
-
-	/**
 	 * Set parameter options.
 	 *
 	 * @var		array
@@ -56,30 +49,30 @@ class Parameters extends ParametersData {
 		$success = true;
 		$parameterData = $this->getData($parameter);
 		if ($parameterData !== false) {
-			$this->setOption[$parameter] = $option;
+			$this->setParameter($parameter, $option);
 
 			//If a parameter specifies options then enforce them.
 			if (is_array($parameterData['values']) === true && in_array($option, $parameterData['values'])) {
-				$this->setOption[$parameter] = $option;
+				$this->setParameter($parameter, $option);
 			} else {
 				$success = false;
 			}
 
 			//Strip <html> tag.
 			if ($parameterData['strip_html'] === true) {
-				$this->setOption[$parameter] = self::stripHtmlTags($option);
+				$this->setParameter($parameter, self::stripHtmlTags($option));
 			}
 
 			//Simple integer intval().
 			if ($parameterData['integer'] === true) {
 				if (!is_numeric($option)) {
 					if ($parameterData['default'] !== null) {
-						$this->setOption[$parameter] = intval($parameterData['default']);
+						$this->setParameter($parameter, intval($parameterData['default']));
 					} else {
 						$success = false;
 					}
 				} else {
-					$this->setOption[$parameter] = intval($option);
+					$this->setParameter($parameter, intval($option));
 				}
 			}
 
@@ -87,7 +80,7 @@ class Parameters extends ParametersData {
 			if ($parameterData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
 				if ($option !== null) {
-					$this->setOption[$parameter] = $option;
+					$this->setParameter($parameter, $option);
 				} else {
 					$success = false;
 				}
@@ -97,7 +90,7 @@ class Parameters extends ParametersData {
 			if ($parameterData['timestamp'] === true) {
 				$option = wfTimestamp(TS_MW, $option);
 				if ($option !== false) {
-					$this->setOption[$parameter] = $option;
+					$this->setParameter($parameter, $option);
 				} else {
 					$success = false;
 				}
@@ -107,7 +100,7 @@ class Parameters extends ParametersData {
 			if ($parameterData['page_name_list'] === true) {
 				$list = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
 				if ($list !== false) {
-					$this->setOption[$parameter] = $list;
+					$this->setParameter($parameter, $list);
 					if (empty($list)) {
 						//If the list array is empty simply return true because selection criteria is not found and there are no open reference conflicts.
 						return true;
@@ -134,7 +127,7 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Function Documentation
+	 * Set default parameters based on ParametersData.
 	 *
 	 * @access	private
 	 * @return	void
@@ -142,7 +135,9 @@ class Parameters extends ParametersData {
 	private function setDefaults() {
 		$parameters = self::getParametersForRichness();
 		foreach ($parameters as $parameter) {
-			
+			if ($this->getData($parameter)['default'] !== null) {
+				$this->setParameter($parameter, $this->getData($parameter)['default']);
+			}
 		}
 	}
 
@@ -212,7 +207,7 @@ class Parameters extends ParametersData {
 			}
 			if ($mustExist === true) {
 				$title = \Title::newFromText($page)
-				if (!$theTitle = \Title::newFromText($page)) {
+				if (!$title) {
 					return false;
 				}
 				$list[] = $title;
@@ -315,7 +310,9 @@ class Parameters extends ParametersData {
 	public function notcategoryParameter($option) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
-			$this->setOption['excludecategories'][] = $title->getDbKey();
+			$data = $this->getParameter('excludecategories');
+			$data[] = $title->getDbKey();
+			$this->setParameter('excludecategories', $data);
 			$this->setOpenReferencesConflict(true);
 			return true;
 		}
@@ -333,11 +330,14 @@ class Parameters extends ParametersData {
 		$extraParams = explode('|', $option);
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
+			$data = $this->getParameter('namespace');
 			if (in_array($parameter, $options->getOptions('namespace')['values'])) {
-				$this->setOption['namespaces'][] = $wgContLang->getNsIndex($parameter);
+				$data[] = $wgContLang->getNsIndex($parameter)
+				$this->setParameter('namespaces', $data);
 				$this->setSelectionCriteriaFound(true);
 			} elseif (array_key_exists($parameter, array_keys($options->getOptions('namespace')['values']))) {
-				$this->setOption['namespaces'][] = $parameter;
+				$data[] = $parameter;
+				$this->setParameter('namespaces', $data);
 				$this->setSelectionCriteriaFound(true);
 			} else {
 				return false;
@@ -357,7 +357,9 @@ class Parameters extends ParametersData {
 		if (!in_array($option, $options->getOptions('notnamespace')['values'])) {
 			return false;
 		}
-		$this->setOption['excludenamespaces'][] = $wgContLang->getNsIndex($option);
+		$data = $this->getParameter('excludenamespaces');
+		$data[] = $wgContLang->getNsIndex($option);
+		$this->setParameter('excludenamespaces', $data);
 		$this->setSelectionCriteriaFound(true);
 		return true;
 	}
@@ -378,7 +380,7 @@ class Parameters extends ParametersData {
 			}
 		}
 		if ($success === true) {
-			$this->setOption['ordermethods'] = $methods;
+			$this->setParameter('ordermethods', $methods);
 			if ($methods[0] != 'none') {
 				$this->setOpenReferencesConflict(true);
 			}
@@ -397,14 +399,14 @@ class Parameters extends ParametersData {
 		if (in_array($option, $options->getOptions('mode')['values'])) {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
-				$this->setOption['pagelistmode'] = 'inline';
-				$this->setOption['inltxt']       = '<br/>';
+				$this->setParameter('pagelistmode', 'inline');
+				$this->setParameter('inltxt', '<br/>');
 			} else if ($option == 'userformat') {
 				// userformat resets inline text to empty string
-				$this->setOption['inltxt']       = '';
-				$this->setOption['pagelistmode'] = $option;
+				$this->setParameter('inltxt', '');
+				$this->setParameter('pagelistmode', $option);
 			} else {
-				$this->setOption['pagelistmode'] = $option;
+				$this->setParameter('pagelistmode', $option);
 			}
 		} else {
 			return false;
@@ -421,11 +423,11 @@ class Parameters extends ParametersData {
 	public function distinctParameter($option) {
 		if (in_array($option, $options->getOptions('distinct')['values'])) {
 			if ($option == 'strict') {
-				$this->setOption['distinctresultset'] = 'strict';
+				$this->setParameter('distinctresultset', 'strict');
 			} elseif (self::filterBoolean($option) === true) {
-				$this->setOption['distinctresultset'] = true;
+				$this->setParameter('distinctresultset', true);
 			} else {
-				$this->setOption['distinctresultset'] = false;
+				$this->setParameter('distinctresultset', false);
 			}
 		} else {
 			return false;
@@ -441,9 +443,9 @@ class Parameters extends ParametersData {
 	 */
 	public function ordercollationParameter($option) {
 		if ($option == 'bridge') {
-			$this->setOption['ordersuitsymbols'] = true;
+			$this->setParameter('ordersuitsymbols', true);
 		} elseif (!empty($option)) {
-			$this->setOption['ordercollation'] = "COLLATE ".self::$DB->strencode($option);
+			$this->setParameter('ordercollation', "COLLATE ".self::$DB->strencode($option));
 		}
 	}
 
@@ -469,10 +471,10 @@ class Parameters extends ParametersData {
 		// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
 		$option            = self::stripHtmlTags($option);
 		$option            = str_replace(['\n', "¶"], "\n", $option);
-		$this->setOption['listseparators'] = explode(',', $option, 4);
+		$this->setParameter('listseparators', explode(',', $option, 4));
 		// mode=userformat will be automatically assumed
-		$this->setOption['pagelistmode']   = 'userformat';
-		$this->setOption['inltxt']         = '';
+		$this->setParameter('pagelistmode', 'userformat');
+		$this->setParameter('inltxt', '');
 	}
 
 	/**
@@ -487,14 +489,13 @@ class Parameters extends ParametersData {
 		// of page names in the database
 		$title = \Title::newFromText($option);
 		if ($title) {
-			$this->setOption['namespace']                   = $title->getNamespace();
-			$this->setOption['titleis']                     = str_replace(' ', '_', $title->getText());
-			$this->setOption['namespaces'][0]               = $sNamespace;
-			$this->setOption['pagelistmode']                = 'userformat';
-			$this->setOption['ordermethods']                = explode(',', '');
-			$this->setOption['selectioncriteriafound']      = true;
+			$this->setParameter('titleis', str_replace(' ', '_', $title->getText()));
+			$this->setParameter('namespaces', array_merge($this->getParameter['namespaces'], $title->getNamespace()));
+			$this->setParameter('pagelistmode', 'userformat');
+			$this->setParameter('ordermethods', explode(',', ''));
+			$this->setParameter('selectioncriteriafound', true);
+			$this->setParameter('allowcachedresults', true);
 			$this->setOpenReferencesConflict(true);
-			$this->setOption['allowcachedresults']          = true;
 		}
 	}
 
@@ -508,7 +509,7 @@ class Parameters extends ParametersData {
 	public function titleLTParameter($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
-		$this->setOption['titlege']                = str_replace(' ', '_', $option);
+		$this->setParameter('titlege', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
 	}
 
@@ -522,7 +523,7 @@ class Parameters extends ParametersData {
 	public function titleGTParameter($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
-		$this->setOption['titlele']                = str_replace(' ', '_', $option);
+		$this->setParameter('titlele', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
 	}
 
@@ -535,10 +536,10 @@ class Parameters extends ParametersData {
 	 */
 	public function scrollParameter($option) {
 		if (in_array($option, $options->getOptions('scroll')['values'])) {
-			$this->setOption['scroll'] = self::filterBoolean($option);
+			$this->setParameter('scroll', self::filterBoolean($option));
 			// if scrolling is active we adjust the values for certain other parameters
 			// based on URL arguments
-			if ($this->setOption['scroll'] === true) {
+			if ($this->getParameter('scroll') === true) {
 				$sTitleGE = $wgRequest->getVal('DPL_fromTitle', '');
 				if (strlen($sTitleGE) > 0) {
 					$sTitleGE[0] = strtoupper($sTitleGE[0]);
@@ -549,17 +550,17 @@ class Parameters extends ParametersData {
 					$findTitle[0] = strtoupper($findTitle[0]);
 				}
 				if ($findTitle != '') {
-					$this->setOption['titlege'] = '=_' . $findTitle;
+					$this->setParameter('titlege', '=_' . $findTitle);
 				}
 				$sTitleLE = $wgRequest->getVal('DPL_toTitle', '');
 				if (strlen($sTitleLE) > 0) {
 					$sTitleLE[0] = strtoupper($sTitleLE[0]);
 				}
-				$this->setOption['titlege']     = str_replace(' ', '_', $sTitleGE);
-				$this->setOption['titlele']     = str_replace(' ', '_', $sTitleLE);
-				$this->setOption['crolldir']    = $wgRequest->getVal('DPL_scrollDir', '');
+				$this->setParameter('titlege', str_replace(' ', '_', $sTitleGE));
+				$this->setParameter('titlele', str_replace(' ', '_', $sTitleLE));
+				$this->setParameter('crolldir', $wgRequest->getVal('DPL_scrollDir', ''));
 				// also set count limit from URL if not otherwise set
-				$this->setOption['countscroll'] = $wgRequest->getVal('DPL_count', '');
+				$this->setParameter('countscroll', $wgRequest->getVal('DPL_count', ''));
 			}
 		} else {
 			return false;
@@ -575,10 +576,13 @@ class Parameters extends ParametersData {
 	 */
 	public function replaceintitleParameter($option) {
 		// we offer a possibility to replace some part of the title
-		$aReplaceInTitle = explode(',', $option, 2);
-		if (isset($aReplaceInTitle[1])) {
-			$this->setOption['replaceintitle'][1] = self::stripHtmlTags($aReplaceInTitle[1]);
+		$replaceInTitle = explode(',', $option, 2);
+		if (isset($replaceInTitle[1])) {
+			$replaceInTitle[1] = self::stripHtmlTags($replaceInTitle[1]);
 		}
+
+		$this->setParameter('replaceintitle', $replaceInTitle);
+	}
 
 	/**
 	 * Clean and test 'debug' parameter.
@@ -596,135 +600,6 @@ class Parameters extends ParametersData {
 		} else {
 			return false;
 		}
-	}
-
-	/**
-	 * Clean and test 'imageused' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function imageusedParameter($option) {
-		$pages = explode('|', trim($option));
-		$n     = 0;
-		foreach ($pages as $page) {
-			if (trim($page) == '') {
-				continue;
-			}
-			if (!($theTitle = \Title::newFromText(trim($page)))) {
-				return $logger->msgWrongParam('imageused', $option);
-			}
-			$this->setOption['imageused'][$n++]        = $theTitle;
-			$this->setSelectionCriteriaFound(true);
-		}
-		if (!$bSelectionCriteriaFound) {
-			return $logger->msgWrongParam('imageused', $option);
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
-	 * Clean and test 'imagecontainer' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function imagecontainerParameter($option) {
-		$pages = explode('|', trim($option));
-		$n     = 0;
-		foreach ($pages as $page) {
-			if (trim($page) == '') {
-				continue;
-			}
-			if (!($theTitle = \Title::newFromText(trim($page)))) {
-				return $logger->msgWrongParam('imagecontainer', $option);
-			}
-			$this->setOption['imagecontainer'][$n++]   = $theTitle;
-			$this->setSelectionCriteriaFound(true);
-		}
-		if (!$bSelectionCriteriaFound) {
-			return $logger->msgWrongParam('imagecontainer', $option);
-		}
-	}
-
-	/**
-	 * Clean and test 'uses' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function usesParameter($option) {
-		$pages = explode('|', $option);
-		$n     = 0;
-		foreach ($pages as $page) {
-			if (trim($page) == '') {
-				continue;
-			}
-			if (!($theTitle = \Title::newFromText(trim($page)))) {
-				return $logger->msgWrongParam('uses', $option);
-			}
-			$this->setOption['uses'][$n++]             = $theTitle;
-			$this->setSelectionCriteriaFound(true);
-		}
-		if (!$bSelectionCriteriaFound) {
-			return $logger->msgWrongParam('uses', $option);
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
-	 * Clean and test 'notuses' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function notusesParameter($option) {
-		$pages = explode('|', $option);
-		$n     = 0;
-		foreach ($pages as $page) {
-			if (trim($page) == '') {
-				continue;
-			}
-			if (!($theTitle = \Title::newFromText(trim($page)))) {
-				return $logger->msgWrongParam('notuses', $option);
-			}
-			$this->setOption['notuses'][$n++]          = $theTitle;
-			$this->setSelectionCriteriaFound(true);
-		}
-		if (!$bSelectionCriteriaFound) {
-			return $logger->msgWrongParam('notuses', $option);
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
-	 * Clean and test 'usedby' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function usedbyParameter($option) {
-		$pages = explode('|', $option);
-		$n     = 0;
-		foreach ($pages as $page) {
-			if (trim($page) == '') {
-				continue;
-			}
-			if (!($theTitle = \Title::newFromText(trim($page)))) {
-				return $logger->msgWrongParam('usedby', $option);
-			}
-			$this->setOption['usedby'][$n++]           = $theTitle;
-			$this->setSelectionCriteriaFound(true);
-		}
-		if (!$bSelectionCriteriaFound) {
-			return $logger->msgWrongParam('usedby', $option);
-		}
-		$this->setOpenReferencesConflict(true);
 	}
 
 	/**

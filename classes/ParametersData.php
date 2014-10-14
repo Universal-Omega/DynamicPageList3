@@ -559,34 +559,54 @@ class ParametersData {
 		 * Examples:   imageused=Image:my image|Image:your image
 		 */
 		'imageused' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		 /**
 		 * this parameter restricts the output to images which are used (contained) by one of the specified pages.
 		 * Examples:   imagecontainer=my article|your article
 		 */
 		'imagecontainer' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which use the specified template.
 		 * Examples:   uses=Template:my template
 		 */
 		'uses' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which do not use the specified template.
 		 * Examples:   notuses=Template:my template
 		 */
 		'notuses' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to the template used by the specified page.
 		 */
 		'usedby' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * allows to specify a username who must be the first editor of the pages we select
