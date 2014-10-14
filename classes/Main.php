@@ -45,6 +45,7 @@ class Main {
 		/**
 		 * Initialization
 		 */
+		$options = new Options();
 
 		$dplStartTime = microtime(true);
 
@@ -171,29 +172,7 @@ class Main {
 
 		// ordermethod, order, mode, userdateformat, allowcachedresults:
 		// if we have to behave like Extension:Intersection we use different default values for some commands
-		if (\DynamicPageListHooks::isLikeIntersection()) {
-			Options::$options['ordermethod']                   = array(
-				'default' => 'categoryadd',
-				'categoryadd',
-				'lastedit',
-				'none'
-			);
-			Options::$options['order']                         = array(
-				'default' => 'descending',
-				'ascending',
-				'descending'
-			);
-			Options::$options['mode']                          = array(
-				'default' => 'unordered',
-				'none',
-				'ordered',
-				'unordered'
-			);
-			Options::$options['userdateformat']                = array(
-				'default' => 'Y-m-d: '
-			);
-			Options::$options['allowcachedresults']['default'] = 'true';
-		}
+
 		$aOrderMethods   = array(
 			Options::$options['ordermethod']['default']
 		);

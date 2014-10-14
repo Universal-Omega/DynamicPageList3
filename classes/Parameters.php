@@ -290,7 +290,7 @@ class Parameters {
 			}
 
 			//Simple integer intval().
-			if ($paramData['intval'] === true) {
+			if ($paramData['integer'] === true) {
 				if (!is_numeric($option)) {
 					if ($paramData['default'] !== null) {
 						$this->setOption[$parameter] = intval($paramData['default']);
@@ -412,17 +412,17 @@ class Parameters {
 	 * Clean and test 'namespace' parameter.
 	 *
 	 * @access	public
-	 * @param	string	Options passed to parameter.
+	 * @param	string	Option passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function namespaceParameter($option) {
+	public function namespaceParameter($option, Options $options) {
 		$extraParams = explode('|', $option);
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
-			if (in_array($parameter, Options::$options['namespace'])) {
+			if (in_array($parameter, $options->getOptions('namespace')['values'])) {
 				$this->setOption['namespaces'][] = $wgContLang->getNsIndex($parameter);
 				$this->setSelectionCriteriaFound(true);
-			} elseif (array_key_exists($parameter, array_keys(Options::$options['namespace']))) {
+			} elseif (array_key_exists($parameter, array_keys($options->getOptions('namespace')['values']))) {
 				$this->setOption['namespaces'][] = $parameter;
 				$this->setSelectionCriteriaFound(true);
 			} else {
@@ -440,7 +440,7 @@ class Parameters {
 	 * @return	boolean	Success
 	 */
 	public function notnamespaceParameter($option) {
-		if (!in_array($option, Options::$options['notnamespace'])) {
+		if (!in_array($option, $options->getOptions('notnamespace')['values'])) {
 			return false;
 		}
 		$this->setOption['excludenamespaces'][] = $wgContLang->getNsIndex($option);
@@ -459,11 +459,11 @@ class Parameters {
 		$methods   = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
-			if (!in_array($method, Options::$options['ordermethod'])) {
+			if (!in_array($method, $options->getOptions('ordermethod')['values'])) {
 				$success = false;
 			}
 		}
-		if (!$breakaway) {
+		if ($success === true) {
 			$this->setOption['ordermethods'] = $methods;
 			if ($methods[0] != 'none') {
 				$this->setOpenReferencesConflict(true);
@@ -480,7 +480,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function orderParameter($option) {
-		if (in_array($option, Options::$options['order'])) {
+		if (in_array($option, $options->getOptions('order')['values'])) {
 			$this->setOption['order'] = $option;
 		} else {
 			return false;
@@ -495,7 +495,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function modeParameter($option) {
-		if (in_array($option, Options::$options['mode'])) {
+		if (in_array($option, $options->getOptions('mode')['values'])) {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
 				$this->setOption['pagelistmode'] = 'inline';
@@ -520,7 +520,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function distinctParameter($option) {
-		if (in_array($option, Options::$options['distinct'])) {
+		if (in_array($option, $options->getOptions('distinct')['values'])) {
 			if ($option == 'strict') {
 				$this->setOption['distinctresultset'] = 'strict';
 			} elseif (self::filterBoolean($option) === true) {
@@ -627,7 +627,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function scrollParameter($option) {
-		if (in_array($option, Options::$options['scroll'])) {
+		if (in_array($option, $options->getOptions('scroll')['values'])) {
 			$this->setOption['scroll'] = self::filterBoolean($option);
 			// if scrolling is active we adjust the values for certain other parameters
 			// based on URL arguments
@@ -697,7 +697,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function debugParameter($option) {
-		if (in_array($option, Options::$options['debug'])) {
+		if (in_array($option, $options->getOptions('debug')['values'])) {
 			if ($key > 1) {
 				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_DEBUGPARAMNOTFIRST, $option);
 			}
@@ -932,11 +932,11 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function minoreditsParameter($option) {
-		if (in_array($option, Options::$options['minoredits'])) {
+		if (in_array($option, $options->getOptions('minoredits')['values'])) {
 			$sMinorEdits                  = $option;
 			$this->setOpenReferencesConflict(true);
 		} else { //wrong param val, using default
-			$sMinorEdits = Options::$options['minoredits']['default'];
+			$sMinorEdits = $options->getOptions('minoredits')['default'];
 			return false;
 		}
 	}
@@ -949,7 +949,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function categoriesminmaxParameter($option) {
-		if (preg_match(Options::$options['categoriesminmax']['pattern'], $option)) {
+		if (preg_match($options->getOptions('categoriesminmax')['pattern'], $option)) {
 			$aCatMinMax = ($option == '') ? null : explode(',', $option);
 		} else { // wrong value
 			return false;
@@ -1013,22 +1013,6 @@ class Parameters {
 	 */
 	public function includenotmatchParameter($option) {
 		$aSecLabelsNotMatch = explode(',', $option);
-	}
-
-	/**
-	 * Clean and test 'headingmode' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function headingmodeParameter($option) {
-		if (in_array($option, Options::$options['headingmode'])) {
-			$sHListMode                   = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
 	}
 
 	/**
@@ -1154,7 +1138,7 @@ class Parameters {
 			if ($arg == '') {
 				continue;
 			}
-			if (!in_array($arg, Options::$options['reset'])) {
+			if (!in_array($arg, $options->getOptions('reset')['values'])) {
 				return false;
 			} elseif ($arg == 'links') {
 				$bReset[0] = true;
@@ -1186,7 +1170,7 @@ class Parameters {
 			if ($arg == '') {
 				continue;
 			}
-			if (!in_array($arg, Options::$options['eliminate'])) {
+			if (!in_array($arg, $options->getOptions('eliminate')['values'])) {
 				return false;
 			} elseif ($arg == 'links') {
 				$bReset[4] = true;
@@ -1341,38 +1325,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'minrevisions' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function minrevisionsParameter($option) {
-		//ensure that $iMinRevisions is a number
-		if (preg_match(Options::$options['minrevisions']['pattern'], $option)) {
-			$iMinRevisions = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Clean and test 'maxrevisions' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function maxrevisionsParameter($option) {
-		//ensure that $iMaxRevisions is a number
-		if (preg_match(Options::$options['maxrevisions']['pattern'], $option)) {
-			$iMaxRevisions = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-	}
-
-	/**
 	 * Clean and test 'articlecategory' parameter.
 	 *
 	 * @access	public
@@ -1391,7 +1343,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function goalParameter($option) {
-		if (in_array($option, Options::$options['goal'])) {
+		if (in_array($option, $options->getOptions('goal')['values'])) {
 			$sGoal                        = $option;
 			$this->setOpenReferencesConflict(true);
 		} else {

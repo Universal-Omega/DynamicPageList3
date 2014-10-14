@@ -15,9 +15,12 @@ class Options {
 	 * Map parameters to possible values.
 	 * A 'default' key indicates the default value for the parameter.
 	 * A 'pattern' key indicates a pattern for regular expressions (that the value must match).
-	 * For some options (e.g. 'namespace'), possible values are not yet defined but will be if necessary (for debugging) 
+	 * A 'values' key is the set of possible values.
+	 * For some options (e.g. 'namespace'), possible values are not yet defined, but will be if necessary (for debugging).
+	 *
+	 * @var		array
 	 */ 
-	public static $options = array(
+	private $options = array(
 		'addauthor' => [
 			'default'			=> false,
 			'boolean'			=> true,
@@ -123,21 +126,21 @@ class Options {
 		 */
 		'offset' => [
 			'default'	=> 0,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * Max of results to display, selection is based on random.
 		 */
 		'count' => [
 			'default'	=> 500,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * Max number of results to display, selection is based on random.
 		 */
 		'randomcount' => [
 			'default'	=> 10,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * shall the result set be distinct (=default) or not?
@@ -149,7 +152,7 @@ class Options {
 		],
 		'dplcacheperiod' => [
 			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
-			'intval'	=> true
+			'integer'	=> true
 		],
 
 		/**
@@ -157,7 +160,7 @@ class Options {
 		 */
 		'columns' => [
 			'default'	=> 1,
-			'intval'	=> true
+			'integer'	=> true
 		],
 
 		/**
@@ -181,7 +184,17 @@ class Options {
 		 * links:	   the same with internal and external links
 		 * all		   all of the above
 		 */
-		'eliminate'				   => array( 'default' => '', 'categories', 'templates', 'links', 'images', 'all', 'none'),
+		'eliminate' => [
+			'default'	=> null,
+			'values'	=> [
+				'categories',
+				'templates',
+				'links',
+				'images',
+				'all',
+				'none'
+			]
+		],
 		/**
 		 * Mode at the heading level with ordermethod on multiple components, e.g. category heading with ordermethod=category,...: 
 		 * html headings (H2, H3, H4), definition list, no heading (none), ordered, unordered.
@@ -189,9 +202,28 @@ class Options {
 
 		'format'			   => null,
 
-		'goal'				   => array('default' => 'pages', 'pages', 'categories'),
+		'goal' => [
+			'default'	=> 'pages',
+			'values'	=> [
+				'pages',
+				'categories'
+			],
+			'open_ref_conflict'	=> true
+		],
 
-		'headingmode'		   => array( 'default' => 'none', 'H2', 'H3', 'H4', 'definition', 'none', 'ordered', 'unordered'),
+		'headingmode' => [
+			'default'	=> 'none',
+			'values'	=> [
+				'H2',
+				'H3',
+				'H4',
+				'definition',
+				'none',
+				'ordered',
+				'unordered'
+			],
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * we can display the number of articles within a heading group
 		 */
@@ -274,7 +306,7 @@ class Options {
 		 */
 		'includemaxlength' => [
 			'default'	=> null,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * Attributes for HTML list items, depending on 'mode' ('li' for ordered/unordered, 'span' for others).
@@ -544,8 +576,14 @@ class Options {
 		/**
 		 * Minimum/Maximum number of revisions required
 		 */
-		'minrevisions'		   => array('default' => '', 'pattern' => '/^\d*$/'),
-		'maxrevisions'		   => array('default' => '', 'pattern' => '/^\d*$/'),
+		'minrevisions' => [
+			'default'	=> null,
+			'integer'	=> true
+		],
+		'maxrevisions' => [
+			'default'	=> null,
+			'integer'	=> true
+		],
 		/**
 		 * noresultsheader / footer is some wiki text which will be output (instead of a warning message)
 		 * if the result set is empty; setting 'noresultsheader' to something like ' ' will suppress
@@ -636,7 +674,16 @@ class Options {
 		 * links:	   the same with internal and external links, throws away ALL links, not only DPL generated links!
 		 * all		   all of the above
 		 */
-		'reset'				   => array( 'default' => '', 'categories', 'templates', 'links', 'images', 'all', 'none'),
+		'reset' => [
+			'default' => null,
+			'values'	=> [
+				'categories',
+				'templates',
+				'links',
+				'images',
+				'all',
+				'none'
+		],
 		/**
 		 * fixcategory=..	prevents a category from being reset
 		 */
@@ -647,7 +694,7 @@ class Options {
 		 */
 		'rows' => [
 			'default'	=> 1,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * Number of elements in a rows for output, default is "all"
@@ -655,7 +702,7 @@ class Options {
 		 */
 		'rowsize' => [
 			'default'	=> 0,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * the html tags used for columns and rows
@@ -682,7 +729,7 @@ class Options {
 		 */
 		'dominantsection' => [
 			'default'	=> 0,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * showcurid creates a stable link to the current revision of a page
@@ -716,7 +763,7 @@ class Options {
 		 */
 		'tablesortcol' => [
 			'default'	=> 0,
-			'intval'	=> true
+			'integer'	=> true
 		],
 		/**
 		 * Max # characters of page title to display.
@@ -725,5 +772,58 @@ class Options {
 		 */
 		'titlemaxlength'	   => array('default' => '')
 	);
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __construct() {
+		if (\DynamicPageListHooks::isLikeIntersection()) {
+			$this->options['ordermethod'] = [
+				'default'	=> 'categoryadd',
+				'values'	=> [
+					'categoryadd',
+					'lastedit',
+					'none'
+				]
+			];
+			$this->options['order'] = [
+				'default'	=> 'descending',
+				'values'	=> [
+					'ascending',
+					'descending'
+				]
+			];
+			$this->options['mode'] = [
+				'default'	=> 'unordered',
+				'values'	=> [
+					'none',
+					'ordered',
+					'unordered'
+				]
+			];
+			$this->options['userdateformat'] = [
+				'default' => 'Y-m-d: '
+			];
+			$this->options['allowcachedresults']['default'] = 'true';
+		}
+	}
+
+	/**
+	 * Return options information for the supplied parameter.
+	 *
+	 * @access	public
+	 * @param	string	Option name.
+	 * @return	mixed	Option array or false if it does not exist.
+	 */
+	public function getOptions($parameter) {
+		if (array_key_exists($parameter, $this->options)) {
+			return $this->options[$parameter];
+		} else {
+			return false;
+		}
+	}
 }
 ?>
