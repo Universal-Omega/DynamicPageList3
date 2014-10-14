@@ -254,6 +254,10 @@ class Parameters {
 	 * @return	boolean	Successful
 	 */
 	public function __call($parameter, $arguments) {
+		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
+		if (method_exists($this, $parameter.'Parameter')) {
+			return call_user_func_array($this->$parameter.'Parameter', $arguments);
+		}
 		$option = $arguments[0];
 		$parameter = strtolower($parameter);
 
@@ -261,27 +265,35 @@ class Parameters {
 		$success = true;
 		if (array_key_exists($parameter, Options::$options)) {
 			$this->setOption[$parameter] = $option;
+			$paramData = Options::$options[$parameter];
+
+			//If a parameter specifies options then enforce them.
+			if (is_array($paramData['values']) === true && in_array($option, $paramData['values'])) {
+				$this->setOption[$parameter] = $option;
+			} else {
+				$success = false;
+			}
 
 			//Set that criteria was found for a selection.
-			if (Options::$options[$parameter]['set_criteria_found'] === true && !empty($option)) {
+			if ($paramData['set_criteria_found'] === true && !empty($option)) {
 				$this->setSelectionCriteriaFound(true);
 			}
 
 			//Set open references conflict possibility.
-			if (Options::$options[$parameter]['open_ref_conflict'] === true) {
+			if ($paramData['open_ref_conflict'] === true) {
 				$this->setOpenReferencesConflict(true);
 			}
 
 			//Strip <html> tag.
-			if (Options::$options[$parameter]['strip_html'] === true) {
+			if ($paramData['strip_html'] === true) {
 				$this->setOption[$parameter] = self::stripHtmlTags($option);
 			}
 
 			//Simple integer intval().
-			if (Options::$options[$parameter]['intval'] === true) {
+			if ($paramData['intval'] === true) {
 				if (!is_numeric($option)) {
-					if (Options::$options[$parameter]['default'] !== null) {
-						$this->setOption[$parameter] = intval(Options::$options[$parameter]['default']);
+					if ($paramData['default'] !== null) {
+						$this->setOption[$parameter] = intval($paramData['default']);
 					} else {
 						$success = false;
 					}
@@ -291,7 +303,7 @@ class Parameters {
 			}
 
 			//Handle Booleans
-			if (Options::$options[$parameter]['boolean'] === true) {
+			if ($paramData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
 				if ($option !== null) {
 					$this->setOption[$parameter] = $option;
@@ -381,22 +393,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'hiddencategories' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function hiddencategoriesParameter($option) {
-		if (in_array($option, Options::$options['hiddencategories'])) {
-			$this->setOption['hiddencategories'] = $option;
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'notcategory' parameter.
 	 *
 	 * @access	public
@@ -406,7 +402,7 @@ class Parameters {
 	public function notcategoryParameter($option) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
-			$this->setOption['excludecategories'][]         = $title->getDbKey();
+			$this->setOption['excludecategories'][] = $title->getDbKey();
 			$this->setOpenReferencesConflict(true);
 		}
 		return $options;
@@ -424,10 +420,10 @@ class Parameters {
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
 			if (in_array($parameter, Options::$options['namespace'])) {
-				$this->setOption['namespaces'][]           = $wgContLang->getNsIndex($parameter);
+				$this->setOption['namespaces'][] = $wgContLang->getNsIndex($parameter);
 				$this->setSelectionCriteriaFound(true);
 			} elseif (array_key_exists($parameter, array_keys(Options::$options['namespace']))) {
-				$this->setOption['namespaces'][]           = $parameter;
+				$this->setOption['namespaces'][] = $parameter;
 				$this->setSelectionCriteriaFound(true);
 			} else {
 				return false;

@@ -102,7 +102,10 @@ class Options {
 		/**
 		 * hiddencategories
 		 */
-		'hiddencategories'	   => array('default' => 'include', 'exclude', 'only'),
+		'hiddencategories' => [
+			'default'	=> 'include',
+			'values'	=> ['include', 'exclude', 'only']
+		],
 		/**
 		 * perform the command and do not query the database
 		 */
