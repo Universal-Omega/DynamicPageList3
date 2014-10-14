@@ -156,9 +156,9 @@ class Main {
 		$input = str_replace('²{', '{{', $input);
 		$input = str_replace('}²', '}}', $input);
 
-		$input         = str_replace(["\r\n", "\r"], "\n", $input);
-		$input         = trim($input, "\n");
-		$aParams       = explode("\n", $input);
+		$input = str_replace(["\r\n", "\r"], "\n", $input);
+		$input = trim($input, "\n");
+		$rawParameters	= explode("\n", $input);
 		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
 
 		// version 0.9:
@@ -167,23 +167,26 @@ class Main {
 		// parse the result recursively. This allows to build complex structures in the output
 		// which are only understood by the parser if seen as a whole
 
-		foreach ($aParams as $key => $parameterOption) {
-			list($parameter, $option) = explode('=', $parameterOption, 2);
-			$parameter = trim($parameter);
-			$option  = trim($option);
-			if (count($parameter) < 2) {
-				if (trim($aParam[0]) != '') {
-					$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", implode(', ', ParametersData::getParametersForRichness()));
-					continue;
-				}
-			}
-
-			if (empty($parameter) || $parameter[0] == '#' || !ParametersData::testRichness($parameter)) {
+		foreach ($rawParameters as $key => $parameterOption) {
+			if (strpos($parameterOption, '=') === false) {
+				$logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
 				continue;
 			}
 
-			// ignore parameter settings without argument (except namespace and category)
-			if ($option == '') {
+			list($parameter, $option) = explode('=', $parameterOption, 2);
+			$parameter = trim($parameter);
+			$option  = trim($option);
+
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !ParametersData::testRichness($parameter))) {
+				continue;
+			}
+
+			if (!$parameters->exists($parameter)) {
+				$logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+			}
+
+			//Ignore parameter settings without argument (except namespace and category)
+			if (empty($option)) {
 				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && array_key_exists($parameter, Options::$options)) {
 					continue;
 				}
@@ -1214,10 +1217,10 @@ class Main {
 		$sSqlWhere .= $sSqlCond_page_rev;
 
 		if ($iMinRevisions != null) {
-			$sSqlWhere .= " and ((SELECT count(rev_aux2.rev_page) FROM {$tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
+			$sSqlWhere .= " AND ((SELECT count(rev_aux2.rev_page) FROM {$tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
 		}
 		if ($iMaxRevisions != null) {
-			$sSqlWhere .= " and ((SELECT count(rev_aux3.rev_page) FROM {$tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+			$sSqlWhere .= " AND ((SELECT count(rev_aux3.rev_page) FROM {$tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
 		}
 
 		// count(all categories) <= max no of categories

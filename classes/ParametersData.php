@@ -1108,6 +1108,17 @@ class ParametersData {
 	}
 
 	/**
+	 * Return if the parameter exists.
+	 *
+	 * @access	public
+	 * @param	string	Parameter name.
+	 * @return	boolean	Exists
+	 */
+	public function exists($parameter) {
+		return array_key_exists($parameter, $this->data);
+	}
+
+	/**
 	 * Return data for the supplied parameter.
 	 *
 	 * @access	public
