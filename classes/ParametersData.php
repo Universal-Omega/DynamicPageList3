@@ -259,7 +259,7 @@ class ParametersData {
 		 */
 		'categoriesminmax' => [
 			'default' => null,
-			'pattern' => '#^\d*,?\d*$#'
+			'pattern' => '#^(\d*)(?:,(\d*))?$#'
 		],
 		/**
 		 * hiddencategories

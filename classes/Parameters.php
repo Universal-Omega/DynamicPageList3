@@ -49,39 +49,33 @@ class Parameters extends ParametersData {
 		$success = true;
 		$parameterData = $this->getData($parameter);
 		if ($parameterData !== false) {
-			$this->setParameter($parameter, $option);
-
 			//If a parameter specifies options then enforce them.
-			if (is_array($parameterData['values']) === true && in_array($option, $parameterData['values'])) {
-				$this->setParameter($parameter, $option);
-			} else {
+			if (is_array($parameterData['values']) === true && !in_array($option, $parameterData['values'])) {
 				$success = false;
 			}
 
 			//Strip <html> tag.
 			if ($parameterData['strip_html'] === true) {
-				$this->setParameter($parameter, self::stripHtmlTags($option));
+				$option = self::stripHtmlTags($option);
 			}
 
 			//Simple integer intval().
 			if ($parameterData['integer'] === true) {
 				if (!is_numeric($option)) {
 					if ($parameterData['default'] !== null) {
-						$this->setParameter($parameter, intval($parameterData['default']));
+						$option = intval($parameterData['default']);
 					} else {
 						$success = false;
 					}
 				} else {
-					$this->setParameter($parameter, intval($option));
+					$option = intval($option);
 				}
 			}
 
-			// Booleans
+			//Booleans
 			if ($parameterData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
-				if ($option !== null) {
-					$this->setParameter($parameter, $option);
-				} else {
+				if ($option === null) {
 					$success = false;
 				}
 			}
@@ -89,38 +83,42 @@ class Parameters extends ParametersData {
 			//Timestamps
 			if ($parameterData['timestamp'] === true) {
 				$option = wfTimestamp(TS_MW, $option);
-				if ($option !== false) {
-					$this->setParameter($parameter, $option);
-				} else {
+				if ($option === false) {
 					$success = false;
 				}
 			}
 
 			//List of Pages
 			if ($parameterData['page_name_list'] === true) {
-				$list = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
-				if ($list !== false) {
-					$this->setParameter($parameter, $list);
-					if (empty($list)) {
-						//If the list array is empty simply return true because selection criteria is not found and there are no open reference conflicts.
-						return true;
-					}
+				$option = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
+				if ($option === false) {
+					$success = false;
+				}
+			}
+
+			if (array_key_exists('pattern', $parameterData)) {
+				if (preg_match($parameterData['pattern'], $option, $matches)) {
+					//Nuke the total pattern match off the beginning of the array.
+					array_shift($matches);
+					$option = $matches;
 				} else {
 					$success = false;
 				}
 			}
 
-			/***************************************************************************************************/
-			/* The following two are last as they should only be triggered if the above options pass properly. */
-			/***************************************************************************************************/
-			//Set that criteria was found for a selection.
-			if ($parameterData['set_criteria_found'] === true && !empty($option)) {
-				$this->setSelectionCriteriaFound(true);
-			}
+			//If none of the above checks marked this as a failure then set it.
+			if ($success === true) {
+				$this->setParameter($parameter, $option);
 
-			//Set open references conflict possibility.
-			if ($parameterData['open_ref_conflict'] === true) {
-				$this->setOpenReferencesConflict(true);
+				//Set that criteria was found for a selection.
+				if ($parameterData['set_criteria_found'] === true) {
+					$this->setSelectionCriteriaFound(true);
+				}
+
+				//Set open references conflict possibility.
+				if ($parameterData['open_ref_conflict'] === true) {
+					$this->setOpenReferencesConflict(true);
+				}
 			}
 		}
 		return $success;
@@ -612,23 +610,8 @@ class Parameters extends ParametersData {
 	public function titlematchParameter($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
-		$aTitleMatch             = explode('|', str_replace(' ', '\_', $option));
+		$aTitleMatch             = explode('|', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
-	}
-
-	/**
-	 * Clean and test 'categoriesminmax' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function categoriesminmaxParameter($option) {
-		if (preg_match($options->getOptions('categoriesminmax')['pattern'], $option)) {
-			$aCatMinMax = ($option == '') ? null : explode(',', $option);
-		} else {
-			return false;
-		}
 	}
 
 	/**
@@ -702,7 +685,7 @@ class Parameters extends ParametersData {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function tableParameter($option) {
-		$this->setOption['table'] = str_replace(['\n', "¶"], "\n", $option);
+		$this->setParameter('table', str_replace(['\n', "¶"], "\n", $option));
 	}
 
 	/**
@@ -713,11 +696,11 @@ class Parameters extends ParametersData {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function tablerowParameter($option) {
-		$option = str_replace(['\n', "¶"], "\n", $option);
-		if (trim($option) == '') {
-			$this->setOption['tablerow'] = [];
+		$option = str_replace(['\n', "¶"], "\n", trim($option));
+		if (empty($option)) {
+			$this->setParameter('tablerow', []);
 		} else {
-			$this->setOption['tablerow'] = explode(',', $option);
+			$this->setParameter('tablerow', explode(',', $option));
 		}
 	}
 
@@ -731,15 +714,15 @@ class Parameters extends ParametersData {
 	 */
 	public function allowcachedresultsParameter($option) {
 		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
-		if (!$this->setOptions['execandexit']) {
+		if (!$this->getParameter('execandexit')) {
 			if ($option == 'yes+warn') {
-				$this->setOptions['allowcachedresults'] = true;
-				$this->setOptions['warncachedresults'] = true;
+				$this->setParameter('allowcachedresults', true);
+				$this->setParameter('warncachedresults', true);
 				return true;
 			}
 			$option = self::filterBoolean($option);
 			if ($option !== null) {
-				$this->setOptions['allowcachedresults'] = self::filterBoolean($option);
+				$this->setParameter('allowcachedresults', self::filterBoolean($option));
 			} else {
 				return false;
 			}
