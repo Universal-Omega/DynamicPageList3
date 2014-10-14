@@ -63,8 +63,7 @@ class Main {
 			return (Options::$options['RunFromProtectedPagesOnly']);
 		}
 
-		$sPageTable          = self::$DB->tableName('page');
-		$sCategorylinksTable = self::$DB->tableName('categorylinks');
+		$tableNames = self::getTableNames();
 
 		// Extension variables
 		// Allowed namespaces for DPL: all namespaces except the first 2: Media (-2) and Special (-1), because we cannot use the DB for these to generate dynamic page lists.
@@ -190,13 +189,10 @@ class Main {
 				}
 			}
 
-			switch ($parameter) {
-				$function = str_replace(['<', '>'], ['LT', 'GT'], $parameter);
-				//Parameter functions generally return their processed options, but we will grab them all at the end instead.
-				if ($parameterHandler->$function($option) === false) {
-					//Do not build this into the output just yet.  It will be collected at the end.
-					$logger->msgWrongParam($parameter, $option);
-				}
+			//Parameter functions generally return their processed options, but we will grab them all at the end instead.
+			if ($parameters->$function($option) === false) {
+				//Do not build this into the output just yet.  It will be collected at the end.
+				$logger->msgWrongParam($parameter, $option);
 			}
 		}
 
@@ -420,13 +416,11 @@ class Main {
 		/**
 		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
 		 */
-		$sDplClView = '';
 		if ($bIncludeUncat) {
-			$sDplClView = self::$DB->tableName('dpl_clview');
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!self::$DB->tableExists('dpl_clview')) {
-				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $sDplClView . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $sPageTable . ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' ON ' . $sPageTable . '.page_id=cl_from';
-				$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview);
+				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $tableNames['page'] . ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' ON ' . $tableNames['page'] . '.page_id=cl_from';
+				$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOCLVIEW, $tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
 				return $output;
 			}
 		}
@@ -537,17 +531,11 @@ class Main {
 		$sSqlClTableForGC       = '';
 		$sSqlCond_page_cl_gc    = '';
 		$sSqlRCTable            = ''; // recent changes
-		$sRCTable               = self::$DB->tableName('recentchanges');
-		$sRevisionTable         = self::$DB->tableName('revision');
 		$sSqlRevisionTable      = '';
 		$sSqlRev_timestamp      = '';
 		$sSqlRev_id             = '';
 		$sSqlRev_user           = '';
 		$sSqlCond_page_rev      = '';
-		$sPageLinksTable        = self::$DB->tableName('pagelinks');
-		$sExternalLinksTable    = self::$DB->tableName('externallinks');
-		$sImageLinksTable       = self::$DB->tableName('imagelinks');
-		$sTemplateLinksTable    = self::$DB->tableName('templatelinks');
 		$sSqlPageLinksTable     = '';
 		$sSqlExternalLinksTable = '';
 		$sSqlCreationRevisionTable = '';
@@ -572,7 +560,7 @@ class Main {
 			switch ($sOrderMethod) {
 				case 'category':
 					$sSqlCl_to             = "cl_head.cl_to, "; // Gives category headings in the result
-					$sSqlClHeadTable       = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $sDplClView : $sCategorylinksTable) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
+					$sSqlClHeadTable       = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
 					$sSqlCond_page_cl_head = 'page_id=cl_head.cl_from';
 					if (!empty($aCatHeadings)) {
 						$sSqlWhere .= " AND cl_head.cl_to IN (" . self::$DB->makeList($aCatHeadings) . ")";
@@ -582,29 +570,29 @@ class Main {
 					}
 					break;
 				case 'firstedit':
-					$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
+					$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
 					$sSqlRev_timestamp = ', rev_timestamp';
 					// deleted because of conflict with revsion-parameters
-					$sSqlCond_page_rev = ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+					$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
 					break;
 				case 'pagetouched':
-					$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
+					$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
-						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
+						$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
 					} else {
-						$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
+						$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
 						$sSqlRev_timestamp = ', rev_timestamp';
 						// deleted because of conflict with revision-parameters
-						$sSqlCond_page_rev = ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+						$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
 					}
 					break;
 				case 'sortkey':
 					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
 					$aStrictNs      = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
 					// map ns index to name
-					$sSqlNsIdToText = 'CASE ' . $sPageTable . '.page_namespace';
+					$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
 					foreach ($aStrictNs as $iNs => $sNs)
 						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
 					$sSqlNsIdToText .= ' END';
@@ -613,19 +601,19 @@ class Main {
 					//see line 2011 (order method sortkey requires category
 					if (count($aIncludeCategories) + count($aExcludeCategories) > 0) {
 						if (in_array('category', $aOrderMethods) && (count($aIncludeCategories) + count($aExcludeCategories) > 0)) {
-							$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(" . $sPageTable . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $sPageTable . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+							$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
 						} else {
-							$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(" . $sPageTable . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $sPageTable . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+							$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
 						}
 					} else {
-						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $sPageTable . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $sPageTable . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
 					}
 					break;
 				case 'pagesel':
 					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
 					break;
 				case 'titlewithoutnamespace':
-					$sSqlSortkey = ", $sPageTable.page_title " . $sOrderCollation . " as sortkey";
+					$sSqlSortkey = ", {$tableNames['page']}.page_title " . $sOrderCollation . " as sortkey";
 					break;
 				case 'title':
 					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
@@ -637,16 +625,16 @@ class Main {
 						$sSqlNsIdToText .= ' END';
 						$sSqlSortkey = ", REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') " . $sOrderCollation . " as sortkey";
 					} else {
-						$sSqlNsIdToText = 'CASE ' . $sPageTable . '.page_namespace';
+						$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
 						foreach ($aStrictNs as $iNs => $sNs)
 							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
 						$sSqlNsIdToText .= ' END';
 						// Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
-						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $sPageTable . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $sPageTable . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
 					}
 					break;
 				case 'user':
-					$sSqlRevisionTable = $sRevisionTable . ', ';
+					$sSqlRevisionTable = $tableNames['revision'] . ', ';
 					$sSqlRev_user      = ', rev_user, rev_user_text, rev_comment';
 					break;
 				case 'none':
@@ -657,8 +645,8 @@ class Main {
 		// linksto
 
 		if (count($aLinksTo) > 0) {
-			$sSqlPageLinksTable .= $sPageLinksTable . ' AS pl, ';
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id=pl.pl_from AND ';
+			$sSqlPageLinksTable .= $tableNames['pagelinks'] . ' AS pl, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=pl.pl_from AND ';
 			$sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
 			$n           = 0;
 			foreach ($aLinksTo as $linkGroup) {
@@ -693,21 +681,21 @@ class Main {
 					continue;
 				}
 				$m = 0;
-				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM ' . $sPageLinksTable . ' WHERE (' . $sPageLinksTable . '.pl_from=page_id AND (';
+				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM ' . $tableNames['pagelinks'] . ' WHERE (' . $tableNames['pagelinks'] . '.pl_from=page_id AND (';
 				foreach ($linkGroup as $link) {
 					if (++$m > 1) {
 						$sSqlCond_page_pl .= ' OR ';
 					}
-					$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
+					$sSqlCond_page_pl .= '(' . $tableNames['pagelinks'] . '.pl_namespace=' . intval($link->getNamespace());
 					if (strpos($link->getDbKey(), '%') >= 0) {
 						$operator = ' LIKE ';
 					} else {
 						$operator = '=';
 					}
 					if ($bIgnoreCase) {
-						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . ')';
+						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['pagelinks'] . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . ')';
 					} else {
-						$sSqlCond_page_pl .= ' AND ' . $sPageLinksTable . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey());
+						$sSqlCond_page_pl .= ' AND ' . $tableNames['pagelinks'] . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey());
 					}
 					$sSqlCond_page_pl .= ')';
 				}
@@ -717,23 +705,23 @@ class Main {
 
 		// notlinksto
 		if (count($aNotLinksTo) > 0) {
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id NOT IN (SELECT ' . $sPageLinksTable . '.pl_from FROM ' . $sPageLinksTable . ' WHERE (';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id NOT IN (SELECT ' . $tableNames['pagelinks'] . '.pl_from FROM ' . $tableNames['pagelinks'] . ' WHERE (';
 			$n = 0;
 			foreach ($aNotLinksTo as $links) {
 				foreach ($links as $link) {
 					if ($n > 0) {
 						$sSqlCond_page_pl .= ' OR ';
 					}
-					$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
+					$sSqlCond_page_pl .= '(' . $tableNames['pagelinks'] . '.pl_namespace=' . intval($link->getNamespace());
 					if (strpos($link->getDbKey(), '%') >= 0) {
 						$operator = ' LIKE ';
 					} else {
 						$operator = '=';
 					}
 					if ($bIgnoreCase) {
-						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
+						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['pagelinks'] . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
 					} else {
-						$sSqlCond_page_pl .= ' AND		 ' . $sPageLinksTable . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey()) . ')';
+						$sSqlCond_page_pl .= ' AND		 ' . $tableNames['pagelinks'] . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey()) . ')';
 					}
 					$n++;
 				}
@@ -757,8 +745,8 @@ class Main {
 				}
 				$sSqlCond_page_pl .= ')';
 			} else {
-				$sSqlPageLinksTable .= $sPageLinksTable . ' AS plf, ' . $sPageTable . 'AS pagesrc, ';
-				$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_namespace = plf.pl_namespace AND ' . $sPageTable . '.page_title = plf.pl_title	AND pagesrc.page_id=plf.pl_from AND (';
+				$sSqlPageLinksTable .= $tableNames['pagelinks'] . ' AS plf, ' . $tableNames['page'] . 'AS pagesrc, ';
+				$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_namespace = plf.pl_namespace AND ' . $tableNames['page'] . '.page_title = plf.pl_title	AND pagesrc.page_id=plf.pl_from AND (';
 				$sSqlSelPage = ', pagesrc.page_title AS sel_title, pagesrc.page_namespace AS sel_ns';
 				$n           = 0;
 				foreach ($aLinksFrom as $links) {
@@ -790,14 +778,14 @@ class Main {
 				}
 				$sSqlCond_page_pl .= ')';
 			} else {
-				$sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT(' . $sPageLinksTable . '.pl_namespace,' . $sPageLinksTable . '.pl_title) from ' . $sPageLinksTable . ' WHERE (';
+				$sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT(' . $tableNames['pagelinks'] . '.pl_namespace,' . $tableNames['pagelinks'] . '.pl_title) from ' . $tableNames['pagelinks'] . ' WHERE (';
 				$n = 0;
 				foreach ($aNotLinksFrom as $links) {
 					foreach ($links as $link) {
 						if ($n > 0) {
 							$sSqlCond_page_pl .= ' OR ';
 						}
-						$sSqlCond_page_pl .= $sPageLinksTable . '.pl_from=' . $link->getArticleID() . ' ';
+						$sSqlCond_page_pl .= $tableNames['pagelinks'] . '.pl_from=' . $link->getArticleID() . ' ';
 						$n++;
 					}
 				}
@@ -807,8 +795,8 @@ class Main {
 
 		// linkstoexternal
 		if (count($aLinksToExternal) > 0) {
-			$sSqlExternalLinksTable .= $sExternalLinksTable . ' AS el, ';
-			$sSqlCond_page_el .= ' AND ' . $sPageTable . '.page_id=el.el_from AND (';
+			$sSqlExternalLinksTable .= $tableNames['externallinks'] . ' AS el, ';
+			$sSqlCond_page_el .= ' AND ' . $tableNames['page'] . '.page_id=el.el_from AND (';
 			$sSqlSelPage = ', el.el_to as el_to';
 			$n           = 0;
 			foreach ($aLinksToExternal as $linkGroup) {
@@ -832,12 +820,12 @@ class Main {
 					continue;
 				}
 				$m = 0;
-				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM ' . $sExternalLinksTable . ' WHERE (' . $sExternalLinksTable . '.el_from=page_id AND (';
+				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM ' . $tableNames['externallinks'] . ' WHERE (' . $tableNames['externallinks'] . '.el_from=page_id AND (';
 				foreach ($linkGroup as $link) {
 					if (++$m > 1) {
 						$sSqlCond_page_el .= ' OR ';
 					}
-					$sSqlCond_page_el .= '(' . $sExternalLinksTable . '.el_to LIKE ' . self::$DB->addQuotes($link) . ')';
+					$sSqlCond_page_el .= '(' . $tableNames['externallinks'] . '.el_to LIKE ' . self::$DB->addQuotes($link) . ')';
 				}
 				$sSqlCond_page_el .= ')))';
 			}
@@ -845,8 +833,8 @@ class Main {
 
 		// imageused
 		if (count($aImageUsed) > 0) {
-			$sSqlPageLinksTable .= $sImageLinksTable . ' AS il, ';
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id=il.il_from AND (';
+			$sSqlPageLinksTable .= $tableNames['imagelinks'] . ' AS il, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=il.il_from AND (';
 			$sSqlSelPage = ', il.il_to AS image_sel_title';
 			$n           = 0;
 			foreach ($aImageUsed as $link) {
@@ -865,11 +853,11 @@ class Main {
 
 		// imagecontainer
 		if (count($aImageContainer) > 0) {
-			$sSqlPageLinksTable .= $sImageLinksTable . ' AS ic, ';
+			$sSqlPageLinksTable .= $tableNames['imagelinks'] . ' AS ic, ';
 			if ($acceptOpenReferences) {
 				$sSqlCond_page_pl .= ' AND (';
 			} else {
-				$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_namespace=\'6\' AND ' . $sPageTable . '.page_title=ic.il_to AND (';
+				$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_namespace=\'6\' AND ' . $tableNames['page'] . '.page_title=ic.il_to AND (';
 			}
 			$n = 0;
 			foreach ($aImageContainer as $link) {
@@ -888,8 +876,8 @@ class Main {
 
 		// uses
 		if (count($aUses) > 0) {
-			$sSqlPageLinksTable .= ' ' . $sTemplateLinksTable . ' as tl, ';
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id=tl.tl_from  AND (';
+			$sSqlPageLinksTable .= ' ' . $tableNames['templatelinks'] . ' as tl, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=tl.tl_from  AND (';
 			$n = 0;
 			foreach ($aUses as $link) {
 				if ($n > 0) {
@@ -908,17 +896,17 @@ class Main {
 
 		// notuses
 		if (count($aNotUses) > 0) {
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id NOT IN (SELECT ' . $sTemplateLinksTable . '.tl_from FROM ' . $sTemplateLinksTable . ' WHERE (';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id NOT IN (SELECT ' . $tableNames['templatelinks'] . '.tl_from FROM ' . $tableNames['templatelinks'] . ' WHERE (';
 			$n = 0;
 			foreach ($aNotUses as $link) {
 				if ($n > 0) {
 					$sSqlCond_page_pl .= ' OR ';
 				}
-				$sSqlCond_page_pl .= '(' . $sTemplateLinksTable . '.tl_namespace=' . intval($link->getNamespace());
+				$sSqlCond_page_pl .= '(' . $tableNames['templatelinks'] . '.tl_namespace=' . intval($link->getNamespace());
 				if ($bIgnoreCase) {
-					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sTemplateLinksTable . '.tl_title AS char))=LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
+					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['templatelinks'] . '.tl_title AS char))=LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
 				} else {
-					$sSqlCond_page_pl .= ' AND ' . $sTemplateLinksTable . '.tl_title=' . self::$DB->addQuotes($link->getDbKey()) . ')';
+					$sSqlCond_page_pl .= ' AND ' . $tableNames['templatelinks'] . '.tl_title=' . self::$DB->addQuotes($link->getDbKey()) . ')';
 				}
 				$n++;
 			}
@@ -939,8 +927,8 @@ class Main {
 				}
 				$sSqlCond_page_tpl .= ')';
 			} else {
-				$sSqlPageLinksTable .= $sTemplateLinksTable . ' AS tpl, ' . $sPageTable . 'AS tplsrc, ';
-				$sSqlCond_page_tpl .= ' AND ' . $sPageTable . '.page_title = tpl.tl_title  AND tplsrc.page_id=tpl.tl_from AND (';
+				$sSqlPageLinksTable .= $tableNames['templatelinks'] . ' AS tpl, ' . $tableNames['page'] . 'AS tplsrc, ';
+				$sSqlCond_page_tpl .= ' AND ' . $tableNames['page'] . '.page_title = tpl.tl_title  AND tplsrc.page_id=tpl.tl_from AND (';
 				$sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
 				$n           = 0;
 				foreach ($aUsedBy as $link) {
@@ -958,7 +946,7 @@ class Main {
 		// recent changes  =============================
 
 		if ($bAddContribution) {
-			$sSqlRCTable = $sRCTable . ' AS rc, ';
+			$sSqlRCTable = $tableNames['recentchanges'] . ' AS rc, ';
 			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
 			$sSqlWhere .= ' AND page.page_id=rc.rc_cur_id';
 			if ($sSqlGroupBy != '') {
@@ -968,60 +956,60 @@ class Main {
 		}
 
 		// Revisions ==================================
-		if ($sCreatedBy != "") {
-		    $sSqlCreationRevisionTable = $sRevisionTable . ' AS creation_rev, ';
-		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($sCreatedBy) . ' = creation_rev.rev_user_text' . ' AND creation_rev.rev_page = page_id' . ' AND creation_rev.rev_parent_id = 0';
+		if ($parameters->getParameter('createdby')) {
+		    $sSqlCreationRevisionTable = $tableNames['revision'] . ' AS creation_rev, ';
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('createdby')) . ' = creation_rev.rev_user_text' . ' AND creation_rev.rev_page = page_id' . ' AND creation_rev.rev_parent_id = 0';
 		}
-		if ($sNotCreatedBy != "") {
-		    $sSqlNoCreationRevisionTable = $sRevisionTable . ' AS no_creation_rev, ';
-		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($sNotCreatedBy) . ' != no_creation_rev.rev_user_text' . ' AND no_creation_rev.rev_page = page_id' . ' AND no_creation_rev.rev_parent_id = 0';
+		if ($parameters->getParameter('notcreatedby')) {
+		    $sSqlNoCreationRevisionTable = $tableNames['revision'] . ' AS no_creation_rev, ';
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('notcreatedby')) . ' != no_creation_rev.rev_user_text' . ' AND no_creation_rev.rev_page = page_id' . ' AND no_creation_rev.rev_parent_id = 0';
 		}
-		if ($sModifiedBy != "") {
-		    $sSqlChangeRevisionTable = $sRevisionTable . ' AS change_rev, ';
-		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($sModifiedBy) . ' = change_rev.rev_user_text' . ' AND change_rev.rev_page = page_id';
+		if ($parameters->getParameter('modifiedby')) {
+		    $sSqlChangeRevisionTable = $tableNames['revision'] . ' AS change_rev, ';
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('modifiedby')) . ' = change_rev.rev_user_text' . ' AND change_rev.rev_page = page_id';
 		}
-		if ($sNotModifiedBy != "") {
-		    $sSqlCond_page_rev .= ' AND NOT EXISTS (SELECT 1 FROM ' . $sRevisionTable . ' WHERE ' . $sRevisionTable . '.rev_page=page_id AND ' . $sRevisionTable . '.rev_user_text = ' . self::$DB->addQuotes($sNotModifiedBy) . ' LIMIT 1)';
+		if ($parameters->getParameter('notmodifiedby')) {
+		    $sSqlCond_page_rev .= ' AND NOT EXISTS (SELECT 1 FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id AND ' . $tableNames['revision'] . '.rev_user_text = ' . self::$DB->addQuotes($parameters->getParameter('notmodifiedby')) . ' LIMIT 1)';
 		}
-		if ($sLastModifiedBy != "") {
-		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($sLastModifiedBy) . ' = (SELECT rev_user_text FROM ' . $sRevisionTable . ' WHERE ' . $sRevisionTable . '.rev_page=page_id ORDER BY ' . $sRevisionTable . '.rev_timestamp DESC LIMIT 1)';
+		if ($parameters->getParameter('lastmodifiedby')) {
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('lastmodifiedby')) . ' = (SELECT rev_user_text FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)';
 		}
-		if ($sNotLastModifiedBy != "") {
-		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($sNotLastModifiedBy) . ' != (SELECT rev_user_text FROM ' . $sRevisionTable . ' WHERE ' . $sRevisionTable . '.rev_page=page_id ORDER BY ' . $sRevisionTable . '.rev_timestamp DESC LIMIT 1)';
+		if ($parameters->getParameter('notlastmodifiedby')) {
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('notlastmodifiedby')) . ' != (SELECT rev_user_text FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)';
 		}
 
-		if ($bAddAuthor && $sSqlRevisionTable == '') {
-			$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
-			$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )';
+		if ($parameters->getParameter('addauthor') && $sSqlRevisionTable == '') {
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )';
 		}
 		if ($bAddLastEditor && $sSqlRevisionTable == '') {
-			$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
-			$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )';
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )';
 		}
 
 		if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
-			$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
 			$sSqlRev_timestamp = ', rev_timestamp';
 			$sSqlRev_id        = ', rev_id';
 			if ($sLastRevisionBefore != '') {
-				$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_bef.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < ' . $sLastRevisionBefore . ')';
+				$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_bef.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < ' . $sLastRevisionBefore . ')';
 			}
 			if ($sAllRevisionsBefore != '') {
-				$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp < ' . $sAllRevisionsBefore;
+				$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp < ' . $sAllRevisionsBefore;
 			}
 			if ($sFirstRevisionSince != '') {
-				$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $sRevisionTable . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $sFirstRevisionSince . ')';
+				$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $sFirstRevisionSince . ')';
 			}
 			if ($sAllRevisionsSince != '') {
-				$sSqlCond_page_rev .= ' AND ' . $sPageTable . '.page_id=rev.rev_page AND rev.rev_timestamp >= ' . $sAllRevisionsSince;
+				$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp >= ' . $sAllRevisionsSince;
 			}
 		}
 
 		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
-			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (SELECT count(*) FROM ' . $sCategorylinksTable . ' WHERE ' . $sCategorylinksTable . '.cl_from=page_id)';
+			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
 		}
 		if (isset($aCatMinMax[1]) && $aCatMinMax[1] != '') {
-			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (SELECT count(*) FROM ' . $sCategorylinksTable . ' WHERE ' . $sCategorylinksTable . '.cl_from=page_id)';
+			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
 		}
 
 		if ($bAddFirstCategoryDate) {
@@ -1030,13 +1018,13 @@ class Main {
 			$sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
 		}
 		if ($bAddPageCounter) {
-			$sSqlPage_counter = ", $sPageTable.page_counter AS page_counter";
+			$sSqlPage_counter = ", {$tableNames['page']}.page_counter AS page_counter";
 		}
 		if ($bAddPageSize) {
-			$sSqlPage_size = ", $sPageTable.page_len AS page_len";
+			$sSqlPage_size = ", {$tableNames['page']}.page_len AS page_len";
 		}
 		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
-			$sSqlPage_touched = ", $sPageTable.page_touched AS page_touched";
+			$sSqlPage_touched = ", {$tableNames['page']}.page_touched AS page_touched";
 		}
 		if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sSqlRevisionTable != '') {
 			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
@@ -1044,25 +1032,25 @@ class Main {
 		if ($bAddCategories) {
 			$sSqlCats            = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats";
 			// Gives list of all categories linked from each article, if any.
-			$sSqlClTableForGC    = $sCategorylinksTable . ' AS cl_gc';
+			$sSqlClTableForGC    = $tableNames['categorylinks'] . ' AS cl_gc';
 			// Categorylinks table used by the Group Concat (GC) function above
 			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
 			if ($sSqlGroupBy != '') {
 				$sSqlGroupBy .= ', ';
 			}
-			$sSqlGroupBy .= $sSqlCl_to . $sPageTable . '.page_id';
+			$sSqlGroupBy .= $sSqlCl_to . $tableNames['page'] . '.page_id';
 		}
 
 		// SELECT ... FROM
 		if ($acceptOpenReferences) {
 			// SELECT ... FROM
 			if (count($aImageContainer) > 0) {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $sImageLinksTable . ' AS ic';
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $tableNames['imagelinks'] . ' AS ic';
 			} else {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $sPageLinksTable;
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $tableNames['pagelinks'];
 			}
 		} else {
-			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $sPageTable . '.page_namespace AS page_namespace,' . $sPageTable . '.page_title AS page_title,' . $sPageTable . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $sPageTable;
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $tableNames['page'] . '.page_namespace AS page_namespace,' . $tableNames['page'] . '.page_title AS page_title,' . $tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $tableNames['page'];
 		}
 
 		// JOIN ...
@@ -1075,7 +1063,7 @@ class Main {
 		$iClTable = 0;
 		for ($i = 0; $i < $iIncludeCatCount; $i++) {
 			// If we want the Uncategorized
-			$sSqlSelectFrom .= ' INNER JOIN ' . (in_array('', $aIncludeCategories[$i]) ? $sDplClView : $sCategorylinksTable) . ' AS cl' . $iClTable . ' ON ' . $sPageTable . '.page_id=cl' . $iClTable . '.cl_from AND (cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][0]));
+			$sSqlSelectFrom .= ' INNER JOIN ' . (in_array('', $aIncludeCategories[$i]) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl' . $iClTable . ' ON ' . $tableNames['page'] . '.page_id=cl' . $iClTable . '.cl_from AND (cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][0]));
 			for ($j = 1; $j < count($aIncludeCategories[$i]); $j++)
 				$sSqlSelectFrom .= ' OR cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][$j]));
 			$sSqlSelectFrom .= ') ';
@@ -1084,7 +1072,7 @@ class Main {
 
 		// Exclude categories...
 		for ($i = 0; $i < $iExcludeCatCount; $i++) {
-			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' AS cl' . $iClTable . ' ON ' . $sPageTable . '.page_id=cl' . $iClTable . '.cl_from' . ' AND cl' . $iClTable . '.cl_to' . $sNotCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
+			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' AS cl' . $iClTable . ' ON ' . $tableNames['page'] . '.page_id=cl' . $iClTable . '.cl_from' . ' AND cl' . $iClTable . '.cl_to' . $sNotCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
 			$sSqlWhere .= ' AND cl' . $iClTable . '.cl_to IS NULL';
 			$iClTable++;
 		}
@@ -1093,26 +1081,26 @@ class Main {
 		// Namespace IS ...
 		if (!empty($aNamespaces)) {
 			if ($acceptOpenReferences) {
-				$sSqlWhere .= ' AND ' . $sPageLinksTable . '.pl_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
+				$sSqlWhere .= ' AND ' . $tableNames['pagelinks'] . '.pl_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
 			} else {
-				$sSqlWhere .= ' AND ' . $sPageTable . '.page_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
 			}
 		}
 		// Namespace IS NOT ...
 		if (!empty($aExcludeNamespaces)) {
 			if ($acceptOpenReferences) {
-				$sSqlWhere .= ' AND ' . $sPageLinksTable . '.pl_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
+				$sSqlWhere .= ' AND ' . $tableNames['pagelinks'] . '.pl_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
 			} else {
-				$sSqlWhere .= ' AND ' . $sPageTable . '.page_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
 			}
 		}
 
 		// TitleIs
 		if ($sTitleIs != '') {
 			if ($bIgnoreCase) {
-				$sSqlWhere .= ' AND LOWER(CAST(' . $sPageTable . '.page_title AS char)) = LOWER(' . self::$DB->addQuotes($sTitleIs) . ')';
+				$sSqlWhere .= ' AND LOWER(CAST(' . $tableNames['page'] . '.page_title AS char)) = LOWER(' . self::$DB->addQuotes($sTitleIs) . ')';
 			} else {
-				$sSqlWhere .= ' AND ' . $sPageTable . '.page_title = ' . self::$DB->addQuotes($sTitleIs);
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_title = ' . self::$DB->addQuotes($sTitleIs);
 			}
 		}
 
@@ -1123,13 +1111,13 @@ class Main {
 				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title >=' . self::$DB->addQuotes(substr($sTitleGE, 2));
 				} else {
-					$sSqlWhere .= $sPageTable . '.page_title >=' . self::$DB->addQuotes(substr($sTitleGE, 2));
+					$sSqlWhere .= $tableNames['page'] . '.page_title >=' . self::$DB->addQuotes(substr($sTitleGE, 2));
 				}
 			} else {
 				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title >' . self::$DB->addQuotes($sTitleGE);
 				} else {
-					$sSqlWhere .= $sPageTable . '.page_title >' . self::$DB->addQuotes($sTitleGE);
+					$sSqlWhere .= $tableNames['page'] . '.page_title >' . self::$DB->addQuotes($sTitleGE);
 				}
 			}
 			$sSqlWhere .= ')';
@@ -1142,13 +1130,13 @@ class Main {
 				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title <=' . self::$DB->addQuotes(substr($sTitleLE, 2));
 				} else {
-					$sSqlWhere .= $sPageTable . '.page_title <=' . self::$DB->addQuotes(substr($sTitleLE, 2));
+					$sSqlWhere .= $tableNames['page'] . '.page_title <=' . self::$DB->addQuotes(substr($sTitleLE, 2));
 				}
 			} else {
 				if ($acceptOpenReferences) {
 					$sSqlWhere .= 'pl_title <' . self::$DB->addQuotes($sTitleLE);
 				} else {
-					$sSqlWhere .= $sPageTable . '.page_title <' . self::$DB->addQuotes($sTitleLE);
+					$sSqlWhere .= $tableNames['page'] . '.page_title <' . self::$DB->addQuotes($sTitleLE);
 				}
 			}
 			$sSqlWhere .= ')';
@@ -1170,9 +1158,9 @@ class Main {
 					}
 				} else {
 					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST(' . $sPageTable . '.page_title AS char))' . $sTitleMatchMode . strtolower(self::$DB->addQuotes($link));
+						$sSqlWhere .= 'LOWER(CAST(' . $tableNames['page'] . '.page_title AS char))' . $sTitleMatchMode . strtolower(self::$DB->addQuotes($link));
 					} else {
-						$sSqlWhere .= $sPageTable . '.page_title' . $sTitleMatchMode . self::$DB->addQuotes($link);
+						$sSqlWhere .= $tableNames['page'] . '.page_title' . $sTitleMatchMode . self::$DB->addQuotes($link);
 					}
 				}
 				$n++;
@@ -1196,9 +1184,9 @@ class Main {
 					}
 				} else {
 					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST(' . $sPageTable . '.page_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . self::$DB->addQuotes($link) . ')';
+						$sSqlWhere .= 'LOWER(CAST(' . $tableNames['page'] . '.page_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . self::$DB->addQuotes($link) . ')';
 					} else {
-						$sSqlWhere .= $sPageTable . '.page_title' . $sNotTitleMatchMode . self::$DB->addQuotes($link);
+						$sSqlWhere .= $tableNames['page'] . '.page_title' . $sNotTitleMatchMode . self::$DB->addQuotes($link);
 					}
 				}
 				$n++;
@@ -1214,10 +1202,10 @@ class Main {
 		if (!$acceptOpenReferences) {
 			switch ($sRedirects) {
 				case 'only':
-					$sSqlWhere .= ' AND ' . $sPageTable . '.page_is_redirect=1';
+					$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_is_redirect=1';
 					break;
 				case 'exclude':
-					$sSqlWhere .= ' AND ' . $sPageTable . '.page_is_redirect=0';
+					$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_is_redirect=0';
 					break;
 			}
 		}
@@ -1226,10 +1214,10 @@ class Main {
 		$sSqlWhere .= $sSqlCond_page_rev;
 
 		if ($iMinRevisions != null) {
-			$sSqlWhere .= " and ((SELECT count(rev_aux2.rev_page) FROM revision AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
+			$sSqlWhere .= " and ((SELECT count(rev_aux2.rev_page) FROM {$tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
 		}
 		if ($iMaxRevisions != null) {
-			$sSqlWhere .= " and ((SELECT count(rev_aux3.rev_page) FROM revision AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+			$sSqlWhere .= " and ((SELECT count(rev_aux3.rev_page) FROM {$tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
 		}
 
 		// count(all categories) <= max no of categories
@@ -1237,7 +1225,7 @@ class Main {
 
 		// check against forbidden namespaces
 		if (is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0 && implode(',', $wgNonincludableNamespaces) != '') {
-			$sSqlWhere .= ' AND ' . $sPageTable . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
+			$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
 		}
 
 		// page_id=pl.pl_from (if pagelinks table required)
@@ -1250,10 +1238,10 @@ class Main {
 		$sSqlWhere .= $sSqlCond_page_tpl;
 
 		if (isset($sArticleCategory) && $sArticleCategory !== null) {
-			$sSqlWhere .= " AND $sPageTable.page_title IN (
+			$sSqlWhere .= " AND {$tableNames['page']}.page_title IN (
 				SELECT p2.page_title
-				FROM $sPageTable p2
-				INNER JOIN $sCategorylinksTable clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = " . self::$DB->addQuotes($sArticleCategory) . " )
+				FROM {$tableNames['page']} p2
+				INNER JOIN {$tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = " . self::$DB->addQuotes($sArticleCategory) . " )
 				WHERE p2.page_namespace = 0
 				) ";
 		}
@@ -1265,8 +1253,7 @@ class Main {
 			);
 			# Either involves the same JOIN here...
 			if (in_array($sStable, $filterSet) || in_array($sQuality, $filterSet)) {
-				$flaggedpages = self::$DB->tableName('flaggedpages');
-				$sSqlSelectFrom .= " LEFT JOIN $flaggedpages ON page_id = fp_page_id";
+				$sSqlSelectFrom .= " LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id";
 			}
 			switch ($sStable) {
 				case 'only':
@@ -1376,7 +1363,7 @@ class Main {
 		// of a selection on the categorylinks
 
 		if ($sGoal == 'categories') {
-			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $sCategorylinksTable . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $sPageTable . '.page_id FROM ', $sSqlSelectFrom);
+			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $tableNames['categorylinks'] . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $tableNames['page'] . '.page_id FROM ', $sSqlSelectFrom);
 			if ($sOrder == 'descending') {
 				$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
 			} else {
@@ -1836,15 +1823,15 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		}
 	}
 
-	private static function getSubcategories($cat, $sPageTable, $depth) {
+	private static function getSubcategories($cat, $pageTable, $depth) {
 		if (self::$DB === null) {
 			self::$DB = wfGetDB(DB_SLAVE);
 		}
 		$cats = $cat;
-		$res  = self::$DB->query("SELECT DISTINCT page_title FROM " . self::$DB->tableName('page') . " INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $sPageTable . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='14'");
+		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='14'");
 		foreach ($res as $row) {
 			if ($depth > 1) {
-				$cats .= '|' . self::getSubcategories($row->page_title, $sPageTable, $depth - 1);
+				$cats .= '|' . self::getSubcategories($row->page_title, $tableNames['page'], $depth - 1);
 			} else {
 				$cats .= '|' . $row->page_title;
 			}
@@ -2023,6 +2010,31 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			$key          = intval(preg_replace('/.*#/', '', $skey[$a]));
 			$articles[$a] = $cArticles[$key];
 		}
+	}
+
+	/**
+	 * Return prefixed and quoted tables that are needed.
+	 *
+	 * @access	private
+	 * @return	array	Prepared table names.
+	 */
+	static private function getTableNames() {
+		$tables = [
+			'categorylinks',
+			'dpl_clview',
+			'externallinks',
+			'flaggedpages',
+			'imagelinks',
+			'page',
+			'pagelinks',
+			'recentchanges',
+			'revision',
+			'templatelinks'
+		];
+		foreach ($tables as $table) {
+			$tableNames[$table] = self::$DB->tableName($table);
+		}
+		return $tableNames;
 	}
 }
 ?>
