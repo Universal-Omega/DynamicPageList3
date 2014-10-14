@@ -157,11 +157,99 @@ class Parameters {
 	];
 
 	/**
+	 * \DPL\Options object.
+	 *
+	 * @var		objects
+	 */
+	private $options;
+
+	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
 	 *
 	 * @var		array
 	 */
 	private $setOptions = [];
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __construct(Options $options) {
+		$this->options = $options;
+		$this->options->setDefaults();
+	}
+
+	/**
+	 * Handle simple parameter functions.
+	 *
+	 * @access	public
+	 * @param	string	Function(Parameter) Called
+	 * @param	string	Function Arguments
+	 * @return	boolean	Successful
+	 */
+	public function __call($parameter, $arguments) {
+		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
+		if (method_exists($this, $parameter.'Parameter')) {
+			return call_user_func_array($this->$parameter.'Parameter', $arguments);
+		}
+		$option = $arguments[0];
+		$parameter = strtolower($parameter);
+
+		//Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
+		$success = true;
+		$optionsData = $this->options->getOptions($parameter);
+		if ($optionsData !== false) {
+			$this->setOption[$parameter] = $option;
+
+			//If a parameter specifies options then enforce them.
+			if (is_array($optionsData['values']) === true && in_array($option, $optionsData['values'])) {
+				$this->setOption[$parameter] = $option;
+			} else {
+				$success = false;
+			}
+
+			//Set that criteria was found for a selection.
+			if ($optionsData['set_criteria_found'] === true && !empty($option)) {
+				$this->setSelectionCriteriaFound(true);
+			}
+
+			//Set open references conflict possibility.
+			if ($optionsData['open_ref_conflict'] === true) {
+				$this->setOpenReferencesConflict(true);
+			}
+
+			//Strip <html> tag.
+			if ($optionsData['strip_html'] === true) {
+				$this->setOption[$parameter] = self::stripHtmlTags($option);
+			}
+
+			//Simple integer intval().
+			if ($optionsData['integer'] === true) {
+				if (!is_numeric($option)) {
+					if ($optionsData['default'] !== null) {
+						$this->setOption[$parameter] = intval($optionsData['default']);
+					} else {
+						$success = false;
+					}
+				} else {
+					$this->setOption[$parameter] = intval($option);
+				}
+			}
+
+			//Handle Booleans
+			if ($optionsData['boolean'] === true) {
+				$option = $this->filterBoolean($option);
+				if ($option !== null) {
+					$this->setOption[$parameter] = $option;
+				} else {
+					$success = false;
+				}
+			}
+		}
+		return $success;
+	}
 
 	/**
 	 * Sets the current parameter richness.
@@ -243,76 +331,6 @@ class Parameters {
 		$text = preg_replace("#<.*?html.*?>#is", "", $text);
 
 		return $text;
-	}
-
-	/**
-	 * Handle simple parameter functions.
-	 *
-	 * @access	public
-	 * @param	string	Function(Parameter) Called
-	 * @param	string	Function Arguments
-	 * @return	boolean	Successful
-	 */
-	public function __call($parameter, $arguments) {
-		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
-		if (method_exists($this, $parameter.'Parameter')) {
-			return call_user_func_array($this->$parameter.'Parameter', $arguments);
-		}
-		$option = $arguments[0];
-		$parameter = strtolower($parameter);
-
-		//Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
-		$success = true;
-		if (array_key_exists($parameter, Options::$options)) {
-			$this->setOption[$parameter] = $option;
-			$paramData = Options::$options[$parameter];
-
-			//If a parameter specifies options then enforce them.
-			if (is_array($paramData['values']) === true && in_array($option, $paramData['values'])) {
-				$this->setOption[$parameter] = $option;
-			} else {
-				$success = false;
-			}
-
-			//Set that criteria was found for a selection.
-			if ($paramData['set_criteria_found'] === true && !empty($option)) {
-				$this->setSelectionCriteriaFound(true);
-			}
-
-			//Set open references conflict possibility.
-			if ($paramData['open_ref_conflict'] === true) {
-				$this->setOpenReferencesConflict(true);
-			}
-
-			//Strip <html> tag.
-			if ($paramData['strip_html'] === true) {
-				$this->setOption[$parameter] = self::stripHtmlTags($option);
-			}
-
-			//Simple integer intval().
-			if ($paramData['integer'] === true) {
-				if (!is_numeric($option)) {
-					if ($paramData['default'] !== null) {
-						$this->setOption[$parameter] = intval($paramData['default']);
-					} else {
-						$success = false;
-					}
-				} else {
-					$this->setOption[$parameter] = intval($option);
-				}
-			}
-
-			//Handle Booleans
-			if ($paramData['boolean'] === true) {
-				$option = $this->filterBoolean($option);
-				if ($option !== null) {
-					$this->setOption[$parameter] = $option;
-				} else {
-					$success = false;
-				}
-			}
-		}
-		return $success;
 	}
 
 	/**

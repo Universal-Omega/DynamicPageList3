@@ -313,7 +313,9 @@ class Options {
 		 * @todo Make 'itemattr' param applicable to 'mode=category'.
 		 * Example: itemattr= class="submenuli" style="color: red;"
 		 */
-		'itemattr'			   => array('default' => ''),
+		'itemattr' => [
+			'default'	=> ''
+		],
 		/**
 		 * listseparators is an array of four tags (in wiki syntax) which defines the output of DPL
 		 * if mode = 'userformat' was specified.
@@ -325,62 +327,86 @@ class Options {
 		 * Note: use of html tags was abolished from version 2.0; the first example must be written as:
 		 *		   : listseparators={|,\n|-\n|[[%PAGE%]],,\n|}
 		 */
-		'listseparators'	   => array('default' => ''),
+		'listseparators' => [
+			'default'	=> ''
+		],
 		/**
 		 * sequence of four wiki tags (separated by ",") to be used together with mode = 'userformat'
 		 *				t1 and t4 define an outer frame for the article list 
 		 *				t2 and t3 build an inner frame for each article name
 		 *	 example:	listattr=<ul>,<li>,</li>,</ul>
 		 */
-		'listattr'			   => array('default' => ''),
+		'listattr' => [
+			'default'	=> ''
+		],
 		/**
 		 * this parameter restricts the output to articles which can reached via a link from the specified pages.
 		 * Examples:   linksfrom=my article|your article
 		 */
-		'linksfrom'			   => array('default' => ''),
+		'linksfrom' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which cannot be reached via a link from the specified pages.
 		 * Examples:   notlinksfrom=my article|your article
 		 */
-		'notlinksfrom'		   => array('default' => ''),
+		'notlinksfrom' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which contain a reference to one of the specified pages.
 		 * Examples:   linksto=my article|your article	 ,	linksto=Template:my template   ,  linksto = {{FULLPAGENAME}}
 		 */
-		'linksto'			   => array('default' => ''),
+		'linksto' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which do not contain a reference to the specified page.
 		 */
-		'notlinksto'		   => array('default' => ''),
+		'notlinksto' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which contain an external reference that conatins a certain pattern
 		 * Examples:   linkstoexternal= www.xyz.com|www.xyz2.com
 		 */
-		'linkstoexternal'	   => array('default' => ''),
+		'linkstoexternal' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which use one of the specified images.
 		 * Examples:   imageused=Image:my image|Image:your image
 		 */
-		'imageused'				 => array('default' => ''),
+		'imageused' => [
+			'default'	=> []
+		],
 		 /**
 		 * this parameter restricts the output to images which are used (contained) by one of the specified pages.
 		 * Examples:   imagecontainer=my article|your article
 		 */
-		'imagecontainer'	 => array('default' => ''),
+		'imagecontainer' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which use the specified template.
 		 * Examples:   uses=Template:my template
 		 */
-		'uses'				   => array('default' => ''),
+		'uses' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to articles which do not use the specified template.
 		 * Examples:   notuses=Template:my template
 		 */
-		'notuses'			   => array('default' => ''),
+		'notuses' => [
+			'default'	=> []
+		],
 		/**
 		 * this parameter restricts the output to the template used by the specified page.
 		 */
-		'usedby'			   => array('default' => ''),
+		'usedby' => [
+			'default'	=> []
+		],
 		/**
 		 * allows to specify a username who must be the first editor of the pages we select
 		 */
@@ -505,8 +531,12 @@ class Options {
 			'default'	=> false,
 			'boolean'	=> true
 		],
-		'titlematch'		   => null,
-		'titleregexp'		   => null,
+		'titlematch' => [
+			'default'	=> null
+		],
+		'titleregexp' => [
+			'default'	=> null
+		],
 		'userdateformat' => [
 			'default'		=> 'Y-m-d H:i:s',
 			'strip_html'	=> true
@@ -518,9 +548,13 @@ class Options {
 		 * nottitlematch is a (SQL-LIKE-expression) pattern
 		 * which excludes pages matching that pattern from the result
 		*/
-		'nottitlematch'		   => null,
-		'nottitleregexp'	   => null,
-		'order'				   => [
+		'nottitlematch' => [
+			'default'	=> null
+		],
+		'nottitleregexp' => [
+			'default'	=> null
+		],
+		'order' => [
 			'default'	=> 'ascending',
 			'values'	=> ['ascending', 'descending']
 		],
@@ -717,12 +751,16 @@ class Options {
 		 * each pair corresponds to one entry in the includepage command
 		 * if only one tag is given it will be used for all sections as a start tag (end tag will be empty then)
 		 */
-		'secseparators'		   => array('default' => ''),
+		'secseparators' => [
+			'default' => ''
+		],
 		/**
 		 * multisecseparators is a list of tags (which correspond to the items in includepage)
 		 * and which are put between identical sections included from the same file
 		 */
-		'multisecseparators'   => array('default' => ''),
+		'multisecseparators' => [
+			'default' => ''
+		],
 		/**
 		 * dominantSection is the number (starting from 1) of an includepage argument which shall be used
 		 * as a dominant value set for the creation of additional output rows (one per value of the 

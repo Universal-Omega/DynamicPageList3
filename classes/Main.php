@@ -45,7 +45,7 @@ class Main {
 		/**
 		 * Initialization
 		 */
-		$options = new Options();
+		$parameters = new Parameters();
 
 		$dplStartTime = microtime(true);
 
@@ -110,32 +110,15 @@ class Main {
 		$input = self::resolveUrlArg($input, 'DPL_findTitle');
 		$input = self::resolveUrlArg($input, 'DPL_toTitle');
 
-		// variables needed for scrolling
-		$sCount       = '';
-		$sCountScroll = '';
-		$sTitleGE     = '';
-		$sTitleLE     = '';
-		$scrollDir    = '';
-
-
 		$originalInput = $input;
 
 		$bDPLRefresh = ($wgRequest->getVal('DPL_refresh', '') == 'yes');
 
-
-		// Options
-
-
+		//Options
 		$DPLCache        = '';
 		$DPLCachePath    = '';
-		$iDPLCachePeriod = intval(Options::$options['dplcacheperiod']['default']);
 
-
-		$sGoal = Options::$options['goal']['default'];
-
-		$bSelectionCriteriaFound      = false;
-		$bConflictsWithOpenReferences = false;
-		// array for LINK / TEMPLATE / CATGEORY / IMAGE	 by RESET / ELIMINATE
+		//Array for LINK / TEMPLATE / CATGEORY / IMAGE by RESET / ELIMINATE
 		if (Options::$options['eliminate'] == 'all') {
 			$bReset = array(
 				false,
@@ -159,191 +142,6 @@ class Main {
 				false
 			);
 		}
-
-		// we allow " like " or "="
-		$sCategoryComparisonMode    = '=';
-		$sNotCategoryComparisonMode = '=';
-		$sTitleMatchMode            = ' LIKE ';
-		$sNotTitleMatchMode         = ' LIKE ';
-
-
-		// execAndExit
-		$sExecAndExit = Options::$options['execandexit']['default'];
-
-		// ordermethod, order, mode, userdateformat, allowcachedresults:
-		// if we have to behave like Extension:Intersection we use different default values for some commands
-
-		$aOrderMethods   = array(
-			Options::$options['ordermethod']['default']
-		);
-		$sOrder          = Options::$options['order']['default'];
-		$sOrderCollation = Options::$options['ordercollation']['default'];
-		$sPageListMode   = Options::$options['mode']['default'];
-		$sUserDateFormat = Options::$options['userdateformat']['default'];
-
-		$sHListMode    = Options::$options['headingmode']['default'];
-		$bHeadingCount = self::filterBoolean(Options::$options['headingcount']['default']);
-
-		$bEscapeLinks  = Options::$options['escapelinks']['default'];
-		$bSkipThisPage = Options::$options['skipthispage']['default'];
-
-		$sHiddenCategories = Options::$options['hiddencategories']['default'];
-
-		$sMinorEdits          = null;
-		$acceptOpenReferences = self::filterBoolean(Options::$options['openreferences']['default']);
-
-		$sLastRevisionBefore = Options::$options['lastrevisionbefore']['default'];
-		$sAllRevisionsBefore = Options::$options['allrevisionsbefore']['default'];
-		$sFirstRevisionSince = Options::$options['firstrevisionsince']['default'];
-		$sAllRevisionsSince  = Options::$options['allrevisionssince']['default'];
-
-		$_sMinRevisions = Options::$options['minrevisions']['default'];
-		$iMinRevisions  = ($_sMinRevisions == '') ? null : intval($_sMinRevisions);
-		$_sMaxRevisions = Options::$options['maxrevisions']['default'];
-		$iMaxRevisions  = ($_sMaxRevisions == '') ? null : intval($_sMaxRevisions);
-
-		$sRedirects = Options::$options['redirects']['default'];
-		$sQuality   = Options::$options['qualitypages']['default'];
-		$sStable    = Options::$options['stablepages']['default'];
-
-		$bSuppressErrors  = self::filterBoolean(Options::$options['suppresserrors']['default']);
-		$sResultsHeader   = Options::$options['resultsheader']['default'];
-		$sResultsFooter   = Options::$options['resultsfooter']['default'];
-		$sNoResultsHeader = Options::$options['noresultsheader']['default'];
-		$sNoResultsFooter = Options::$options['noresultsfooter']['default'];
-		$sOneResultHeader = Options::$options['oneresultheader']['default'];
-		$sOneResultFooter = Options::$options['oneresultfooter']['default'];
-
-		$aListSeparators = array();
-		$sTable          = Options::$options['table']['default'];
-		$aTableRow       = array();
-		$iTableSortCol   = Options::$options['tablesortcol']['default'];
-
-		$sInlTxt = Options::$options['inlinetext']['default'];
-
-		$bShowNamespace = self::filterBoolean(Options::$options['shownamespace']['default']);
-		$bShowCurID     = self::filterBoolean(Options::$options['showcurid']['default']);
-
-		$bAddFirstCategoryDate = self::filterBoolean(Options::$options['addfirstcategorydate']['default']);
-
-		$bAddPageCounter = self::filterBoolean(Options::$options['addpagecounter']['default']);
-
-		$bAddPageSize = self::filterBoolean(Options::$options['addpagesize']['default']);
-
-		$bAddPageTouchedDate = self::filterBoolean(Options::$options['addpagetoucheddate']['default']);
-
-		$bAddEditDate = self::filterBoolean(Options::$options['addeditdate']['default']);
-
-		$bAddUser         = self::filterBoolean(Options::$options['adduser']['default']);
-		$bAddAuthor       = self::filterBoolean(Options::$options['addauthor']['default']);
-		$bAddContribution = self::filterBoolean(Options::$options['addcontribution']['default']);
-		$bAddLastEditor   = self::filterBoolean(Options::$options['addlasteditor']['default']);
-
-		$bAddExternalLink = self::filterBoolean(Options::$options['addexternallink']['default']);
-
-		$bAllowCachedResults = self::filterBoolean(Options::$options['allowcachedresults']['default']);
-		$bWarnCachedResults  = false;
-
-		$bAddCategories = self::filterBoolean(Options::$options['addcategories']['default']);
-
-		$bIncludeSubpages = self::filterBoolean(Options::$options['includesubpages']['default']);
-		$bIncludeTrim     = self::filterBoolean(Options::$options['includetrim']['default']);
-
-		$bIgnoreCase = self::filterBoolean(Options::$options['ignorecase']['default']);
-
-		$_incpage = Options::$options['includepage']['default'];
-		$bIncPage = is_string($_incpage) && $_incpage !== '';
-
-
-		$aSecLabels = array();
-		if ($bIncPage) {
-			$aSecLabels = explode(',', $_incpage);
-		}
-		$aSecLabelsMatch    = array();
-		$aSecLabelsNotMatch = array();
-		$bIncParsed         = false; // default is to match raw parameters
-
-		$aSecSeparators      = explode(',', Options::$options['secseparators']['default']);
-		$aMultiSecSeparators = explode(',', Options::$options['multisecseparators']['default']);
-		$iDominantSection    = Options::$options['dominantsection']['default'];
-
-		$_sColumns = Options::$options['columns']['default'];
-		$iColumns  = ($_sColumns == '') ? 1 : intval($_sColumns);
-
-		$_sRows = Options::$options['rows']['default'];
-		$iRows  = ($_sRows == '') ? 1 : intval($_sRows);
-
-		$_sRowSize = Options::$options['rowsize']['default'];
-		$iRowSize  = ($_sRowSize == '') ? 0 : intval($_sRowSize);
-
-		$sRowColFormat = Options::$options['rowcolformat']['default'];
-
-		$_sRandomCount = Options::$options['randomcount']['default'];
-		$iRandomCount  = ($_sRandomCount == '') ? null : intval($_sRandomCount);
-
-		$sDistinctResultSet = 'true';
-
-		$sListHtmlAttr = Options::$options['listattr']['default'];
-		$sItemHtmlAttr = Options::$options['itemattr']['default'];
-
-		$sHListHtmlAttr = Options::$options['hlistattr']['default'];
-		$sHItemHtmlAttr = Options::$options['hitemattr']['default'];
-
-		$_sTitleMaxLen = Options::$options['titlemaxlength']['default'];
-		$iTitleMaxLen  = ($_sTitleMaxLen == '') ? null : intval($_sTitleMaxLen);
-
-		$aReplaceInTitle[0] = '';
-		$aReplaceInTitle[1] = '';
-
-		$_sCatMinMax = Options::$options['categoriesminmax']['default'];
-		$aCatMinMax  = ($_sCatMinMax == '') ? null : explode(',', $_sCatMinMax);
-
-		$_sIncludeMaxLen = Options::$options['includemaxlength']['default'];
-		$iIncludeMaxLen  = ($_sIncludeMaxLen == '') ? null : intval($_sIncludeMaxLen);
-
-		$bScroll = self::filterBoolean(Options::$options['scroll']['default']);
-
-		$aLinksTo      = array();
-		$aNotLinksTo   = array();
-		$aLinksFrom    = array();
-		$aNotLinksFrom = array();
-
-		$aLinksToExternal = array();
-
-		$aImageUsed      = array();
-		$aImageContainer = array();
-
-		$aUses    = array();
-		$aNotUses = array();
-		$aUsedBy  = array();
-
-		$sCreatedBy         = '';
-		$sNotCreatedBy      = '';
-		$sModifiedBy        = '';
-		$sNotModifiedBy     = '';
-		$sLastModifiedBy    = '';
-		$sNotLastModifiedBy = '';
-
-		$aTitleMatch    = array();
-		$aNotTitleMatch = array();
-		$sTitleIs       = '';
-
-		$aIncludeCategories = array(); // $aIncludeCategories is a 2-dimensional array: Memberarrays are linked using 'AND'
-		$aExcludeCategories = array();
-
-		$aCatHeadings    = array();
-		$aCatNotHeadings = array();
-
-		$aNamespaces = array();
-
-		$aExcludeNamespaces = array();
-
-		$sArticleCategory = null;
-
-		$sUpdateRules = Options::$options['updaterules']['default'];
-		$sDeleteRules = Options::$options['deleterules']['default'];
-
-		$bOrderSuitSymbols = false;
 
 		// ###### PARSE PARAMETERS ######
 
@@ -381,12 +179,7 @@ class Main {
 				}
 			}
 
-			if (empty($parameter)) {
-				continue;
-			}
-
-			// ignore comment lines
-			if ($parameter[0] == '#') {
+			if (empty($parameter) || $parameter[0] == '#' || !Parameters::testRichness($parameter)) {
 				continue;
 			}
 
@@ -397,13 +190,6 @@ class Main {
 				}
 			}
 
-			if (!Parameters::testRichness($parameter)) {
-				continue;
-			}
-
-			$validOptionFound = true;
-
-			$parameterHandler = new Parameters();
 			switch ($parameter) {
 				$function = str_replace(['<', '>'], ['LT', 'GT'], $parameter);
 				//Parameter functions generally return their processed options, but we will grab them all at the end instead.
