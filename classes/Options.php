@@ -109,7 +109,10 @@ class Options {
 		/**
 		 * perform the command and do not query the database
 		 */
-		'execandexit'		   => array('default' => ''),
+		'execandexit' => [
+			'default'			=> false,
+			'boolean'			=> true
+		],
 		
 		/**
 		 * number of results which shall be skipped before display starts
@@ -554,21 +557,30 @@ class Options {
 		 * - include: allows redirect pages to appear in lists
 		 * - only: lists only redirect pages in lists (page_is_redirect = 1 only)
 		 */
-		'redirects'			   => array('default' => 'exclude', 'exclude', 'include', 'only'),
+		'redirects' => [
+			'default'	=> 'exclude',
+			'values'	=> ['include', 'exclude', 'only']
+		],
 		/**
 		 * stablepages =...
 		 * - exclude: excludes stable pages from lists 
 		 * - include: allows stable pages to appear in lists
 		 * - only: lists only stable pages in lists
 		 */
-		'stablepages'		   => array('default' => 'include', 'exclude', 'include', 'only'),
+		'stablepages' => [
+			'default'	=> 'include',
+			'values'	=> ['include', 'exclude', 'only']
+		],
 		/**
 		 * qualitypages =...
 		 * - exclude: excludes quality pages from lists
 		 * - include: allows quality pages to appear in lists
 		 * - only: lists only quality pages in lists
 		 */
-		'qualitypages'		   => array('default' => 'include', 'exclude', 'include', 'only'),
+		'qualitypages' => [
+			'default'	=> 'include',
+			'values'	=> ['include', 'exclude', 'only']
+		],
 		/**
 		 * resultsheader / footer is some wiki text which will be output before / after the result list
 		 * (if there is at least one result); if 'oneresultheader / footer' is specified it will only be

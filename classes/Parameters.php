@@ -396,14 +396,16 @@ class Parameters {
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
+	 * @return	boolean	Success
 	 */
 	public function notcategoryParameter($option) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
 			$this->setOption['excludecategories'][] = $title->getDbKey();
 			$this->setOpenReferencesConflict(true);
+			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -411,7 +413,7 @@ class Parameters {
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
+	 * @return	boolean	Success
 	 */
 	public function namespaceParameter($option) {
 		$extraParams = explode('|', $option);
@@ -427,54 +429,23 @@ class Parameters {
 				return false;
 			}
 		}
+		return true;
 	}
 
 	/**
-	 * Clean and test 'redirects' parameter.
+	 * Clean and test 'notnamespace' parameter.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
+	 * @return	boolean	Success
 	 */
-	public function redirectsParameter($option) {
-		if (in_array($option, Options::$options['redirects'])) {
-			$this->setOption['redirects']                   = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
+	public function notnamespaceParameter($option) {
+		if (!in_array($option, Options::$options['notnamespace'])) {
 			return false;
 		}
-	}
-
-	/**
-	 * Clean and test 'stablepages' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function stablepagesParameter($option) {
-		if (in_array($option, Options::$options['stablepages'])) {
-			$this->setOption['stable']                      = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Clean and test 'qualitypages' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function qualitypagesParameter($option) {
-		if (in_array($option, Options::$options['qualitypages'])) {
-			$this->setOption['quality']                     = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
+		$this->setOption['excludenamespaces'][] = $wgContLang->getNsIndex($option);
+		$this->setSelectionCriteriaFound(true);
+		return true;
 	}
 
 	/**
@@ -486,11 +457,10 @@ class Parameters {
 	 */
 	public function ordermethodParameter($option) {
 		$methods   = explode(',', $option);
-		$breakaway = false;
+		$success = true;
 		foreach ($methods as $method) {
 			if (!in_array($method, Options::$options['ordermethod'])) {
-				return false;
-				$breakaway = true;
+				$success = false;
 			}
 		}
 		if (!$breakaway) {
@@ -499,6 +469,7 @@ class Parameters {
 				$this->setOpenReferencesConflict(true);
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -539,35 +510,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-	}
-
-	/**
-	 * Clean and test 'execandexit' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function execandexitParameter($option) {
-		// we offer a possibility to execute a DPL command without querying the database
-		// this is useful if you want to catch the command line parameters DPL_arg1,... etc
-		// in this case we prevent the parser cache from being disabled by later statements
-		$this->setOption['execandexit'] = $option;
-	}
-
-	/**
-	 * Clean and test 'notnamespace' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function notnamespaceParameter($option) {
-		if (!in_array($option, Options::$options['notnamespace'])) {
-			return $logger->msgWrongParam('notnamespace', $option);
-		}
-		$this->setOption['excludenamespaces'][]    = $wgContLang->getNsIndex($option);
-		$this->setSelectionCriteriaFound(true);
 	}
 
 	/**

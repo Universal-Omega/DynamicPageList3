@@ -91,7 +91,7 @@ class DynamicPageListHooks {
 	public	static $allowUnlimitedResults	 = false; // Allow unlimited results to be shown
 	public	static $allowedNamespaces		 = null;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
 													  // Cannot be customized. Use Options::$options['namespace'] or Options::$options['notnamespace'] for customization.
-	public	static $behavingLikeIntersection = false; // Changes certain default values to comply with Extension:Intersection
+	public	static $likeIntersection = false; // Changes certain default values to comply with Extension:Intersection
 
 	public static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
 													  // .. to be changed in LocalSettings.php
@@ -109,10 +109,6 @@ class DynamicPageListHooks {
 	public static $createdLinks; // the links created by DPL are collected here;
 								 // they can be removed during the final ouput
 								 // phase of the MediaWiki parser
-
-	private static function behaveLikeIntersection($mode) {
-		self::$behavingLikeIntersection = $mode;
-	}
 
 	/**
 	 * Sets up this extension's parser functions.
@@ -198,6 +194,27 @@ class DynamicPageListHooks {
 		foreach ($debugCodes as $i => $minlevel) {
 			self::$debugMinLevels[$i] = $minlevel;
 		}
+	}
+
+	/**
+	 * Set to behave like intersection.
+	 *
+	 * @access	private
+	 * @param	boolean	Behave Like Intersection
+	 * @return	void
+	 */
+	static private function setLikeIntersection($mode = false) {
+		self::$likeIntersection = $mode;
+	}
+
+	/**
+	 * Is like intersection?
+	 *
+	 * @access	public
+	 * @return	boolean	Behaving Like Intersection
+	 */
+	static public function isLikeIntersection() {
+		return (bool) self::$likeIntersection;
 	}
 
 	/**

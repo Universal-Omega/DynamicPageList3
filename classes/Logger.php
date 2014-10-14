@@ -47,7 +47,7 @@ class Logger {
 			 * @todo add a DPL id to identify the DPL tag that generates the message, in case of multiple DPLs in the page
 			 */
 			$text = '';
-			if (\DynamicPageListHooks::$behavingLikeIntersection) {
+			if (\DynamicPageListHooks::isLikeIntersection()) {
 				if ($msgid == \DynamicPageListHooks::FATAL_TOOMANYCATS)
 					$text = wfMessage('intersection_toomanycats', $args)->text();
 				else if ($msgid == \DynamicPageListHooks::FATAL_TOOFEWCATS)

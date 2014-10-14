@@ -171,7 +171,7 @@ class Main {
 
 		// ordermethod, order, mode, userdateformat, allowcachedresults:
 		// if we have to behave like Extension:Intersection we use different default values for some commands
-		if (\DynamicPageListHooks::$behavingLikeIntersection) {
+		if (\DynamicPageListHooks::isLikeIntersection()) {
 			Options::$options['ordermethod']                   = array(
 				'default' => 'categoryadd',
 				'categoryadd',
@@ -867,7 +867,7 @@ class Main {
 					$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
 					break;
 				case 'lastedit':
-					if (\DynamicPageListHooks::$behavingLikeIntersection) {
+					if (\DynamicPageListHooks::isLikeIntersection()) {
 						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
 					} else {
 						$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
@@ -1594,7 +1594,7 @@ class Main {
 						break;
 					case 'lastedit':
 						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
-						if (\DynamicPageListHooks::$behavingLikeIntersection) {
+						if (\DynamicPageListHooks::isLikeIntersection()) {
 							$sSqlWhere .= 'page_touched';
 						} else {
 							$sSqlWhere .= 'rev_timestamp';
