@@ -389,7 +389,6 @@ class Parameters {
 			}
 			$this->setOpenReferencesConflict(true);
 		}
-		return $options;
 	}
 
 	/**
@@ -405,7 +404,6 @@ class Parameters {
 			$this->setOption['excludecategories'][] = $title->getDbKey();
 			$this->setOpenReferencesConflict(true);
 		}
-		return $options;
 	}
 
 	/**
@@ -429,7 +427,6 @@ class Parameters {
 				return false;
 			}
 		}
-		return $options;
 	}
 
 	/**
@@ -446,7 +443,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -463,7 +459,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -480,7 +475,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -505,7 +499,6 @@ class Parameters {
 				$this->setOpenReferencesConflict(true);
 			}
 		}
-		return $options;
 	}
 
 	/**
@@ -521,7 +514,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -547,7 +539,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -562,7 +553,6 @@ class Parameters {
 		// this is useful if you want to catch the command line parameters DPL_arg1,... etc
 		// in this case we prevent the parser cache from being disabled by later statements
 		$this->setOption['execandexit'] = $option;
-		return $options;
 	}
 
 	/**
@@ -578,7 +568,6 @@ class Parameters {
 		}
 		$this->setOption['excludenamespaces'][]    = $wgContLang->getNsIndex($option);
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -600,7 +589,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -616,7 +604,6 @@ class Parameters {
 		} elseif ($option != '') {
 			$this->setOption['ordercollation'] = "COLLATE ".self::$DB->strencode($option);
 		}
-		return $options;
 	}
 
 	/**
@@ -637,7 +624,6 @@ class Parameters {
 		// mode=userformat will be automatically assumed
 		$this->setOption['pagelistmode']   = 'userformat';
 		$this->setOption['inltxt']         = '';
-		return $options;
 	}
 
 	/**
@@ -661,7 +647,6 @@ class Parameters {
 			$this->setOpenReferencesConflict(true);
 			$this->setOption['allowcachedresults']          = true;
 		}
-		return $options;
 	}
 
 	/**
@@ -676,7 +661,6 @@ class Parameters {
 		// of page names in the database
 		$this->setOption['titlege']                = str_replace(' ', '_', $option);
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -691,7 +675,6 @@ class Parameters {
 		// of page names in the database
 		$this->setOption['titlele']                = str_replace(' ', '_', $option);
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -732,7 +715,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -749,7 +731,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -765,7 +746,6 @@ class Parameters {
 		if (isset($aReplaceInTitle[1])) {
 			$this->setOption['replaceintitle'][1] = self::stripHtmlTags($aReplaceInTitle[1]);
 		}
-		return $options;
 
 	/**
 	 * Clean and test 'debug' parameter.
@@ -783,7 +763,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -799,7 +778,6 @@ class Parameters {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -815,7 +793,6 @@ class Parameters {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -831,7 +808,6 @@ class Parameters {
 			return $problems;
 		}
 		// $this->setOption['conflictswithopenreferences']=true;
-		return $options;
 	}
 
 	/**
@@ -846,7 +822,6 @@ class Parameters {
 		if ($problems != '') {
 			return $problems;
 		}
-		return $options;
 	}
 
 	/**
@@ -862,7 +837,6 @@ class Parameters {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -889,7 +863,6 @@ class Parameters {
 			return $logger->msgWrongParam('imageused', $option);
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -915,7 +888,6 @@ class Parameters {
 		if (!$bSelectionCriteriaFound) {
 			return $logger->msgWrongParam('imagecontainer', $option);
 		}
-		return $options;
 	}
 
 	/**
@@ -942,7 +914,6 @@ class Parameters {
 			return $logger->msgWrongParam('uses', $option);
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -969,7 +940,6 @@ class Parameters {
 			return $logger->msgWrongParam('notuses', $option);
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -996,7 +966,6 @@ class Parameters {
 			return $logger->msgWrongParam('usedby', $option);
 		}
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -1011,7 +980,6 @@ class Parameters {
 		// of page names in the database
 		$aTitleMatch             = explode('|', str_replace(' ', '\_', $option));
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -1029,7 +997,6 @@ class Parameters {
 			$sMinorEdits = Options::$options['minoredits']['default'];
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1045,7 +1012,6 @@ class Parameters {
 		} else { // wrong value
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1061,7 +1027,6 @@ class Parameters {
 		if ($bIncPage) {
 			$aSecLabels = explode(',', $option);
 		}
-		return $options;
 	}
 
 	/**
@@ -1073,7 +1038,6 @@ class Parameters {
 	 */
 	public function includematchparsedParameter($option) {
 		$bIncParsed = true;
-		return $options;
 	}
 
 	/**
@@ -1085,7 +1049,6 @@ class Parameters {
 	 */
 	public function includematchParameter($option) {
 		$aSecLabelsMatch = explode(',', $option);
-		return $options;
 	}
 
 	/**
@@ -1097,7 +1060,6 @@ class Parameters {
 	 */
 	public function includenotmatchparsedParameter($option) {
 		$bIncParsed = true;
-		return $options;
 	}
 
 	/**
@@ -1109,7 +1071,6 @@ class Parameters {
 	 */
 	public function includenotmatchParameter($option) {
 		$aSecLabelsNotMatch = explode(',', $option);
-		return $options;
 	}
 
 	/**
@@ -1126,7 +1087,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1141,7 +1101,6 @@ class Parameters {
 		$option           = str_replace('\n', "\n", $option);
 		$option           = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
 		$aSecSeparators = explode(',', $option);
-		return $options;
 	}
 
 	/**
@@ -1156,7 +1115,6 @@ class Parameters {
 		$option                = str_replace('\n', "\n", $option);
 		$option                = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
 		$aMultiSecSeparators = explode(',', $option);
-		return $options;
 	}
 
 	/**
@@ -1169,7 +1127,6 @@ class Parameters {
 	public function tableParameter($option) {
 		$option   = str_replace('\n', "\n", $option);
 		$sTable = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
-		return $options;
 	}
 
 	/**
@@ -1187,7 +1144,6 @@ class Parameters {
 		} else {
 			$aTableRow = explode(',', $option);
 		}
-		return $options;
 	}
 
 	/**
@@ -1212,7 +1168,6 @@ class Parameters {
 				return false;
 			}
 		}
-		return $options;
 	}
 
 	/**
@@ -1229,7 +1184,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1241,7 +1195,6 @@ class Parameters {
 	 */
 	public function fixcategoryParameter($option) {
 		\DynamicPageListHooks::fixCategory($option);
-		return $options;
 	}
 
 	/**
@@ -1274,7 +1227,6 @@ class Parameters {
 				$bReset[3] = true;
 			}
 		}
-		return $options;
 	}
 
 	/**
@@ -1312,7 +1264,6 @@ class Parameters {
 				$bReset[7] = false;
 			}
 		}
-		return $options;
 	}
 
 	/**
@@ -1328,7 +1279,6 @@ class Parameters {
 			$option
 		);
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -1342,7 +1292,6 @@ class Parameters {
 		$sCategoryComparisonMode      = ' LIKE ';
 		$aIncludeCategories[]         = explode('|', $option);
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -1356,7 +1305,6 @@ class Parameters {
 		$sNotCategoryComparisonMode   = ' REGEXP ';
 		$aExcludeCategories[]         = $option;
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -1370,7 +1318,6 @@ class Parameters {
 		$sNotCategoryComparisonMode   = ' LIKE ';
 		$aExcludeCategories[]         = $option;
 		$this->setOpenReferencesConflict(true);
-		return $options;
 	}
 
 	/**
@@ -1386,7 +1333,6 @@ class Parameters {
 			$option
 		);
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -1402,7 +1348,6 @@ class Parameters {
 			$option
 		);
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -1417,7 +1362,6 @@ class Parameters {
 		// of page names in the database
 		$aNotTitleMatch          = explode('|', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
-		return $options;
 	}
 
 	/**
@@ -1450,7 +1394,6 @@ class Parameters {
 		} else {
 			$output .= $logger->msgWrongParam($parameter, $option);
 		}
-		return $options;
 	}
 
 	/**
@@ -1467,7 +1410,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1484,7 +1426,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 
 	/**
@@ -1496,7 +1437,6 @@ class Parameters {
 	 */
 	public function articlecategoryParameter($option) {
 		$sArticleCategory = str_replace(' ', '_', $option);
-		return $options;
 	}
 
 	/**
@@ -1513,7 +1453,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
 	}
 }
 ?>
