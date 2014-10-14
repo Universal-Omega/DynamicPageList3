@@ -180,9 +180,6 @@ class ExtDynamicPageList {
 				EDIT_NEW | EDIT_FORCE_BOT
 			);
 		}
-	}
-
-	private static function loadMessages() {
 
 		/**
 		 *	Define codes and map debug message to min debug level above which message can be displayed
@@ -196,32 +193,52 @@ class ExtDynamicPageList {
 			3
 		);
 
-		foreach ($debugCodes as $i => $minlevel )
-		{
+		foreach ($debugCodes as $i => $minlevel) {
 			self::$debugMinLevels[$i] = $minlevel;
 		}
-
 	}
 
-	//------------------------------------------------------------------------------------- ENTRY parser TAG intersection
-	public static function intersectionTag( $input, $params, $parser ) {
+	/**
+	 * Tag <section> entry point.
+	 *
+	 * @access	public
+	 * @param	string	Namespace prefixed article of the PDF file to display.
+	 * @param	array	Arguments on the tag.
+	 * @param	object	Parser object.
+	 * @param	object	PPFrame object.
+	 * @return	string	HTML
+	 */
+	public static function intersectionTag($input, $params = array(), Parser $parser, PPFrame $frame) {
 		self::behaveLikeIntersection(true);
-		return self::executeTag($input, $params, $parser);
+		return self::executeTag($input, $params = array(), $parser, $frame);
 	}
 
-	//------------------------------------------------------------------------------------- ENTRY parser TAG dpl
-	public static function dplTag( $input, $params, $parser ) {
+	/**
+	 * Tag <dpl> entry point.
+	 *
+	 * @access	public
+	 * @param	string	Namespace prefixed article of the PDF file to display.
+	 * @param	array	Arguments on the tag.
+	 * @param	object	Parser object.
+	 * @param	object	PPFrame object.
+	 * @return	string	HTML
+	 */
+	public static function dplTag($input, $params = array(), Parser $parser, PPFrame $frame) {
 		self::behaveLikeIntersection(false);
-		return self::executeTag($input, $params, $parser);
+		return self::executeTag($input, $params = array(), $parser, $frame);
 	}
 
-	//------------------------------------------------------------------------------------- ENTRY parser TAG
-	// The callback function wrapper for converting the input text to HTML output
-	private static function executeTag( $input, $params, $parser ) {
-
-		// late loading of php modules, only if needed
-		self::loadMessages();
-
+	/**
+	 * The callback function wrapper for converting the input text to HTML output
+	 *
+	 * @access	public
+	 * @param	string	Namespace prefixed article of the PDF file to display.
+	 * @param	array	Arguments on the tag.
+	 * @param	object	Parser object.
+	 * @param	object	PPFrame object.
+	 * @return	string	HTML
+	 */
+	private static function executeTag($input, $params = array(), Parser $parser, PPFrame $frame) {
 		// entry point for user tag <dpl>  or  <DynamicPageList>
 		// create list and do a recursive parse of the output
 
@@ -252,12 +269,14 @@ class ExtDynamicPageList {
 		return $parsedDPL;
 	}
 
-
-
-	//------------------------------------------------------------------------------------- ENTRY parser FUNCTION #dpl
-	public static function dplParserFunction(&$parser) {
-		self::loadMessages();
-
+	/**
+	 * The #dpl parser tag entry point.
+	 *
+	 * @access	public
+	 * @param	object	Parser object passed as a reference.
+	 * @return	string	Wiki Text
+	 */
+	static public function dplParserFunction(&$parser) {
 		self::behaveLikeIntersection(false);
 
 		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
@@ -442,7 +461,7 @@ class ExtDynamicPageList {
 		}
 	} 
 
-// reset everything; some categories may have been fixed, however via  fixcategory=
+	// reset everything; some categories may have been fixed, however via  fixcategory=
 	public static function endReset( &$parser, $text ) {
 		if (!self::$createdLinks['resetdone']) {
 			self::$createdLinks['resetdone'] = true;
