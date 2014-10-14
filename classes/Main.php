@@ -443,7 +443,7 @@ class Main {
 				}
 			}
 
-			if ($parameter == '') {
+			if (empty($parameter)) {
 				continue;
 			}
 
@@ -468,16 +468,12 @@ class Main {
 			$parameterHandler = new Parameters();
 			switch ($parameter) {
 				$function = str_replace(['<', '>'], ['LT', 'GT'], $parameter);
-				if (method_exists('Parameters', $function)) {
-					//Parameter functions generally return their processed options, but we will grab them all at the end instead.
-					if ($parameterHandler->$function($option) === false) {
-						//Do not build this into the output just yet.  It will be collected at the end.
-						$logger->msgWrongParam($parameter, $option);
-					}
-				} else {
-					//If somehow the parameter passes the richness test and options sanity tests above before getting into here there is probably code bug.
-					$logger->escapeMsg(\DynamicPageListHooks::FATAL_MISSINGPARAMFUNCTION, $parameter, implode(', ', Parameters::getParametersForRichness()));
+				//Parameter functions generally return their processed options, but we will grab them all at the end instead.
+				if ($parameterHandler->$function($option) === false) {
+					//Do not build this into the output just yet.  It will be collected at the end.
+					$logger->msgWrongParam($parameter, $option);
 				}
+			}
 		}
 
 		// set COUNT
@@ -2303,19 +2299,6 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		$wgExtVariables->vardefine($dummy, 'DPL_count', $dplCount);
 		$wgExtVariables->vardefine($dummy, 'DPL_totalPages', $totalPages);
 		$wgExtVariables->vardefine($dummy, 'DPL_pages', $pages);
-	}
-
-	/**
-	 * Strip <html> tags.
-	 *
-	 * @access	private
-	 * @param	string	Dirty Text
-	 * @return	string	Clean Text
-	 */
-	static private function stripHtmlTags($text) {
-		$text = preg_replace("#<.*?html.*?>#is", "", $text);
-
-		return $text;
 	}
 
 	private static function cardSuitSort(&$articles) {
