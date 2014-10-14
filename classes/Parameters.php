@@ -12,151 +12,6 @@ namespace DPL;
 
 class Parameters extends ParametersData {
 	/**
-	 * Parameter Richness
-	 * The level of parameters that is accesible for the user.
-	 *
-	 * @var		integer
-	 */
-	static private $parameterRichness = 0;
-
-	/**
-	 * List of all the valid parameters that can be used per level of functional richness.
-	 *
-	 * @var		array
-	 */
-	static private $parametersForRichnessLevel = [
-		0 => [
-			'addfirstcategorydate',
-			'category',
-			'count',
-			'hiddencategories',
-			'mode',
-			'namespace',
-			'notcategory',
-			'order',
-			'ordermethod',
-			'qualitypages',
-			'redirects',
-			'showcurid',
-			'shownamespace',
-			'stablepages',
-			'suppresserrors'
-		],
-		1 => [
-			'allowcachedresults',
-			'execandexit',
-			'columns',
-			'debug',
-			'distinct',
-			'escapelinks',
-			'format',
-			'inlinetext',
-			'listseparators',
-			'notnamespace',
-			'offset',
-			'oneresultfooter',
-			'oneresultheader',
-			'ordercollation',
-			'noresultsfooter',
-			'noresultsheader',
-			'randomcount',
-			'replaceintitle',
-			'resultsfooter',
-			'resultsheader',
-			'rowcolformat',
-			'rows',
-			'rowsize',
-			'scroll',
-			'title',
-			'title<',
-			'title>',
-			'titlemaxlength',
-			'userdateformat'
-		],
-		2 => [
-			'addauthor',
-			'addcategories',
-			'addcontribution',
-			'addeditdate',
-			'addexternallink',
-			'addlasteditor',
-			'addpagecounter',
-			'addpagesize',
-			'addpagetoucheddate',
-			'adduser',
-			'categoriesminmax',
-			'createdby',
-			'dominantsection',
-			'dplcache',
-			'dplcacheperiod',
-			'eliminate',
-			'fixcategory',
-			'headingcount',
-			'headingmode',
-			'hitemattr',
-			'hlistattr',
-			'ignorecase',
-			'imagecontainer',
-			'imageused',
-			'include',
-			'includematch',
-			'includematchparsed',
-			'includemaxlength',
-			'includenotmatch',
-			'includenotmatchparsed',
-			'includepage',
-			'includesubpages',
-			'includetrim',
-			'itemattr',
-			'lastmodifiedby',
-			'linksfrom',
-			'linksto',
-			'linkstoexternal',
-			'listattr',
-			'minoredits',
-			'modifiedby',
-			'multisecseparators',
-			'notcreatedby',
-			'notlastmodifiedby',
-			'notlinksfrom',
-			'notlinksto',
-			'notmodifiedby',
-			'notuses',
-			'reset',
-			'secseparators',
-			'skipthispage',
-			'table',
-			'tablerow',
-			'tablesortcol',
-			'titlematch',
-			'usedby',
-			'uses'
-		],
-		3 => [
-			'allrevisionsbefore',
-			'allrevisionssince',
-			'articlecategory',
-			'categorymatch',
-			'categoryregexp',
-			'firstrevisionsince',
-			'lastrevisionbefore',
-			'maxrevisions',
-			'minrevisions',
-			'notcategorymatch',
-			'notcategoryregexp',
-			'nottitlematch',
-			'nottitleregexp',
-			'openreferences',
-			'titleregexp'
-		],
-		4 => [
-			'deleterules',
-			'goal',
-			'updaterules'
-		]
-	];
-
-	/**
 	 * \DPL\Options object.
 	 *
 	 * @var		objects
@@ -177,6 +32,7 @@ class Parameters extends ParametersData {
 	 * @return	void
 	 */
 	public function __construct() {
+		parent::__construct();
 		$this->setDefaults();
 	}
 
@@ -198,27 +54,27 @@ class Parameters extends ParametersData {
 
 		//Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
 		$success = true;
-		$optionsData = $this->options->getOptions($parameter);
-		if ($optionsData !== false) {
+		$parameterData = $this->getData($parameter);
+		if ($parameterData !== false) {
 			$this->setOption[$parameter] = $option;
 
 			//If a parameter specifies options then enforce them.
-			if (is_array($optionsData['values']) === true && in_array($option, $optionsData['values'])) {
+			if (is_array($parameterData['values']) === true && in_array($option, $parameterData['values'])) {
 				$this->setOption[$parameter] = $option;
 			} else {
 				$success = false;
 			}
 
 			//Strip <html> tag.
-			if ($optionsData['strip_html'] === true) {
+			if ($parameterData['strip_html'] === true) {
 				$this->setOption[$parameter] = self::stripHtmlTags($option);
 			}
 
 			//Simple integer intval().
-			if ($optionsData['integer'] === true) {
+			if ($parameterData['integer'] === true) {
 				if (!is_numeric($option)) {
-					if ($optionsData['default'] !== null) {
-						$this->setOption[$parameter] = intval($optionsData['default']);
+					if ($parameterData['default'] !== null) {
+						$this->setOption[$parameter] = intval($parameterData['default']);
 					} else {
 						$success = false;
 					}
@@ -228,7 +84,7 @@ class Parameters extends ParametersData {
 			}
 
 			// Booleans
-			if ($optionsData['boolean'] === true) {
+			if ($parameterData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
 				if ($option !== null) {
 					$this->setOption[$parameter] = $option;
@@ -238,7 +94,7 @@ class Parameters extends ParametersData {
 			}
 
 			//Timestamps
-			if ($optionsData['timestamp'] === true) {
+			if ($parameterData['timestamp'] === true) {
 				$option = wfTimestamp(TS_MW, $option);
 				if ($option !== false) {
 					$this->setOption[$parameter] = $option;
@@ -248,8 +104,8 @@ class Parameters extends ParametersData {
 			}
 
 			//List of Pages
-			if ($optionsData['page_name_list'] === true) {
-				$list = $this->getPageNameList($option, (bool) $optionsData['page_name_must_exist']);
+			if ($parameterData['page_name_list'] === true) {
+				$list = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
 				if ($list !== false) {
 					$this->setOption[$parameter] = $list;
 					if (empty($list)) {
@@ -265,12 +121,12 @@ class Parameters extends ParametersData {
 			/* The following two are last as they should only be triggered if the above options pass properly. */
 			/***************************************************************************************************/
 			//Set that criteria was found for a selection.
-			if ($optionsData['set_criteria_found'] === true && !empty($option)) {
+			if ($parameterData['set_criteria_found'] === true && !empty($option)) {
 				$this->setSelectionCriteriaFound(true);
 			}
 
 			//Set open references conflict possibility.
-			if ($optionsData['open_ref_conflict'] === true) {
+			if ($parameterData['open_ref_conflict'] === true) {
 				$this->setOpenReferencesConflict(true);
 			}
 		}
@@ -311,64 +167,6 @@ class Parameters extends ParametersData {
 	 */
 	public function getParameter($option) {
 		return $this->parameterOptions[$parameter];
-	}
-
-	/**
-	 * Sets the current parameter richness.
-	 *
-	 * @access	public
-	 * @param	integer	Integer level.
-	 * @return	void
-	 */
-    static public function setRichness($level) {
-		self::$parameterRichness = intval($level);
-	}
-
-	/**
-	 * Returns the current parameter richness.
-	 *
-	 * @access	public
-	 * @return	integer
-	 */
-	static public function getRichness() {
-		return self::$parameterRichness;
-	}
-
-	/**
-	 * Tests if the function is valid for the current functional richness level.
-	 *
-	 * @access	public
-	 * @param	string	Function to test.
-	 * @return	boolean	Valid for this functional richness level.
-	 */
-	static public function testRichness($function) {
-		$valid = false;
-		for ($i = 0; $i <= self::getRichness(); $i++) {
-			if (in_array($function, self::$parametersForRichnessLevel[$i])) {
-				$valid = true;
-				break;
-			}
-		}
-		return $valid;
-	}
-
-	/**
-	 * Returns all parameters for the current richness level or limited to the optional maximum richness.
-	 *
-	 * @access	public
-	 * @param	
-	 * @return	array	The functional richness parameters list.
-	 */
-	static public function getParametersForRichness($level = null) {
-		if ($level === null) {
-			$level = self::getRichness();
-		}
-
-		$parameters = [];
-		for ($i = 0; $i <= $level; $i++) {
-			$parameters = array_merge($parameters, self::$parametersForRichnessLevel[0]);
-		}
-		return $parameters;
 	}
 
 	/**

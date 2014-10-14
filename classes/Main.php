@@ -174,12 +174,12 @@ class Main {
 			$option  = trim($option);
 			if (count($parameter) < 2) {
 				if (trim($aParam[0]) != '') {
-					$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", implode(', ', Parameters::getParametersForRichness()));
+					$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", implode(', ', ParametersData::getParametersForRichness()));
 					continue;
 				}
 			}
 
-			if (empty($parameter) || $parameter[0] == '#' || !Parameters::testRichness($parameter)) {
+			if (empty($parameter) || $parameter[0] == '#' || !ParametersData::testRichness($parameter)) {
 				continue;
 			}
 

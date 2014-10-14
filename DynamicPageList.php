@@ -45,8 +45,8 @@ $wgAutoloadClasses['DPL\ListMode']					= "{$extDir}/classes/ListMode.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
 $wgAutoloadClasses['DPL\LST']						= "{$extDir}/classes/LST.php";
 $wgAutoloadClasses['DPL\Main']						= "{$extDir}/classes/Main.php";
-$wgAutoloadClasses['DPL\Options']					= "{$extDir}/classes/Options.php";
 $wgAutoloadClasses['DPL\Parameters']				= "{$extDir}/classes/Parameters.php";
+$wgAutoloadClasses['DPL\ParametersData']			= "{$extDir}/classes/ParametersData.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";
 
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
@@ -60,8 +60,8 @@ if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 /******************************************/
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	//Use full functionality by default.
-	\DPL\Parameters::setRichness(0);
+	\DPL\ParametersData::setRichness(0);
 } else {
-	\DPL\Parameters::setRichness(4);
+	\DPL\ParametersData::setRichness(4);
 }
 ?>
