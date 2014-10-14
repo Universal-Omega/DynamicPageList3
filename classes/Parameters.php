@@ -210,16 +210,6 @@ class Parameters {
 				$success = false;
 			}
 
-			//Set that criteria was found for a selection.
-			if ($optionsData['set_criteria_found'] === true && !empty($option)) {
-				$this->setSelectionCriteriaFound(true);
-			}
-
-			//Set open references conflict possibility.
-			if ($optionsData['open_ref_conflict'] === true) {
-				$this->setOpenReferencesConflict(true);
-			}
-
 			//Strip <html> tag.
 			if ($optionsData['strip_html'] === true) {
 				$this->setOption[$parameter] = self::stripHtmlTags($option);
@@ -238,7 +228,7 @@ class Parameters {
 				}
 			}
 
-			//Handle Booleans
+			// Booleans
 			if ($optionsData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
 				if ($option !== null) {
@@ -248,7 +238,7 @@ class Parameters {
 				}
 			}
 
-			//Handle Timestamps
+			//Timestamps
 			if ($optionsData['timestamp'] === true) {
 				$option = wfTimestamp(TS_MW, $option);
 				if ($option !== false) {
@@ -256,6 +246,33 @@ class Parameters {
 				} else {
 					$success = false;
 				}
+			}
+
+			//List of Pages
+			if ($optionsData['page_name_list'] === true) {
+				$list = $this->getPageNameList($option, (bool) $optionsData['page_name_must_exist']);
+				if ($list !== false) {
+					$this->setOption[$parameter] = $list;
+					if (empty($list)) {
+						//If the list array is empty simply return true because selection criteria is not found and there are no open reference conflicts.
+						return true;
+					}
+				} else {
+					$success = false;
+				}
+			}
+
+			/***************************************************************************************************/
+			/* The following two are last as they should only be triggered if the above options pass properly. */
+			/***************************************************************************************************/
+			//Set that criteria was found for a selection.
+			if ($optionsData['set_criteria_found'] === true && !empty($option)) {
+				$this->setSelectionCriteriaFound(true);
+			}
+
+			//Set open references conflict possibility.
+			if ($optionsData['open_ref_conflict'] === true) {
+				$this->setOpenReferencesConflict(true);
 			}
 		}
 		return $success;
@@ -341,6 +358,37 @@ class Parameters {
 		$text = preg_replace("#<.*?html.*?>#is", "", $text);
 
 		return $text;
+	}
+
+	/**
+	 * Get a list of valid page names.
+	 *
+	 * @access	private
+	 * @param	string	Raw Text of Pages
+	 * @param	boolean	[Optional] Each Title MUST Exist
+	 * @return	mixed	List of page titles or false on error.
+	 */
+	private function getPageNameList($text, $mustExist = true) {
+		$list = [];
+		$pages = explode('|', trim($text));
+		foreach ($pages as $page) {
+			$page = trim($page);
+			$page = rtrim($page, '\\'); //This was fixed from the original code, but I am not sure what its intended purpose was.
+			if (empty($page)) {
+				continue;
+			}
+			if ($mustExist === true) {
+				$title = \Title::newFromText($page)
+				if (!$theTitle = \Title::newFromText($page)) {
+					return false;
+				}
+				$list[] = $title;
+			} else {
+				$list[] = $page;
+			}
+		}
+
+		return $list;
 	}
 
 	/**
@@ -713,80 +761,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'linksto' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function linkstoParameter($option, Options $options) {
-		$problems = Main::getPageNameList('linksto', $option, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
-		if (!empty($problems)) {
-			return $problems;
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
-	 * Clean and test 'notlinksto' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function notlinkstoParameter($option, Options $options) {
-		$problems = Main::getPageNameList('notlinksto', $option, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
-		if (!empty($problems)) {
-			return $problems;
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
-	 * Clean and test 'linksfrom' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function linksfromParameter($option, Options $options) {
-		$problems = Main::getPageNameList('linksfrom', $option, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
-		if (!empty($problems)) {
-			return $problems;
-		}
-		// $this->setOption['conflictswithopenreferences']=true;
-	}
-
-	/**
-	 * Clean and test 'notlinksfrom' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function notlinksfromParameter($option, Options $options) {
-		$problems = Main::getPageNameList('notlinksfrom', $option, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
-		if (!empty($problems)) {
-			return $problems;
-		}
-	}
-
-	/**
-	 * Clean and test 'linkstoexternal' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function linkstoexternalParameter($option, Options $options) {
-		$problems = Main::getPageNameList('linkstoexternal', $option, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
-		if (!empty($problems)) {
-			return $problems;
-		}
-		$this->setOpenReferencesConflict(true);
-	}
-
-	/**
 	 * Clean and test 'imageused' parameter.
 	 *
 	 * @access	public
@@ -960,17 +934,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'includematchparsed' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function includematchparsedParameter($option, Options $options) {
-		$bIncParsed = true;
-	}
-
-	/**
 	 * Clean and test 'includematch' parameter.
 	 *
 	 * @access	public
@@ -979,17 +942,6 @@ class Parameters {
 	 */
 	public function includematchParameter($option, Options $options) {
 		$aSecLabelsMatch = explode(',', $option);
-	}
-
-	/**
-	 * Clean and test 'includenotmatchparsed' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function includenotmatchparsedParameter($option, Options $options) {
-		$bIncParsed = true;
 	}
 
 	/**

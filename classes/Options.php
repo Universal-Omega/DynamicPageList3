@@ -293,12 +293,18 @@ class Options {
 		 * includematch=..,..	 allows to specify regular expressions which must match the included contents
 		 */
 		'includematch'		 => array('default' => ''),
-		'includematchparsed' => array('default' => ''),
+		'includematchparsed' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		/** 
 		 * includenotmatch=..,..	allows to specify regular expressions which must NOT match the included contents
 		 */
 		'includenotmatch'		=> array('default' => ''),
-		'includenotmatchparsed' => array('default' => ''),
+		'includenotmatchparsed' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		'includetrim' => [
 			'default'	=> false,
 			'boolean'	=> true
@@ -356,34 +362,52 @@ class Options {
 		 * Examples:   linksfrom=my article|your article
 		 */
 		'linksfrom' => [
-			'default'	=> []
+			'default'				=> [],
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which cannot be reached via a link from the specified pages.
 		 * Examples:   notlinksfrom=my article|your article
 		 */
 		'notlinksfrom' => [
-			'default'	=> []
+			'default'				=> [],
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which contain a reference to one of the specified pages.
 		 * Examples:   linksto=my article|your article	 ,	linksto=Template:my template   ,  linksto = {{FULLPAGENAME}}
 		 */
 		'linksto' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which do not contain a reference to the specified page.
 		 */
 		'notlinksto' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> true,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which contain an external reference that conatins a certain pattern
 		 * Examples:   linkstoexternal= www.xyz.com|www.xyz2.com
 		 */
 		'linkstoexternal' => [
-			'default'	=> []
+			'default'				=> [],
+			'open_ref_conflict'		=> true,
+			'page_name_list'		=> true,
+			'page_name_must_exist'	=> false,
+			'set_criteria_found'	=> true
 		],
 		/**
 		 * this parameter restricts the output to articles which use one of the specified images.

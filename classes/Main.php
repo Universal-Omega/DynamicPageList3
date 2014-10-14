@@ -1807,38 +1807,6 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 
 	// auxiliary functions ===============================================================================
 
-
-	// get a list of valid page names; returns true if valid args found
-	private static function getPageNameList($cmd, $text, &$aLinks, &$bSelectionCriteriaFound, $logger, $mustExist = true) {
-		$theLinks = array();
-		$errorMsg = '';
-		$pages    = explode('|', trim($text));
-		foreach ($pages as $page) {
-			if (($page = trim($page)) == '') {
-				continue;
-			}
-			// sequences like %1a would be translated to hex chars; we avoid this by escaping the cahr after the %
-			$page = str_replace('%', '%\\', $page);
-			if ($page[strlen($page) - 1] == '\\') {
-				$page = substr($page, 0, strlen($page) - 1);
-			}
-			if ($mustExist) {
-				if (!($theTitle = \Title::newFromText($page))) {
-					$errorMsg .= $logger->msgWrongParam($cmd, $page) . "<br/>\n";
-					continue;
-				}
-				$theLinks[] = $theTitle;
-			} else {
-				$theLinks[] = $page;
-			}
-		}
-		if (!empty($theLinks)) {
-			$aLinks[]                = $theLinks;
-			$bSelectionCriteriaFound = true;
-		}
-		return $errorMsg;
-	}
-
 	// create keys for TableRow which represent the structure of the "include=" arguments
 	private static function updateTableRowKeys(&$aTableRow, $aSecLabels) {
 		$tableRow  = $aTableRow;
