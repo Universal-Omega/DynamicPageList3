@@ -968,7 +968,9 @@ class ParametersData {
 		/**
 		 * fixcategory=..	prevents a category from being reset
 		 */
-		'fixcategory'		   => array( 'default' => ''),
+		'fixcategory' => [
+			'default' => null
+		],
 		/**
 		 * Number of rows for output, default is 1
 		 * Note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated

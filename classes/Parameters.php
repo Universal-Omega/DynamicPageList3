@@ -586,22 +586,6 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'titlematch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _titlematch($option) {
-		// we replace blanks by underscores to meet the internal representation
-		// of page names in the database
-		$this->setParameter('titlematch', explode('|', str_replace(' ', '_', $option)));
-		$this->setSelectionCriteriaFound(true);
-
-		return true;
-	}
-
-	/**
 	 * Short cut to includeParameter();
 	 *
 	 * @access	public
@@ -896,6 +880,19 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Clean and test 'titlematch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _titlematch($option) {
+		$this->setParameter('titlematch', explode('|', str_replace(' ', '_', $option)));
+		$this->setSelectionCriteriaFound(true);
+		return true;
+	}
+
+	/**
 	 * Clean and test 'titleregexp' parameter.
 	 *
 	 * @access	public
@@ -904,9 +901,20 @@ class Parameters extends ParametersData {
 	 */
 	public function _titleregexp($option) {
 		$sTitleMatchMode         = ' REGEXP ';
-		$aTitleMatch             = array(
-			$option
-		);
+		$this->setParameter('titlematch', [$option]);
+		$this->setSelectionCriteriaFound(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'nottitlematch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _nottitlematch($option) {
+		$this->setParameter('nottitlematch', explode('|', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
 		return true;
 	}
@@ -920,24 +928,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _nottitleregexp($option) {
 		$sNotTitleMatchMode      = ' REGEXP ';
-		$aNotTitleMatch          = array(
-			$option
-		);
-		$this->setSelectionCriteriaFound(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'nottitlematch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _nottitlematch($option) {
-		// we replace blanks by underscores to meet the internal representation
-		// of page names in the database
-		$aNotTitleMatch          = explode('|', str_replace(' ', '_', $option));
+		$this->setParameter('nottitlematch', [$option]);
 		$this->setSelectionCriteriaFound(true);
 		return true;
 	}
