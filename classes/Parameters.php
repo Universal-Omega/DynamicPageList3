@@ -247,6 +247,16 @@ class Parameters {
 					$success = false;
 				}
 			}
+
+			//Handle Timestamps
+			if ($optionsData['timestamp'] === true) {
+				$option = wfTimestamp(TS_MW, $option);
+				if ($option !== false) {
+					$this->setOption[$parameter] = $option;
+				} else {
+					$success = false;
+				}
+			}
 		}
 		return $success;
 	}
@@ -920,23 +930,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'minoredits' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function minoreditsParameter($option, Options $options) {
-		if (in_array($option, $options->getOptions('minoredits')['values'])) {
-			$sMinorEdits                  = $option;
-			$this->setOpenReferencesConflict(true);
-		} else { //wrong param val, using default
-			$sMinorEdits = $options->getOptions('minoredits')['default'];
-			return false;
-		}
-	}
-
-	/**
 	 * Clean and test 'categoriesminmax' parameter.
 	 *
 	 * @access	public
@@ -1019,8 +1012,7 @@ class Parameters {
 	 */
 	public function secseparatorsParameter($option, Options $options) {
 		// we replace '\n' by newline to support wiki syntax within the section separators
-		$option           = str_replace('\n', "\n", $option);
-		$option           = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
+		$option = str_replace(['\n', "¶"], "\n", $option);
 		$aSecSeparators = explode(',', $option);
 	}
 
@@ -1033,8 +1025,7 @@ class Parameters {
 	 */
 	public function multisecseparatorsParameter($option, Options $options) {
 		// we replace '\n' by newline to support wiki syntax within the section separators
-		$option                = str_replace('\n', "\n", $option);
-		$option                = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
+		$option = str_replace(['\n', "¶"], "\n", $option);
 		$aMultiSecSeparators = explode(',', $option);
 	}
 
@@ -1286,38 +1277,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'lastrevisionbefore' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function lastrevisionbeforeParameter($option, Options $options) {
-	case 'allrevisionsbefore':
-	case 'firstrevisionsince':
-	case 'allrevisionssince':
-		if (preg_match(Options::$options[$parameter]['pattern'], $option)) {
-			$date = str_pad(preg_replace('/[^0-9]/', '', $option), 14, '0');
-			$date = $wgLang->userAdjust($date);
-			if (($parameter) == 'lastrevisionbefore') {
-				$sLastRevisionBefore = $date;
-			}
-			if (($parameter) == 'allrevisionsbefore') {
-				$sAllRevisionsBefore = $date;
-			}
-			if (($parameter) == 'firstrevisionsince') {
-				$sFirstRevisionSince = $date;
-			}
-			if (($parameter) == 'allrevisionssince') {
-				$sAllRevisionsSince = $date;
-			}
-			$this->setOpenReferencesConflict(true);
-		} else {
-			$output .= $logger->msgWrongParam($parameter, $option);
-		}
-	}
-
-	/**
 	 * Clean and test 'articlecategory' parameter.
 	 *
 	 * @access	public
@@ -1326,22 +1285,6 @@ class Parameters {
 	 */
 	public function articlecategoryParameter($option, Options $options) {
 		$sArticleCategory = str_replace(' ', '_', $option);
-	}
-
-	/**
-	 * Clean and test 'goal' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function goalParameter($option, Options $options) {
-		if (in_array($option, $options->getOptions('goal')['values'])) {
-			$sGoal                        = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
 	}
 }
 ?>

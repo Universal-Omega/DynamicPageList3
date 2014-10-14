@@ -85,7 +85,9 @@ class Options {
 		/**
 		 * search for a page with the same title in another namespace (this is normally the article to a talk page)
 		 */
-		'articlecategory'	 => null,
+		'articlecategory' => [
+			'default'	=> null,
+		],
 
 		/**
 		 * category= Cat11 | Cat12 | ...
@@ -98,9 +100,15 @@ class Options {
 		 * Magic words allowed.
 		 * @todo define 'category' options (retrieve list of categories from 'categorylinks' table?)
 		 */
-		'category'			   => null,
-		'categorymatch'		   => null,
-		'categoryregexp'	   => null,
+		'category' => [
+			'default'	=> null,
+		],
+		'categorymatch' => [
+			'default'	=> null,
+		],
+		'categoryregexp' => [
+			'default'	=> null,
+		],
 		/**
 		 * Min and Max of categories allowed for an article
 		 */
@@ -174,9 +182,11 @@ class Options {
 		 * - 3: every debug message.
 		 * - 4: The SQL statement as an echo before execution.
 		 * - 5: <nowiki> tags around the ouput
-		 * - 6: don't execute SQL statement, only show it
 		 */
-		'debug'				   => array( 'default' => '2', '0', '1', '2', '3', '4', '5', '6'),
+		'debug' => [
+			'default'	=> '2',
+			'values'	=> ['0', '1', '2', '3', '4', '5']
+		],
 
 		/**
 		 * eliminate=.. avoid creating unnecessary backreferences which point to to DPL results.
@@ -199,7 +209,9 @@ class Options {
 			]
 		],
 
-		'format'			   => null,
+		'format' => [
+			'default'	=> null,
+		],
 
 		'goal' => [
 			'default'	=> 'pages',
@@ -496,7 +508,9 @@ class Options {
 		 * Means pages have to be in namespace Ns1 OR Ns2 OR...
 		 * Magic words allowed.
 		 */
-		'namespace'			   => null,
+		'namespace' => [
+			'default'	=> null,
+		],
 		/**
 		 * notcategory= Cat1
 		 * notcategory = Cat2
@@ -504,9 +518,15 @@ class Options {
 		 * Means pages can be NEITHER in category Cat1 NOR in Cat2 NOR...
 		 * @todo define 'notcategory' options (retrieve list of categories from 'categorylinks' table?)
 		 */
-		'notcategory'		   => null,
-		'notcategorymatch'	   => null,
-		'notcategoryregexp'	   => null,
+		'notcategory' => [
+			'default'	=> null,
+		],
+		'notcategorymatch' => [
+			'default'	=> null,
+		],
+		'notcategoryregexp' => [
+			'default'	=> null,
+		],
 		/**
 		 * notnamespace= Ns1
 		 * notnamespace= Ns2
@@ -515,18 +535,26 @@ class Options {
 		 * Means pages have to be NEITHER in namespace Ns1 NOR Ns2 NOR...
 		 * Magic words allowed.
 		*/
-		'notnamespace'		   => null,
+		'notnamespace' => [
+			'default'	=> null,
+		],
 		/**
 		 * title is the exact name of a page; this is useful if you want to use DPL
 		 * just for contents inclusion; mode=userformat is automatically implied with title=
 		*/
-		'title'				   => null,
+		'title' => [
+			'default'	=> null,
+		],
 		/**
 		 * titlematch is a (SQL-LIKE-expression) pattern
 		 * which restricts the result to pages matching that pattern
 		*/
-		'title<'			   => null,
-		'title>'			   => null,
+		'title<' => [
+			'default'	=> null,
+		],
+		'title>' => [
+			'default'	=> null,
+		],
 		'scroll' => [
 			'default'	=> false,
 			'boolean'	=> true
@@ -591,23 +619,43 @@ class Options {
 		 * - exclude: ignore minor edits when sorting the list (rev_minor_edit = 0 only)
 		 * - include: include minor edits
 		 */
-		'minoredits'		   => array('default' => 'include', 'exclude', 'include'),
+		'minoredits' => [
+			'default'			=> 'exclude',
+			'values'			=> ['include', 'exclude'],
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * lastrevisionbefore = select the latest revision which was existent before the specified point in time
 		 */
-		'lastrevisionbefore'   => array('default' => '', 'pattern' => '#^[-./:0-9]+$#'),
+		'lastrevisionbefore' => [
+			'default'	=> null,
+			'timestamp'	=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * allrevisionsbefore = select the revisions which were created before the specified point in time
 		 */
-		'allrevisionsbefore'   => array('default' => '', 'pattern' => '#^[-./:0-9]+$#'),
+		'allrevisionsbefore' => [
+			'default'	=> null,
+			'timestamp'	=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * firstrevisionsince = select the first revision which was created after the specified point in time
 		 */
-		'firstrevisionsince'   => array('default' => '', 'pattern' => '#^[-./:0-9]+$#'),
+		'firstrevisionsince' => [
+			'default'	=> null,
+			'timestamp'	=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * allrevisionssince = select the latest revisions which were created after the specified point in time
 		 */
-		'allrevisionssince'	   => array('default' => '', 'pattern' => '#^[-./:0-9]+$#'),
+		'allrevisionssince' => [
+			'default'	=> null,
+			'timestamp'	=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * Minimum/Maximum number of revisions required
 		 */
@@ -788,15 +836,21 @@ class Options {
 		/**
 		 * replaceintitle applies a regex replacement to %TITLE%
 		 */
-		'replaceintitle'	   => array('default' => ''),
+		'replaceintitle' => [
+			'default'	=> ''
+		],
 		/**
 		 * table is a short hand for combined values of listseparators, colseparators and mulicolseparators
 		 */
-		'table'				   => array('default' => ''),
+		'table' => [
+			'default'	=> ''
+		],
 		/**
 		 * tablerow allows to define individual formats for table columns
 		 */
-		'tablerow'			   => array('default' => ''),
+		'tablerow' => [
+			'default'	=> []
+		],
 		/**
 		 * The number (starting with 1) of the column to be used for sorting
 		 */
