@@ -1,7 +1,7 @@
 <?php
 /**
  * DynamicPageList
- * DPL Options Class
+ * DPL ParametersData Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL
@@ -10,7 +10,7 @@
  **/
 namespace DPL;
 
-class Options {
+class ParametersData {
 	/**
 	 * Map parameters to possible values.
 	 * A 'default' key indicates the default value for the parameter.
@@ -20,7 +20,7 @@ class Options {
 	 *
 	 * @var		array
 	 */ 
-	private $options = array(
+	private $data = array(
 		'addauthor' => [
 			'default'			=> false,
 			'boolean'			=> true,
@@ -901,7 +901,7 @@ class Options {
 	 */
 	public function __construct() {
 		if (\DynamicPageListHooks::isLikeIntersection()) {
-			$this->options['ordermethod'] = [
+			$this->data['ordermethod'] = [
 				'default'	=> 'categoryadd',
 				'values'	=> [
 					'categoryadd',
@@ -909,14 +909,14 @@ class Options {
 					'none'
 				]
 			];
-			$this->options['order'] = [
+			$this->data['order'] = [
 				'default'	=> 'descending',
 				'values'	=> [
 					'ascending',
 					'descending'
 				]
 			];
-			$this->options['mode'] = [
+			$this->data['mode'] = [
 				'default'	=> 'unordered',
 				'values'	=> [
 					'none',
@@ -924,23 +924,23 @@ class Options {
 					'unordered'
 				]
 			];
-			$this->options['userdateformat'] = [
+			$this->data['userdateformat'] = [
 				'default' => 'Y-m-d: '
 			];
-			$this->options['allowcachedresults']['default'] = 'true';
+			$this->data['allowcachedresults']['default'] = 'true';
 		}
 	}
 
 	/**
-	 * Return options information for the supplied parameter.
+	 * Return data for the supplied parameter.
 	 *
 	 * @access	public
-	 * @param	string	Option name.
-	 * @return	mixed	Option array or false if it does not exist.
+	 * @param	string	Parameter name.
+	 * @return	mixed	Parameter array or false if it does not exist.
 	 */
 	public function getOptions($parameter) {
-		if (array_key_exists($parameter, $this->options)) {
-			return $this->options[$parameter];
+		if (array_key_exists($parameter, $this->data)) {
+			return $this->data[$parameter];
 		} else {
 			return false;
 		}

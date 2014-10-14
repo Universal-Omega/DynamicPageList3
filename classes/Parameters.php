@@ -10,7 +10,7 @@
  **/
 namespace DPL;
 
-class Parameters {
+class Parameters extends ParametersData {
 	/**
 	 * Parameter Richness
 	 * The level of parameters that is accesible for the user.
@@ -164,11 +164,11 @@ class Parameters {
 	private $options;
 
 	/**
-	 * List of all the valid parameters that can be used per level of functional richness.
+	 * Set parameter options.
 	 *
 	 * @var		array
 	 */
-	private $setOptions = [];
+	private $parameterOptions = [];
 
 	/**
 	 * Main Constructor
@@ -176,9 +176,8 @@ class Parameters {
 	 * @access	public
 	 * @return	void
 	 */
-	public function __construct(Options $options) {
-		$this->options = $options;
-		$this->options->setDefaults();
+	public function __construct() {
+		$this->setDefaults();
 	}
 
 	/**
@@ -276,6 +275,42 @@ class Parameters {
 			}
 		}
 		return $success;
+	}
+
+	/**
+	 * Function Documentation
+	 *
+	 * @access	private
+	 * @return	void
+	 */
+	private function setDefaults() {
+		$parameters = self::getParametersForRichness();
+		foreach ($parameters as $parameter) {
+			
+		}
+	}
+
+	/**
+	 * Set a parameter's option.
+	 *
+	 * @access	public
+	 * @param	string	Parameter to set
+	 * @param	mixed	Option to set
+	 * @return	void
+	 */
+	public function setParameter($parameter, $option) {
+		$this->parameterOptions[$parameter] = $option
+	}
+
+	/**
+	 * Set a parameter's option.
+	 *
+	 * @access	public
+	 * @param	string	Parameter to set
+	 * @return	mixed	Option for specified parameter.
+	 */
+	public function getParameter($option) {
+		return $this->parameterOptions[$parameter];
 	}
 
 	/**
@@ -392,76 +427,81 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test '$1' parameter.
+	 * Clean and test 'category' parameter.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function categoryParameter($option) {
+		$option = trim($option);
+		if (empty($option)) {
+			return false;
+		}
 		// Init array of categories to include
-		$aCategories = array();
-		$bHeading    = false;
-		$bNotHeading = false;
-		if ($option != '' && $option[0] == '+') { // categories are headings
-			$bHeading = true;
-			$option[0]  = '';
+		$categories = [];
+		$heading    = false;
+		$notHeading = false;
+		if (substr($option, 0, 1) == '+') { // categories are headings
+			$heading = true;
+			$option = ltrim($option, '+');
 		}
-		if ($option != '' && $option[0] == '-') { // categories are NOT headings
-			$bNotHeading = true;
-			$option[0]     = '';
+		if (substr($option, 0, 1) == '-') { // categories are NOT headings
+			$notHeading = true;
+			$option = ltrim($option, '-');
 		}
-		$op   = 'OR';
-		// we expand html entities because they contain an '& 'which would be interpreted as an AND condition
+
+		$operator = 'OR';
+		//We expand html entities because they contain an '& 'which would be interpreted as an AND condition
 		$option = html_entity_decode($option, ENT_QUOTES);
 		if (strpos($option, '&') !== false) {
-			$aParams = explode('&', $option);
-			$op      = 'AND';
+			$parameters = explode('&', $option);
+			$operator = 'AND';
 		} else {
-			$aParams = explode('|', $option);
+			$parameters = explode('|', $option);
 		}
-		foreach ($aParams as $sParam) {
-			$sParam = trim($sParam);
-			if ($sParam == '_none_') {
-				$aParams[$sParam] = '';
+		foreach ($parameters as $parameter) {
+			$parameter = trim($parameter);
+			if ($parameter == '_none_') {
+				$parameters[$parameter] = '';
 				$bIncludeUncat    = true;
-				$aCategories[]    = '';
-			} elseif ($sParam != '') {
-				if ($sParam[0] == '*' && strlen($sParam) >= 2) {
-					if ($sParam[1] == '*') {
-						$sParamList = explode('|', self::getSubcategories(substr($sParam, 2), $sPageTable, 2));
+				$categories[]    = '';
+			} elseif ($parameter != '') {
+				if ($parameter[0] == '*' && strlen($parameter) >= 2) {
+					if ($parameter[1] == '*') {
+						$parameterList = explode('|', self::getSubcategories(substr($parameter, 2), $sPageTable, 2));
 					} else {
-						$sParamList = explode('|', self::getSubcategories(substr($sParam, 1), $sPageTable, 1));
+						$parameterList = explode('|', self::getSubcategories(substr($parameter, 1), $sPageTable, 1));
 					}
-					foreach ($sParamList as $sPar) {
+					foreach ($parameterList as $sPar) {
 						$title = \Title::newFromText($sPar);
 						if (!is_null($title)) {
-							$aCategories[] = $title->getDbKey();
+							$categories[] = $title->getDbKey();
 						}
 					}
 				} else {
-					$title = \Title::newFromText($sParam);
+					$title = \Title::newFromText($parameter);
 					if (!is_null($title)) {
-						$aCategories[] = $title->getDbKey();
+						$categories[] = $title->getDbKey();
 					}
 				}
 			}
 		}
-		if (!empty($aCategories)) {
-			if ($op == 'OR') {
-				$aIncludeCategories[] = $aCategories;
+		if (!empty($categories)) {
+			if ($operator == 'OR') {
+				$aIncludeCategories[] = $categories;
 			} else {
-				foreach ($aCategories as $aParams) {
-					$sParam               = array();
-					$sParam[]             = $aParams;
-					$aIncludeCategories[] = $sParam;
+				foreach ($categories as $parameters) {
+					$parameter               = array();
+					$parameter[]             = $parameters;
+					$aIncludeCategories[] = $parameter;
 				}
 			}
-			if ($bHeading) {
-				$aCatHeadings = array_unique($aCatHeadings + $aCategories);
+			if ($heading) {
+				$aCatHeadings = array_unique($aCatHeadings + $categories);
 			}
-			if ($bNotHeading) {
-				$aCatNotHeadings = array_unique($aCatNotHeadings + $aCategories);
+			if ($notHeading) {
+				$aCatNotHeadings = array_unique($aCatNotHeadings + $categories);
 			}
 			$this->setOpenReferencesConflict(true);
 		}
