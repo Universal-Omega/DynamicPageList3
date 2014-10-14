@@ -68,27 +68,42 @@ class Options {
 		 * number of results which shall be skipped before display starts
 		 * default is 0
 		 */
-		'offset'			   => array('default' => '0', 'pattern' => '/^\d*$/'),
+		'offset' => [
+			'default'	=> 0,
+			'intval'	=> true
+		],
 		/**
 		 * Max of results to display, selection is based on random.
 		 */
-		'count'				   => array('default' => '500', 'pattern' => '/^\d*$/'),
+		'count' => [
+			'default'	=> 500,
+			'intval'	=> true
+		],
 		/**
 		 * Max number of results to display, selection is based on random.
 		 */
-		'randomcount'		   => array('default' => '', 'pattern' => '/^\d*$/'),
+		'randomcount' => [
+			'default'	=> 10,
+			'intval'	=> true
+		],
 		/**
 		 * shall the result set be distinct (=default) or not?
 		 */
 		'distinct'			   => array('default' => 'true', 'strict', 'false', 'no', 'yes', '0', '1', 'off', 'on'),
 
-		'dplcache'			   => array('default' => ''),
-		'dplcacheperiod'	   => array('default' => '86400', 'pattern' => '/^\d+$/'), // 86400 = # seconds for one day
+		'dplcache' => ['default' => ''],
+		'dplcacheperiod' => [
+			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
+			'intval'	=> true
+		],
 
 		/**
 		 * number of columns for output, default is 1
 		 */
-		'columns'			   => array('default' => '', 'pattern' => '/^\d+$/'),
+		'columns' => [
+			'default'	=> 1,
+			'intval'	=> true
+		],
 
 		/**
 		 * debug=...
@@ -184,10 +199,13 @@ class Options {
 		],
 		/**
 		 * Max # characters of included page to display.
-		 * Empty value (default) means no limit.
-		 * If we include setcions the limit will apply to each section.
+		 * Null means no limit.
+		 * If we include sections the limit will apply to each section.
 		 */
-		'includemaxlength'	   => array('default' => '', 'pattern' => '/^\d*$/'),
+		'includemaxlength' => [
+			'default'	=> null,
+			'intval'	=> true
+		],
 		/**
 		 * Attributes for HTML list items, depending on 'mode' ('li' for ordered/unordered, 'span' for others).
 		 * Not applicable to 'mode=category'.
@@ -501,15 +519,21 @@ class Options {
 		 */
 		'fixcategory'		   => array( 'default' => ''),
 		/**
-		 * number of rows for output, default is 1
-		 * note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated
+		 * Number of rows for output, default is 1
+		 * Note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated
 		 */
-		'rows'				   => array('default' => '', 'pattern' => '/^\d+$/'),
+		'rows' => [
+			'default'	=> 1,
+			'intval'	=> true
+		],
 		/**
-		 * number of elements in a rows for output, default is "all"
-		 * note: a "row" is a group of lines for which the heading tags defined in listeseparators will be repeated
+		 * Number of elements in a rows for output, default is "all"
+		 * Note: a "row" is a group of lines for which the heading tags defined in listeseparators will be repeated
 		 */
-		'rowsize'			   => array('default' => '', 'pattern' => '/^\d+$/'),
+		'rowsize' => [
+			'default'	=> 0,
+			'intval'	=> true
+		],
 		/**
 		 * the html tags used for columns and rows
 		 */
@@ -533,7 +557,10 @@ class Options {
 		 * as a dominant value set for the creation of additional output rows (one per value of the 
 		 * dominant column
 		 */
-		'dominantsection'	   => array('default' => '0', 'pattern' => '/^\d*$/'),
+		'dominantsection' => [
+			'default'	=> 0,
+			'intval'	=> true
+		],
 		/**
 		 * showcurid creates a stable link to the current revision of a page
 		 */
@@ -557,7 +584,10 @@ class Options {
 		/**
 		 * The number (starting with 1) of the column to be used for sorting
 		 */
-		'tablesortcol'		   => array('default' => '0', 'pattern' => '/^-?\d*$/'),
+		'tablesortcol' => [
+			'default'	=> 0,
+			'intval'	=> true
+		],
 		/**
 		 * Max # characters of page title to display.
 		 * Empty value (default) means no limit.

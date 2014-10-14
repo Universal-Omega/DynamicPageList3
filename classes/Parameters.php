@@ -240,44 +240,46 @@ class Parameters {
 	 * @access	public
 	 * @param	string	Function(Parameter) Called
 	 * @param	string	Function Arguments
-	 * @return	void
+	 * @return	boolean	Successful
 	 */
 	public function __call($parameter, $arguments) {
 		$option = $arguments[0];
 		$parameter = strtolower($parameter);
+
+		//Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
+		$success = true;
 		if (array_key_exists($parameter, Options::$options)) {
 			$this->setOption[$parameter] = $option;
 
 			//Set that criteria was found for a selection.
-			if (Options::$options['set_criteria_found'] === true && !empty($option)) {
+			if (Options::$options[$parameter]['set_criteria_found'] === true && !empty($option)) {
 				$this->setSelectionCriteriaFound(true);
 			}
+
 			//Set open references conflict possibility.
-			if (Options::$options['open_ref_conflict'] === true) {
+			if (Options::$options[$parameter]['open_ref_conflict'] === true) {
 				$this->setOpenReferencesConflict(true);
 			}
+
 			//Strip <html> tag.
-			if (Options::$options['strip_html'] === true) {
+			if (Options::$options[$parameter]['strip_html'] === true) {
 				$this->setOption[$parameter] = self::stripHtmlTags($option);
 			}
-		}
-	}
 
-	/**
-	 * Clean and test 'rowcolformat' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function resultsheaderParameter($option) {
-	public function resultsfooterParameter($option) {
-	public function noresultsheaderParameter($option) {
-	public function noresultsfooterParameter($option) {
-	public function oneresultheaderParameter($option) {
-	public function oneresultfooterParameter($option) {
-		$this->setOption['oneresultfooter'] = self::stripHtmlTags($option);
-		return $options;
+			//Simple integer intval().
+			if (Options::$options[$parameter]['intval'] === true) {
+				if (!is_numeric($option)) {
+					if (Options::$options[$parameter]['default'] !== null) {
+						$this->setOption[$parameter] = intval(Options::$options[$parameter]['default']);
+					} else {
+						$success = false;
+					}
+				} else {
+					$this->setOption[$parameter] = intval($option);
+				}
+			}
+		}
+		return $success;
 	}
 
 	/**
@@ -465,19 +467,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'count' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function countParameter($option) {
-		// setting by URL overwrites other settings, hence we ignore the command
-		$this->setOption['count'] = intval($option);
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'addfirstcategorydate' parameter.
 	 *
 	 * @access	public
@@ -647,40 +636,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'offset' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function offsetParameter($option) {
-		//ensure that $iOffset is a number
-		if (preg_match(Options::$options['offset']['pattern'], $option)) {
-			$iOffset = ($option == '') ? 0 : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'randomcount' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function randomcountParameter($option) {
-		//ensure that $iRandomCount is a number;
-		if (preg_match(Options::$options['randomcount']['pattern'], $option)) {
-			$iRandomCount = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'distinct' parameter.
 	 *
 	 * @access	public
@@ -714,57 +669,6 @@ class Parameters {
 			$this->setOption['ordersuitsymbols'] = true;
 		} elseif ($option != '') {
 			$this->setOption['ordercollation'] = "COLLATE ".self::$DB->strencode($option);
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'columns' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function columnsParameter($option) {
-		//ensure that $iColumns is a number
-		if (preg_match(Options::$options['columns']['pattern'], $option)) {
-			$iColumns = ($option == '') ? 1 : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'rows' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function rowsParameter($option) {
-		//ensure that $iRows is a number
-		if (preg_match(Options::$options['rows']['pattern'], $option)) {
-			$iRows = ($option == '') ? 1 : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'rowsize' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function rowsizeParameter($option) {
-		//ensure that $iRowSize is a number
-		if (preg_match(Options::$options['rowsize']['pattern'], $option)) {
-			$iRowSize = ($option == '') ? 0 : intval($option);
-		} else {
-			return false;
 		}
 		return $options;
 	}
@@ -1608,103 +1512,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'tablesortcol' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function tablesortcolParameter($option) {
-		if (preg_match(Options::$options['tablesortcol']['pattern'], $option)) {
-			$iTableSortCol = ($option == '') ? 0 : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'dominantsection' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function dominantsectionParameter($option) {
-		if (preg_match(Options::$options['dominantsection']['pattern'], $option)) {
-			$iDominantSection = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'includemaxlength' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function includemaxlengthParameter($option) {
-		//processed like 'count' param
-		if (preg_match(Options::$options['includemaxlength']['pattern'], $option)) {
-			$iIncludeMaxLen = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'listattr' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function listattrParameter($option) {
-		$sListHtmlAttr = $option;
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'itemattr' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function itemattrParameter($option) {
-		$sItemHtmlAttr = $option;
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'hlistattr' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function hlistattrParameter($option) {
-		$sHListHtmlAttr = $option;
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'hitemattr' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function hitemattrParameter($option) {
-		$sHItemHtmlAttr = $option;
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'allowcachedresults' parameter.
 	 *
 	 * @access	public
@@ -1740,22 +1547,6 @@ class Parameters {
 		if ($option != '') {
 			$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $option) . '.dplc';
 			$DPLCachePath = $parser->mTitle->getArticleID() % 10;
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'dplcacheperiod' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function dplcacheperiodParameter($option) {
-		if (preg_match(Options::$options['dplcacheperiod']['pattern'], $option)) {
-			$iDPLCachePeriod = ($option == '') ? Options::$options['dplcacheperiod']['default'] : intval($option);
 		} else {
 			return false;
 		}
@@ -2059,30 +1850,6 @@ class Parameters {
 		} else {
 			return false;
 		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'updaterules' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function updaterulesParameter($option) {
-		$sUpdateRules = $option;
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'deleterules' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function deleterulesParameter($option) {
-		$sDeleteRules = $option;
 		return $options;
 	}
 }
