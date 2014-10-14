@@ -18,17 +18,61 @@ class Options {
 	 * For some options (e.g. 'namespace'), possible values are not yet defined but will be if necessary (for debugging) 
 	 */ 
 	public static $options = array(
-		'addauthor'			   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addcategories'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addcontribution'	   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addeditdate'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addexternallink'	   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addfirstcategorydate' => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addlasteditor'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addpagecounter'	   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addpagesize'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'addpagetoucheddate'   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'adduser'			   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+		'addauthor' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addcategories' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addcontribution' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addeditdate' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addexternallink' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addfirstcategorydate' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addlasteditor' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addpagecounter' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addpagesize' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'addpagetoucheddate' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
+		'adduser' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
 		
 		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
 		'allowcachedresults'   => array( 'true', 'false', 'no', 'yes', 'yes+warn', '0', '1', 'off', 'on'),
@@ -91,7 +135,9 @@ class Options {
 		 */
 		'distinct'			   => array('default' => 'true', 'strict', 'false', 'no', 'yes', '0', '1', 'off', 'on'),
 
-		'dplcache' => ['default' => ''],
+		'dplcache' => [
+			'default' => ''
+		],
 		'dplcacheperiod' => [
 			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
 			'intval'	=> true
@@ -140,7 +186,11 @@ class Options {
 		/**
 		 * we can display the number of articles within a heading group
 		 */
-		'headingcount'		   => array( 'default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+		'headingcount' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * Attributes for HTML list items (headings) at the heading level, depending on 'headingmode' (e.g. 'li' for ordered/unordered)
 		 * Not yet applicable to 'headingmode=none | definition | H2 | H3 | H4'.
@@ -173,12 +223,20 @@ class Options {
 		/**
 		 * make comparisons (linksto, linksfrom ) case insensitive
 		 */
-		'ignorecase'		   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
-		'include'			   => null,
+		'ignorecase' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
+		'include'			   => [
+			'default'	=> null
+		],
 		/**
-		 * includesubpages	  default is TRUE
+		 * includesubpages
 		 */
-		'includesubpages'	   => array('default' => 'true', 'false', 'no', 'yes', '0', '1', 'off', 'on'),
+		'includesubpages' => [
+			'default'	=> true,
+			'boolean'	=> true
+		],
 		/**
 		 * includematch=..,..	 allows to specify regular expressions which must match the included contents
 		 */
@@ -189,7 +247,10 @@ class Options {
 		 */
 		'includenotmatch'		=> array('default' => ''),
 		'includenotmatchparsed' => array('default' => ''),
-		'includetrim'			=> array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+		'includetrim' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		/** 
 		 * Inline text is some wiki text used to separate list items with 'mode=inline'.
 		 */
@@ -340,13 +401,19 @@ class Options {
 		 * 'true' default
 		 * 'false'	images are shown, categories are assigned to the current document
 		 */
-		'escapelinks'		   => array('default' => 'true','false', 'no', 'yes', '0', '1', 'off', 'on'),
+		'escapelinks' => [
+			'default'	=> true,
+			'boolean'	=> true
+		],
 		/**
 		 * by default the oage containingthe query will not be part of the result set.
 		 * This can be changed via 'skipthispage=no'. This should be used with care as it may lead to
 		 * problems which are hard to track down, esp. in combination with contents transclusion.
 		 */
-		'skipthispage'		   => array('default' => 'true','false', 'no', 'yes', '0', '1', 'off', 'on'),
+		'skipthispage' => [
+			'default'	=> true,
+			'boolean'	=> true
+		],
 		/**
 		 * namespace= Ns1 | Ns2 | ...
 		 * [Special value] NsX='' (empty string without quotes) means Main namespace
@@ -384,10 +451,13 @@ class Options {
 		*/
 		'title<'			   => null,
 		'title>'			   => null,
-		'scroll'			   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'), 
+		'scroll' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		'titlematch'		   => null,
 		'titleregexp'		   => null,
-		'userdateformat'	   => [
+		'userdateformat' => [
 			'default'		=> null,
 			'strip_html'	=> true
 		],
@@ -442,7 +512,10 @@ class Options {
 		 * if the result set is empty; setting 'noresultsheader' to something like ' ' will suppress
 		 * the warning about empty result set.
 		 */
-		'suppresserrors'	   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'), 
+		'suppresserrors' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		'noresultsheader' => [
 			'default'		=> '',
 			'strip_html'	=> true
@@ -467,9 +540,11 @@ class Options {
 		 * openreferences =...
 		 * - no: excludes pages which do not exist (=default)
 		 * - yes: includes pages which do not exist -- this conflicts with some other options
-		 * - only: show only non existing pages [ not implemented so far ]
 		 */
-		'openreferences'	   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+		'openreferences' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		/**
 		 * redirects =...
 		 * - exclude: excludes redirect pages from lists (page_is_redirect = 0 only)
@@ -564,11 +639,18 @@ class Options {
 		/**
 		 * showcurid creates a stable link to the current revision of a page
 		 */
-		'showcurid'			   => array('default' => 'false', 'true', 'no', 'yes', '0', '1', 'off', 'on'),
+		'showcurid' => [
+			'default'			=> false,
+			'boolean'			=> true,
+			'open_ref_conflict'	=> true
+		],
 		/**
 		 * shownamespace decides whether to show the namespace prefix or not
 		 */
-		'shownamespace'		   => array('default' => 'true', 'false', 'no', 'yes', '0', '1', 'off', 'on'),
+		'shownamespace' => [
+			'default'	=> true,
+			'boolean'	=> true
+		],
 		/**
 		 * replaceintitle applies a regex replacement to %TITLE%
 		 */

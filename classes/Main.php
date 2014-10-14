@@ -2144,17 +2144,6 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		}
 	}
 
-	/**
-	 * Filter a standard boolean like value into an actual boolean.
-	 *
-	 * @access	private
-	 * @param	mixed	Integer or string to evaluated through filter_var().
-	 * @return	boolean
-	 */
-	private function filterBoolean($boolean) {
-		return filter_var($boolean, FILTER_VALIDATE_BOOLEAN);
-	}
-
 	private static function getSubcategories($cat, $sPageTable, $depth) {
 		if (self::$DB === null) {
 			self::$DB = wfGetDB(DB_SLAVE);

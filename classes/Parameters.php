@@ -222,6 +222,17 @@ class Parameters {
 	}
 
 	/**
+	 * Filter a standard boolean like value into an actual boolean.
+	 *
+	 * @access	private
+	 * @param	mixed	Integer or string to evaluated through filter_var().
+	 * @return	boolean
+	 */
+	private function filterBoolean($boolean) {
+		return filter_var($boolean, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+	}
+
+	/**
 	 * Strip <html> tags.
 	 *
 	 * @access	private
@@ -276,6 +287,16 @@ class Parameters {
 					}
 				} else {
 					$this->setOption[$parameter] = intval($option);
+				}
+			}
+
+			//Handle Booleans
+			if (Options::$options[$parameter]['boolean'] === true) {
+				$option = $this->filterBoolean($option);
+				if ($option !== null) {
+					$this->setOption[$parameter] = $option;
+				} else {
+					$success = false;
 				}
 			}
 		}
@@ -467,23 +488,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'addfirstcategorydate' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addfirstcategorydateParameter($option) {
-		if (in_array($option, Options::$options['addfirstcategorydate'])) {
-			$this->setOption['addfirstcategorydate']        = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'ordermethod' parameter.
 	 *
 	 * @access	public
@@ -551,60 +555,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'showcurid' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function showcuridParameter($option) {
-		if (in_array($option, Options::$options['showcurid'])) {
-			$this->setOption['showcurid'] = self::filterBoolean($option);
-			if ($this->setOption['showcurid'] === true) {
-				$this->setOpenReferencesConflict(true);
-			}
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'shownamespace' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function shownamespaceParameter($option) {
-		if (in_array($option, Options::$options['shownamespace'])) {
-			$this->setOption['shownamespace'] = self::filterBoolean($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'suppresserrors' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function suppresserrorsParameter($option) {
-		if (in_array($option, Options::$options['suppresserrors'])) {
-			$this->setOption['noresultsheader'] = self::filterBoolean($option);
-			if ($this->setOption['noresultsheader']) {
-				$this->setOption['noresultsheader'] = ' ';
-			}
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'execandexit' parameter.
 	 *
 	 * @access	public
@@ -647,9 +597,9 @@ class Parameters {
 			if ($option == 'strict') {
 				$this->setOption['distinctresultset'] = 'strict';
 			} elseif (self::filterBoolean($option) === true) {
-				$this->setOption['distinctresultset'] = 'true';
+				$this->setOption['distinctresultset'] = true;
 			} else {
-				$this->setOption['distinctresultset'] = 'false';
+				$this->setOption['distinctresultset'] = false;
 			}
 		} else {
 			return false;
@@ -669,22 +619,6 @@ class Parameters {
 			$this->setOption['ordersuitsymbols'] = true;
 		} elseif ($option != '') {
 			$this->setOption['ordercollation'] = "COLLATE ".self::$DB->strencode($option);
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'escapelinks' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function escapelinksParameter($option) {
-		if (in_array($option, Options::$options['escapelinks'])) {
-			$this->setOption['escapelinks'] = self::filterBoolean($option);
-		} else {
-			return false;
 		}
 		return $options;
 	}
@@ -1103,38 +1037,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'includesubpages' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function includesubpagesParameter($option) {
-		if (in_array($option, Options::$options['includesubpages'])) {
-			$bIncludeSubpages = self::filterBoolean($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'ignorecase' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function ignorecaseParameter($option) {
-		if (in_array($option, Options::$options['ignorecase'])) {
-			$bIgnoreCase = self::filterBoolean($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'categoriesminmax' parameter.
 	 *
 	 * @access	public
@@ -1145,124 +1047,6 @@ class Parameters {
 		if (preg_match(Options::$options['categoriesminmax']['pattern'], $option)) {
 			$aCatMinMax = ($option == '') ? null : explode(',', $option);
 		} else { // wrong value
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'skipthispage' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function skipthispageParameter($option) {
-		if (in_array($option, Options::$options['skipthispage'])) {
-			$bSkipThisPage = self::filterBoolean($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addcategories' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addcategoriesParameter($option) {
-		if (in_array($option, Options::$options['addcategories'])) {
-			$bAddCategories               = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addeditdate' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addeditdateParameter($option) {
-		if (in_array($option, Options::$options['addeditdate'])) {
-			$bAddEditDate                 = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addexternallink' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addexternallinkParameter($option) {
-		if (in_array($option, Options::$options['addexternallink'])) {
-			$bAddExternalLink             = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addpagecounter' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addpagecounterParameter($option) {
-		if (in_array($option, Options::$options['addpagecounter'])) {
-			$bAddPageCounter              = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addpagesize' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addpagesizeParameter($option) {
-		if (in_array($option, Options::$options['addpagesize'])) {
-			$bAddPageSize                 = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addpagetoucheddate' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addpagetoucheddateParameter($option) {
-		if (in_array($option, Options::$options['addpagetoucheddate'])) {
-			$bAddPageTouchedDate          = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
 			return false;
 		}
 		return $options;
@@ -1333,90 +1117,6 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'includetrim' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function includetrimParameter($option) {
-		if (in_array($option, Options::$options['includetrim'])) {
-			$bIncludeTrim = self::filterBoolean($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'adduser' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function adduserParameter($option) {
-		if (in_array($option, Options::$options['adduser'])) {
-			$bAddUser                     = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addauthor' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addauthorParameter($option) {
-		if (in_array($option, Options::$options['addauthor'])) {
-			$bAddAuthor                   = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addcontribution' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addcontributionParameter($option) {
-		if (in_array($option, Options::$options['addcontribution'])) {
-			$bAddContribution             = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'addlasteditor' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function addlasteditorParameter($option) {
-		if (in_array($option, Options::$options['addlasteditor'])) {
-			$bAddLastEditor               = self::filterBoolean($option);
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
 	 * Clean and test 'headingmode' parameter.
 	 *
 	 * @access	public
@@ -1426,23 +1126,6 @@ class Parameters {
 	public function headingmodeParameter($option) {
 		if (in_array($option, Options::$options['headingmode'])) {
 			$sHListMode                   = $option;
-			$this->setOpenReferencesConflict(true);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'headingcount' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function headingcountParameter($option) {
-		if (in_array($option, Options::$options['headingcount'])) {
-			$bHeadingCount                = self::filterBoolean($option);
 			$this->setOpenReferencesConflict(true);
 		} else {
 			return false;
@@ -1802,22 +1485,6 @@ class Parameters {
 		//ensure that $iMaxRevisions is a number
 		if (preg_match(Options::$options['maxrevisions']['pattern'], $option)) {
 			$iMaxRevisions = ($option == '') ? null : intval($option);
-		} else {
-			return false;
-		}
-		return $options;
-	}
-
-	/**
-	 * Clean and test 'openreferences' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function openreferencesParameter($option) {
-		if (in_array($option, Options::$options['openreferences'])) {
-			$acceptOpenReferences = self::filterBoolean($option);
 		} else {
 			return false;
 		}
