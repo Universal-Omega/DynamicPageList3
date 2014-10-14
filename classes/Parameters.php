@@ -39,8 +39,8 @@ class Parameters extends ParametersData {
 	 */
 	public function __call($parameter, $arguments) {
 		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
-		if (method_exists($this, $parameter.'Parameter')) {
-			return call_user_func_array($this->$parameter.'Parameter', $arguments);
+		if (method_exists($this, '_'.$parameter.'Parameter')) {
+			return call_user_func_array($this->'_'.$parameter, $arguments);
 		}
 		$option = $arguments[0];
 		$parameter = strtolower($parameter);
@@ -225,7 +225,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function categoryParameter($option) {
+	public function _category($option) {
 		$option = trim($option);
 		if (empty($option)) {
 			return false;
@@ -308,7 +308,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notcategoryParameter($option) {
+	public function _notcategory($option) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
 			$data = $this->getParameter('excludecategories');
@@ -327,7 +327,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Option passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function namespaceParameter($option) {
+	public function _namespace($option) {
 		$extraParams = explode('|', $option);
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
@@ -354,7 +354,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notnamespaceParameter($option) {
+	public function _notnamespace($option) {
 		if (!in_array($option, $this->getData('notnamespace')['values'])) {
 			return false;
 		}
@@ -372,7 +372,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function ordermethodParameter($option) {
+	public function _ordermethod($option) {
 		$methods   = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
@@ -396,7 +396,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function modeParameter($option) {
+	public function _mode($option) {
 		if (in_array($option, $this->getData('mode')['values'])) {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
@@ -421,7 +421,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function distinctParameter($option) {
+	public function _distinct($option) {
 		if (in_array($option, $this->getData('distinct')['values'])) {
 			if ($option == 'strict') {
 				$this->setParameter('distinctresultset', 'strict');
@@ -442,7 +442,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function ordercollationParameter($option) {
+	public function _ordercollation($option) {
 		if ($option == 'bridge') {
 			$this->setParameter('ordersuitsymbols', true);
 		} elseif (!empty($option)) {
@@ -456,7 +456,7 @@ class Parameters extends ParametersData {
 	 * @access	public
 	 * @return	mixed
 	 */
-	public function listseparatorsParameter() {
+	public function _listseparators() {
 		return call_user_func_array([$this, 'formatParameter'], func_get_args());
 	}
 
@@ -467,7 +467,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function formatParameter($option) {
+	public function _format($option) {
 		// parsing of wikitext will happen at the end of the output phase
 		// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
 		$option            = self::stripHtmlTags($option);
@@ -485,7 +485,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function titleParameter($option) {
+	public function _title($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$title = \Title::newFromText($option);
@@ -507,7 +507,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function titleLTParameter($option) {
+	public function _titleLT($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$this->setParameter('titlege', str_replace(' ', '_', $option));
@@ -521,7 +521,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function titleGTParameter($option) {
+	public function _titleGT($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$this->setParameter('titlele', str_replace(' ', '_', $option));
@@ -535,7 +535,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function scrollParameter($option) {
+	public function _scroll($option) {
 		if (in_array($option, $this->getData('scroll')['values'])) {
 			$this->setParameter('scroll', $this->filterBoolean($option));
 			// if scrolling is active we adjust the values for certain other parameters
@@ -575,7 +575,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function replaceintitleParameter($option) {
+	public function _replaceintitle($option) {
 		// we offer a possibility to replace some part of the title
 		$replaceInTitle = explode(',', $option, 2);
 		if (isset($replaceInTitle[1])) {
@@ -594,7 +594,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function debugParameter($option) {
+	public function _debug($option) {
 		if (in_array($option, $this->getData('debug')['values'])) {
 			if ($key > 1) {
 				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_DEBUGPARAMNOTFIRST, $option);
@@ -614,7 +614,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function titlematchParameter($option) {
+	public function _titlematch($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$this->setParameter('titlematch', explode('|', str_replace(' ', '_', $option)));
@@ -629,7 +629,7 @@ class Parameters extends ParametersData {
 	 * @access	public
 	 * @return	mixed
 	 */
-	public function includepageParameter() {
+	public function _includepage() {
 		return call_user_func_array([$this, 'includeParameter'], func_get_args());
 	}
 
@@ -640,7 +640,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function includeParameter($option) {
+	public function _include($option) {
 		if (!empty($option)) {
 			$this->setParameter('incpage', true);
 			$this->setParameter('seclabels', explode(',', $option));
@@ -657,7 +657,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function includematchParameter($option) {
+	public function _includematch($option) {
 		$this->setParameter('seclabelsmatch', explode(',', $option));
 		return true;
 	}
@@ -669,7 +669,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function includenotmatchParameter($option) {
+	public function _includenotmatch($option) {
 		$this->setParameter('seclabelsnotmatch', explode(',', $option));
 		return true;
 	}
@@ -681,7 +681,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function secseparatorsParameter($option) {
+	public function _secseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter('secseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
 		return true;
@@ -694,7 +694,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function multisecseparatorsParameter($option) {
+	public function _multisecseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter('multisecseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
 		return true;
@@ -707,7 +707,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function tableParameter($option) {
+	public function _table($option) {
 		$this->setParameter('table', str_replace(['\n', "¶"], "\n", $option));
 		return true;
 	}
@@ -719,7 +719,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function tablerowParameter($option) {
+	public function _tablerow($option) {
 		$option = str_replace(['\n', "¶"], "\n", trim($option));
 		if (empty($option)) {
 			$this->setParameter('tablerow', []);
@@ -737,7 +737,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function allowcachedresultsParameter($option) {
+	public function _allowcachedresults($option) {
 		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
 		if (!$this->getParameter('execandexit')) {
 			if ($option == 'yes+warn') {
@@ -762,7 +762,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function dplcacheParameter($option) {
+	public function _dplcache($option) {
 		if ($option != '') {
 			$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $option) . '.dplc';
 			$DPLCachePath = $parser->mTitle->getArticleID() % 10;
@@ -779,7 +779,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function fixcategoryParameter($option) {
+	public function _fixcategory($option) {
 		\DynamicPageListHooks::fixCategory($option);
 		return true;
 	}
@@ -791,7 +791,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function resetParameter($option) {
+	public function _reset($option) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
 			if (empty($arg)) {
@@ -823,7 +823,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function eliminateParameter($option) {
+	public function _eliminate($option) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
 			if (empty($arg)) {
@@ -860,7 +860,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function categoryregexpParameter($option) {
+	public function _categoryregexp($option) {
 		$sCategoryComparisonMode      = ' REGEXP ';
 		$data = $this->getParameter('includecategories');
 		$data[] = [$option];
@@ -876,7 +876,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function categorymatchParameter($option) {
+	public function _categorymatch($option) {
 		$sCategoryComparisonMode      = ' LIKE ';
 		$data = $this->getParameter('includecategories');
 		$data[] = explode('|', $option);
@@ -892,7 +892,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notcategoryregexpParameter($option) {
+	public function _notcategoryregexp($option) {
 		$sNotCategoryComparisonMode   = ' REGEXP ';
 		$data = $this->getParameter('excludecategories');
 		$data[] = $option;
@@ -908,7 +908,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notcategorymatchParameter($option) {
+	public function _notcategorymatch($option) {
 		$sNotCategoryComparisonMode   = ' LIKE ';
 		$data = $this->getParameter('excludecategories');
 		$data[] = $option;
@@ -924,7 +924,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function titleregexpParameter($option) {
+	public function _titleregexp($option) {
 		$sTitleMatchMode         = ' REGEXP ';
 		$aTitleMatch             = array(
 			$option
@@ -940,7 +940,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function nottitleregexpParameter($option) {
+	public function _nottitleregexp($option) {
 		$sNotTitleMatchMode      = ' REGEXP ';
 		$aNotTitleMatch          = array(
 			$option
@@ -956,7 +956,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function nottitlematchParameter($option) {
+	public function _nottitlematch($option) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$aNotTitleMatch          = explode('|', str_replace(' ', '_', $option));
@@ -971,7 +971,7 @@ class Parameters extends ParametersData {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function articlecategoryParameter($option) {
+	public function _articlecategory($option) {
 		$sArticleCategory = str_replace(' ', '_', $option);
 		return true;
 	}
