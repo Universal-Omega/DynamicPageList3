@@ -9,7 +9,7 @@
 	you can define the "Level of Functional Richness" you want to offer to your users.
 	Make the following call in your LocalSettings.php after the require_once() statement:
 
-        ExtDynamicPageList::setFunctionalRichness(  <n>  );
+        DynamicPageListHooks::setFunctionalRichness(  <n>  );
 
 	where <n> is a number between 0 and 4.
 

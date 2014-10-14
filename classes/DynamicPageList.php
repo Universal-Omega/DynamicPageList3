@@ -1426,7 +1426,7 @@ class DynamicPageList {
 			$this->filteredCount    = $this->filteredCount + 1;
 		}
 		require_once('CategoryPage.php');
-		if (count($aArticles) > ExtDynamicPageList::$categoryStyleListCutoff) {
+		if (count($aArticles) > DynamicPageListHooks::$categoryStyleListCutoff) {
 			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::columnList($aArticles, $aArticles_start_char);
 		} elseif (count($aArticles) > 0) {
 			// for short lists of articles in categories.

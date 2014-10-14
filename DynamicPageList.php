@@ -37,7 +37,7 @@ $wgMessagesDirs['DynamicPageList']					= "{$extDir}/i18n";
 $wgExtensionMessagesFiles['DynamicPageList']		= "{$extDir}/DynamicPageList.i18n.php";
 $wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i18n.magic.php";
 
-$wgAutoloadClasses['ExtDynamicPageList']			= "{$extDir}/DPLSetup.php";
+$wgAutoloadClasses['DynamicPageListHooks']			= "{$extDir}/DPLSetup.php";
 $wgAutoloadClasses['DPL\Article']					= "{$extDir}/classes/Article.php";
 $wgAutoloadClasses['DPL\DynamicPageList']			= "{$extDir}/classes/DynamicPageList.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
@@ -50,9 +50,9 @@ $wgAutoloadClasses['DPL\Parameters']				= "{$extDir}/classes/Parameters.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";
 
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
-	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::setupMigration';
+	$wgHooks['ParserFirstCallInit'][]					= 'DynamicPageListHooks::setupMigration';
 } else {
-	$wgHooks['ParserFirstCallInit'][]					= 'ExtDynamicPageList::onParserFirstCallInit';
+	$wgHooks['ParserFirstCallInit'][]					= 'DynamicPageListHooks::onParserFirstCallInit';
 }
 
 /******************************************/

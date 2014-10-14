@@ -39,7 +39,7 @@ class Main {
 
 		//check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
-			return $logger->escapeMsg(\ExtDynamicPageList::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			return $logger->escapeMsg(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
 		}
 
 		/**
@@ -67,22 +67,22 @@ class Main {
 
 		// Extension variables
 		// Allowed namespaces for DPL: all namespaces except the first 2: Media (-2) and Special (-1), because we cannot use the DB for these to generate dynamic page lists.
-		if (!is_array(\ExtDynamicPageList::$allowedNamespaces)) { // Initialization
+		if (!is_array(\DynamicPageListHooks::$allowedNamespaces)) { // Initialization
 			$aNs                                   = $wgContLang->getNamespaces();
-			\ExtDynamicPageList::$allowedNamespaces = array_slice($aNs, 2, count($aNs), true);
+			\DynamicPageListHooks::$allowedNamespaces = array_slice($aNs, 2, count($aNs), true);
 			if (!is_array(Options::$options['namespace'])) {
-				Options::$options['namespace'] = \ExtDynamicPageList::$allowedNamespaces;
+				Options::$options['namespace'] = \DynamicPageListHooks::$allowedNamespaces;
 			} else {
 				// Make sure user namespace options are allowed.
-				Options::$options['namespace'] = array_intersect(Options::$options['namespace'], \ExtDynamicPageList::$allowedNamespaces);
+				Options::$options['namespace'] = array_intersect(Options::$options['namespace'], \DynamicPageListHooks::$allowedNamespaces);
 			}
 			if (!isset(Options::$options['namespace']['default'])) {
 				Options::$options['namespace']['default'] = null;
 			}
 			if (!is_array(Options::$options['notnamespace'])) {
-				Options::$options['notnamespace'] = \ExtDynamicPageList::$allowedNamespaces;
+				Options::$options['notnamespace'] = \DynamicPageListHooks::$allowedNamespaces;
 			} else {
-				Options::$options['notnamespace'] = array_intersect(Options::$options['notnamespace'], \ExtDynamicPageList::$allowedNamespaces);
+				Options::$options['notnamespace'] = array_intersect(Options::$options['notnamespace'], \DynamicPageListHooks::$allowedNamespaces);
 			}
 			if (!isset(Options::$options['notnamespace']['default'])) {
 				Options::$options['notnamespace']['default'] = null;
@@ -171,7 +171,7 @@ class Main {
 
 		// ordermethod, order, mode, userdateformat, allowcachedresults:
 		// if we have to behave like Extension:Intersection we use different default values for some commands
-		if (\ExtDynamicPageList::$behavingLikeIntersection) {
+		if (\DynamicPageListHooks::$behavingLikeIntersection) {
 			Options::$options['ordermethod']                   = array(
 				'default' => 'categoryadd',
 				'categoryadd',
@@ -233,7 +233,7 @@ class Main {
 			Options::$options['userdateformat']                = array(
 				'default' => 'Y-m-d H:i:s'
 			);
-			Options::$options['allowcachedresults']['default'] = \ExtDynamicPageList::$respectParserCache;
+			Options::$options['allowcachedresults']['default'] = \DynamicPageListHooks::$respectParserCache;
 		}
 		$aOrderMethods   = array(
 			Options::$options['ordermethod']['default']
@@ -438,7 +438,7 @@ class Main {
 			$option  = trim($option);
 			if (count($parameter) < 2) {
 				if (trim($aParam[0]) != '') {
-					$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", implode(', ', Parameters::getParametersForRichness()));
+					$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $aParam[0] . " [missing '=']", implode(', ', Parameters::getParametersForRichness()));
 					continue;
 				}
 			}
@@ -931,7 +931,7 @@ class Main {
 				case 'debug':
 					if (in_array($option, Options::$options['debug'])) {
 						if ($key > 1) {
-							$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_DEBUGPARAMNOTFIRST, $option);
+							$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_DEBUGPARAMNOTFIRST, $option);
 						}
 						$logger->iDebugLevel = intval($option);
 					} else {
@@ -1413,7 +1413,7 @@ class Main {
 					break;
 
 				case 'fixcategory':
-					\ExtDynamicPageList::fixCategory($option);
+					\DynamicPageListHooks::fixCategory($option);
 					break;
 
 				case 'reset':
@@ -1613,7 +1613,7 @@ class Main {
 			}
 
 			if ($validOptionFound === false) {
-				$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_UNKNOWNPARAM, $parameter, implode(', ', Parameters::getParametersForRichness()));
+				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter, implode(', ', Parameters::getParametersForRichness()));
 			}
 		}
 
@@ -1633,9 +1633,9 @@ class Main {
 				$iCount = 1;
 			}
 		}
-		if (!\ExtDynamicPageList::$allowUnlimitedResults && ($iCount < 0 || $iCount > \ExtDynamicPageList::$maxResultCount)) {
+		if (!\DynamicPageListHooks::$allowUnlimitedResults && ($iCount < 0 || $iCount > \DynamicPageListHooks::$maxResultCount)) {
 			// justify limits;
-			$iCount = \ExtDynamicPageList::$maxResultCount;
+			$iCount = \DynamicPageListHooks::$maxResultCount;
 		}
 
 
@@ -1724,23 +1724,23 @@ class Main {
 			}
 		} else {
 			if ($bReset[1]) {
-				\ExtDynamicPageList::$createdLinks['resetTemplates'] = true;
+				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
 			}
 			if ($bReset[2]) {
-				\ExtDynamicPageList::$createdLinks['resetCategories'] = true;
+				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
 			}
 			if ($bReset[3]) {
-				\ExtDynamicPageList::$createdLinks['resetImages'] = true;
+				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
 			}
 		}
 		if (($calledInMode == 'tag' && $bReset[0]) || $calledInMode == 'func') {
 			if ($bReset[0]) {
-				\ExtDynamicPageList::$createdLinks['resetLinks'] = true;
+				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}
 			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
-			if (!in_array('ExtDynamicPageList::endReset', $wgHooks['ParserAfterTidy'])) {
-				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList::endReset';
+			if (!in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
 			}
 		}
 
@@ -1748,13 +1748,13 @@ class Main {
 		// ###### CHECKS ON PARAMETERS ######
 
 		// too many categories!
-		if (($iTotalCatCount > \ExtDynamicPageList::$maxCategoryCount) && (!\ExtDynamicPageList::$allowUnlimitedCategories)) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_TOOMANYCATS, \ExtDynamicPageList::$maxCategoryCount);
+		if (($iTotalCatCount > \DynamicPageListHooks::$maxCategoryCount) && (!\DynamicPageListHooks::$allowUnlimitedCategories)) {
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
 		}
 
 		// too few categories!
-		if ($iTotalCatCount < \ExtDynamicPageList::$minCategoryCount) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_TOOFEWCATS, \ExtDynamicPageList::$minCategoryCount);
+		if ($iTotalCatCount < \DynamicPageListHooks::$minCategoryCount) {
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
 		}
 
 		// no selection criteria! Warn only if no debug level is set
@@ -1762,7 +1762,7 @@ class Main {
 			if ($logger->iDebugLevel <= 1) {
 				return $output;
 			}
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_NOSELECTION);
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOSELECTION);
 		}
 
 		// ordermethod=sortkey requires ordermethod=category
@@ -1771,22 +1771,22 @@ class Main {
 
 		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
 		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_CATDATEBUTNOINCLUDEDCATS);
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
 		}
 
 		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
 		// we ALLOW this parameter combination, risking ambiguous results
 		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_CATDATEBUTMORETHAN1CAT);
+		//	return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
 
 		// no more than one type of date at a time!
 		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_MORETHAN1TYPEOFDATE);
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage
 		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
 		}
 
 		// category-style output requested with not compatible order method
@@ -1795,7 +1795,7 @@ class Main {
 			'title',
 			'titlewithoutnamespace'
 		))) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
@@ -1803,7 +1803,7 @@ class Main {
 			'pagetouched',
 			'title'
 		))) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -1812,7 +1812,7 @@ class Main {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -1825,13 +1825,13 @@ class Main {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
 		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
 			'firstedit',
 			'lastedit'
 		))) {
-			return $output . $logger->escapeMsg(\ExtDynamicPageList::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
 		/**
@@ -1843,25 +1843,25 @@ class Main {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!self::$DB->tableExists('dpl_clview')) {
 				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $sDplClView . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $sPageTable . ' LEFT OUTER JOIN ' . $sCategorylinksTable . ' ON ' . $sPageTable . '.page_id=cl_from';
-				$output .= $logger->escapeMsg(\ExtDynamicPageList::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview);
+				$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOCLVIEW, $sDplClView, $sSqlCreate_dpl_clview);
 				return $output;
 			}
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
 		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
-			$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_CATOUTPUTBUTWRONGPARAMS);
+			$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
 		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
-			$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+			$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
 			$sHListMode = 'none';
 		}
 
 		// openreferences is incompatible with many other options
 		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
-			$output .= $logger->escapeMsg(\ExtDynamicPageList::FATAL_OPENREFERENCES);
+			$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_OPENREFERENCES);
 			$acceptOpenReferences = false;
 		}
 
@@ -1933,7 +1933,7 @@ class Main {
 		$sSqlPage_size     = '';
 		$sSqlPage_touched  = '';
 		$sSqlCalcFoundRows = '';
-		if (!\ExtDynamicPageList::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
+		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
 			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
 		}
 		if ($sDistinctResultSet == 'false') {
@@ -2008,7 +2008,7 @@ class Main {
 					$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
 					break;
 				case 'lastedit':
-					if (\ExtDynamicPageList::$behavingLikeIntersection) {
+					if (\DynamicPageListHooks::$behavingLikeIntersection) {
 						$sSqlPage_touched = ", $sPageTable.page_touched as page_touched";
 					} else {
 						$sSqlRevisionTable = $sRevisionTable . ' AS rev, ';
@@ -2019,7 +2019,7 @@ class Main {
 					break;
 				case 'sortkey':
 					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
-					$aStrictNs      = array_slice(\ExtDynamicPageList::$allowedNamespaces, 1, count(\ExtDynamicPageList::$allowedNamespaces), true);
+					$aStrictNs      = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
 					// map ns index to name
 					$sSqlNsIdToText = 'CASE ' . $sPageTable . '.page_namespace';
 					foreach ($aStrictNs as $iNs => $sNs)
@@ -2045,7 +2045,7 @@ class Main {
 					$sSqlSortkey = ", $sPageTable.page_title " . $sOrderCollation . " as sortkey";
 					break;
 				case 'title':
-					$aStrictNs = array_slice(\ExtDynamicPageList::$allowedNamespaces, 1, count(\ExtDynamicPageList::$allowedNamespaces), true);
+					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
 					// map namespace index to name
 					if ($acceptOpenReferences) {
 						$sSqlNsIdToText = 'CASE pl_namespace';
@@ -2735,7 +2735,7 @@ class Main {
 						break;
 					case 'lastedit':
 						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
-						if (\ExtDynamicPageList::$behavingLikeIntersection) {
+						if (\DynamicPageListHooks::$behavingLikeIntersection) {
 							$sSqlWhere .= 'page_touched';
 						} else {
 							$sSqlWhere .= 'rev_timestamp';
@@ -2781,7 +2781,7 @@ class Main {
 
 		// LIMIT ....
 		// we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
-		if ((!\ExtDynamicPageList::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
+		if ((!\DynamicPageListHooks::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
 			$sSqlWhere .= " LIMIT $iOffset, ";
 			if ($iCount < 0) {
 				$iCount = intval(Options::$options['count']['default']);
@@ -2839,7 +2839,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_NORESULTS);
+				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 			self::$DB->freeResult($res);
 			return $output;
@@ -3112,7 +3112,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$output .= $logger->escapeMsg(\ExtDynamicPageList::WARN_NORESULTS);
+				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 		} else {
 			if ($sResultsHeader != '') {
@@ -3191,8 +3191,8 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		if ($bReset[4] || $bReset[5] || $bReset[6] || $bReset[7]) {
 			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
-			if (!in_array('ExtDynamicPageList::endEliminate', $wgHooks['ParserAfterTidy'])) {
-				$wgHooks['ParserAfterTidy'][] = 'ExtDynamicPageList::endEliminate';
+			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
 			}
 			$parserOutput = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
 		}
@@ -3200,22 +3200,22 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			// we trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output
 			// this allows us to remove these links from the link list later
 			// If the article containing the DPL statement itself uses one of these links they will be thrown away!
-			\ExtDynamicPageList::$createdLinks[0] = array();
+			\DynamicPageListHooks::$createdLinks[0] = array();
 			foreach ($parserOutput->getLinks() as $nsp => $link) {
-				\ExtDynamicPageList::$createdLinks[0][$nsp] = $link;
+				\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
 			}
 		}
 		if ($bReset[5]) { // TEMPLATES
-			\ExtDynamicPageList::$createdLinks[1] = array();
+			\DynamicPageListHooks::$createdLinks[1] = array();
 			foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
-				\ExtDynamicPageList::$createdLinks[1][$nsp] = $tpl;
+				\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
 			}
 		}
 		if ($bReset[6]) { // CATEGORIES
-			\ExtDynamicPageList::$createdLinks[2] = $parserOutput->mCategories;
+			\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
 		}
 		if ($bReset[7]) { // IMAGES
-			\ExtDynamicPageList::$createdLinks[3] = $parserOutput->mImages;
+			\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 		}
 
 		return $output;
