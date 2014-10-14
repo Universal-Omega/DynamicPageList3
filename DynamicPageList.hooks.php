@@ -44,6 +44,8 @@ class DynamicPageListHooks {
 
 	const FATAL_OPENREFERENCES						= 12;
 
+	const FATAL_MISSINGPARAMFUNCTION				= 22;
+
 	// ERROR
 
 	// WARN
