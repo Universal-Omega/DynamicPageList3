@@ -692,8 +692,8 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function linkstoParameter($option, Options $options) {
-		$problems = self::getPageNameList('linksto', $option, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
-		if ($problems != '') {
+		$problems = Main::getPageNameList('linksto', $option, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
+		if (!empty($problems)) {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
@@ -707,8 +707,8 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function notlinkstoParameter($option, Options $options) {
-		$problems = self::getPageNameList('notlinksto', $option, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
-		if ($problems != '') {
+		$problems = Main::getPageNameList('notlinksto', $option, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
+		if (!empty($problems)) {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
@@ -722,8 +722,8 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function linksfromParameter($option, Options $options) {
-		$problems = self::getPageNameList('linksfrom', $option, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
-		if ($problems != '') {
+		$problems = Main::getPageNameList('linksfrom', $option, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
+		if (!empty($problems)) {
 			return $problems;
 		}
 		// $this->setOption['conflictswithopenreferences']=true;
@@ -737,8 +737,8 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function notlinksfromParameter($option, Options $options) {
-		$problems = self::getPageNameList('notlinksfrom', $option, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
-		if ($problems != '') {
+		$problems = Main::getPageNameList('notlinksfrom', $option, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
+		if (!empty($problems)) {
 			return $problems;
 		}
 	}
@@ -751,8 +751,8 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function linkstoexternalParameter($option, Options $options) {
-		$problems = self::getPageNameList('linkstoexternal', $option, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
-		if ($problems != '') {
+		$problems = Main::getPageNameList('linkstoexternal', $option, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
+		if (!empty($problems)) {
 			return $problems;
 		}
 		$this->setOpenReferencesConflict(true);
@@ -928,7 +928,7 @@ class Parameters {
 	public function categoriesminmaxParameter($option, Options $options) {
 		if (preg_match($options->getOptions('categoriesminmax')['pattern'], $option)) {
 			$aCatMinMax = ($option == '') ? null : explode(',', $option);
-		} else { // wrong value
+		} else {
 			return false;
 		}
 	}
@@ -1028,8 +1028,7 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function tableParameter($option, Options $options) {
-		$option   = str_replace('\n', "\n", $option);
-		$sTable = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
+		$this->setOption['table'] = str_replace(['\n', "¶"], "\n", $option);
 	}
 
 	/**
@@ -1040,12 +1039,11 @@ class Parameters {
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
 	public function tablerowParameter($option, Options $options) {
-		$option = str_replace('\n', "\n", $option);
-		$option = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
+		$option = str_replace(['\n', "¶"], "\n", $option);
 		if (trim($option) == '') {
-			$aTableRow = array();
+			$this->setOption['tablerow'] = [];
 		} else {
-			$aTableRow = explode(',', $option);
+			$this->setOption['tablerow'] = explode(',', $option);
 		}
 	}
 
@@ -1112,24 +1110,24 @@ class Parameters {
 	public function resetParameter($option, Options $options) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
-			if ($arg == '') {
+			if (empty($arg)) {
 				continue;
 			}
 			if (!in_array($arg, $options->getOptions('reset')['values'])) {
 				return false;
 			} elseif ($arg == 'links') {
-				$bReset[0] = true;
+				$this->setOption['reset'][0] = true;
 			} elseif ($arg == 'templates') {
-				$bReset[1] = true;
+				$this->setOption['reset'][1] = true;
 			} elseif ($arg == 'categories') {
-				$bReset[2] = true;
+				$this->setOption['reset'][2] = true;
 			} elseif ($arg == 'images') {
-				$bReset[3] = true;
+				$this->setOption['reset'][3] = true;
 			} elseif ($arg == 'all') {
-				$bReset[0] = true;
-				$bReset[1] = true;
-				$bReset[2] = true;
-				$bReset[3] = true;
+				$this->setOption['reset'][0] = true;
+				$this->setOption['reset'][1] = true;
+				$this->setOption['reset'][2] = true;
+				$this->setOption['reset'][3] = true;
 			}
 		}
 	}
@@ -1144,29 +1142,29 @@ class Parameters {
 	public function eliminateParameter($option, Options $options) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
-			if ($arg == '') {
+			if (empty($arg)) {
 				continue;
 			}
 			if (!in_array($arg, $options->getOptions('eliminate')['values'])) {
 				return false;
 			} elseif ($arg == 'links') {
-				$bReset[4] = true;
+				$this->setOption['reset'][4] = true;
 			} elseif ($arg == 'templates') {
-				$bReset[5] = true;
+				$this->setOption['reset'][5] = true;
 			} elseif ($arg == 'categories') {
-				$bReset[6] = true;
+				$this->setOption['reset'][6] = true;
 			} elseif ($arg == 'images') {
-				$bReset[7] = true;
+				$this->setOption['reset'][7] = true;
 			} elseif ($arg == 'all') {
-				$bReset[4] = true;
-				$bReset[5] = true;
-				$bReset[6] = true;
-				$bReset[7] = true;
+				$this->setOption['reset'][4] = true;
+				$this->setOption['reset'][5] = true;
+				$this->setOption['reset'][6] = true;
+				$this->setOption['reset'][7] = true;
 			} elseif ($arg == 'none') {
-				$bReset[4] = false;
-				$bReset[5] = false;
-				$bReset[6] = false;
-				$bReset[7] = false;
+				$this->setOption['reset'][4] = false;
+				$this->setOption['reset'][5] = false;
+				$this->setOption['reset'][6] = false;
+				$this->setOption['reset'][7] = false;
 			}
 		}
 	}

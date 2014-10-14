@@ -104,7 +104,10 @@ class Options {
 		/**
 		 * Min and Max of categories allowed for an article
 		 */
-		'categoriesminmax'	   => array('default' => '', 'pattern' => '/^\d*,?\d*$/'),
+		'categoriesminmax' => [
+			'default' => null,
+			'pattern' => '#^\d*,?\d*$#'
+		],
 		/**
 		 * hiddencategories
 		 */
