@@ -322,7 +322,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function categoryParameter($option) {
+	public function categoryParameter($option, Options $options) {
 		// Init array of categories to include
 		$aCategories = array();
 		$bHeading    = false;
@@ -398,7 +398,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notcategoryParameter($option) {
+	public function notcategoryParameter($option, Options $options) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
 			$this->setOption['excludecategories'][] = $title->getDbKey();
@@ -439,7 +439,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function notnamespaceParameter($option) {
+	public function notnamespaceParameter($option, Options $options) {
 		if (!in_array($option, $options->getOptions('notnamespace')['values'])) {
 			return false;
 		}
@@ -455,7 +455,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function ordermethodParameter($option) {
+	public function ordermethodParameter($option, Options $options) {
 		$methods   = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
@@ -473,28 +473,13 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'order' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function orderParameter($option) {
-		if (in_array($option, $options->getOptions('order')['values'])) {
-			$this->setOption['order'] = $option;
-		} else {
-			return false;
-		}
-	}
-
-	/**
 	 * Clean and test 'mode' parameter.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function modeParameter($option) {
+	public function modeParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('mode')['values'])) {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
@@ -519,7 +504,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function distinctParameter($option) {
+	public function distinctParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('distinct')['values'])) {
 			if ($option == 'strict') {
 				$this->setOption['distinctresultset'] = 'strict';
@@ -540,12 +525,22 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function ordercollationParameter($option) {
+	public function ordercollationParameter($option, Options $options) {
 		if ($option == 'bridge') {
 			$this->setOption['ordersuitsymbols'] = true;
-		} elseif ($option != '') {
+		} elseif (!empty($option)) {
 			$this->setOption['ordercollation'] = "COLLATE ".self::$DB->strencode($option);
 		}
+	}
+
+	/**
+	 * Short cut to formatParameter();
+	 *
+	 * @access	public
+	 * @return	mixed
+	 */
+	public function listseparatorsParameter() {
+		return call_user_func_array([$this, 'formatParameter'], func_get_args());
 	}
 
 	/**
@@ -555,13 +550,11 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function formatParameter($option) {
-	case 'listseparators':
+	public function formatParameter($option, Options $options) {
 		// parsing of wikitext will happen at the end of the output phase
 		// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
 		$option            = self::stripHtmlTags($option);
-		$option            = str_replace('\n', "\n", $option);
-		$option            = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
+		$option            = str_replace(['\n', "¶"], "\n", $option);
 		$this->setOption['listseparators'] = explode(',', $option, 4);
 		// mode=userformat will be automatically assumed
 		$this->setOption['pagelistmode']   = 'userformat';
@@ -575,14 +568,14 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function titleParameter($option) {
+	public function titleParameter($option, Options $options) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$title = \Title::newFromText($option);
 		if ($title) {
 			$this->setOption['namespace']                   = $title->getNamespace();
 			$this->setOption['titleis']                     = str_replace(' ', '_', $title->getText());
-			$aNamespaces[0]               = $sNamespace;
+			$this->setOption['namespaces'][0]               = $sNamespace;
 			$this->setOption['pagelistmode']                = 'userformat';
 			$this->setOption['ordermethods']                = explode(',', '');
 			$this->setOption['selectioncriteriafound']      = true;
@@ -598,7 +591,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function titleLTParameter($option) {
+	public function titleLTParameter($option, Options $options) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$this->setOption['titlege']                = str_replace(' ', '_', $option);
@@ -612,7 +605,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function titleGTParameter($option) {
+	public function titleGTParameter($option, Options $options) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$this->setOption['titlele']                = str_replace(' ', '_', $option);
@@ -626,7 +619,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function scrollParameter($option) {
+	public function scrollParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('scroll')['values'])) {
 			$this->setOption['scroll'] = self::filterBoolean($option);
 			// if scrolling is active we adjust the values for certain other parameters
@@ -660,29 +653,13 @@ class Parameters {
 	}
 
 	/**
-	 * Clean and test 'titlemaxlength' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
-	 */
-	public function titlemaxlengthParameter($option) {
-		//processed like 'count' param
-		if (is_numeric($option)) {
-			$this->setOption['titlemaxlen'] = intval($option);
-		} else {
-			return false;
-		}
-	}
-
-	/**
 	 * Clean and test 'replaceintitle' parameter.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function replaceintitleParameter($option) {
+	public function replaceintitleParameter($option, Options $options) {
 		// we offer a possibility to replace some part of the title
 		$aReplaceInTitle = explode(',', $option, 2);
 		if (isset($aReplaceInTitle[1])) {
@@ -696,7 +673,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function debugParameter($option) {
+	public function debugParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('debug')['values'])) {
 			if ($key > 1) {
 				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_DEBUGPARAMNOTFIRST, $option);
@@ -714,7 +691,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function linkstoParameter($option) {
+	public function linkstoParameter($option, Options $options) {
 		$problems = self::getPageNameList('linksto', $option, $aLinksTo, $bSelectionCriteriaFound, $logger, true);
 		if ($problems != '') {
 			return $problems;
@@ -729,7 +706,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function notlinkstoParameter($option) {
+	public function notlinkstoParameter($option, Options $options) {
 		$problems = self::getPageNameList('notlinksto', $option, $aNotLinksTo, $bSelectionCriteriaFound, $logger, true);
 		if ($problems != '') {
 			return $problems;
@@ -744,7 +721,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function linksfromParameter($option) {
+	public function linksfromParameter($option, Options $options) {
 		$problems = self::getPageNameList('linksfrom', $option, $aLinksFrom, $bSelectionCriteriaFound, $logger, true);
 		if ($problems != '') {
 			return $problems;
@@ -759,7 +736,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function notlinksfromParameter($option) {
+	public function notlinksfromParameter($option, Options $options) {
 		$problems = self::getPageNameList('notlinksfrom', $option, $aNotLinksFrom, $bSelectionCriteriaFound, $logger, true);
 		if ($problems != '') {
 			return $problems;
@@ -773,7 +750,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function linkstoexternalParameter($option) {
+	public function linkstoexternalParameter($option, Options $options) {
 		$problems = self::getPageNameList('linkstoexternal', $option, $aLinksToExternal, $bSelectionCriteriaFound, $logger, false);
 		if ($problems != '') {
 			return $problems;
@@ -788,7 +765,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function imageusedParameter($option) {
+	public function imageusedParameter($option, Options $options) {
 		$pages = explode('|', trim($option));
 		$n     = 0;
 		foreach ($pages as $page) {
@@ -814,7 +791,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function imagecontainerParameter($option) {
+	public function imagecontainerParameter($option, Options $options) {
 		$pages = explode('|', trim($option));
 		$n     = 0;
 		foreach ($pages as $page) {
@@ -839,7 +816,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function usesParameter($option) {
+	public function usesParameter($option, Options $options) {
 		$pages = explode('|', $option);
 		$n     = 0;
 		foreach ($pages as $page) {
@@ -865,7 +842,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function notusesParameter($option) {
+	public function notusesParameter($option, Options $options) {
 		$pages = explode('|', $option);
 		$n     = 0;
 		foreach ($pages as $page) {
@@ -891,7 +868,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function usedbyParameter($option) {
+	public function usedbyParameter($option, Options $options) {
 		$pages = explode('|', $option);
 		$n     = 0;
 		foreach ($pages as $page) {
@@ -917,7 +894,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function titlematchParameter($option) {
+	public function titlematchParameter($option, Options $options) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$aTitleMatch             = explode('|', str_replace(' ', '\_', $option));
@@ -931,7 +908,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function minoreditsParameter($option) {
+	public function minoreditsParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('minoredits')['values'])) {
 			$sMinorEdits                  = $option;
 			$this->setOpenReferencesConflict(true);
@@ -948,7 +925,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function categoriesminmaxParameter($option) {
+	public function categoriesminmaxParameter($option, Options $options) {
 		if (preg_match($options->getOptions('categoriesminmax')['pattern'], $option)) {
 			$aCatMinMax = ($option == '') ? null : explode(',', $option);
 		} else { // wrong value
@@ -963,7 +940,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function includeParameter($option) {
+	public function includeParameter($option, Options $options) {
 	case 'includepage':
 		$bIncPage = $option !== '';
 		if ($bIncPage) {
@@ -978,7 +955,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function includematchparsedParameter($option) {
+	public function includematchparsedParameter($option, Options $options) {
 		$bIncParsed = true;
 	}
 
@@ -989,7 +966,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function includematchParameter($option) {
+	public function includematchParameter($option, Options $options) {
 		$aSecLabelsMatch = explode(',', $option);
 	}
 
@@ -1000,7 +977,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function includenotmatchparsedParameter($option) {
+	public function includenotmatchparsedParameter($option, Options $options) {
 		$bIncParsed = true;
 	}
 
@@ -1011,7 +988,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function includenotmatchParameter($option) {
+	public function includenotmatchParameter($option, Options $options) {
 		$aSecLabelsNotMatch = explode(',', $option);
 	}
 
@@ -1022,7 +999,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function secseparatorsParameter($option) {
+	public function secseparatorsParameter($option, Options $options) {
 		// we replace '\n' by newline to support wiki syntax within the section separators
 		$option           = str_replace('\n', "\n", $option);
 		$option           = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
@@ -1036,7 +1013,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function multisecseparatorsParameter($option) {
+	public function multisecseparatorsParameter($option, Options $options) {
 		// we replace '\n' by newline to support wiki syntax within the section separators
 		$option                = str_replace('\n', "\n", $option);
 		$option                = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
@@ -1050,7 +1027,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function tableParameter($option) {
+	public function tableParameter($option, Options $options) {
 		$option   = str_replace('\n', "\n", $option);
 		$sTable = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
 	}
@@ -1062,7 +1039,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function tablerowParameter($option) {
+	public function tablerowParameter($option, Options $options) {
 		$option = str_replace('\n', "\n", $option);
 		$option = str_replace("¶", "\n", $option); // the paragraph delimiter is utf8-escaped
 		if (trim($option) == '') {
@@ -1080,7 +1057,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
-	public function allowcachedresultsParameter($option) {
+	public function allowcachedresultsParameter($option, Options $options) {
 		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
 		if (!$this->setOptions['execandexit']) {
 			if ($option == 'yes+warn') {
@@ -1105,7 +1082,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function dplcacheParameter($option) {
+	public function dplcacheParameter($option, Options $options) {
 		if ($option != '') {
 			$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $option) . '.dplc';
 			$DPLCachePath = $parser->mTitle->getArticleID() % 10;
@@ -1121,7 +1098,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function fixcategoryParameter($option) {
+	public function fixcategoryParameter($option, Options $options) {
 		\DynamicPageListHooks::fixCategory($option);
 	}
 
@@ -1132,7 +1109,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function resetParameter($option) {
+	public function resetParameter($option, Options $options) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
 			if ($arg == '') {
@@ -1164,7 +1141,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function eliminateParameter($option) {
+	public function eliminateParameter($option, Options $options) {
 		foreach (preg_split('/[;,]/', $option) as $arg) {
 			$arg = trim($arg);
 			if ($arg == '') {
@@ -1201,7 +1178,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function categoryregexpParameter($option) {
+	public function categoryregexpParameter($option, Options $options) {
 		$sCategoryComparisonMode      = ' REGEXP ';
 		$aIncludeCategories[]         = array(
 			$option
@@ -1216,7 +1193,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function categorymatchParameter($option) {
+	public function categorymatchParameter($option, Options $options) {
 		$sCategoryComparisonMode      = ' LIKE ';
 		$aIncludeCategories[]         = explode('|', $option);
 		$this->setOpenReferencesConflict(true);
@@ -1229,7 +1206,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function notcategoryregexpParameter($option) {
+	public function notcategoryregexpParameter($option, Options $options) {
 		$sNotCategoryComparisonMode   = ' REGEXP ';
 		$aExcludeCategories[]         = $option;
 		$this->setOpenReferencesConflict(true);
@@ -1242,7 +1219,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function notcategorymatchParameter($option) {
+	public function notcategorymatchParameter($option, Options $options) {
 		$sNotCategoryComparisonMode   = ' LIKE ';
 		$aExcludeCategories[]         = $option;
 		$this->setOpenReferencesConflict(true);
@@ -1255,7 +1232,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function titleregexpParameter($option) {
+	public function titleregexpParameter($option, Options $options) {
 		$sTitleMatchMode         = ' REGEXP ';
 		$aTitleMatch             = array(
 			$option
@@ -1270,7 +1247,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function nottitleregexpParameter($option) {
+	public function nottitleregexpParameter($option, Options $options) {
 		$sNotTitleMatchMode      = ' REGEXP ';
 		$aNotTitleMatch          = array(
 			$option
@@ -1285,7 +1262,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function nottitlematchParameter($option) {
+	public function nottitlematchParameter($option, Options $options) {
 		// we replace blanks by underscores to meet the internal representation
 		// of page names in the database
 		$aNotTitleMatch          = explode('|', str_replace(' ', '_', $option));
@@ -1299,7 +1276,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function lastrevisionbeforeParameter($option) {
+	public function lastrevisionbeforeParameter($option, Options $options) {
 	case 'allrevisionsbefore':
 	case 'firstrevisionsince':
 	case 'allrevisionssince':
@@ -1331,7 +1308,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function articlecategoryParameter($option) {
+	public function articlecategoryParameter($option, Options $options) {
 		$sArticleCategory = str_replace(' ', '_', $option);
 	}
 
@@ -1342,7 +1319,7 @@ class Parameters {
 	 * @param	string	Options passed to parameter.
 	 * @return	mixed	Array of options to enact on or false on error.
 	 */
-	public function goalParameter($option) {
+	public function goalParameter($option, Options $options) {
 		if (in_array($option, $options->getOptions('goal')['values'])) {
 			$sGoal                        = $option;
 			$this->setOpenReferencesConflict(true);

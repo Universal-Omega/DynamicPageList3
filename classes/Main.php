@@ -733,7 +733,7 @@ class Main {
 		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
 			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
 		}
-		if ($sDistinctResultSet == 'false') {
+		if ($sDistinctResultSet === false) {
 			$sSqlDistinct = '';
 		} else {
 			$sSqlDistinct = 'DISTINCT';

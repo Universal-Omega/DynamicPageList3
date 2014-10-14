@@ -195,10 +195,6 @@ class Options {
 				'none'
 			]
 		],
-		/**
-		 * Mode at the heading level with ordermethod on multiple components, e.g. category heading with ordermethod=category,...: 
-		 * html headings (H2, H3, H4), definition list, no heading (none), ordered, unordered.
-		 */
 
 		'format'			   => null,
 
@@ -528,7 +524,9 @@ class Options {
 		/**
 		 * we can specify something like "latin1_swedish_ci" for case insensitive sorting
 		*/
-		'ordercollation' => array('default' => ''),
+		'ordercollation' => [
+			'default' => null
+		],
 		/**
 		 * 'ordermethod=param1,param2' means ordered by param1 first, then by param2.
 		 * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
@@ -770,7 +768,10 @@ class Options {
 		 * Empty value (default) means no limit.
 		 * Not applicable to mode=category.
 		 */
-		'titlemaxlength'	   => array('default' => '')
+		'titlemaxlength' => [
+			'default'	=> null,
+			'integer'	=> true
+		]
 	);
 
 	/**
