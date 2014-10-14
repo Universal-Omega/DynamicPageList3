@@ -231,7 +231,8 @@ class ParametersData {
 		 * search for a page with the same title in another namespace (this is normally the article to a talk page)
 		 */
 		'articlecategory' => [
-			'default'	=> null,
+			'default'				=> null,
+			'db_format'				=> true
 		],
 
 		/**
@@ -739,10 +740,14 @@ class ParametersData {
 		 * which restricts the result to pages matching that pattern
 		*/
 		'title<' => [
-			'default'	=> null,
+			'default'				=> null,
+			'db_format'				=> true,
+			'set_criteria_found'	=> true
 		],
 		'title>' => [
-			'default'	=> null,
+			'default'				=> null,
+			'db_format'				=> true,
+			'set_criteria_found'	=> true
 		],
 		'scroll' => [
 			'default'	=> false,
@@ -758,8 +763,12 @@ class ParametersData {
 			'default'		=> 'Y-m-d H:i:s',
 			'strip_html'	=> true
 		],
-		'updaterules'		   => array('default' => ''),
-		'deleterules'		   => array('default' => ''),
+		'updaterules' => [
+			'default'	=> null
+		],
+		'deleterules' => [
+			'default'	=> null
+		],
 
 		/**
 		 * nottitlematch is a (SQL-LIKE-expression) pattern

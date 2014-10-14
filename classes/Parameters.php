@@ -107,6 +107,11 @@ class Parameters extends ParametersData {
 				}
 			}
 
+			//Database Key Formatting
+			if ($parameterData['db_format'] === true) {
+				$option = str_replace(' ', '_', $option);
+			}
+
 			//If none of the above checks marked this as a failure then set it.
 			if ($success === true) {
 				$this->setParameter($parameter, $option);
@@ -366,7 +371,7 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'ordermethod' parameter.
+	 * Clean and test 'ordermethods' parameter.(NOTE THE PLURAL 'S')
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
@@ -386,7 +391,7 @@ class Parameters extends ParametersData {
 				$this->setOpenReferencesConflict(true);
 			}
 		}
-		return false;
+		return true;
 	}
 
 	/**
@@ -491,41 +496,13 @@ class Parameters extends ParametersData {
 		$title = \Title::newFromText($option);
 		if ($title) {
 			$this->setParameter('titleis', str_replace(' ', '_', $title->getText()));
-			$this->setParameter('namespaces', array_merge($this->getParameter['namespaces'], $title->getNamespace()));
+			$this->setParameter('namespaces', array_merge($this->getParameter('namespaces'), $title->getNamespace()));
 			$this->setParameter('pagelistmode', 'userformat');
-			$this->setParameter('ordermethods', explode(',', ''));
+			$this->setParameter('ordermethods', []);
 			$this->setParameter('selectioncriteriafound', true);
 			$this->setParameter('allowcachedresults', true);
 			$this->setOpenReferencesConflict(true);
 		}
-	}
-
-	/**
-	 * Clean and test 'title<' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _titleLT($option) {
-		// we replace blanks by underscores to meet the internal representation
-		// of page names in the database
-		$this->setParameter('titlege', str_replace(' ', '_', $option));
-		$this->setSelectionCriteriaFound(true);
-	}
-
-	/**
-	 * Clean and test 'title<' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _titleGT($option) {
-		// we replace blanks by underscores to meet the internal representation
-		// of page names in the database
-		$this->setParameter('titlele', str_replace(' ', '_', $option));
-		$this->setSelectionCriteriaFound(true);
 	}
 
 	/**
@@ -566,6 +543,7 @@ class Parameters extends ParametersData {
 		} else {
 			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -961,18 +939,6 @@ class Parameters extends ParametersData {
 		// of page names in the database
 		$aNotTitleMatch          = explode('|', str_replace(' ', '_', $option));
 		$this->setSelectionCriteriaFound(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'articlecategory' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _articlecategory($option) {
-		$sArticleCategory = str_replace(' ', '_', $option);
 		return true;
 	}
 }
