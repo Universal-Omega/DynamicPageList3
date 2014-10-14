@@ -75,7 +75,10 @@ class Options {
 		],
 		
 		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
-		'allowcachedresults'   => array( 'true', 'false', 'no', 'yes', 'yes+warn', '0', '1', 'off', 'on'),
+		'allowcachedresults' [
+			'default'			=> \DynamicPageListHooks::$respectParserCache,
+			'boolean'			=> true
+		],
 		/**
 		 * search for a page with the same title in another namespace (this is normally the article to a talk page)
 		 */
@@ -400,7 +403,17 @@ class Options {
 		 * 'none' mode is implemented as a specific submode of 'inline' with <br /> as inline text
 		 * 'userformat' does not produce any html tags unless 'listseparators' are specified
 		 */
-		'mode'				   => null,	 // depends on behaveAs... mode
+		'mode' => [
+			'default'	=> 'unordered',
+			'values'	=> [
+				'category',
+				'inline',
+				'none',
+				'ordered',
+				'unordered',
+				'userformat'
+			]
+		],
 		/**
 		 * by default links to articles of type image or category are escaped (i.e. they appear as a link and do not
 		 * actually assign the category or show the image; this can be changed.
@@ -464,7 +477,7 @@ class Options {
 		'titlematch'		   => null,
 		'titleregexp'		   => null,
 		'userdateformat' => [
-			'default'		=> null,
+			'default'		=> 'Y-m-d H:i:s',
 			'strip_html'	=> true
 		],
 		'updaterules'		   => array('default' => ''),
@@ -476,7 +489,10 @@ class Options {
 		*/
 		'nottitlematch'		   => null,
 		'nottitleregexp'	   => null,
-		'order'				   => null,	 // depends on behaveAs... mode
+		'order'				   => [
+			'default'	=> 'ascending',
+			'values'	=> ['ascending', 'descending']
+		],
 		/**
 		 * we can specify something like "latin1_swedish_ci" for case insensitive sorting
 		*/
@@ -485,7 +501,24 @@ class Options {
 		 * 'ordermethod=param1,param2' means ordered by param1 first, then by param2.
 		 * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
 		 */
-		'ordermethod'		   => null, // depends on behaveAs... mode
+		'ordermethod' => [
+			'default'	=> 'titlewithoutnamespace',
+			'values'	=> [
+				'counter',
+				'size',
+				'category',
+				'sortkey',
+				'categoryadd',
+				'firstedit',
+				'lastedit',
+				'pagetouched',
+				'pagesel',
+				'title',
+				'titlewithoutnamespace',
+				'user',
+				'none'
+			]
+		],
 		/**
 		 * minoredits =... (compatible with ordermethod=...,firstedit | lastedit only)
 		 * - exclude: ignore minor edits when sorting the list (rev_minor_edit = 0 only)

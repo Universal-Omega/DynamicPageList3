@@ -193,47 +193,6 @@ class Main {
 				'default' => 'Y-m-d: '
 			);
 			Options::$options['allowcachedresults']['default'] = 'true';
-		} else {
-			Options::$options['ordermethod']                   = array(
-				'default' => 'titlewithoutnamespace',
-				'counter',
-				'size',
-				'category',
-				'sortkey',
-				'category,firstedit',
-				'category,lastedit',
-				'category,pagetouched',
-				'category,sortkey',
-				'categoryadd',
-				'firstedit',
-				'lastedit',
-				'pagetouched',
-				'pagesel',
-				'title',
-				'titlewithoutnamespace',
-				'user',
-				'user,firstedit',
-				'user,lastedit',
-				'none'
-			);
-			Options::$options['order']                         = array(
-				'default' => 'ascending',
-				'ascending',
-				'descending'
-			);
-			Options::$options['mode']                          = array(
-				'default' => 'unordered',
-				'category',
-				'inline',
-				'none',
-				'ordered',
-				'unordered',
-				'userformat'
-			);
-			Options::$options['userdateformat']                = array(
-				'default' => 'Y-m-d H:i:s'
-			);
-			Options::$options['allowcachedresults']['default'] = \DynamicPageListHooks::$respectParserCache;
 		}
 		$aOrderMethods   = array(
 			Options::$options['ordermethod']['default']

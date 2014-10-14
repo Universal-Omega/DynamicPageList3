@@ -1090,26 +1090,28 @@ class Parameters {
 
 	/**
 	 * Clean and test 'allowcachedresults' parameter.
+	 * This function is necessary for the custom 'yes+warn' opton that sets 'warncachedresults'.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
-	 * @return	mixed	Array of options to enact on or false on error.
+	 * @return	boolean	Success
 	 */
 	public function allowcachedresultsParameter($option) {
-		// if execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings
-		// which are placed AFTER the execandexit statement
-		// thus we make sure that the cache will only become invalid if the query is really executed
-		if ($sExecAndExit == '') {
-			if (in_array($option, Options::$options['allowcachedresults'])) {
-				$bAllowCachedResults = self::filterBoolean($option);
-				if ($option == 'yes+warn') {
-					$bAllowCachedResults = true;
-					$bWarnCachedResults  = true;
-				}
+		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
+		if (!$this->setOptions['execandexit']) {
+			if ($option == 'yes+warn') {
+				$this->setOptions['allowcachedresults'] = true;
+				$this->setOptions['warncachedresults'] = true;
+				return true;
+			}
+			$option = self::filterBoolean($option);
+			if ($option !== null) {
+				$this->setOptions['allowcachedresults'] = self::filterBoolean($option);
 			} else {
 				return false;
 			}
 		}
+		return true;
 	}
 
 	/**
