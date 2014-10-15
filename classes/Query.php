@@ -196,7 +196,7 @@ class Query {
 		//Addauthor can not be used with addlasteditor.
 		if (!$this->parametersProcessed['addlasteditor']) {
 			$this->addTable('revision', 'rev');
-			$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )');
+			$this->addWhere($this->tableNames['page'].'.page_id = rev.rev_page AND rev.rev_timestamp = (SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page = rev.rev_page)');
 			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 		}
 		return $query;
@@ -234,7 +234,7 @@ class Query {
 		if ($bAddContribution) {
 			$sSqlRCTable = $this->tableNames['recentchanges'].' AS rc, ';
 			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
-			$sSqlWhere .= ' AND page.page_id=rc.rc_cur_id';
+			$this->addWhere("page.page_id=rc.rc_cur_id");
 			if ($sSqlGroupBy != '') {
 				$sSqlGroupBy .= ', ';
 			}
@@ -1007,7 +1007,7 @@ class Query {
 	 * @return	void
 	 */
 	public function _maxrevisions($option) {
-		$sSqlWhere .= " AND ((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)");
 	}
 
 	/**
@@ -1019,7 +1019,7 @@ class Query {
 	 */
 	public function _minoredits($option) {
 		if (isset($sMinorEdits) && $sMinorEdits == 'exclude') {
-			$sSqlWhere .= ' AND rev_minor_edit=0';
+			$this->addWhere("rev_minor_edit=0");
 		}
 	}
 
@@ -1031,7 +1031,7 @@ class Query {
 	 * @return	void
 	 */
 	public function _minrevisions($option) {
-		$sSqlWhere .= " AND ((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
+		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)");
 	}
 
 	/**
@@ -1074,9 +1074,9 @@ class Query {
 	public function _namespace($option) {
 		if (!empty($aNamespaces)) {
 			if ($acceptOpenReferences) {
-				$sSqlWhere .= ' AND '.$this->tableNames['pagelinks'].'.pl_namespace IN ('.self::$DB->makeList($aNamespaces).')';
+				$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".self::$DB->makeList($aNamespaces).")");
 			} else {
-				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_namespace IN ('.self::$DB->makeList($aNamespaces).')';
+				$this->addWhere("{$this->tableNames['page']}.page_namespace IN (".self::$DB->makeList($aNamespaces).")");
 			}
 		}
 	}
@@ -1110,7 +1110,7 @@ class Query {
 		//@TODO: The table incremental variable needs to be on the object.
 		for ($i = 0; $i < $iExcludeCatCount; $i++) {
 			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$this->tableNames['categorylinks'].' AS cl'.$iClTable.' ON '.$this->tableNames['page'].'.page_id=cl'.$iClTable.'.cl_from'.' AND cl'.$iClTable.'.cl_to'.$sNotCategoryComparisonMode.self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
-			$sSqlWhere .= ' AND cl'.$iClTable.'.cl_to IS NULL';
+			$this->addWhere("cl{$iClTable}.cl_to IS NULL");
 			$iClTable++;
 		}
 	}
@@ -1212,7 +1212,7 @@ class Query {
 	 * @return	void
 	 */
 	public function _notmodifiedby($option) {
-	    $sSqlCond_page_rev .= ' AND NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.self::$DB->addQuotes($parameters->getParameter('notmodifiedby')).' LIMIT 1)';
+	    $sSqlCond_page_rev .= 'NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.self::$DB->addQuotes($parameters->getParameter('notmodifiedby')).' LIMIT 1)';
 	}
 
 	/**
@@ -1225,9 +1225,9 @@ class Query {
 	public function _notnamespace($option) {
 		if (!empty($aExcludeNamespaces)) {
 			if ($acceptOpenReferences) {
-				$sSqlWhere .= ' AND '.$this->tableNames['pagelinks'].'.pl_namespace NOT IN ('.self::$DB->makeList($aExcludeNamespaces).')';
+				$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".self::$DB->makeList($aExcludeNamespaces).")");
 			} else {
-				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_namespace NOT IN ('.self::$DB->makeList($aExcludeNamespaces).')';
+				$this->addWhere($this->tableNames['page'].".page_namespace NOT IN (".self::$DB->makeList($aExcludeNamespaces).")");
 			}
 		}
 	}
@@ -1240,30 +1240,29 @@ class Query {
 	 * @return	void
 	 */
 	public function _nottitlematch($option) {
-		if (count($aNotTitleMatch) > 0) {
-			$sSqlWhere .= ' AND NOT (';
-			$n = 0;
-			foreach ($aNotTitleMatch as $link) {
-				if ($n > 0) {
-					$sSqlWhere .= ' OR ';
-				}
-				if ($acceptOpenReferences) {
-					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))'.$sNotTitleMatchMode.'LOWER('.self::$DB->addQuotes($link).')';
-					} else {
-						$sSqlWhere .= 'pl_title'.$sNotTitleMatchMode.self::$DB->addQuotes($link);
-					}
-				} else {
-					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sNotTitleMatchMode.'LOWER('.self::$DB->addQuotes($link).')';
-					} else {
-						$sSqlWhere .= $this->tableNames['page'].'.page_title'.$sNotTitleMatchMode.self::$DB->addQuotes($link);
-					}
-				}
-				$n++;
+		$where .= '(';
+		$i = 0;
+		foreach ($aNotTitleMatch as $link) {
+			if ($i > 0) {
+				$where .= ' OR ';
 			}
-			$sSqlWhere .= ')';
+			if ($acceptOpenReferences) {
+				if ($bIgnoreCase) {
+					$where .= 'LOWER(CAST(pl_title AS char))'.$sNotTitleMatchMode.'LOWER('.self::$DB->addQuotes($link).')';
+				} else {
+					$where .= 'pl_title'.$sNotTitleMatchMode.self::$DB->addQuotes($link);
+				}
+			} else {
+				if ($bIgnoreCase) {
+					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sNotTitleMatchMode.'LOWER('.self::$DB->addQuotes($link).')';
+				} else {
+					$where .= $this->tableNames['page'].'.page_title'.$sNotTitleMatchMode.self::$DB->addQuotes($link);
+				}
+			}
+			$i++;
 		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1394,10 +1393,10 @@ class Query {
 		if (!$acceptOpenReferences) {
 			switch ($sRedirects) {
 				case 'only':
-					$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_is_redirect=1';
+					$this->addWhere($this->tableNames['page'].".page_is_redirect=1");
 					break;
 				case 'exclude':
-					$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_is_redirect=0';
+					$this->addWhere($this->tableNames['page'].".page_is_redirect=0");
 					break;
 			}
 		}
@@ -1566,9 +1565,9 @@ class Query {
 	public function _title($option) {
 		if ($sTitleIs != '') {
 			if ($bIgnoreCase) {
-				$sSqlWhere .= ' AND LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER('.self::$DB->addQuotes($sTitleIs).')';
+				$this->addWhere("LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER(".self::$DB->addQuotes($sTitleIs).")");
 			} else {
-				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_title = '.self::$DB->addQuotes($sTitleIs);
+				$this->addWhere($this->tableNames['page'].'.page_title = '.self::$DB->addQuotes($sTitleIs));
 			}
 		}
 	}
@@ -1581,23 +1580,21 @@ class Query {
 	 * @return	void
 	 */
 	public function _titlegt($option) {
-		if ($sTitleGE != '') {
-			$sSqlWhere .= ' AND (';
-			if (substr($sTitleGE, 0, 2) == '=_') {
-				if ($acceptOpenReferences) {
-					$sSqlWhere .= 'pl_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
-				} else {
-					$sSqlWhere .= $this->tableNames['page'].'.page_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
-				}
+		if (substr($sTitleGE, 0, 2) == '=_') {
+			if ($acceptOpenReferences) {
+				$where .= 'pl_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
 			} else {
-				if ($acceptOpenReferences) {
-					$sSqlWhere .= 'pl_title >'.self::$DB->addQuotes($sTitleGE);
-				} else {
-					$sSqlWhere .= $this->tableNames['page'].'.page_title >'.self::$DB->addQuotes($sTitleGE);
-				}
+				$where .= $this->tableNames['page'].'.page_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
 			}
-			$sSqlWhere .= ')';
+		} else {
+			if ($acceptOpenReferences) {
+				$where .= 'pl_title >'.self::$DB->addQuotes($sTitleGE);
+			} else {
+				$where .= $this->tableNames['page'].'.page_title >'.self::$DB->addQuotes($sTitleGE);
+			}
 		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1608,23 +1605,21 @@ class Query {
 	 * @return	void
 	 */
 	public function _titlelt($option) {
-		if ($sTitleLE != '') {
-			$sSqlWhere .= ' AND (';
-			if (substr($sTitleLE, 0, 2) == '=_') {
-				if ($acceptOpenReferences) {
-					$sSqlWhere .= 'pl_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
-				} else {
-					$sSqlWhere .= $this->tableNames['page'].'.page_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
-				}
+		if (substr($sTitleLE, 0, 2) == '=_') {
+			if ($acceptOpenReferences) {
+				$where .= 'pl_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
 			} else {
-				if ($acceptOpenReferences) {
-					$sSqlWhere .= 'pl_title <'.self::$DB->addQuotes($sTitleLE);
-				} else {
-					$sSqlWhere .= $this->tableNames['page'].'.page_title <'.self::$DB->addQuotes($sTitleLE);
-				}
+				$where .= $this->tableNames['page'].'.page_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
 			}
-			$sSqlWhere .= ')';
+		} else {
+			if ($acceptOpenReferences) {
+				$where .= 'pl_title <'.self::$DB->addQuotes($sTitleLE);
+			} else {
+				$where .= $this->tableNames['page'].'.page_title <'.self::$DB->addQuotes($sTitleLE);
+			}
 		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1635,30 +1630,29 @@ class Query {
 	 * @return	void
 	 */
 	public function _titlematch($option) {
-		if (count($aTitleMatch) > 0) {
-			$sSqlWhere .= ' AND (';
-			$n = 0;
-			foreach ($aTitleMatch as $link) {
-				if ($n > 0) {
-					$sSqlWhere .= ' OR ';
-				}
-				if ($acceptOpenReferences) {
-					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))'.$sTitleMatchMode.strtolower(self::$DB->addQuotes($link));
-					} else {
-						$sSqlWhere .= 'pl_title'.$sTitleMatchMode.self::$DB->addQuotes($link);
-					}
-				} else {
-					if ($bIgnoreCase) {
-						$sSqlWhere .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sTitleMatchMode.strtolower(self::$DB->addQuotes($link));
-					} else {
-						$sSqlWhere .= $this->tableNames['page'].'.page_title'.$sTitleMatchMode.self::$DB->addQuotes($link);
-					}
-				}
-				$n++;
+		$where = '(';
+		$i = 0;
+		foreach ($aTitleMatch as $link) {
+			if ($i > 0) {
+				$where .= ' OR ';
 			}
-			$sSqlWhere .= ')';
+			if ($acceptOpenReferences) {
+				if ($bIgnoreCase) {
+					$where .= 'LOWER(CAST(pl_title AS char))'.$sTitleMatchMode.strtolower(self::$DB->addQuotes($link));
+				} else {
+					$where .= 'pl_title'.$sTitleMatchMode.self::$DB->addQuotes($link);
+				}
+			} else {
+				if ($bIgnoreCase) {
+					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sTitleMatchMode.strtolower(self::$DB->addQuotes($link));
+				} else {
+					$where .= $this->tableNames['page'].'.page_title'.$sTitleMatchMode.self::$DB->addQuotes($link);
+				}
+			}
+			$i++;
 		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**
