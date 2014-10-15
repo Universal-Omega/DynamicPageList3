@@ -547,7 +547,7 @@ class Parameters extends ParametersData {
 				}
 				$this->setParameter('titlege', str_replace(' ', '_', $sTitleGE));
 				$this->setParameter('titlele', str_replace(' ', '_', $sTitleLE));
-				$this->setParameter('crolldir', $wgRequest->getVal('DPL_scrollDir', ''));
+				$this->setParameter('scrolldir', $wgRequest->getVal('DPL_scrollDir', ''));
 				// also set count limit from URL if not otherwise set
 				$this->setParameter('countscroll', $wgRequest->getVal('DPL_count', ''));
 			}

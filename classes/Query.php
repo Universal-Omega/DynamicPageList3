@@ -53,6 +53,12 @@ class Query {
 	public function _addauthor($option) {
 		$query = [];
 
+		//Addauthor can not be used with addlasteditor.
+		if ($parameters->getParameter('addauthor') && $sSqlRevisionTable == '') {
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )';
+		}
+
 		return $query;
 	}
 
@@ -130,6 +136,12 @@ class Query {
 	 */
 	public function _addlasteditor($option) {
 		$query = [];
+
+		//Addlastauthor can not be used with addeditor.
+		if ($bAddLastEditor && $sSqlRevisionTable == '') {
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )';
+		}
 
 		return $query;
 	}
@@ -209,6 +221,10 @@ class Query {
 	public function _allrevisionsbefore($option) {
 		$query = [];
 
+		if ($sAllRevisionsBefore != '') {
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp < ' . $sAllRevisionsBefore;
+		}
+
 		return $query;
 	}
 
@@ -222,6 +238,10 @@ class Query {
 	public function _allrevisionssince($option) {
 		$query = [];
 
+		if ($sAllRevisionsSince != '') {
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp >= ' . $sAllRevisionsSince;
+		}
+
 		return $query;
 	}
 
@@ -234,6 +254,15 @@ class Query {
 	 */
 	public function _articlecategory($option) {
 		$query = [];
+
+		if (isset($sArticleCategory) && $sArticleCategory !== null) {
+			$sSqlWhere .= " AND {$tableNames['page']}.page_title IN (
+				SELECT p2.page_title
+				FROM {$tableNames['page']} p2
+				INNER JOIN {$tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = " . self::$DB->addQuotes($sArticleCategory) . " )
+				WHERE p2.page_namespace = 0
+				) ";
+		}
 
 		return $query;
 	}
@@ -260,6 +289,16 @@ class Query {
 	 */
 	public function _category($option) {
 		$query = [];
+
+		$iClTable = 0;
+		for ($i = 0; $i < $iIncludeCatCount; $i++) {
+			// If we want the Uncategorized
+			$sSqlSelectFrom .= ' INNER JOIN ' . (in_array('', $aIncludeCategories[$i]) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl' . $iClTable . ' ON ' . $tableNames['page'] . '.page_id=cl' . $iClTable . '.cl_from AND (cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][0]));
+			for ($j = 1; $j < count($aIncludeCategories[$i]); $j++)
+				$sSqlSelectFrom .= ' OR cl' . $iClTable . '.cl_to' . $sCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][$j]));
+			$sSqlSelectFrom .= ') ';
+			$iClTable++;
+		}
 
 		return $query;
 	}
@@ -325,6 +364,11 @@ class Query {
 	 */
 	public function _createdby($option) {
 		$query = [];
+
+		if ($parameters->getParameter('createdby')) {
+		    $sSqlCreationRevisionTable = $tableNames['revision'] . ' AS creation_rev, ';
+		    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('createdby')) . ' = creation_rev.rev_user_text' . ' AND creation_rev.rev_page = page_id' . ' AND creation_rev.rev_parent_id = 0';
+		}
 
 		return $query;
 	}
@@ -456,6 +500,10 @@ class Query {
 	public function _firstrevisionsince($option) {
 		$query = [];
 
+		if ($sFirstRevisionSince != '') {
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $sFirstRevisionSince . ')';
+		}
+
 		return $query;
 	}
 
@@ -586,6 +634,28 @@ class Query {
 	public function _imagecontainer($option) {
 		$query = [];
 
+		if (count($aImageContainer) > 0) {
+			$sSqlPageLinksTable .= $tableNames['imagelinks'] . ' AS ic, ';
+			if ($acceptOpenReferences) {
+				$sSqlCond_page_pl .= ' AND (';
+			} else {
+				$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_namespace=\'6\' AND ' . $tableNames['page'] . '.page_title=ic.il_to AND (';
+			}
+			$n = 0;
+			foreach ($aImageContainer as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= "LOWER(CAST(ic.il_from AS char)=LOWER(" . self::$DB->addQuotes($link->getArticleID()) . ')';
+				} else {
+					$sSqlCond_page_pl .= "ic.il_from=" . self::$DB->addQuotes($link->getArticleID());
+				}
+				$n++;
+			}
+			$sSqlCond_page_pl .= ')';
+		}
+
 		return $query;
 	}
 
@@ -598,6 +668,25 @@ class Query {
 	 */
 	public function _imageused($option) {
 		$query = [];
+
+		if (count($aImageUsed) > 0) {
+			$sSqlPageLinksTable .= $tableNames['imagelinks'] . ' AS il, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=il.il_from AND (';
+			$sSqlSelPage = ', il.il_to AS image_sel_title';
+			$n           = 0;
+			foreach ($aImageUsed as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= "LOWER(CAST(il.il_to AS char))=LOWER(" . self::$DB->addQuotes($link->getDbKey()) . ')';
+				} else {
+					$sSqlCond_page_pl .= "il.il_to=" . self::$DB->addQuotes($link->getDbKey());
+				}
+				$n++;
+			}
+			$sSqlCond_page_pl .= ')';
+		}
 
 		return $query;
 	}
@@ -755,6 +844,8 @@ class Query {
 	public function _lastmodifiedby($option) {
 		$query = [];
 
+	    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('lastmodifiedby')) . ' = (SELECT rev_user_text FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)';
+
 		return $query;
 	}
 
@@ -767,6 +858,10 @@ class Query {
 	 */
 	public function _lastrevisionbefore($option) {
 		$query = [];
+
+		if ($sLastRevisionBefore != '') {
+			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_bef.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < ' . $sLastRevisionBefore . ')';
+		}
 
 		return $query;
 	}
@@ -781,6 +876,29 @@ class Query {
 	public function _linksfrom($option) {
 		$query = [];
 
+		$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id NOT IN (SELECT ' . $tableNames['pagelinks'] . '.pl_from FROM ' . $tableNames['pagelinks'] . ' WHERE (';
+		$n = 0;
+		foreach ($aNotLinksTo as $links) {
+			foreach ($links as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				$sSqlCond_page_pl .= '(' . $tableNames['pagelinks'] . '.pl_namespace=' . intval($link->getNamespace());
+				if (strpos($link->getDbKey(), '%') >= 0) {
+					$operator = ' LIKE ';
+				} else {
+					$operator = '=';
+				}
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['pagelinks'] . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
+				} else {
+					$sSqlCond_page_pl .= ' AND		 ' . $tableNames['pagelinks'] . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey()) . ')';
+				}
+				$n++;
+			}
+		}
+		$sSqlCond_page_pl .= ') )';
+
 		return $query;
 	}
 
@@ -794,6 +912,65 @@ class Query {
 	public function _linksto($option) {
 		$query = [];
 
+		if (count($aLinksTo) > 0) {
+			$sSqlPageLinksTable .= $tableNames['pagelinks'] . ' AS pl, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=pl.pl_from AND ';
+			$sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
+			$n           = 0;
+			foreach ($aLinksTo as $linkGroup) {
+				if (++$n > 1) {
+					break;
+				}
+				$sSqlCond_page_pl .= '( ';
+				$m = 0;
+				foreach ($linkGroup as $link) {
+					if (++$m > 1) {
+						$sSqlCond_page_pl .= ' OR ';
+					}
+					$sSqlCond_page_pl .= '(pl.pl_namespace=' . intval($link->getNamespace());
+					if (strpos($link->getDbKey(), '%') >= 0) {
+						$operator = ' LIKE ';
+					} else {
+						$operator = '=';
+					}
+					if ($bIgnoreCase) {
+						$sSqlCond_page_pl .= ' AND LOWER(CAST(pl.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
+					} else {
+						$sSqlCond_page_pl .= ' AND pl.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey()) . ')';
+					}
+				}
+				$sSqlCond_page_pl .= ')';
+			}
+		}
+		if (count($aLinksTo) > 1) {
+			$n = 0;
+			foreach ($aLinksTo as $linkGroup) {
+				if (++$n == 1) {
+					continue;
+				}
+				$m = 0;
+				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM ' . $tableNames['pagelinks'] . ' WHERE (' . $tableNames['pagelinks'] . '.pl_from=page_id AND (';
+				foreach ($linkGroup as $link) {
+					if (++$m > 1) {
+						$sSqlCond_page_pl .= ' OR ';
+					}
+					$sSqlCond_page_pl .= '(' . $tableNames['pagelinks'] . '.pl_namespace=' . intval($link->getNamespace());
+					if (strpos($link->getDbKey(), '%') >= 0) {
+						$operator = ' LIKE ';
+					} else {
+						$operator = '=';
+					}
+					if ($bIgnoreCase) {
+						$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['pagelinks'] . '.pl_title AS char))' . $operator . 'LOWER(' . self::$DB->addQuotes($link->getDbKey()) . ')';
+					} else {
+						$sSqlCond_page_pl .= ' AND ' . $tableNames['pagelinks'] . '.pl_title' . $operator . self::$DB->addQuotes($link->getDbKey());
+					}
+					$sSqlCond_page_pl .= ')';
+				}
+				$sSqlCond_page_pl .= ')))';
+			}
+		}
+
 		return $query;
 	}
 
@@ -806,6 +983,43 @@ class Query {
 	 */
 	public function _linkstoexternal($option) {
 		$query = [];
+
+		if (count($aLinksToExternal) > 0) {
+			$sSqlExternalLinksTable .= $tableNames['externallinks'] . ' AS el, ';
+			$sSqlCond_page_el .= ' AND ' . $tableNames['page'] . '.page_id=el.el_from AND (';
+			$sSqlSelPage = ', el.el_to as el_to';
+			$n           = 0;
+			foreach ($aLinksToExternal as $linkGroup) {
+				if (++$n > 1) {
+					break;
+				}
+				$m = 0;
+				foreach ($linkGroup as $link) {
+					if (++$m > 1) {
+						$sSqlCond_page_el .= ' OR ';
+					}
+					$sSqlCond_page_el .= '(el.el_to LIKE ' . self::$DB->addQuotes($link) . ')';
+				}
+			}
+			$sSqlCond_page_el .= ')';
+		}
+		if (count($aLinksToExternal) > 1) {
+			$n = 0;
+			foreach ($aLinksToExternal as $linkGroup) {
+				if (++$n == 1) {
+					continue;
+				}
+				$m = 0;
+				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM ' . $tableNames['externallinks'] . ' WHERE (' . $tableNames['externallinks'] . '.el_from=page_id AND (';
+				foreach ($linkGroup as $link) {
+					if (++$m > 1) {
+						$sSqlCond_page_el .= ' OR ';
+					}
+					$sSqlCond_page_el .= '(' . $tableNames['externallinks'] . '.el_to LIKE ' . self::$DB->addQuotes($link) . ')';
+				}
+				$sSqlCond_page_el .= ')))';
+			}
+		}
 
 		return $query;
 	}
@@ -846,6 +1060,8 @@ class Query {
 	public function _maxrevisions($option) {
 		$query = [];
 
+		$sSqlWhere .= " AND ((SELECT count(rev_aux3.rev_page) FROM {$tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
+
 		return $query;
 	}
 
@@ -859,6 +1075,10 @@ class Query {
 	public function _minoredits($option) {
 		$query = [];
 
+		if (isset($sMinorEdits) && $sMinorEdits == 'exclude') {
+			$sSqlWhere .= ' AND rev_minor_edit=0';
+		}
+
 		return $query;
 	}
 
@@ -871,6 +1091,8 @@ class Query {
 	 */
 	public function _minrevisions($option) {
 		$query = [];
+
+		$sSqlWhere .= " AND ((SELECT count(rev_aux2.rev_page) FROM {$tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
 
 		return $query;
 	}
@@ -898,6 +1120,9 @@ class Query {
 	public function _modifiedby($option) {
 		$query = [];
 
+	    $sSqlChangeRevisionTable = $tableNames['revision'] . ' AS change_rev, ';
+	    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('modifiedby')) . ' = change_rev.rev_user_text' . ' AND change_rev.rev_page = page_id';
+
 		return $query;
 	}
 
@@ -923,6 +1148,14 @@ class Query {
 	 */
 	public function _namespace($option) {
 		$query = [];
+
+		if (!empty($aNamespaces)) {
+			if ($acceptOpenReferences) {
+				$sSqlWhere .= ' AND ' . $tableNames['pagelinks'] . '.pl_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
+			} else {
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace IN (' . self::$DB->makeList($aNamespaces) . ')';
+			}
+		}
 
 		return $query;
 	}
@@ -963,6 +1196,13 @@ class Query {
 	public function _notcategory($option) {
 		$query = [];
 
+		//@TODO: The table incremental variable needs to be on the object.
+		for ($i = 0; $i < $iExcludeCatCount; $i++) {
+			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' AS cl' . $iClTable . ' ON ' . $tableNames['page'] . '.page_id=cl' . $iClTable . '.cl_from' . ' AND cl' . $iClTable . '.cl_to' . $sNotCategoryComparisonMode . self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
+			$sSqlWhere .= ' AND cl' . $iClTable . '.cl_to IS NULL';
+			$iClTable++;
+		}
+
 		return $query;
 	}
 
@@ -1002,6 +1242,9 @@ class Query {
 	public function _notcreatedby($option) {
 		$query = [];
 
+	    $sSqlNoCreationRevisionTable = $tableNames['revision'] . ' AS no_creation_rev, ';
+	    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('notcreatedby')) . ' != no_creation_rev.rev_user_text' . ' AND no_creation_rev.rev_page = page_id' . ' AND no_creation_rev.rev_parent_id = 0';
+
 		return $query;
 	}
 
@@ -1015,6 +1258,8 @@ class Query {
 	public function _notlastmodifiedby($option) {
 		$query = [];
 
+	    $sSqlCond_page_rev .= ' AND ' . self::$DB->addQuotes($parameters->getParameter('notlastmodifiedby')) . ' != (SELECT rev_user_text FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)';
+
 		return $query;
 	}
 
@@ -1027,6 +1272,36 @@ class Query {
 	 */
 	public function _notlinksfrom($option) {
 		$query = [];
+
+		if (count($aNotLinksFrom) > 0) {
+			if ($acceptOpenReferences) {
+				$sSqlCond_page_pl .= ' AND (';
+				$n = 0;
+				foreach ($aNotLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n > 0) {
+							$sSqlCond_page_pl .= ' AND ';
+						}
+						$sSqlCond_page_pl .= 'pl_from <> ' . $link->getArticleID() . ' ';
+						$n++;
+					}
+				}
+				$sSqlCond_page_pl .= ')';
+			} else {
+				$sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT(' . $tableNames['pagelinks'] . '.pl_namespace,' . $tableNames['pagelinks'] . '.pl_title) from ' . $tableNames['pagelinks'] . ' WHERE (';
+				$n = 0;
+				foreach ($aNotLinksFrom as $links) {
+					foreach ($links as $link) {
+						if ($n > 0) {
+							$sSqlCond_page_pl .= ' OR ';
+						}
+						$sSqlCond_page_pl .= $tableNames['pagelinks'] . '.pl_from=' . $link->getArticleID() . ' ';
+						$n++;
+					}
+				}
+				$sSqlCond_page_pl .= '))';
+			}
+		}
 
 		return $query;
 	}
@@ -1054,6 +1329,8 @@ class Query {
 	public function _notmodifiedby($option) {
 		$query = [];
 
+	    $sSqlCond_page_rev .= ' AND NOT EXISTS (SELECT 1 FROM ' . $tableNames['revision'] . ' WHERE ' . $tableNames['revision'] . '.rev_page=page_id AND ' . $tableNames['revision'] . '.rev_user_text = ' . self::$DB->addQuotes($parameters->getParameter('notmodifiedby')) . ' LIMIT 1)';
+
 		return $query;
 	}
 
@@ -1067,6 +1344,14 @@ class Query {
 	public function _notnamespace($option) {
 		$query = [];
 
+		if (!empty($aExcludeNamespaces)) {
+			if ($acceptOpenReferences) {
+				$sSqlWhere .= ' AND ' . $tableNames['pagelinks'] . '.pl_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
+			} else {
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace NOT IN (' . self::$DB->makeList($aExcludeNamespaces) . ')';
+			}
+		}
+
 		return $query;
 	}
 
@@ -1079,6 +1364,31 @@ class Query {
 	 */
 	public function _nottitlematch($option) {
 		$query = [];
+
+		if (count($aNotTitleMatch) > 0) {
+			$sSqlWhere .= ' AND NOT (';
+			$n = 0;
+			foreach ($aNotTitleMatch as $link) {
+				if ($n > 0) {
+					$sSqlWhere .= ' OR ';
+				}
+				if ($acceptOpenReferences) {
+					if ($bIgnoreCase) {
+						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . self::$DB->addQuotes($link) . ')';
+					} else {
+						$sSqlWhere .= 'pl_title' . $sNotTitleMatchMode . self::$DB->addQuotes($link);
+					}
+				} else {
+					if ($bIgnoreCase) {
+						$sSqlWhere .= 'LOWER(CAST(' . $tableNames['page'] . '.page_title AS char))' . $sNotTitleMatchMode . 'LOWER(' . self::$DB->addQuotes($link) . ')';
+					} else {
+						$sSqlWhere .= $tableNames['page'] . '.page_title' . $sNotTitleMatchMode . self::$DB->addQuotes($link);
+					}
+				}
+				$n++;
+			}
+			$sSqlWhere .= ')';
+		}
 
 		return $query;
 	}
@@ -1105,6 +1415,24 @@ class Query {
 	 */
 	public function _notuses($option) {
 		$query = [];
+
+		if (count($aNotUses) > 0) {
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id NOT IN (SELECT ' . $tableNames['templatelinks'] . '.tl_from FROM ' . $tableNames['templatelinks'] . ' WHERE (';
+			$n = 0;
+			foreach ($aNotUses as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				$sSqlCond_page_pl .= '(' . $tableNames['templatelinks'] . '.tl_namespace=' . intval($link->getNamespace());
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $tableNames['templatelinks'] . '.tl_title AS char))=LOWER(' . self::$DB->addQuotes($link->getDbKey()) . '))';
+				} else {
+					$sSqlCond_page_pl .= ' AND ' . $tableNames['templatelinks'] . '.tl_title=' . self::$DB->addQuotes($link->getDbKey()) . ')';
+				}
+				$n++;
+			}
+			$sSqlCond_page_pl .= ') )';
+		}
 
 		return $query;
 	}
@@ -1235,6 +1563,17 @@ class Query {
 	 */
 	public function _redirects($option) {
 		$query = [];
+
+		if (!$acceptOpenReferences) {
+			switch ($sRedirects) {
+				case 'only':
+					$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_is_redirect=1';
+					break;
+				case 'exclude':
+					$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_is_redirect=0';
+					break;
+			}
+		}
 
 		return $query;
 	}
@@ -1470,6 +1809,14 @@ class Query {
 	public function _title($option) {
 		$query = [];
 
+		if ($sTitleIs != '') {
+			if ($bIgnoreCase) {
+				$sSqlWhere .= ' AND LOWER(CAST(' . $tableNames['page'] . '.page_title AS char)) = LOWER(' . self::$DB->addQuotes($sTitleIs) . ')';
+			} else {
+				$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_title = ' . self::$DB->addQuotes($sTitleIs);
+			}
+		}
+
 		return $query;
 	}
 
@@ -1482,6 +1829,24 @@ class Query {
 	 */
 	public function _titlegt($option) {
 		$query = [];
+
+		if ($sTitleGE != '') {
+			$sSqlWhere .= ' AND (';
+			if (substr($sTitleGE, 0, 2) == '=_') {
+				if ($acceptOpenReferences) {
+					$sSqlWhere .= 'pl_title >=' . self::$DB->addQuotes(substr($sTitleGE, 2));
+				} else {
+					$sSqlWhere .= $tableNames['page'] . '.page_title >=' . self::$DB->addQuotes(substr($sTitleGE, 2));
+				}
+			} else {
+				if ($acceptOpenReferences) {
+					$sSqlWhere .= 'pl_title >' . self::$DB->addQuotes($sTitleGE);
+				} else {
+					$sSqlWhere .= $tableNames['page'] . '.page_title >' . self::$DB->addQuotes($sTitleGE);
+				}
+			}
+			$sSqlWhere .= ')';
+		}
 
 		return $query;
 	}
@@ -1496,6 +1861,24 @@ class Query {
 	public function _titlelt($option) {
 		$query = [];
 
+		if ($sTitleLE != '') {
+			$sSqlWhere .= ' AND (';
+			if (substr($sTitleLE, 0, 2) == '=_') {
+				if ($acceptOpenReferences) {
+					$sSqlWhere .= 'pl_title <=' . self::$DB->addQuotes(substr($sTitleLE, 2));
+				} else {
+					$sSqlWhere .= $tableNames['page'] . '.page_title <=' . self::$DB->addQuotes(substr($sTitleLE, 2));
+				}
+			} else {
+				if ($acceptOpenReferences) {
+					$sSqlWhere .= 'pl_title <' . self::$DB->addQuotes($sTitleLE);
+				} else {
+					$sSqlWhere .= $tableNames['page'] . '.page_title <' . self::$DB->addQuotes($sTitleLE);
+				}
+			}
+			$sSqlWhere .= ')';
+		}
+
 		return $query;
 	}
 
@@ -1508,6 +1891,31 @@ class Query {
 	 */
 	public function _titlematch($option) {
 		$query = [];
+
+		if (count($aTitleMatch) > 0) {
+			$sSqlWhere .= ' AND (';
+			$n = 0;
+			foreach ($aTitleMatch as $link) {
+				if ($n > 0) {
+					$sSqlWhere .= ' OR ';
+				}
+				if ($acceptOpenReferences) {
+					if ($bIgnoreCase) {
+						$sSqlWhere .= 'LOWER(CAST(pl_title AS char))' . $sTitleMatchMode . strtolower(self::$DB->addQuotes($link));
+					} else {
+						$sSqlWhere .= 'pl_title' . $sTitleMatchMode . self::$DB->addQuotes($link);
+					}
+				} else {
+					if ($bIgnoreCase) {
+						$sSqlWhere .= 'LOWER(CAST(' . $tableNames['page'] . '.page_title AS char))' . $sTitleMatchMode . strtolower(self::$DB->addQuotes($link));
+					} else {
+						$sSqlWhere .= $tableNames['page'] . '.page_title' . $sTitleMatchMode . self::$DB->addQuotes($link);
+					}
+				}
+				$n++;
+			}
+			$sSqlWhere .= ')';
+		}
 
 		return $query;
 	}
@@ -1561,6 +1969,34 @@ class Query {
 	public function _usedby($option) {
 		$query = [];
 
+		if (count($aUsedBy) > 0) {
+			if ($acceptOpenReferences) {
+				$sSqlCond_page_tpl .= ' AND (';
+				$n = 0;
+				foreach ($aUsedBy as $link) {
+					if ($n > 0) {
+						$sSqlCond_page_tpl .= ' OR ';
+					}
+					$sSqlCond_page_tpl .= '(tpl_from=' . $link->getArticleID() . ')';
+					$n++;
+				}
+				$sSqlCond_page_tpl .= ')';
+			} else {
+				$sSqlPageLinksTable .= $tableNames['templatelinks'] . ' AS tpl, ' . $tableNames['page'] . 'AS tplsrc, ';
+				$sSqlCond_page_tpl .= ' AND ' . $tableNames['page'] . '.page_title = tpl.tl_title  AND tplsrc.page_id=tpl.tl_from AND (';
+				$sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
+				$n           = 0;
+				foreach ($aUsedBy as $link) {
+					if ($n > 0) {
+						$sSqlCond_page_tpl .= ' OR ';
+					}
+					$sSqlCond_page_tpl .= '(tpl.tl_from=' . $link->getArticleID() . ')';
+					$n++;
+				}
+				$sSqlCond_page_tpl .= ')';
+			}
+		}
+
 		return $query;
 	}
 
@@ -1586,6 +2022,25 @@ class Query {
 	 */
 	public function _uses($option) {
 		$query = [];
+
+		if (count($aUses) > 0) {
+			$sSqlPageLinksTable .= ' ' . $tableNames['templatelinks'] . ' as tl, ';
+			$sSqlCond_page_pl .= ' AND ' . $tableNames['page'] . '.page_id=tl.tl_from  AND (';
+			$n = 0;
+			foreach ($aUses as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				$sSqlCond_page_pl .= '(tl.tl_namespace=' . intval($link->getNamespace());
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(" . self::$DB->addQuotes($link->getDbKey()) . '))';
+				} else {
+					$sSqlCond_page_pl .= " AND		 tl.tl_title=" . self::$DB->addQuotes($link->getDbKey()) . ')';
+				}
+				$n++;
+			}
+			$sSqlCond_page_pl .= ')';
+		}
 
 		return $query;
 	}
