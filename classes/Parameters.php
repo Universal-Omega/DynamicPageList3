@@ -333,19 +333,19 @@ class Parameters extends ParametersData {
 		}
 		foreach ($parameters as $parameter) {
 			$parameter = trim($parameter);
-			if ($parameter == '_none_') {
+			if ($parameter == '_none_' || $parameter === '') {
 				$parameters[$parameter] = '';
 				$bIncludeUncat    = true;
 				$categories[]    = '';
-			} elseif ($parameter != '') {
-				if ($parameter[0] == '*' && strlen($parameter) >= 2) {
-					if ($parameter[1] == '*') {
-						$parameterList = explode('|', self::getSubcategories(substr($parameter, 2), $sPageTable, 2));
+			} elseif (!empty($parameter)) {
+				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
+					if (substr($parameter, 1, 2) == '*') {
+						$subCategories = explode('|', self::getSubcategories(substr($parameter, 2), $sPageTable, 2));
 					} else {
-						$parameterList = explode('|', self::getSubcategories(substr($parameter, 1), $sPageTable, 1));
+						$subCategories = explode('|', self::getSubcategories(substr($parameter, 1), $sPageTable, 1));
 					}
-					foreach ($parameterList as $sPar) {
-						$title = \Title::newFromText($sPar);
+					foreach ($subCategories as $subCategory) {
+						$title = \Title::newFromText($subCategory);
 						if (!is_null($title)) {
 							$categories[] = $title->getDbKey();
 						}
@@ -361,12 +361,10 @@ class Parameters extends ParametersData {
 		if (!empty($categories)) {
 			$data = $this->getParameter('includecategories');
 			if ($operator == 'OR') {
-				$data[] = $categories;
+				$data['='] = $categories;
 			} else {
-				foreach ($categories as $parameters) {
-					$parameter		= array();
-					$parameter[]	= $parameters;
-					$data[]			= $parameter;
+				foreach ($categories as $category) {
+					$data['='] = [$category];
 				}
 			}
 			$this->setParameter('includecategories', $data);
@@ -377,7 +375,9 @@ class Parameters extends ParametersData {
 				$this->setParameter('catnotheadings', array_unique($this->getParameter('catnotheadings') + $categories));
 			}
 			$this->setOpenReferencesConflict(true);
+			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -918,9 +918,11 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categoryregexp($option) {
-		$sCategoryComparisonMode      = ' REGEXP ';
 		$data = $this->getParameter('includecategories');
-		$data[] = [$option];
+		if (!is_array($data['regexp'])) {
+			$data['regexp'] = [];
+		}
+		$data['regexp'][] = $option;
 		$this->setParameter('includecategories', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
@@ -934,9 +936,12 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categorymatch($option) {
-		$sCategoryComparisonMode      = ' LIKE ';
 		$data = $this->getParameter('includecategories');
-		$data[] = explode('|', $option);
+		if (!is_array($data['like'])) {
+			$data['like'] = [];
+		}
+		$newMatches = explode('|', $option);
+		$data['like'] = array_merge($data['like'], $newMatches);
 		$this->setParameter('includecategories', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;

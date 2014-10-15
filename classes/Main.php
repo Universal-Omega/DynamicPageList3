@@ -883,7 +883,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$pageTitle     = $row->cl_to;
 			} else if ($acceptOpenReferences) {
 				if (count($aImageContainer) > 0) {
-					$pageNamespace = 6;
+					$pageNamespace = NS_FILE;
 					$pageTitle     = $row->il_to;
 				} else {
 					// maybe non-existing title
@@ -926,7 +926,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			}
 			if ($bShowCurID && isset($row->page_id)) {
 				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row->page_id . '}} ' . htmlspecialchars($sTitleText) . ']';
-			} else if (!$bEscapeLinks || ($pageNamespace != 14 && $pageNamespace != 6)) {
+			} else if (!$bEscapeLinks || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
 				// links to categories or images need an additional ":"
 				$articleLink = '[[' . $title->getPrefixedText() . '|' . $wgContLang->convert($sTitleText) . ']]';
 			} else {
@@ -1258,7 +1258,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			self::$DB = wfGetDB(DB_SLAVE);
 		}
 		$cats = $cat;
-		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='14'");
+		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='".NS_CATEGORY."'");
 		foreach ($res as $row) {
 			if ($depth > 1) {
 				$cats .= '|' . self::getSubcategories($row->page_title, $tableNames['page'], $depth - 1);

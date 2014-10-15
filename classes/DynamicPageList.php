@@ -354,7 +354,7 @@ class DynamicPageList {
 			$article  = $this->mArticles[$i];
 			$pagename = $article->mTitle->getPrefixedText();
 			$imageUrl = '';
-			if ($article->mNamespace == 6) {
+			if ($article->mNamespace == NS_FILE) {
 				// calculate URL for existing images
 				// $img = Image::newFromName($article->mTitle->getText());
 				$img = wfFindFile(Title::makeTitle(NS_IMAGE, $article->mTitle->getText()));
@@ -366,7 +366,7 @@ class DynamicPageList {
 					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
 				}
 			}
-			if ($this->mEscapeLinks && ($article->mNamespace == 14 || $article->mNamespace == 6)) {
+			if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
 				// links to categories or images need an additional ":"
 				$pagename = ':' . $pagename;
 			}
@@ -1316,7 +1316,7 @@ class DynamicPageList {
 	// generate a hyperlink to the article
 	public function articleLink($tag, $article, $iTitleMaxLen) {
 		$pagename = $article->mTitle->getPrefixedText();
-		if ($this->mEscapeLinks && ($article->mNamespace == 14 || $article->mNamespace == 6)) {
+		if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
 			// links to categories or images need an additional ":"
 			$pagename = ':' . $pagename;
 		}

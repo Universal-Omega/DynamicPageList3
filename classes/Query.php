@@ -307,7 +307,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagecounter($option) {
-		$sSqlPage_counter = ", {$this->tableNames['page']}.page_counter AS page_counter";
+		$this->addSelect(["page_counter" => "{$this->tableNames['page']}.page_counter"]);
 	}
 
 	/**
@@ -318,7 +318,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagesize($option) {
-		$sSqlPage_size = ", {$this->tableNames['page']}.page_len AS page_len";
+		$this->addSelect(["page_len" => "{$this->tableNames['page']}.page_len"]);
 	}
 
 	/**
@@ -330,9 +330,7 @@ class Query {
 	 */
 	private function _addpagetoucheddate($option) {
 		//@TODO: Need to check if this was added by the order methods or call this function to add it from there.
-		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
-			$sSqlPage_touched = ", {$this->tableNames['page']}.page_touched AS page_touched";
-		}
+		$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
 	}
 
 	/**
@@ -343,10 +341,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _adduser($option) {
-
-		if ($sSqlRevisionTable != '') {
-			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
-		}
+		$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 	}
 
 	/**
@@ -366,9 +361,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _allrevisionsbefore($option) {
-		if ($sAllRevisionsBefore != '') {
-			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp < '.$sAllRevisionsBefore;
-		}
+		$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp < '.$this->DB->addQuotes($option));
 	}
 
 	/**
@@ -379,9 +372,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _allrevisionssince($option) {
-		if ($sAllRevisionsSince != '') {
-			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp >= '.$sAllRevisionsSince;
-		}
+		$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp >= '.$this->DB->addQuotes($option));
 	}
 
 	/**
@@ -392,14 +383,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _articlecategory($option) {
-		if (isset($sArticleCategory) && $sArticleCategory !== null) {
-			$sSqlWhere .= " AND {$this->tableNames['page']}.page_title IN (
-				SELECT p2.page_title
-				FROM {$this->tableNames['page']} p2
-				INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".self::$DB->addQuotes($sArticleCategory)." )
-				WHERE p2.page_namespace = 0
-				) ";
-		}
+		$this->addWhere("{$this->tableNames['page']}.page_title IN (SELECT p2.page_title FROM {$this->tableNames['page']} p2 INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".self::$DB->addQuotes($option).") WHERE p2.page_namespace = 0)";
 	}
 
 	/**
@@ -410,30 +394,32 @@ class Query {
 	 * @return	void
 	 */
 	private function _categoriesminmax($option) {
-		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
-			$sSqlCond_MaxCat .= ' AND '.$aCatMinMax[0].' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
+		if (is_numeric($option[0])) {
+			$where .= $option[0].' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
 		}
-		if (isset($aCatMinMax[1]) && $aCatMinMax[1] != '') {
-			$sSqlCond_MaxCat .= ' AND '.$aCatMinMax[1].' >= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
+		if (is_numeric($option[1])) {
+			$where .= ' AND '.$option[1].' >= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
 		}
+		$this->addWhere($where);
 	}
 
 	/**
-	 * Set SQL for 'category' parameter.
+	 * Set SQL for 'includecategories' parameter.  This includes 'category', 'categorymatch', and 'categoryregexp'.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _category($option) {
-		$iClTable = 0;
-		for ($i = 0; $i < $iIncludeCatCount; $i++) {
-			// If we want the Uncategorized
-			$sSqlSelectFrom .= ' INNER JOIN '.(in_array('', $aIncludeCategories[$i]) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']).' AS cl'.$iClTable.' ON '.$this->tableNames['page'].'.page_id=cl'.$iClTable.'.cl_from AND (cl'.$iClTable.'.cl_to'.$sCategoryComparisonMode.self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][0]));
-			for ($j = 1; $j < count($aIncludeCategories[$i]); $j++)
-				$sSqlSelectFrom .= ' OR cl'.$iClTable.'.cl_to'.$sCategoryComparisonMode.self::$DB->addQuotes(str_replace(' ', '_', $aIncludeCategories[$i][$j]));
-			$sSqlSelectFrom .= ') ';
-			$iClTable++;
+	private function _includecategories($option) {
+		foreach ($option as $comparisonType => $categories) {
+			$i++;
+			$addJoin = "INNER JOIN ".(in_array('', $aIncludeCategories[$i]) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
+			foreach ($categories as $category) {
+				$ors[] = 'cl'.$i.'.cl_to '.$comparisonType.' '.self::$DB->addQuotes(str_replace(' ', '_', $category));
+			}
+			$addJoin .= implode(' OR ', $ors);
+			$addJoin .= ')';
+			$this->addJoin($addJoin);
 		}
 	}
 
@@ -674,7 +660,7 @@ class Query {
 		if ($this->parameters->getParameter('openreferences')) {
 			$where .= '(';
 		} else {
-			$where .= $this->tableNames['page'].'.page_namespace=\'6\' AND '.$this->tableNames['page'].'.page_title=ic.il_to AND (';
+			$where .= $this->tableNames['page'].".page_namespace=".NS_FILE." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
 		}
 		$i = 0;
 		foreach ($option as $link) {
