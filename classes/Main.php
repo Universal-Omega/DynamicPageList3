@@ -39,7 +39,7 @@ class Main {
 
 		//check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
-			return $logger->escapeMsg(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			return $logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
 		}
 
 		/**
@@ -169,7 +169,7 @@ class Main {
 
 		foreach ($rawParameters as $key => $parameterOption) {
 			if (strpos($parameterOption, '=') === false) {
-				$logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
+				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
 				continue;
 			}
 
@@ -182,7 +182,7 @@ class Main {
 			}
 
 			if (!$parameters->exists($parameter)) {
-				$logger->escapeMsg(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
 			}
 
 			//Ignore parameter settings without argument (except namespace and category)
@@ -331,12 +331,12 @@ class Main {
 
 		// too many categories!
 		if (($iTotalCatCount > \DynamicPageListHooks::$maxCategoryCount) && (!\DynamicPageListHooks::$allowUnlimitedCategories)) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
 		}
 
 		// too few categories!
 		if ($iTotalCatCount < \DynamicPageListHooks::$minCategoryCount) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
 		}
 
 		// no selection criteria! Warn only if no debug level is set
@@ -344,7 +344,7 @@ class Main {
 			if ($logger->iDebugLevel <= 1) {
 				return $output;
 			}
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOSELECTION);
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
 		}
 
 		// ordermethod=sortkey requires ordermethod=category
@@ -353,22 +353,22 @@ class Main {
 
 		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
 		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
 		}
 
 		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
 		// we ALLOW this parameter combination, risking ambiguous results
 		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
+		//	return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
 
 		// no more than one type of date at a time!
 		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage
 		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
 		}
 
 		// category-style output requested with not compatible order method
@@ -377,7 +377,7 @@ class Main {
 			'title',
 			'titlewithoutnamespace'
 		))) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
@@ -385,7 +385,7 @@ class Main {
 			'pagetouched',
 			'title'
 		))) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -394,7 +394,7 @@ class Main {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -407,13 +407,13 @@ class Main {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
 		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
 			'firstedit',
 			'lastedit'
 		))) {
-			return $output . $logger->escapeMsg(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
 		/**
@@ -423,25 +423,25 @@ class Main {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!self::$DB->tableExists('dpl_clview')) {
 				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $tableNames['page'] . ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' ON ' . $tableNames['page'] . '.page_id=cl_from';
-				$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_NOCLVIEW, $tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
+				$logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
 				return $output;
 			}
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
 		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
-			$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
+			$logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
 		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
-			$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+			$logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
 			$sHListMode = 'none';
 		}
 
 		// openreferences is incompatible with many other options
 		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
-			$output .= $logger->escapeMsg(\DynamicPageListHooks::FATAL_OPENREFERENCES);
+			$logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
 			$acceptOpenReferences = false;
 		}
 
@@ -1412,7 +1412,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_NORESULTS);
+				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 			self::$DB->freeResult($res);
 			return $output;
@@ -1685,7 +1685,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_NORESULTS);
+				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 		} else {
 			if ($sResultsHeader != '') {
