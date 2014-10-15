@@ -662,7 +662,7 @@ class Query {
 	 */
 	public function _imagecontainer($option) {
 		$this->addTable('imagelinks', 'ic');
-		if ($this->getParameter('openreferences')) {
+		if ($this->parameters->getParameter('openreferences')) {
 			$where .= '(';
 		} else {
 			$where .= $this->tableNames['page'].'.page_namespace=\'6\' AND '.$this->tableNames['page'].'.page_title=ic.il_to AND (';
@@ -1071,7 +1071,7 @@ class Query {
 	 */
 	public function _namespace($option) {
 		if (!empty($aNamespaces)) {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".self::$DB->makeList($aNamespaces).")");
 			} else {
 				$this->addWhere("{$this->tableNames['page']}.page_namespace IN (".self::$DB->makeList($aNamespaces).")");
@@ -1163,7 +1163,7 @@ class Query {
 	 */
 	public function _notlinksfrom($option) {
 		if (count($aNotLinksFrom) > 0) {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$sSqlCond_page_pl .= ' AND (';
 				$n = 0;
 				foreach ($aNotLinksFrom as $links) {
@@ -1222,7 +1222,7 @@ class Query {
 	 */
 	public function _notnamespace($option) {
 		if (!empty($aExcludeNamespaces)) {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".self::$DB->makeList($aExcludeNamespaces).")");
 			} else {
 				$this->addWhere($this->tableNames['page'].".page_namespace NOT IN (".self::$DB->makeList($aExcludeNamespaces).")");
@@ -1244,7 +1244,7 @@ class Query {
 			if ($i > 0) {
 				$where .= ' OR ';
 			}
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				if ($bIgnoreCase) {
 					$where .= 'LOWER(CAST(pl_title AS char))'.$sNotTitleMatchMode.'LOWER('.self::$DB->addQuotes($link).')';
 				} else {
@@ -1388,7 +1388,7 @@ class Query {
 	 * @return	void
 	 */
 	public function _redirects($option) {
-		if (!$acceptOpenReferences) {
+		if (!$this->parameters->getParameter('openreferences')) {
 			switch ($sRedirects) {
 				case 'only':
 					$this->addWhere($this->tableNames['page'].".page_is_redirect=1");
@@ -1579,13 +1579,13 @@ class Query {
 	 */
 	public function _titlegt($option) {
 		if (substr($sTitleGE, 0, 2) == '=_') {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
 			} else {
 				$where .= $this->tableNames['page'].'.page_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
 			}
 		} else {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title >'.self::$DB->addQuotes($sTitleGE);
 			} else {
 				$where .= $this->tableNames['page'].'.page_title >'.self::$DB->addQuotes($sTitleGE);
@@ -1604,13 +1604,13 @@ class Query {
 	 */
 	public function _titlelt($option) {
 		if (substr($sTitleLE, 0, 2) == '=_') {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
 			} else {
 				$where .= $this->tableNames['page'].'.page_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
 			}
 		} else {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title <'.self::$DB->addQuotes($sTitleLE);
 			} else {
 				$where .= $this->tableNames['page'].'.page_title <'.self::$DB->addQuotes($sTitleLE);
@@ -1634,7 +1634,7 @@ class Query {
 			if ($i > 0) {
 				$where .= ' OR ';
 			}
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				if ($bIgnoreCase) {
 					$where .= 'LOWER(CAST(pl_title AS char))'.$sTitleMatchMode.strtolower(self::$DB->addQuotes($link));
 				} else {
@@ -1689,7 +1689,7 @@ class Query {
 	 */
 	public function _usedby($option) {
 		if (count($aUsedBy) > 0) {
-			if ($acceptOpenReferences) {
+			if ($this->parameters->getParameter('openreferences')) {
 				$sSqlCond_page_tpl .= ' AND (';
 				$n = 0;
 				foreach ($aUsedBy as $link) {
