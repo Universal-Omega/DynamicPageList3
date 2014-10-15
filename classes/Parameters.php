@@ -39,8 +39,9 @@ class Parameters extends ParametersData {
 	 */
 	public function __call($parameter, $arguments) {
 		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
-		if (method_exists($this, '_'.$parameter.'Parameter')) {
-			return call_user_func_array($this->'_'.$parameter, $arguments);
+		$function = "_".$parameter;
+		if (method_exists($this, $function)) {
+			return call_user_func_array($this->$function, $arguments);
 		}
 		$option = $arguments[0];
 		$parameter = strtolower($parameter);
@@ -154,18 +155,28 @@ class Parameters extends ParametersData {
 	 * @return	void
 	 */
 	public function setParameter($parameter, $option) {
-		$this->parameterOptions[$parameter] = $option
+		$this->parameterOptions[$parameter] = $option;
 	}
 
 	/**
-	 * Set a parameter's option.
+	 * Get a parameter's option.
 	 *
 	 * @access	public
-	 * @param	string	Parameter to set
+	 * @param	string	Parameter to get
 	 * @return	mixed	Option for specified parameter.
 	 */
-	public function getParameter($option) {
+	public function getParameter($parameter) {
 		return $this->parameterOptions[$parameter];
+	}
+
+	/**
+	 * Get all parameters.
+	 *
+	 * @access	public
+	 * @return	array	Parameter => Options
+	 */
+	public function getAllParameters() {
+		return $this->parameterOptions;
 	}
 
 	/**
@@ -210,7 +221,7 @@ class Parameters extends ParametersData {
 				continue;
 			}
 			if ($mustExist === true) {
-				$title = \Title::newFromText($page)
+				$title = \Title::newFromText($page);
 				if (!$title) {
 					return false;
 				}
@@ -338,7 +349,7 @@ class Parameters extends ParametersData {
 			$parameter = trim($parameter);
 			$data = $this->getParameter('namespace');
 			if (in_array($parameter, $this->getData('namespace')['values'])) {
-				$data[] = $wgContLang->getNsIndex($parameter)
+				$data[] = $wgContLang->getNsIndex($parameter);
 				$this->setParameter('namespaces', $data);
 				$this->setSelectionCriteriaFound(true);
 			} elseif (array_key_exists($parameter, array_keys($this->getData('namespace')['values']))) {
@@ -914,7 +925,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _nottitlematch($option) {
-		$this->setParameter('nottitlematch', explode('|', str_replace(' ', '_', $option));
+		$this->setParameter('nottitlematch', explode('|', str_replace(' ', '_', $option)));
 		$this->setSelectionCriteriaFound(true);
 		return true;
 	}

@@ -47,6 +47,7 @@ $wgAutoloadClasses['DPL\LST']						= "{$extDir}/classes/LST.php";
 $wgAutoloadClasses['DPL\Main']						= "{$extDir}/classes/Main.php";
 $wgAutoloadClasses['DPL\Parameters']				= "{$extDir}/classes/Parameters.php";
 $wgAutoloadClasses['DPL\ParametersData']			= "{$extDir}/classes/ParametersData.php";
+$wgAutoloadClasses['DPL\Query']						= "{$extDir}/classes/Query.php";
 $wgAutoloadClasses['DPL\Variables']					= "{$extDir}/classes/Variables.php";
 
 if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
