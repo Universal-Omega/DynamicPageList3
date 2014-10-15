@@ -661,27 +661,26 @@ class Query {
 	 * @return	void
 	 */
 	public function _imagecontainer($option) {
-		if (count($aImageContainer) > 0) {
-			$sSqlPageLinksTable .= $this->tableNames['imagelinks'].' AS ic, ';
-			if ($acceptOpenReferences) {
-				$sSqlCond_page_pl .= ' AND (';
-			} else {
-				$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_namespace=\'6\' AND '.$this->tableNames['page'].'.page_title=ic.il_to AND (';
-			}
-			$n = 0;
-			foreach ($aImageContainer as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
-				}
-				if ($bIgnoreCase) {
-					$sSqlCond_page_pl .= "LOWER(CAST(ic.il_from AS char)=LOWER(".self::$DB->addQuotes($link->getArticleID()).')';
-				} else {
-					$sSqlCond_page_pl .= "ic.il_from=".self::$DB->addQuotes($link->getArticleID());
-				}
-				$n++;
-			}
-			$sSqlCond_page_pl .= ')';
+		$this->addTable('imagelinks', 'ic');
+		if ($this->getParameter('openreferences')) {
+			$where .= '(';
+		} else {
+			$where .= $this->tableNames['page'].'.page_namespace=\'6\' AND '.$this->tableNames['page'].'.page_title=ic.il_to AND (';
 		}
+		$i = 0;
+		foreach ($option as $link) {
+			if ($i > 0) {
+				$where .= ' OR ';
+			}
+			if ($bIgnoreCase) {
+				$where .= "LOWER(CAST(ic.il_from AS char)=LOWER(".self::$DB->addQuotes($link->getArticleID()).')';
+			} else {
+				$where .= "ic.il_from=".self::$DB->addQuotes($link->getArticleID());
+			}
+			$i++;
+		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -692,24 +691,23 @@ class Query {
 	 * @return	void
 	 */
 	public function _imageused($option) {
-		if (count($aImageUsed) > 0) {
-			$sSqlPageLinksTable .= $this->tableNames['imagelinks'].' AS il, ';
-			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=il.il_from AND (';
-			$sSqlSelPage = ', il.il_to AS image_sel_title';
-			$n           = 0;
-			foreach ($aImageUsed as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
-				}
-				if ($bIgnoreCase) {
-					$sSqlCond_page_pl .= "LOWER(CAST(il.il_to AS char))=LOWER(".self::$DB->addQuotes($link->getDbKey()).')';
-				} else {
-					$sSqlCond_page_pl .= "il.il_to=".self::$DB->addQuotes($link->getDbKey());
-				}
-				$n++;
+		$this->addTable('imagelinks', 'il');
+		$this->addSelect(['image_sel_title' => 'il`.`il_to']);
+		$where .= $this->tableNames['page'].'.page_id=il.il_from AND (';
+		$i = 0;
+		foreach ($aImageUsed as $link) {
+			if ($i > 0) {
+				$where .= ' OR ';
 			}
-			$sSqlCond_page_pl .= ')';
+			if ($bIgnoreCase) {
+				$where .= "LOWER(CAST(il.il_to AS char))=LOWER(".self::$DB->addQuotes($link->getDbKey()).')';
+			} else {
+				$where .= "il.il_to=".self::$DB->addQuotes($link->getDbKey());
+			}
+			$i++;
 		}
+		$where .= ')';
+		$this->addWhere($where);
 	}
 
 	/**

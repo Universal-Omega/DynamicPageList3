@@ -19,6 +19,20 @@ class Parameters extends ParametersData {
 	private $parameterOptions = [];
 
 	/**
+	 * Selection Criteria Found
+	 *
+	 * @var		boolean
+	 */
+	private $selectionCriteriaFound = false;
+
+	/**
+	 * Open References Conflict
+	 *
+	 * @var		boolean
+	 */
+	private $openReferencesConflict = false;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -129,6 +143,55 @@ class Parameters extends ParametersData {
 			}
 		}
 		return $success;
+	}
+
+	/**
+	 * Set Selection Criteria Found
+	 *
+	 * @access	public
+	 * @param	boolean	Is Found?
+	 * @return	void
+	 */
+	private function setSelectionCriteriaFound($found = true) {
+		if (!is_bool($conflict)) {
+			throw new MWException(__METHOD__.': A non-boolean was passed.');
+		}
+		$this->selectionCriteriaFound = $found;
+	}
+
+	/**
+	 * Get Selection Criteria Found
+	 *
+	 * @access	public
+	 * @return	boolean	Is Conflict?
+	 */
+	public function isSelectionCriteriaFound() {
+		return $this->selectionCriteriaFound;
+	}
+
+	/**
+	 * Set Open References Conflict - See 'openreferences' parameter.
+	 *
+	 * @access	public
+	 * @param	boolean	References Conflict?
+	 * @return	void
+	 */
+	private function setOpenReferencesConflict($conflict = true) {
+		if (!is_bool($conflict)) {
+			throw new MWException(__METHOD__.': A non-boolean was passed.');
+		}
+		$this->openReferencesConflict = $conflict;
+		$this->setParameter('openreferences', false);
+	}
+
+	/**
+	 * Get Open References Conflict - See 'openreferences' parameter.
+	 *
+	 * @access	public
+	 * @return	boolean	Is Conflict?
+	 */
+	public function isOpenReferencesConflict() {
+		return $this->openReferencesConflict;
 	}
 
 	/**
@@ -670,6 +733,27 @@ class Parameters extends ParametersData {
 	public function _multisecseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter('multisecseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
+		return true;
+	}
+
+	/**
+	 * Clean and test 'openreferences' parameter.
+	 * This boolean is custom handled due to the open references conflict flag.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _openreferences($option) {
+		$option = $this->filterBoolean($option);
+		if ($option === null) {
+			return false;
+		}
+		if (!$this->isOpenReferencesConflict()) {
+			$this->setParameter('openreferences', $option);
+		} else {
+			$this->setParameter('openreferences', false);
+		}
 		return true;
 	}
 
