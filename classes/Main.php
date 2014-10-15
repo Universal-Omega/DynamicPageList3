@@ -647,58 +647,12 @@ class Main {
 
 		// recent changes  =============================
 
-		if ($bAddContribution) {
-			$sSqlRCTable = $tableNames['recentchanges'] . ' AS rc, ';
-			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
-			$sSqlWhere .= ' AND page.page_id=rc.rc_cur_id';
-			if ($sSqlGroupBy != '') {
-				$sSqlGroupBy .= ', ';
-			}
-			$sSqlGroupBy .= 'rc.rc_cur_id';
-		}
-
 		if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
 			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
 			$sSqlRev_timestamp = ', rev_timestamp';
 			$sSqlRev_id        = ', rev_id';
 
 
-		}
-
-		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
-			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
-		}
-		if (isset($aCatMinMax[1]) && $aCatMinMax[1] != '') {
-			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
-		}
-
-		if ($bAddFirstCategoryDate) {
-			//format cl_timestamp field (type timestamp) to string in same format AS rev_timestamp field
-			//to make it compatible with $wgLang->date() function used in function DPLOutputListStyle() to show "firstcategorydate"
-			$sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
-		}
-		if ($bAddPageCounter) {
-			$sSqlPage_counter = ", {$tableNames['page']}.page_counter AS page_counter";
-		}
-		if ($bAddPageSize) {
-			$sSqlPage_size = ", {$tableNames['page']}.page_len AS page_len";
-		}
-		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
-			$sSqlPage_touched = ", {$tableNames['page']}.page_touched AS page_touched";
-		}
-		if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sSqlRevisionTable != '') {
-			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
-		}
-		if ($bAddCategories) {
-			$sSqlCats            = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats";
-			// Gives list of all categories linked from each article, if any.
-			$sSqlClTableForGC    = $tableNames['categorylinks'] . ' AS cl_gc';
-			// Categorylinks table used by the Group Concat (GC) function above
-			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
-			if ($sSqlGroupBy != '') {
-				$sSqlGroupBy .= ', ';
-			}
-			$sSqlGroupBy .= $sSqlCl_to . $tableNames['page'] . '.page_id';
 		}
 
 		// SELECT ... FROM

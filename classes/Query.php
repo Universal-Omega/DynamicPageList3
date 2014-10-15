@@ -59,6 +59,10 @@ class Query {
 			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )';
 		}
 
+		if ($sSqlRevisionTable != '') {
+			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
+		}
+
 		return $query;
 	}
 
@@ -72,6 +76,18 @@ class Query {
 	public function _addcategories($option) {
 		$query = [];
 
+		if ($bAddCategories) {
+			$sSqlCats            = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats";
+			// Gives list of all categories linked from each article, if any.
+			$sSqlClTableForGC    = $tableNames['categorylinks'] . ' AS cl_gc';
+			// Categorylinks table used by the Group Concat (GC) function above
+			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
+			if ($sSqlGroupBy != '') {
+				$sSqlGroupBy .= ', ';
+			}
+			$sSqlGroupBy .= $sSqlCl_to . $tableNames['page'] . '.page_id';
+		}
+
 		return $query;
 	}
 
@@ -84,6 +100,16 @@ class Query {
 	 */
 	public function _addcontribution($option) {
 		$query = [];
+
+		if ($bAddContribution) {
+			$sSqlRCTable = $tableNames['recentchanges'] . ' AS rc, ';
+			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
+			$sSqlWhere .= ' AND page.page_id=rc.rc_cur_id';
+			if ($sSqlGroupBy != '') {
+				$sSqlGroupBy .= ', ';
+			}
+			$sSqlGroupBy .= 'rc.rc_cur_id';
+		}
 
 		return $query;
 	}
@@ -124,6 +150,8 @@ class Query {
 	public function _addfirstcategorydate($option) {
 		$query = [];
 
+		$sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
+
 		return $query;
 	}
 
@@ -143,6 +171,10 @@ class Query {
 			$sSqlCond_page_rev .= ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )';
 		}
 
+		if ($sSqlRevisionTable != '') {
+			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
+		}
+
 		return $query;
 	}
 
@@ -155,6 +187,8 @@ class Query {
 	 */
 	public function _addpagecounter($option) {
 		$query = [];
+
+		$sSqlPage_counter = ", {$tableNames['page']}.page_counter AS page_counter";
 
 		return $query;
 	}
@@ -169,6 +203,8 @@ class Query {
 	public function _addpagesize($option) {
 		$query = [];
 
+		$sSqlPage_size = ", {$tableNames['page']}.page_len AS page_len";
+
 		return $query;
 	}
 
@@ -182,6 +218,11 @@ class Query {
 	public function _addpagetoucheddate($option) {
 		$query = [];
 
+		//@TODO: Need to check if this was added by the order methods or call this function to add it from there.
+		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
+			$sSqlPage_touched = ", {$tableNames['page']}.page_touched AS page_touched";
+		}
+
 		return $query;
 	}
 
@@ -194,6 +235,11 @@ class Query {
 	 */
 	public function _adduser($option) {
 		$query = [];
+
+
+		if ($sSqlRevisionTable != '') {
+			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
+		}
 
 		return $query;
 	}
@@ -276,6 +322,13 @@ class Query {
 	 */
 	public function _categoriesminmax($option) {
 		$query = [];
+
+		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
+			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[0] . ' <= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
+		}
+		if (isset($aCatMinMax[1]) && $aCatMinMax[1] != '') {
+			$sSqlCond_MaxCat .= ' AND ' . $aCatMinMax[1] . ' >= (SELECT count(*) FROM ' . $tableNames['categorylinks'] . ' WHERE ' . $tableNames['categorylinks'] . '.cl_from=page_id)';
+		}
 
 		return $query;
 	}
