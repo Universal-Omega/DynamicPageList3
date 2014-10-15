@@ -208,7 +208,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addauthor' parameter.
+	 * Set SQL for 'addauthor' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -224,7 +224,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addcategories' parameter.
+	 * Set SQL for 'addcategories' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -232,7 +232,7 @@ class Query {
 	 */
 	private function _addcategories($option) {
 		if ($bAddCategories) {
-			$this->addSelect("GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats");
+			$this->addSelect(["GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats"]);
 			$this->addTable('categorylinks', 'cl_gc');
 			//@TODO: Figure out how to get this LEFT OUTER JOIN thingy to work.
 			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
@@ -241,7 +241,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addcontribution' parameter.
+	 * Set SQL for 'addcontribution' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -249,13 +249,13 @@ class Query {
 	 */
 	private function _addcontribution($option) {
 		$this->addTable('recentchanges', 'rc');
-		$this->addSelect('SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor');
+		$this->addSelect(['SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor']);
 		$this->addWhere("page.page_id=rc.rc_cur_id");
 		$this->addGroupBy('rc.rc_cur_id');
 	}
 
 	/**
-	 * Return SQL for 'addeditdate' parameter.
+	 * Set SQL for 'addeditdate' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -264,7 +264,7 @@ class Query {
 	private function _addeditdate($option) {	}
 
 	/**
-	 * Return SQL for 'addexternallink' parameter.
+	 * Set SQL for 'addexternallink' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -273,37 +273,34 @@ class Query {
 	private function _addexternallink($option) {	}
 
 	/**
-	 * Return SQL for 'addfirstcategorydate' parameter.
+	 * Set SQL for 'addfirstcategorydate' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
 	private function _addfirstcategorydate($option) {
-		$this->addSelect("DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp");
+		$this->addSelect(["DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp"]);
 	}
 
 	/**
-	 * Return SQL for 'addlasteditor' parameter.
+	 * Set SQL for 'addlasteditor' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
 	private function _addlasteditor($option) {
-		//Addlastauthor can not be used with addeditor.
-		if ($bAddLastEditor && $sSqlRevisionTable == '') {
-			$sSqlRevisionTable = $this->tableNames['revision'].' AS rev, ';
-			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )';
-		}
-
-		if ($sSqlRevisionTable != '') {
-			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
+		//Addlasteditor can not be used with addauthor.
+		if (!$this->parametersProcessed['addauthor']) {
+			$this->addTable('revision', 'rev');
+			$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )');
+			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 		}
 	}
 
 	/**
-	 * Return SQL for 'addpagecounter' parameter.
+	 * Set SQL for 'addpagecounter' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -314,7 +311,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addpagesize' parameter.
+	 * Set SQL for 'addpagesize' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -325,7 +322,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addpagetoucheddate' parameter.
+	 * Set SQL for 'addpagetoucheddate' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -339,7 +336,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'adduser' parameter.
+	 * Set SQL for 'adduser' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -353,7 +350,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'allowcachedresults' parameter.
+	 * Set SQL for 'allowcachedresults' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -362,7 +359,7 @@ class Query {
 	private function _allowcachedresults($option) {	}
 
 	/**
-	 * Return SQL for 'allrevisionsbefore' parameter.
+	 * Set SQL for 'allrevisionsbefore' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -375,7 +372,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'allrevisionssince' parameter.
+	 * Set SQL for 'allrevisionssince' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -388,7 +385,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'articlecategory' parameter.
+	 * Set SQL for 'articlecategory' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -406,7 +403,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'categoriesminmax' parameter.
+	 * Set SQL for 'categoriesminmax' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -422,7 +419,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'category' parameter.
+	 * Set SQL for 'category' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -441,7 +438,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'categorymatch' parameter.
+	 * Set SQL for 'categorymatch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -450,7 +447,7 @@ class Query {
 	private function _categorymatch($option) {	}
 
 	/**
-	 * Return SQL for 'categoryregexp' parameter.
+	 * Set SQL for 'categoryregexp' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -459,7 +456,7 @@ class Query {
 	private function _categoryregexp($option) {	}
 
 	/**
-	 * Return SQL for 'columns' parameter.
+	 * Set SQL for 'columns' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -468,7 +465,7 @@ class Query {
 	private function _columns($option) {	}
 
 	/**
-	 * Return SQL for 'count' parameter.
+	 * Set SQL for 'count' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -477,7 +474,7 @@ class Query {
 	private function _count($option) {	}
 
 	/**
-	 * Return SQL for 'createdby' parameter.
+	 * Set SQL for 'createdby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -491,7 +488,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'debug' parameter.
+	 * Set SQL for 'debug' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -500,7 +497,7 @@ class Query {
 	private function _debug($option) {	}
 
 	/**
-	 * Return SQL for 'deleterules' parameter.
+	 * Set SQL for 'deleterules' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -509,7 +506,7 @@ class Query {
 	private function _deleterules($option) {	}
 
 	/**
-	 * Return SQL for 'distinct' parameter.
+	 * Set SQL for 'distinct' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -518,7 +515,7 @@ class Query {
 	private function _distinct($option) {	}
 
 	/**
-	 * Return SQL for 'dominantsection' parameter.
+	 * Set SQL for 'dominantsection' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -527,7 +524,7 @@ class Query {
 	private function _dominantsection($option) {	}
 
 	/**
-	 * Return SQL for 'dplcache' parameter.
+	 * Set SQL for 'dplcache' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -536,7 +533,7 @@ class Query {
 	private function _dplcache($option) {	}
 
 	/**
-	 * Return SQL for 'dplcacheperiod' parameter.
+	 * Set SQL for 'dplcacheperiod' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -545,7 +542,7 @@ class Query {
 	private function _dplcacheperiod($option) {	}
 
 	/**
-	 * Return SQL for 'eliminate' parameter.
+	 * Set SQL for 'eliminate' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -554,7 +551,7 @@ class Query {
 	private function _eliminate($option) {	}
 
 	/**
-	 * Return SQL for 'escapelinks' parameter.
+	 * Set SQL for 'escapelinks' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -563,7 +560,7 @@ class Query {
 	private function _escapelinks($option) {	}
 
 	/**
-	 * Return SQL for 'execandexit' parameter.
+	 * Set SQL for 'execandexit' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -572,7 +569,7 @@ class Query {
 	private function _execandexit($option) {	}
 
 	/**
-	 * Return SQL for 'firstrevisionsince' parameter.
+	 * Set SQL for 'firstrevisionsince' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -585,7 +582,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'fixcategory' parameter.
+	 * Set SQL for 'fixcategory' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -594,7 +591,7 @@ class Query {
 	private function _fixcategory($option) {	}
 
 	/**
-	 * Return SQL for 'format' parameter.
+	 * Set SQL for 'format' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -603,7 +600,7 @@ class Query {
 	private function _format($option) {	}
 
 	/**
-	 * Return SQL for 'goal' parameter.
+	 * Set SQL for 'goal' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -612,7 +609,7 @@ class Query {
 	private function _goal($option) {	}
 
 	/**
-	 * Return SQL for 'headingcount' parameter.
+	 * Set SQL for 'headingcount' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -621,7 +618,7 @@ class Query {
 	private function _headingcount($option) {	}
 
 	/**
-	 * Return SQL for 'headingmode' parameter.
+	 * Set SQL for 'headingmode' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -630,7 +627,7 @@ class Query {
 	private function _headingmode($option) {	}
 
 	/**
-	 * Return SQL for 'hiddencategories' parameter.
+	 * Set SQL for 'hiddencategories' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -639,7 +636,7 @@ class Query {
 	private function _hiddencategories($option) {	}
 
 	/**
-	 * Return SQL for 'hitemattr' parameter.
+	 * Set SQL for 'hitemattr' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -648,7 +645,7 @@ class Query {
 	private function _hitemattr($option) {	}
 
 	/**
-	 * Return SQL for 'hlistattr' parameter.
+	 * Set SQL for 'hlistattr' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -657,7 +654,7 @@ class Query {
 	private function _hlistattr($option) {	}
 
 	/**
-	 * Return SQL for 'ignorecase' parameter.
+	 * Set SQL for 'ignorecase' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -666,7 +663,7 @@ class Query {
 	private function _ignorecase($option) {	}
 
 	/**
-	 * Return SQL for 'imagecontainer' parameter.
+	 * Set SQL for 'imagecontainer' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -696,7 +693,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'imageused' parameter.
+	 * Set SQL for 'imageused' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -723,7 +720,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'include' parameter.
+	 * Set SQL for 'include' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -732,7 +729,7 @@ class Query {
 	private function _include($option) {	}
 
 	/**
-	 * Return SQL for 'includematch' parameter.
+	 * Set SQL for 'includematch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -741,7 +738,7 @@ class Query {
 	private function _includematch($option) {	}
 
 	/**
-	 * Return SQL for 'includematchparsed' parameter.
+	 * Set SQL for 'includematchparsed' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -750,7 +747,7 @@ class Query {
 	private function _includematchparsed($option) {	}
 
 	/**
-	 * Return SQL for 'includemaxlength' parameter.
+	 * Set SQL for 'includemaxlength' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -759,7 +756,7 @@ class Query {
 	private function _includemaxlength($option) {	}
 
 	/**
-	 * Return SQL for 'includenotmatch' parameter.
+	 * Set SQL for 'includenotmatch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -768,7 +765,7 @@ class Query {
 	private function _includenotmatch($option) {	}
 
 	/**
-	 * Return SQL for 'includenotmatchparsed' parameter.
+	 * Set SQL for 'includenotmatchparsed' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -777,7 +774,7 @@ class Query {
 	private function _includenotmatchparsed($option) {	}
 
 	/**
-	 * Return SQL for 'includepage' parameter.
+	 * Set SQL for 'includepage' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -786,7 +783,7 @@ class Query {
 	private function _includepage($option) {	}
 
 	/**
-	 * Return SQL for 'includesubpages' parameter.
+	 * Set SQL for 'includesubpages' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -795,7 +792,7 @@ class Query {
 	private function _includesubpages($option) {	}
 
 	/**
-	 * Return SQL for 'includetrim' parameter.
+	 * Set SQL for 'includetrim' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -804,7 +801,7 @@ class Query {
 	private function _includetrim($option) {	}
 
 	/**
-	 * Return SQL for 'inlinetext' parameter.
+	 * Set SQL for 'inlinetext' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -813,7 +810,7 @@ class Query {
 	private function _inlinetext($option) {	}
 
 	/**
-	 * Return SQL for 'itemattr' parameter.
+	 * Set SQL for 'itemattr' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -822,7 +819,7 @@ class Query {
 	private function _itemattr($option) {	}
 
 	/**
-	 * Return SQL for 'lastmodifiedby' parameter.
+	 * Set SQL for 'lastmodifiedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -833,7 +830,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'lastrevisionbefore' parameter.
+	 * Set SQL for 'lastrevisionbefore' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -846,7 +843,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'linksfrom' parameter.
+	 * Set SQL for 'linksfrom' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -878,7 +875,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'linksto' parameter.
+	 * Set SQL for 'linksto' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -946,7 +943,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'linkstoexternal' parameter.
+	 * Set SQL for 'linkstoexternal' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -992,7 +989,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'listattr' parameter.
+	 * Set SQL for 'listattr' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1001,7 +998,7 @@ class Query {
 	private function _listattr($option) {	}
 
 	/**
-	 * Return SQL for 'listseparators' parameter.
+	 * Set SQL for 'listseparators' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1010,7 +1007,7 @@ class Query {
 	private function _listseparators($option) {	}
 
 	/**
-	 * Return SQL for 'maxrevisions' parameter.
+	 * Set SQL for 'maxrevisions' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1021,7 +1018,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'minoredits' parameter.
+	 * Set SQL for 'minoredits' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1034,7 +1031,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'minrevisions' parameter.
+	 * Set SQL for 'minrevisions' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1045,7 +1042,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'mode' parameter.
+	 * Set SQL for 'mode' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1054,7 +1051,7 @@ class Query {
 	private function _mode($option) {	}
 
 	/**
-	 * Return SQL for 'modifiedby' parameter.
+	 * Set SQL for 'modifiedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1066,7 +1063,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'multisecseparators' parameter.
+	 * Set SQL for 'multisecseparators' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1075,7 +1072,7 @@ class Query {
 	private function _multisecseparators($option) {	}
 
 	/**
-	 * Return SQL for 'namespace' parameter.
+	 * Set SQL for 'namespace' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1092,7 +1089,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'noresultsfooter' parameter.
+	 * Set SQL for 'noresultsfooter' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1101,7 +1098,7 @@ class Query {
 	private function _noresultsfooter($option) {	}
 
 	/**
-	 * Return SQL for 'noresultsheader' parameter.
+	 * Set SQL for 'noresultsheader' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1110,7 +1107,7 @@ class Query {
 	private function _noresultsheader($option) {	}
 
 	/**
-	 * Return SQL for 'notcategory' parameter.
+	 * Set SQL for 'notcategory' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1126,7 +1123,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'notcategorymatch' parameter.
+	 * Set SQL for 'notcategorymatch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1135,7 +1132,7 @@ class Query {
 	private function _notcategorymatch($option) {	}
 
 	/**
-	 * Return SQL for 'notcategoryregexp' parameter.
+	 * Set SQL for 'notcategoryregexp' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1144,7 +1141,7 @@ class Query {
 	private function _notcategoryregexp($option) {	}
 
 	/**
-	 * Return SQL for 'notcreatedby' parameter.
+	 * Set SQL for 'notcreatedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1156,7 +1153,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'notlastmodifiedby' parameter.
+	 * Set SQL for 'notlastmodifiedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1167,7 +1164,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'notlinksfrom' parameter.
+	 * Set SQL for 'notlinksfrom' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1206,7 +1203,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'notlinksto' parameter.
+	 * Set SQL for 'notlinksto' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1215,7 +1212,7 @@ class Query {
 	private function _notlinksto($option) {	}
 
 	/**
-	 * Return SQL for 'notmodifiedby' parameter.
+	 * Set SQL for 'notmodifiedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1226,7 +1223,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'notnamespace' parameter.
+	 * Set SQL for 'notnamespace' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1243,7 +1240,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'nottitlematch' parameter.
+	 * Set SQL for 'nottitlematch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1276,7 +1273,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'nottitleregexp' parameter.
+	 * Set SQL for 'nottitleregexp' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1285,7 +1282,7 @@ class Query {
 	private function _nottitleregexp($option) {	}
 
 	/**
-	 * Return SQL for 'notuses' parameter.
+	 * Set SQL for 'notuses' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1312,7 +1309,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'offset' parameter.
+	 * Set SQL for 'offset' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1321,7 +1318,7 @@ class Query {
 	private function _offset($option) {	}
 
 	/**
-	 * Return SQL for 'oneresultfooter' parameter.
+	 * Set SQL for 'oneresultfooter' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1330,7 +1327,7 @@ class Query {
 	private function _oneresultfooter($option) {	}
 
 	/**
-	 * Return SQL for 'oneresultheader' parameter.
+	 * Set SQL for 'oneresultheader' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1339,7 +1336,7 @@ class Query {
 	private function _oneresultheader($option) {	}
 
 	/**
-	 * Return SQL for 'openreferences' parameter.
+	 * Set SQL for 'openreferences' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1348,7 +1345,7 @@ class Query {
 	private function _openreferences($option) {	}
 
 	/**
-	 * Return SQL for 'order' parameter.
+	 * Set SQL for 'order' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1357,7 +1354,7 @@ class Query {
 	private function _order($option) {	}
 
 	/**
-	 * Return SQL for 'ordercollation' parameter.
+	 * Set SQL for 'ordercollation' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1366,7 +1363,7 @@ class Query {
 	private function _ordercollation($option) {	}
 
 	/**
-	 * Return SQL for 'ordermethod' parameter.
+	 * Set SQL for 'ordermethod' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1375,7 +1372,7 @@ class Query {
 	private function _ordermethod($option) {	}
 
 	/**
-	 * Return SQL for 'qualitypages' parameter.
+	 * Set SQL for 'qualitypages' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1384,7 +1381,7 @@ class Query {
 	private function _qualitypages($option) {	}
 
 	/**
-	 * Return SQL for 'randomcount' parameter.
+	 * Set SQL for 'randomcount' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1393,7 +1390,7 @@ class Query {
 	private function _randomcount($option) {	}
 
 	/**
-	 * Return SQL for 'redirects' parameter.
+	 * Set SQL for 'redirects' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1413,7 +1410,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'replaceintitle' parameter.
+	 * Set SQL for 'replaceintitle' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1422,7 +1419,7 @@ class Query {
 	private function _replaceintitle($option) {	}
 
 	/**
-	 * Return SQL for 'reset' parameter.
+	 * Set SQL for 'reset' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1431,7 +1428,7 @@ class Query {
 	private function _reset($option) {	}
 
 	/**
-	 * Return SQL for 'resultsfooter' parameter.
+	 * Set SQL for 'resultsfooter' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1440,7 +1437,7 @@ class Query {
 	private function _resultsfooter($option) {	}
 
 	/**
-	 * Return SQL for 'resultsheader' parameter.
+	 * Set SQL for 'resultsheader' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1449,7 +1446,7 @@ class Query {
 	private function _resultsheader($option) {	}
 
 	/**
-	 * Return SQL for 'rowcolformat' parameter.
+	 * Set SQL for 'rowcolformat' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1458,7 +1455,7 @@ class Query {
 	private function _rowcolformat($option) {	}
 
 	/**
-	 * Return SQL for 'rows' parameter.
+	 * Set SQL for 'rows' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1467,7 +1464,7 @@ class Query {
 	private function _rows($option) {	}
 
 	/**
-	 * Return SQL for 'rowsize' parameter.
+	 * Set SQL for 'rowsize' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1476,7 +1473,7 @@ class Query {
 	private function _rowsize($option) {	}
 
 	/**
-	 * Return SQL for 'scroll' parameter.
+	 * Set SQL for 'scroll' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1485,7 +1482,7 @@ class Query {
 	private function _scroll($option) {	}
 
 	/**
-	 * Return SQL for 'secseparators' parameter.
+	 * Set SQL for 'secseparators' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1494,7 +1491,7 @@ class Query {
 	private function _secseparators($option) {	}
 
 	/**
-	 * Return SQL for 'showcurid' parameter.
+	 * Set SQL for 'showcurid' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1503,7 +1500,7 @@ class Query {
 	private function _showcurid($option) {	}
 
 	/**
-	 * Return SQL for 'shownamespace' parameter.
+	 * Set SQL for 'shownamespace' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1512,7 +1509,7 @@ class Query {
 	private function _shownamespace($option) {	}
 
 	/**
-	 * Return SQL for 'skipthispage' parameter.
+	 * Set SQL for 'skipthispage' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1521,7 +1518,7 @@ class Query {
 	private function _skipthispage($option) {	}
 
 	/**
-	 * Return SQL for 'stablepages' parameter.
+	 * Set SQL for 'stablepages' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1530,7 +1527,7 @@ class Query {
 	private function _stablepages($option) {	}
 
 	/**
-	 * Return SQL for 'suppresserrors' parameter.
+	 * Set SQL for 'suppresserrors' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1539,7 +1536,7 @@ class Query {
 	private function _suppresserrors($option) {	}
 
 	/**
-	 * Return SQL for 'table' parameter.
+	 * Set SQL for 'table' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1548,7 +1545,7 @@ class Query {
 	private function _table($option) {	}
 
 	/**
-	 * Return SQL for 'tablerow' parameter.
+	 * Set SQL for 'tablerow' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1557,7 +1554,7 @@ class Query {
 	private function _tablerow($option) {	}
 
 	/**
-	 * Return SQL for 'tablesortcol' parameter.
+	 * Set SQL for 'tablesortcol' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1566,7 +1563,7 @@ class Query {
 	private function _tablesortcol($option) {	}
 
 	/**
-	 * Return SQL for 'title' parameter.
+	 * Set SQL for 'title' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1583,7 +1580,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'titlegt' parameter.
+	 * Set SQL for 'titlegt' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1608,7 +1605,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'titlelt' parameter.
+	 * Set SQL for 'titlelt' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1633,7 +1630,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'titlematch' parameter.
+	 * Set SQL for 'titlematch' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1666,7 +1663,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'titlemaxlength' parameter.
+	 * Set SQL for 'titlemaxlength' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1675,7 +1672,7 @@ class Query {
 	private function _titlemaxlength($option) {	}
 
 	/**
-	 * Return SQL for 'titleregexp' parameter.
+	 * Set SQL for 'titleregexp' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1684,7 +1681,7 @@ class Query {
 	private function _titleregexp($option) {	}
 
 	/**
-	 * Return SQL for 'updaterules' parameter.
+	 * Set SQL for 'updaterules' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1693,7 +1690,7 @@ class Query {
 	private function _updaterules($option) {	}
 
 	/**
-	 * Return SQL for 'usedby' parameter.
+	 * Set SQL for 'usedby' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1730,7 +1727,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'userdateformat' parameter.
+	 * Set SQL for 'userdateformat' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
@@ -1740,7 +1737,7 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'uses' parameter.
+	 * Set SQL for 'uses' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
