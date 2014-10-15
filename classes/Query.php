@@ -54,6 +54,13 @@ class Query {
 	private $this->where = [];
 
 	/**
+	 * Select Fields
+	 *
+	 * @var		array
+	 */
+	private $this->select = [];
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -151,25 +158,47 @@ class Query {
 	}
 
 	/**
+	 * Add a field to select.
+	 *
+	 * @access	public
+	 * @param	array	Array of fields with the array key being the field alias.  Leave the array key as a numeric index to not specify an alias.
+	 * @return	boolean Success
+	 */
+	public function addSelect($fields) {
+		if (!is_array($fields)) {
+			throw new MWException(__METHOD__.': A non-array was passed.');
+		}
+		foreach ($fields as $alias => $field) {
+			//String alias and does not exist already.
+			if (!is_numeric($alias) && !array_key_exists($alias, $this->select)) {
+				$this->select[$alias] = $field;
+			}
+			if (array_key_exists($alias, $this->select) && $this->select[$alias] != $field) {
+				//In case of a code bug that is overwriting an existing field alias throw an exception.
+				throw new MWException(__METHOD__.": Attempted to overwrite existing field alias `{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`.");
+			}
+
+			if (is_numeric($alias) && !in_array($field, $this->select)) {
+				$this->select[] = $field;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Return SQL for 'addauthor' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addauthor($option) {
-		$query = [];
-
 		//Addauthor can not be used with addlasteditor.
 		if (!$this->parametersProcessed['addlasteditor']) {
 			$this->addTable('revision', 'rev');
-			$sSqlCond_page_rev .= $this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )';
+			$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page=rev.rev_page )');
+			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 		}
-
-		if ($sSqlRevisionTable != '') {
-			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
-		}
-
 		return $query;
 	}
 
@@ -178,11 +207,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addcategories($option) {
-		$query = [];
-
 		if ($bAddCategories) {
 			$sSqlCats            = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats";
 			// Gives list of all categories linked from each article, if any.
@@ -194,8 +221,6 @@ class Query {
 			}
 			$sSqlGroupBy .= $sSqlCl_to.$this->tableNames['page'].'.page_id';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -203,11 +228,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addcontribution($option) {
-		$query = [];
-
 		if ($bAddContribution) {
 			$sSqlRCTable = $this->tableNames['recentchanges'].' AS rc, ';
 			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
@@ -217,8 +240,6 @@ class Query {
 			}
 			$sSqlGroupBy .= 'rc.rc_cur_id';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -226,40 +247,28 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _addeditdate($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _addeditdate($option) {	}
 
 	/**
 	 * Return SQL for 'addexternallink' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _addexternallink($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _addexternallink($option) {	}
 
 	/**
 	 * Return SQL for 'addfirstcategorydate' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addfirstcategorydate($option) {
-		$query = [];
-
 		$sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
-
-		return $query;
 	}
 
 	/**
@@ -267,11 +276,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addlasteditor($option) {
-		$query = [];
-
 		//Addlastauthor can not be used with addeditor.
 		if ($bAddLastEditor && $sSqlRevisionTable == '') {
 			$sSqlRevisionTable = $this->tableNames['revision'].' AS rev, ';
@@ -281,8 +288,6 @@ class Query {
 		if ($sSqlRevisionTable != '') {
 			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -290,14 +295,10 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addpagecounter($option) {
-		$query = [];
-
 		$sSqlPage_counter = ", {$this->tableNames['page']}.page_counter AS page_counter";
-
-		return $query;
 	}
 
 	/**
@@ -305,14 +306,10 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addpagesize($option) {
-		$query = [];
-
 		$sSqlPage_size = ", {$this->tableNames['page']}.page_len AS page_len";
-
-		return $query;
 	}
 
 	/**
@@ -320,17 +317,13 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _addpagetoucheddate($option) {
-		$query = [];
-
 		//@TODO: Need to check if this was added by the order methods or call this function to add it from there.
 		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
 			$sSqlPage_touched = ", {$this->tableNames['page']}.page_touched AS page_touched";
 		}
-
-		return $query;
 	}
 
 	/**
@@ -338,17 +331,13 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _adduser($option) {
-		$query = [];
-
 
 		if ($sSqlRevisionTable != '') {
 			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -356,29 +345,21 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _allowcachedresults($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _allowcachedresults($option) {	}
 
 	/**
 	 * Return SQL for 'allrevisionsbefore' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _allrevisionsbefore($option) {
-		$query = [];
-
 		if ($sAllRevisionsBefore != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp < '.$sAllRevisionsBefore;
 		}
-
-		return $query;
 	}
 
 	/**
@@ -386,16 +367,12 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _allrevisionssince($option) {
-		$query = [];
-
 		if ($sAllRevisionsSince != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp >= '.$sAllRevisionsSince;
 		}
-
-		return $query;
 	}
 
 	/**
@@ -403,11 +380,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _articlecategory($option) {
-		$query = [];
-
 		if (isset($sArticleCategory) && $sArticleCategory !== null) {
 			$sSqlWhere .= " AND {$this->tableNames['page']}.page_title IN (
 				SELECT p2.page_title
@@ -416,8 +391,6 @@ class Query {
 				WHERE p2.page_namespace = 0
 				) ";
 		}
-
-		return $query;
 	}
 
 	/**
@@ -425,19 +398,15 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _categoriesminmax($option) {
-		$query = [];
-
 		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
 			$sSqlCond_MaxCat .= ' AND '.$aCatMinMax[0].' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
 		}
 		if (isset($aCatMinMax[1]) && $aCatMinMax[1] != '') {
 			$sSqlCond_MaxCat .= ' AND '.$aCatMinMax[1].' >= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -445,11 +414,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _category($option) {
-		$query = [];
-
 		$iClTable = 0;
 		for ($i = 0; $i < $iIncludeCatCount; $i++) {
 			// If we want the Uncategorized
@@ -459,8 +426,6 @@ class Query {
 			$sSqlSelectFrom .= ') ';
 			$iClTable++;
 		}
-
-		return $query;
 	}
 
 	/**
@@ -468,69 +433,49 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _categorymatch($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _categorymatch($option) {	}
 
 	/**
 	 * Return SQL for 'categoryregexp' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _categoryregexp($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _categoryregexp($option) {	}
 
 	/**
 	 * Return SQL for 'columns' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _columns($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _columns($option) {	}
 
 	/**
 	 * Return SQL for 'count' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _count($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _count($option) {	}
 
 	/**
 	 * Return SQL for 'createdby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _createdby($option) {
-		$query = [];
-
 		if ($parameters->getParameter('createdby')) {
 		    $sSqlCreationRevisionTable = $this->tableNames['revision'].' AS creation_rev, ';
 		    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('createdby')).' = creation_rev.rev_user_text'.' AND creation_rev.rev_page = page_id'.' AND creation_rev.rev_parent_id = 0';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -538,133 +483,93 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _debug($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _debug($option) {	}
 
 	/**
 	 * Return SQL for 'deleterules' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _deleterules($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _deleterules($option) {	}
 
 	/**
 	 * Return SQL for 'distinct' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _distinct($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _distinct($option) {	}
 
 	/**
 	 * Return SQL for 'dominantsection' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _dominantsection($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _dominantsection($option) {	}
 
 	/**
 	 * Return SQL for 'dplcache' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _dplcache($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _dplcache($option) {	}
 
 	/**
 	 * Return SQL for 'dplcacheperiod' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _dplcacheperiod($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _dplcacheperiod($option) {	}
 
 	/**
 	 * Return SQL for 'eliminate' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _eliminate($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _eliminate($option) {	}
 
 	/**
 	 * Return SQL for 'escapelinks' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _escapelinks($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _escapelinks($option) {	}
 
 	/**
 	 * Return SQL for 'execandexit' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _execandexit($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _execandexit($option) {	}
 
 	/**
 	 * Return SQL for 'firstrevisionsince' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _firstrevisionsince($option) {
-		$query = [];
-
 		if ($sFirstRevisionSince != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$sFirstRevisionSince.')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -672,128 +577,90 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _fixcategory($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _fixcategory($option) {	}
 
 	/**
 	 * Return SQL for 'format' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _format($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _format($option) {	}
 
 	/**
 	 * Return SQL for 'goal' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _goal($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _goal($option) {	}
 
 	/**
 	 * Return SQL for 'headingcount' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _headingcount($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _headingcount($option) {	}
 
 	/**
 	 * Return SQL for 'headingmode' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _headingmode($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _headingmode($option) {	}
 
 	/**
 	 * Return SQL for 'hiddencategories' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _hiddencategories($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _hiddencategories($option) {	}
 
 	/**
 	 * Return SQL for 'hitemattr' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _hitemattr($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _hitemattr($option) {	}
 
 	/**
 	 * Return SQL for 'hlistattr' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _hlistattr($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _hlistattr($option) {	}
 
 	/**
 	 * Return SQL for 'ignorecase' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _ignorecase($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _ignorecase($option) {	}
 
 	/**
 	 * Return SQL for 'imagecontainer' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _imagecontainer($option) {
-		$query = [];
-
 		if (count($aImageContainer) > 0) {
 			$sSqlPageLinksTable .= $this->tableNames['imagelinks'].' AS ic, ';
 			if ($acceptOpenReferences) {
@@ -815,8 +682,6 @@ class Query {
 			}
 			$sSqlCond_page_pl .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -824,11 +689,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _imageused($option) {
-		$query = [];
-
 		if (count($aImageUsed) > 0) {
 			$sSqlPageLinksTable .= $this->tableNames['imagelinks'].' AS il, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=il.il_from AND (';
@@ -847,8 +710,6 @@ class Query {
 			}
 			$sSqlCond_page_pl .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -856,157 +717,109 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _include($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _include($option) {	}
 
 	/**
 	 * Return SQL for 'includematch' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includematch($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includematch($option) {	}
 
 	/**
 	 * Return SQL for 'includematchparsed' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includematchparsed($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includematchparsed($option) {	}
 
 	/**
 	 * Return SQL for 'includemaxlength' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includemaxlength($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includemaxlength($option) {	}
 
 	/**
 	 * Return SQL for 'includenotmatch' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includenotmatch($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includenotmatch($option) {	}
 
 	/**
 	 * Return SQL for 'includenotmatchparsed' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includenotmatchparsed($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includenotmatchparsed($option) {	}
 
 	/**
 	 * Return SQL for 'includepage' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includepage($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includepage($option) {	}
 
 	/**
 	 * Return SQL for 'includesubpages' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includesubpages($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includesubpages($option) {	}
 
 	/**
 	 * Return SQL for 'includetrim' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _includetrim($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _includetrim($option) {	}
 
 	/**
 	 * Return SQL for 'inlinetext' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _inlinetext($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _inlinetext($option) {	}
 
 	/**
 	 * Return SQL for 'itemattr' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _itemattr($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _itemattr($option) {	}
 
 	/**
 	 * Return SQL for 'lastmodifiedby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _lastmodifiedby($option) {
-		$query = [];
-
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('lastmodifiedby')).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
-
-		return $query;
 	}
 
 	/**
@@ -1014,16 +827,12 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _lastrevisionbefore($option) {
-		$query = [];
-
 		if ($sLastRevisionBefore != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$sLastRevisionBefore.')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1031,11 +840,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _linksfrom($option) {
-		$query = [];
-
 		$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['pagelinks'].'.pl_from FROM '.$this->tableNames['pagelinks'].' WHERE (';
 		$n = 0;
 		foreach ($aNotLinksTo as $links) {
@@ -1058,8 +865,6 @@ class Query {
 			}
 		}
 		$sSqlCond_page_pl .= ') )';
-
-		return $query;
 	}
 
 	/**
@@ -1067,11 +872,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _linksto($option) {
-		$query = [];
-
 		if (count($aLinksTo) > 0) {
 			$sSqlPageLinksTable .= $this->tableNames['pagelinks'].' AS pl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=pl.pl_from AND ';
@@ -1130,8 +933,6 @@ class Query {
 				$sSqlCond_page_pl .= ')))';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1139,11 +940,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _linkstoexternal($option) {
-		$query = [];
-
 		if (count($aLinksToExternal) > 0) {
 			$sSqlExternalLinksTable .= $this->tableNames['externallinks'].' AS el, ';
 			$sSqlCond_page_el .= ' AND '.$this->tableNames['page'].'.page_id=el.el_from AND (';
@@ -1180,8 +979,6 @@ class Query {
 				$sSqlCond_page_el .= ')))';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1189,40 +986,28 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _listattr($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _listattr($option) {	}
 
 	/**
 	 * Return SQL for 'listseparators' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _listseparators($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _listseparators($option) {	}
 
 	/**
 	 * Return SQL for 'maxrevisions' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _maxrevisions($option) {
-		$query = [];
-
 		$sSqlWhere .= " AND ((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)";
-
-		return $query;
 	}
 
 	/**
@@ -1230,16 +1015,12 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _minoredits($option) {
-		$query = [];
-
 		if (isset($sMinorEdits) && $sMinorEdits == 'exclude') {
 			$sSqlWhere .= ' AND rev_minor_edit=0';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1247,14 +1028,10 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _minrevisions($option) {
-		$query = [];
-
 		$sSqlWhere .= " AND ((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)";
-
-		return $query;
 	}
 
 	/**
@@ -1262,28 +1039,20 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _mode($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _mode($option) {	}
 
 	/**
 	 * Return SQL for 'modifiedby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _modifiedby($option) {
-		$query = [];
-
 	    $sSqlChangeRevisionTable = $this->tableNames['revision'].' AS change_rev, ';
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('modifiedby')).' = change_rev.rev_user_text'.' AND change_rev.rev_page = page_id';
-
-		return $query;
 	}
 
 	/**
@@ -1291,24 +1060,18 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _multisecseparators($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _multisecseparators($option) {	}
 
 	/**
 	 * Return SQL for 'namespace' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _namespace($option) {
-		$query = [];
-
 		if (!empty($aNamespaces)) {
 			if ($acceptOpenReferences) {
 				$sSqlWhere .= ' AND '.$this->tableNames['pagelinks'].'.pl_namespace IN ('.self::$DB->makeList($aNamespaces).')';
@@ -1316,8 +1079,6 @@ class Query {
 				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_namespace IN ('.self::$DB->makeList($aNamespaces).')';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1325,45 +1086,33 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _noresultsfooter($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _noresultsfooter($option) {	}
 
 	/**
 	 * Return SQL for 'noresultsheader' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _noresultsheader($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _noresultsheader($option) {	}
 
 	/**
 	 * Return SQL for 'notcategory' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notcategory($option) {
-		$query = [];
-
 		//@TODO: The table incremental variable needs to be on the object.
 		for ($i = 0; $i < $iExcludeCatCount; $i++) {
 			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$this->tableNames['categorylinks'].' AS cl'.$iClTable.' ON '.$this->tableNames['page'].'.page_id=cl'.$iClTable.'.cl_from'.' AND cl'.$iClTable.'.cl_to'.$sNotCategoryComparisonMode.self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
 			$sSqlWhere .= ' AND cl'.$iClTable.'.cl_to IS NULL';
 			$iClTable++;
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1371,41 +1120,29 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _notcategorymatch($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _notcategorymatch($option) {	}
 
 	/**
 	 * Return SQL for 'notcategoryregexp' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _notcategoryregexp($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _notcategoryregexp($option) {	}
 
 	/**
 	 * Return SQL for 'notcreatedby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notcreatedby($option) {
-		$query = [];
-
 	    $sSqlNoCreationRevisionTable = $this->tableNames['revision'].' AS no_creation_rev, ';
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('notcreatedby')).' != no_creation_rev.rev_user_text'.' AND no_creation_rev.rev_page = page_id'.' AND no_creation_rev.rev_parent_id = 0';
-
-		return $query;
 	}
 
 	/**
@@ -1413,14 +1150,10 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notlastmodifiedby($option) {
-		$query = [];
-
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('notlastmodifiedby')).' != (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
-
-		return $query;
 	}
 
 	/**
@@ -1428,11 +1161,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notlinksfrom($option) {
-		$query = [];
-
 		if (count($aNotLinksFrom) > 0) {
 			if ($acceptOpenReferences) {
 				$sSqlCond_page_pl .= ' AND (';
@@ -1462,8 +1193,6 @@ class Query {
 				$sSqlCond_page_pl .= '))';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1471,27 +1200,19 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _notlinksto($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _notlinksto($option) {	}
 
 	/**
 	 * Return SQL for 'notmodifiedby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notmodifiedby($option) {
-		$query = [];
-
 	    $sSqlCond_page_rev .= ' AND NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.self::$DB->addQuotes($parameters->getParameter('notmodifiedby')).' LIMIT 1)';
-
-		return $query;
 	}
 
 	/**
@@ -1499,11 +1220,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notnamespace($option) {
-		$query = [];
-
 		if (!empty($aExcludeNamespaces)) {
 			if ($acceptOpenReferences) {
 				$sSqlWhere .= ' AND '.$this->tableNames['pagelinks'].'.pl_namespace NOT IN ('.self::$DB->makeList($aExcludeNamespaces).')';
@@ -1511,8 +1230,6 @@ class Query {
 				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_namespace NOT IN ('.self::$DB->makeList($aExcludeNamespaces).')';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1520,11 +1237,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _nottitlematch($option) {
-		$query = [];
-
 		if (count($aNotTitleMatch) > 0) {
 			$sSqlWhere .= ' AND NOT (';
 			$n = 0;
@@ -1549,8 +1264,6 @@ class Query {
 			}
 			$sSqlWhere .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1558,24 +1271,18 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _nottitleregexp($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _nottitleregexp($option) {	}
 
 	/**
 	 * Return SQL for 'notuses' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _notuses($option) {
-		$query = [];
-
 		if (count($aNotUses) > 0) {
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['templatelinks'].'.tl_from FROM '.$this->tableNames['templatelinks'].' WHERE (';
 			$n = 0;
@@ -1593,8 +1300,6 @@ class Query {
 			}
 			$sSqlCond_page_pl .= ') )';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1602,128 +1307,90 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _offset($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _offset($option) {	}
 
 	/**
 	 * Return SQL for 'oneresultfooter' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _oneresultfooter($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _oneresultfooter($option) {	}
 
 	/**
 	 * Return SQL for 'oneresultheader' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _oneresultheader($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _oneresultheader($option) {	}
 
 	/**
 	 * Return SQL for 'openreferences' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _openreferences($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _openreferences($option) {	}
 
 	/**
 	 * Return SQL for 'order' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _order($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _order($option) {	}
 
 	/**
 	 * Return SQL for 'ordercollation' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _ordercollation($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _ordercollation($option) {	}
 
 	/**
 	 * Return SQL for 'ordermethod' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _ordermethod($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _ordermethod($option) {	}
 
 	/**
 	 * Return SQL for 'qualitypages' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _qualitypages($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _qualitypages($option) {	}
 
 	/**
 	 * Return SQL for 'randomcount' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _randomcount($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _randomcount($option) {	}
 
 	/**
 	 * Return SQL for 'redirects' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _redirects($option) {
-		$query = [];
-
 		if (!$acceptOpenReferences) {
 			switch ($sRedirects) {
 				case 'only':
@@ -1734,8 +1401,6 @@ class Query {
 					break;
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1743,232 +1408,162 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _replaceintitle($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _replaceintitle($option) {	}
 
 	/**
 	 * Return SQL for 'reset' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _reset($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _reset($option) {	}
 
 	/**
 	 * Return SQL for 'resultsfooter' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _resultsfooter($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _resultsfooter($option) {	}
 
 	/**
 	 * Return SQL for 'resultsheader' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _resultsheader($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _resultsheader($option) {	}
 
 	/**
 	 * Return SQL for 'rowcolformat' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _rowcolformat($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _rowcolformat($option) {	}
 
 	/**
 	 * Return SQL for 'rows' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _rows($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _rows($option) {	}
 
 	/**
 	 * Return SQL for 'rowsize' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _rowsize($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _rowsize($option) {	}
 
 	/**
 	 * Return SQL for 'scroll' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _scroll($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _scroll($option) {	}
 
 	/**
 	 * Return SQL for 'secseparators' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _secseparators($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _secseparators($option) {	}
 
 	/**
 	 * Return SQL for 'showcurid' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _showcurid($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _showcurid($option) {	}
 
 	/**
 	 * Return SQL for 'shownamespace' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _shownamespace($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _shownamespace($option) {	}
 
 	/**
 	 * Return SQL for 'skipthispage' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _skipthispage($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _skipthispage($option) {	}
 
 	/**
 	 * Return SQL for 'stablepages' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _stablepages($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _stablepages($option) {	}
 
 	/**
 	 * Return SQL for 'suppresserrors' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _suppresserrors($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _suppresserrors($option) {	}
 
 	/**
 	 * Return SQL for 'table' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _table($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _table($option) {	}
 
 	/**
 	 * Return SQL for 'tablerow' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _tablerow($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _tablerow($option) {	}
 
 	/**
 	 * Return SQL for 'tablesortcol' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _tablesortcol($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _tablesortcol($option) {	}
 
 	/**
 	 * Return SQL for 'title' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _title($option) {
-		$query = [];
-
 		if ($sTitleIs != '') {
 			if ($bIgnoreCase) {
 				$sSqlWhere .= ' AND LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER('.self::$DB->addQuotes($sTitleIs).')';
@@ -1976,8 +1571,6 @@ class Query {
 				$sSqlWhere .= ' AND '.$this->tableNames['page'].'.page_title = '.self::$DB->addQuotes($sTitleIs);
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -1985,11 +1578,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _titlegt($option) {
-		$query = [];
-
 		if ($sTitleGE != '') {
 			$sSqlWhere .= ' AND (';
 			if (substr($sTitleGE, 0, 2) == '=_') {
@@ -2007,8 +1598,6 @@ class Query {
 			}
 			$sSqlWhere .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -2016,11 +1605,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _titlelt($option) {
-		$query = [];
-
 		if ($sTitleLE != '') {
 			$sSqlWhere .= ' AND (';
 			if (substr($sTitleLE, 0, 2) == '=_') {
@@ -2038,8 +1625,6 @@ class Query {
 			}
 			$sSqlWhere .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -2047,11 +1632,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _titlematch($option) {
-		$query = [];
-
 		if (count($aTitleMatch) > 0) {
 			$sSqlWhere .= ' AND (';
 			$n = 0;
@@ -2076,8 +1659,6 @@ class Query {
 			}
 			$sSqlWhere .= ')';
 		}
-
-		return $query;
 	}
 
 	/**
@@ -2085,50 +1666,36 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _titlemaxlength($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _titlemaxlength($option) {	}
 
 	/**
 	 * Return SQL for 'titleregexp' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _titleregexp($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _titleregexp($option) {	}
 
 	/**
 	 * Return SQL for 'updaterules' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
-	public function _updaterules($option) {
-		$query = [];
-
-		return $query;
-	}
+	public function _updaterules($option) {	}
 
 	/**
 	 * Return SQL for 'usedby' parameter.
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _usedby($option) {
-		$query = [];
-
 		if (count($aUsedBy) > 0) {
 			if ($acceptOpenReferences) {
 				$sSqlCond_page_tpl .= ' AND (';
@@ -2156,8 +1723,6 @@ class Query {
 				$sSqlCond_page_tpl .= ')';
 			}
 		}
-
-		return $query;
 	}
 
 	/**
@@ -2165,12 +1730,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _userdateformat($option) {
-		$query = [];
-
-		return $query;
 	}
 
 	/**
@@ -2178,11 +1740,9 @@ class Query {
 	 *
 	 * @access	public
 	 * @param	mixed	Parameter Option
-	 * @return	mixed	Array of values to mix into the query or false on error.
+	 * @return	void
 	 */
 	public function _uses($option) {
-		$query = [];
-
 		if (count($aUses) > 0) {
 			$sSqlPageLinksTable .= ' '.$this->tableNames['templatelinks'].' as tl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=tl.tl_from  AND (';
@@ -2201,8 +1761,6 @@ class Query {
 			}
 			$sSqlCond_page_pl .= ')';
 		}
-
-		return $query;
 	}
 }
 ?>
