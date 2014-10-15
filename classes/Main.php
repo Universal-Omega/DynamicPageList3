@@ -525,29 +525,7 @@ class Main {
 		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0) {
 			$sSqlGroupBy = 'page_title';
 		}
-		$sSqlSortkey            = '';
-		$sSqlCl_to              = '';
-		$sSqlCats               = '';
-		$sSqlCl_timestamp       = '';
-		$sSqlClHeadTable        = '';
-		$sSqlCond_page_cl_head  = '';
-		$sSqlClTableForGC       = '';
-		$sSqlCond_page_cl_gc    = '';
-		$sSqlRCTable            = ''; // recent changes
-		$sSqlRevisionTable      = '';
-		$sSqlRev_timestamp      = '';
-		$sSqlRev_id             = '';
-		$sSqlRev_user           = '';
-		$sSqlCond_page_rev      = '';
-		$sSqlPageLinksTable     = '';
-		$sSqlExternalLinksTable = '';
-		$sSqlCreationRevisionTable = '';
-		$sSqlNoCreationRevisionTable = '';
-		$sSqlChangeRevisionTable = '';
-		$sSqlCond_page_pl       = '';
-		$sSqlCond_page_el       = '';
-		$sSqlCond_page_tpl      = '';
-		$sSqlCond_MaxCat        = '';
+
 		$sSqlWhere              = ' WHERE 1=1 ';
 		$sSqlSelPage            = ''; // initial page for selection
 

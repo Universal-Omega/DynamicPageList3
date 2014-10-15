@@ -54,6 +54,13 @@ class Query {
 	private $this->where = [];
 
 	/**
+	 * Group By Clauses
+	 *
+	 * @var		array
+	 */
+	private $this->groupBy = [];
+
+	/**
 	 * Select Fields
 	 *
 	 * @var		array
@@ -186,99 +193,104 @@ class Query {
 	}
 
 	/**
-	 * Return SQL for 'addauthor' parameter.
+	 * Add a group by clause to the output.
 	 *
 	 * @access	public
+	 * @param	string	Where clause
+	 * @return	boolean Success
+	 */
+	public function addGroupBy($groupBy) {
+		if (empty($groupBy)) {
+			throw new MWException(__METHOD__.': An empty group by clause was passed.');
+		}
+		$this->groupBy[] = $groupBy;
+		return true;
+	}
+
+	/**
+	 * Return SQL for 'addauthor' parameter.
+	 *
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addauthor($option) {
+	private function _addauthor($option) {
 		//Addauthor can not be used with addlasteditor.
 		if (!$this->parametersProcessed['addlasteditor']) {
 			$this->addTable('revision', 'rev');
 			$this->addWhere($this->tableNames['page'].'.page_id = rev.rev_page AND rev.rev_timestamp = (SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page = rev.rev_page)');
 			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 		}
-		return $query;
 	}
 
 	/**
 	 * Return SQL for 'addcategories' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addcategories($option) {
+	private function _addcategories($option) {
 		if ($bAddCategories) {
-			$sSqlCats            = ", GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats";
-			// Gives list of all categories linked from each article, if any.
-			$sSqlClTableForGC    = $this->tableNames['categorylinks'].' AS cl_gc';
-			// Categorylinks table used by the Group Concat (GC) function above
+			$this->addSelect("GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats");
+			$this->addTable('categorylinks', 'cl_gc');
+			//@TODO: Figure out how to get this LEFT OUTER JOIN thingy to work.
 			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
-			if ($sSqlGroupBy != '') {
-				$sSqlGroupBy .= ', ';
-			}
-			$sSqlGroupBy .= $sSqlCl_to.$this->tableNames['page'].'.page_id';
+			$this->addGroupBy($this->tableNames['page'].'.page_id');
 		}
 	}
 
 	/**
 	 * Return SQL for 'addcontribution' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addcontribution($option) {
-		if ($bAddContribution) {
-			$sSqlRCTable = $this->tableNames['recentchanges'].' AS rc, ';
-			$sSqlSelPage .= ', SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor';
-			$this->addWhere("page.page_id=rc.rc_cur_id");
-			if ($sSqlGroupBy != '') {
-				$sSqlGroupBy .= ', ';
-			}
-			$sSqlGroupBy .= 'rc.rc_cur_id';
-		}
+	private function _addcontribution($option) {
+		$this->addTable('recentchanges', 'rc');
+		$this->addSelect('SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor');
+		$this->addWhere("page.page_id=rc.rc_cur_id");
+		$this->addGroupBy('rc.rc_cur_id');
 	}
 
 	/**
 	 * Return SQL for 'addeditdate' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addeditdate($option) {	}
+	private function _addeditdate($option) {	}
 
 	/**
 	 * Return SQL for 'addexternallink' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addexternallink($option) {	}
+	private function _addexternallink($option) {	}
 
 	/**
 	 * Return SQL for 'addfirstcategorydate' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addfirstcategorydate($option) {
-		$sSqlCl_timestamp = ", DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp";
+	private function _addfirstcategorydate($option) {
+		$this->addSelect("DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp");
 	}
 
 	/**
 	 * Return SQL for 'addlasteditor' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addlasteditor($option) {
+	private function _addlasteditor($option) {
 		//Addlastauthor can not be used with addeditor.
 		if ($bAddLastEditor && $sSqlRevisionTable == '') {
 			$sSqlRevisionTable = $this->tableNames['revision'].' AS rev, ';
@@ -293,33 +305,33 @@ class Query {
 	/**
 	 * Return SQL for 'addpagecounter' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addpagecounter($option) {
+	private function _addpagecounter($option) {
 		$sSqlPage_counter = ", {$this->tableNames['page']}.page_counter AS page_counter";
 	}
 
 	/**
 	 * Return SQL for 'addpagesize' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addpagesize($option) {
+	private function _addpagesize($option) {
 		$sSqlPage_size = ", {$this->tableNames['page']}.page_len AS page_len";
 	}
 
 	/**
 	 * Return SQL for 'addpagetoucheddate' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _addpagetoucheddate($option) {
+	private function _addpagetoucheddate($option) {
 		//@TODO: Need to check if this was added by the order methods or call this function to add it from there.
 		if ($bAddPageTouchedDate && $sSqlPage_touched == '') {
 			$sSqlPage_touched = ", {$this->tableNames['page']}.page_touched AS page_touched";
@@ -329,11 +341,11 @@ class Query {
 	/**
 	 * Return SQL for 'adduser' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _adduser($option) {
+	private function _adduser($option) {
 
 		if ($sSqlRevisionTable != '') {
 			$sSqlRev_user = ', rev_user, rev_user_text, rev_comment';
@@ -343,20 +355,20 @@ class Query {
 	/**
 	 * Return SQL for 'allowcachedresults' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _allowcachedresults($option) {	}
+	private function _allowcachedresults($option) {	}
 
 	/**
 	 * Return SQL for 'allrevisionsbefore' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _allrevisionsbefore($option) {
+	private function _allrevisionsbefore($option) {
 		if ($sAllRevisionsBefore != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp < '.$sAllRevisionsBefore;
 		}
@@ -365,11 +377,11 @@ class Query {
 	/**
 	 * Return SQL for 'allrevisionssince' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _allrevisionssince($option) {
+	private function _allrevisionssince($option) {
 		if ($sAllRevisionsSince != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp >= '.$sAllRevisionsSince;
 		}
@@ -378,11 +390,11 @@ class Query {
 	/**
 	 * Return SQL for 'articlecategory' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _articlecategory($option) {
+	private function _articlecategory($option) {
 		if (isset($sArticleCategory) && $sArticleCategory !== null) {
 			$sSqlWhere .= " AND {$this->tableNames['page']}.page_title IN (
 				SELECT p2.page_title
@@ -396,11 +408,11 @@ class Query {
 	/**
 	 * Return SQL for 'categoriesminmax' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _categoriesminmax($option) {
+	private function _categoriesminmax($option) {
 		if (isset($aCatMinMax[0]) && $aCatMinMax[0] != '') {
 			$sSqlCond_MaxCat .= ' AND '.$aCatMinMax[0].' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)';
 		}
@@ -412,11 +424,11 @@ class Query {
 	/**
 	 * Return SQL for 'category' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _category($option) {
+	private function _category($option) {
 		$iClTable = 0;
 		for ($i = 0; $i < $iIncludeCatCount; $i++) {
 			// If we want the Uncategorized
@@ -431,47 +443,47 @@ class Query {
 	/**
 	 * Return SQL for 'categorymatch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _categorymatch($option) {	}
+	private function _categorymatch($option) {	}
 
 	/**
 	 * Return SQL for 'categoryregexp' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _categoryregexp($option) {	}
+	private function _categoryregexp($option) {	}
 
 	/**
 	 * Return SQL for 'columns' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _columns($option) {	}
+	private function _columns($option) {	}
 
 	/**
 	 * Return SQL for 'count' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _count($option) {	}
+	private function _count($option) {	}
 
 	/**
 	 * Return SQL for 'createdby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _createdby($option) {
+	private function _createdby($option) {
 		if ($parameters->getParameter('createdby')) {
 		    $sSqlCreationRevisionTable = $this->tableNames['revision'].' AS creation_rev, ';
 		    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('createdby')).' = creation_rev.rev_user_text'.' AND creation_rev.rev_page = page_id'.' AND creation_rev.rev_parent_id = 0';
@@ -481,92 +493,92 @@ class Query {
 	/**
 	 * Return SQL for 'debug' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _debug($option) {	}
+	private function _debug($option) {	}
 
 	/**
 	 * Return SQL for 'deleterules' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _deleterules($option) {	}
+	private function _deleterules($option) {	}
 
 	/**
 	 * Return SQL for 'distinct' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _distinct($option) {	}
+	private function _distinct($option) {	}
 
 	/**
 	 * Return SQL for 'dominantsection' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _dominantsection($option) {	}
+	private function _dominantsection($option) {	}
 
 	/**
 	 * Return SQL for 'dplcache' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _dplcache($option) {	}
+	private function _dplcache($option) {	}
 
 	/**
 	 * Return SQL for 'dplcacheperiod' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _dplcacheperiod($option) {	}
+	private function _dplcacheperiod($option) {	}
 
 	/**
 	 * Return SQL for 'eliminate' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _eliminate($option) {	}
+	private function _eliminate($option) {	}
 
 	/**
 	 * Return SQL for 'escapelinks' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _escapelinks($option) {	}
+	private function _escapelinks($option) {	}
 
 	/**
 	 * Return SQL for 'execandexit' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _execandexit($option) {	}
+	private function _execandexit($option) {	}
 
 	/**
 	 * Return SQL for 'firstrevisionsince' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _firstrevisionsince($option) {
+	private function _firstrevisionsince($option) {
 		if ($sFirstRevisionSince != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$sFirstRevisionSince.')';
 		}
@@ -575,92 +587,92 @@ class Query {
 	/**
 	 * Return SQL for 'fixcategory' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _fixcategory($option) {	}
+	private function _fixcategory($option) {	}
 
 	/**
 	 * Return SQL for 'format' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _format($option) {	}
+	private function _format($option) {	}
 
 	/**
 	 * Return SQL for 'goal' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _goal($option) {	}
+	private function _goal($option) {	}
 
 	/**
 	 * Return SQL for 'headingcount' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _headingcount($option) {	}
+	private function _headingcount($option) {	}
 
 	/**
 	 * Return SQL for 'headingmode' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _headingmode($option) {	}
+	private function _headingmode($option) {	}
 
 	/**
 	 * Return SQL for 'hiddencategories' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _hiddencategories($option) {	}
+	private function _hiddencategories($option) {	}
 
 	/**
 	 * Return SQL for 'hitemattr' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _hitemattr($option) {	}
+	private function _hitemattr($option) {	}
 
 	/**
 	 * Return SQL for 'hlistattr' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _hlistattr($option) {	}
+	private function _hlistattr($option) {	}
 
 	/**
 	 * Return SQL for 'ignorecase' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _ignorecase($option) {	}
+	private function _ignorecase($option) {	}
 
 	/**
 	 * Return SQL for 'imagecontainer' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _imagecontainer($option) {
+	private function _imagecontainer($option) {
 		$this->addTable('imagelinks', 'ic');
 		if ($this->parameters->getParameter('openreferences')) {
 			$where .= '(';
@@ -686,11 +698,11 @@ class Query {
 	/**
 	 * Return SQL for 'imageused' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _imageused($option) {
+	private function _imageused($option) {
 		$this->addTable('imagelinks', 'il');
 		$this->addSelect(['image_sel_title' => 'il`.`il_to']);
 		$where .= $this->tableNames['page'].'.page_id=il.il_from AND (';
@@ -713,121 +725,121 @@ class Query {
 	/**
 	 * Return SQL for 'include' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _include($option) {	}
+	private function _include($option) {	}
 
 	/**
 	 * Return SQL for 'includematch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includematch($option) {	}
+	private function _includematch($option) {	}
 
 	/**
 	 * Return SQL for 'includematchparsed' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includematchparsed($option) {	}
+	private function _includematchparsed($option) {	}
 
 	/**
 	 * Return SQL for 'includemaxlength' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includemaxlength($option) {	}
+	private function _includemaxlength($option) {	}
 
 	/**
 	 * Return SQL for 'includenotmatch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includenotmatch($option) {	}
+	private function _includenotmatch($option) {	}
 
 	/**
 	 * Return SQL for 'includenotmatchparsed' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includenotmatchparsed($option) {	}
+	private function _includenotmatchparsed($option) {	}
 
 	/**
 	 * Return SQL for 'includepage' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includepage($option) {	}
+	private function _includepage($option) {	}
 
 	/**
 	 * Return SQL for 'includesubpages' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includesubpages($option) {	}
+	private function _includesubpages($option) {	}
 
 	/**
 	 * Return SQL for 'includetrim' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _includetrim($option) {	}
+	private function _includetrim($option) {	}
 
 	/**
 	 * Return SQL for 'inlinetext' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _inlinetext($option) {	}
+	private function _inlinetext($option) {	}
 
 	/**
 	 * Return SQL for 'itemattr' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _itemattr($option) {	}
+	private function _itemattr($option) {	}
 
 	/**
 	 * Return SQL for 'lastmodifiedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _lastmodifiedby($option) {
+	private function _lastmodifiedby($option) {
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('lastmodifiedby')).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
 	}
 
 	/**
 	 * Return SQL for 'lastrevisionbefore' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _lastrevisionbefore($option) {
+	private function _lastrevisionbefore($option) {
 		if ($sLastRevisionBefore != '') {
 			$sSqlCond_page_rev .= ' AND '.$this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$sLastRevisionBefore.')';
 		}
@@ -836,11 +848,11 @@ class Query {
 	/**
 	 * Return SQL for 'linksfrom' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _linksfrom($option) {
+	private function _linksfrom($option) {
 		$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['pagelinks'].'.pl_from FROM '.$this->tableNames['pagelinks'].' WHERE (';
 		$n = 0;
 		foreach ($aNotLinksTo as $links) {
@@ -868,11 +880,11 @@ class Query {
 	/**
 	 * Return SQL for 'linksto' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _linksto($option) {
+	private function _linksto($option) {
 		if (count($aLinksTo) > 0) {
 			$sSqlPageLinksTable .= $this->tableNames['pagelinks'].' AS pl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=pl.pl_from AND ';
@@ -936,11 +948,11 @@ class Query {
 	/**
 	 * Return SQL for 'linkstoexternal' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _linkstoexternal($option) {
+	private function _linkstoexternal($option) {
 		if (count($aLinksToExternal) > 0) {
 			$sSqlExternalLinksTable .= $this->tableNames['externallinks'].' AS el, ';
 			$sSqlCond_page_el .= ' AND '.$this->tableNames['page'].'.page_id=el.el_from AND (';
@@ -982,40 +994,40 @@ class Query {
 	/**
 	 * Return SQL for 'listattr' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _listattr($option) {	}
+	private function _listattr($option) {	}
 
 	/**
 	 * Return SQL for 'listseparators' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _listseparators($option) {	}
+	private function _listseparators($option) {	}
 
 	/**
 	 * Return SQL for 'maxrevisions' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _maxrevisions($option) {
+	private function _maxrevisions($option) {
 		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= $iMaxRevisions)");
 	}
 
 	/**
 	 * Return SQL for 'minoredits' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _minoredits($option) {
+	private function _minoredits($option) {
 		if (isset($sMinorEdits) && $sMinorEdits == 'exclude') {
 			$this->addWhere("rev_minor_edit=0");
 		}
@@ -1024,31 +1036,31 @@ class Query {
 	/**
 	 * Return SQL for 'minrevisions' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _minrevisions($option) {
+	private function _minrevisions($option) {
 		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= $iMinRevisions)");
 	}
 
 	/**
 	 * Return SQL for 'mode' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _mode($option) {	}
+	private function _mode($option) {	}
 
 	/**
 	 * Return SQL for 'modifiedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _modifiedby($option) {
+	private function _modifiedby($option) {
 	    $sSqlChangeRevisionTable = $this->tableNames['revision'].' AS change_rev, ';
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('modifiedby')).' = change_rev.rev_user_text'.' AND change_rev.rev_page = page_id';
 	}
@@ -1056,20 +1068,20 @@ class Query {
 	/**
 	 * Return SQL for 'multisecseparators' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _multisecseparators($option) {	}
+	private function _multisecseparators($option) {	}
 
 	/**
 	 * Return SQL for 'namespace' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _namespace($option) {
+	private function _namespace($option) {
 		if (!empty($aNamespaces)) {
 			if ($this->parameters->getParameter('openreferences')) {
 				$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".self::$DB->makeList($aNamespaces).")");
@@ -1082,29 +1094,29 @@ class Query {
 	/**
 	 * Return SQL for 'noresultsfooter' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _noresultsfooter($option) {	}
+	private function _noresultsfooter($option) {	}
 
 	/**
 	 * Return SQL for 'noresultsheader' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _noresultsheader($option) {	}
+	private function _noresultsheader($option) {	}
 
 	/**
 	 * Return SQL for 'notcategory' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notcategory($option) {
+	private function _notcategory($option) {
 		//@TODO: The table incremental variable needs to be on the object.
 		for ($i = 0; $i < $iExcludeCatCount; $i++) {
 			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$this->tableNames['categorylinks'].' AS cl'.$iClTable.' ON '.$this->tableNames['page'].'.page_id=cl'.$iClTable.'.cl_from'.' AND cl'.$iClTable.'.cl_to'.$sNotCategoryComparisonMode.self::$DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
@@ -1116,29 +1128,29 @@ class Query {
 	/**
 	 * Return SQL for 'notcategorymatch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notcategorymatch($option) {	}
+	private function _notcategorymatch($option) {	}
 
 	/**
 	 * Return SQL for 'notcategoryregexp' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notcategoryregexp($option) {	}
+	private function _notcategoryregexp($option) {	}
 
 	/**
 	 * Return SQL for 'notcreatedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notcreatedby($option) {
+	private function _notcreatedby($option) {
 	    $sSqlNoCreationRevisionTable = $this->tableNames['revision'].' AS no_creation_rev, ';
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('notcreatedby')).' != no_creation_rev.rev_user_text'.' AND no_creation_rev.rev_page = page_id'.' AND no_creation_rev.rev_parent_id = 0';
 	}
@@ -1146,22 +1158,22 @@ class Query {
 	/**
 	 * Return SQL for 'notlastmodifiedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notlastmodifiedby($option) {
+	private function _notlastmodifiedby($option) {
 	    $sSqlCond_page_rev .= ' AND '.self::$DB->addQuotes($parameters->getParameter('notlastmodifiedby')).' != (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
 	}
 
 	/**
 	 * Return SQL for 'notlinksfrom' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notlinksfrom($option) {
+	private function _notlinksfrom($option) {
 		if (count($aNotLinksFrom) > 0) {
 			if ($this->parameters->getParameter('openreferences')) {
 				$sSqlCond_page_pl .= ' AND (';
@@ -1196,31 +1208,31 @@ class Query {
 	/**
 	 * Return SQL for 'notlinksto' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notlinksto($option) {	}
+	private function _notlinksto($option) {	}
 
 	/**
 	 * Return SQL for 'notmodifiedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notmodifiedby($option) {
+	private function _notmodifiedby($option) {
 	    $sSqlCond_page_rev .= 'NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.self::$DB->addQuotes($parameters->getParameter('notmodifiedby')).' LIMIT 1)';
 	}
 
 	/**
 	 * Return SQL for 'notnamespace' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notnamespace($option) {
+	private function _notnamespace($option) {
 		if (!empty($aExcludeNamespaces)) {
 			if ($this->parameters->getParameter('openreferences')) {
 				$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".self::$DB->makeList($aExcludeNamespaces).")");
@@ -1233,11 +1245,11 @@ class Query {
 	/**
 	 * Return SQL for 'nottitlematch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _nottitlematch($option) {
+	private function _nottitlematch($option) {
 		$where .= '(';
 		$i = 0;
 		foreach ($aNotTitleMatch as $link) {
@@ -1266,20 +1278,20 @@ class Query {
 	/**
 	 * Return SQL for 'nottitleregexp' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _nottitleregexp($option) {	}
+	private function _nottitleregexp($option) {	}
 
 	/**
 	 * Return SQL for 'notuses' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _notuses($option) {
+	private function _notuses($option) {
 		if (count($aNotUses) > 0) {
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['templatelinks'].'.tl_from FROM '.$this->tableNames['templatelinks'].' WHERE (';
 			$n = 0;
@@ -1302,92 +1314,92 @@ class Query {
 	/**
 	 * Return SQL for 'offset' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _offset($option) {	}
+	private function _offset($option) {	}
 
 	/**
 	 * Return SQL for 'oneresultfooter' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _oneresultfooter($option) {	}
+	private function _oneresultfooter($option) {	}
 
 	/**
 	 * Return SQL for 'oneresultheader' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _oneresultheader($option) {	}
+	private function _oneresultheader($option) {	}
 
 	/**
 	 * Return SQL for 'openreferences' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _openreferences($option) {	}
+	private function _openreferences($option) {	}
 
 	/**
 	 * Return SQL for 'order' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _order($option) {	}
+	private function _order($option) {	}
 
 	/**
 	 * Return SQL for 'ordercollation' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _ordercollation($option) {	}
+	private function _ordercollation($option) {	}
 
 	/**
 	 * Return SQL for 'ordermethod' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _ordermethod($option) {	}
+	private function _ordermethod($option) {	}
 
 	/**
 	 * Return SQL for 'qualitypages' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _qualitypages($option) {	}
+	private function _qualitypages($option) {	}
 
 	/**
 	 * Return SQL for 'randomcount' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _randomcount($option) {	}
+	private function _randomcount($option) {	}
 
 	/**
 	 * Return SQL for 'redirects' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _redirects($option) {
+	private function _redirects($option) {
 		if (!$this->parameters->getParameter('openreferences')) {
 			switch ($sRedirects) {
 				case 'only':
@@ -1403,164 +1415,164 @@ class Query {
 	/**
 	 * Return SQL for 'replaceintitle' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _replaceintitle($option) {	}
+	private function _replaceintitle($option) {	}
 
 	/**
 	 * Return SQL for 'reset' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _reset($option) {	}
+	private function _reset($option) {	}
 
 	/**
 	 * Return SQL for 'resultsfooter' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _resultsfooter($option) {	}
+	private function _resultsfooter($option) {	}
 
 	/**
 	 * Return SQL for 'resultsheader' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _resultsheader($option) {	}
+	private function _resultsheader($option) {	}
 
 	/**
 	 * Return SQL for 'rowcolformat' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _rowcolformat($option) {	}
+	private function _rowcolformat($option) {	}
 
 	/**
 	 * Return SQL for 'rows' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _rows($option) {	}
+	private function _rows($option) {	}
 
 	/**
 	 * Return SQL for 'rowsize' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _rowsize($option) {	}
+	private function _rowsize($option) {	}
 
 	/**
 	 * Return SQL for 'scroll' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _scroll($option) {	}
+	private function _scroll($option) {	}
 
 	/**
 	 * Return SQL for 'secseparators' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _secseparators($option) {	}
+	private function _secseparators($option) {	}
 
 	/**
 	 * Return SQL for 'showcurid' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _showcurid($option) {	}
+	private function _showcurid($option) {	}
 
 	/**
 	 * Return SQL for 'shownamespace' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _shownamespace($option) {	}
+	private function _shownamespace($option) {	}
 
 	/**
 	 * Return SQL for 'skipthispage' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _skipthispage($option) {	}
+	private function _skipthispage($option) {	}
 
 	/**
 	 * Return SQL for 'stablepages' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _stablepages($option) {	}
+	private function _stablepages($option) {	}
 
 	/**
 	 * Return SQL for 'suppresserrors' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _suppresserrors($option) {	}
+	private function _suppresserrors($option) {	}
 
 	/**
 	 * Return SQL for 'table' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _table($option) {	}
+	private function _table($option) {	}
 
 	/**
 	 * Return SQL for 'tablerow' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _tablerow($option) {	}
+	private function _tablerow($option) {	}
 
 	/**
 	 * Return SQL for 'tablesortcol' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _tablesortcol($option) {	}
+	private function _tablesortcol($option) {	}
 
 	/**
 	 * Return SQL for 'title' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _title($option) {
+	private function _title($option) {
 		if ($sTitleIs != '') {
 			if ($bIgnoreCase) {
 				$this->addWhere("LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER(".self::$DB->addQuotes($sTitleIs).")");
@@ -1573,11 +1585,11 @@ class Query {
 	/**
 	 * Return SQL for 'titlegt' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _titlegt($option) {
+	private function _titlegt($option) {
 		if (substr($sTitleGE, 0, 2) == '=_') {
 			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title >='.self::$DB->addQuotes(substr($sTitleGE, 2));
@@ -1598,11 +1610,11 @@ class Query {
 	/**
 	 * Return SQL for 'titlelt' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _titlelt($option) {
+	private function _titlelt($option) {
 		if (substr($sTitleLE, 0, 2) == '=_') {
 			if ($this->parameters->getParameter('openreferences')) {
 				$where .= 'pl_title <='.self::$DB->addQuotes(substr($sTitleLE, 2));
@@ -1623,11 +1635,11 @@ class Query {
 	/**
 	 * Return SQL for 'titlematch' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _titlematch($option) {
+	private function _titlematch($option) {
 		$where = '(';
 		$i = 0;
 		foreach ($aTitleMatch as $link) {
@@ -1656,38 +1668,38 @@ class Query {
 	/**
 	 * Return SQL for 'titlemaxlength' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _titlemaxlength($option) {	}
+	private function _titlemaxlength($option) {	}
 
 	/**
 	 * Return SQL for 'titleregexp' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _titleregexp($option) {	}
+	private function _titleregexp($option) {	}
 
 	/**
 	 * Return SQL for 'updaterules' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _updaterules($option) {	}
+	private function _updaterules($option) {	}
 
 	/**
 	 * Return SQL for 'usedby' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _usedby($option) {
+	private function _usedby($option) {
 		if (count($aUsedBy) > 0) {
 			if ($this->parameters->getParameter('openreferences')) {
 				$sSqlCond_page_tpl .= ' AND (';
@@ -1720,21 +1732,21 @@ class Query {
 	/**
 	 * Return SQL for 'userdateformat' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _userdateformat($option) {
+	private function _userdateformat($option) {
 	}
 
 	/**
 	 * Return SQL for 'uses' parameter.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	public function _uses($option) {
+	private function _uses($option) {
 		if (count($aUses) > 0) {
 			$sSqlPageLinksTable .= ' '.$this->tableNames['templatelinks'].' as tl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=tl.tl_from  AND (';
