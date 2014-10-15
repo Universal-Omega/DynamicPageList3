@@ -826,32 +826,32 @@ class ParametersData {
 		 * lastrevisionbefore = select the latest revision which was existent before the specified point in time
 		 */
 		'lastrevisionbefore' => [
-			'default'	=> null,
-			'timestamp'	=> true,
+			'default'			=> null,
+			'timestamp'			=> true,
 			'open_ref_conflict'	=> true
 		],
 		/**
 		 * allrevisionsbefore = select the revisions which were created before the specified point in time
 		 */
 		'allrevisionsbefore' => [
-			'default'	=> null,
-			'timestamp'	=> true,
+			'default'			=> null,
+			'timestamp'			=> true,
 			'open_ref_conflict'	=> true
 		],
 		/**
 		 * firstrevisionsince = select the first revision which was created after the specified point in time
 		 */
 		'firstrevisionsince' => [
-			'default'	=> null,
-			'timestamp'	=> true,
+			'default'			=> null,
+			'timestamp'			=> true,
 			'open_ref_conflict'	=> true
 		],
 		/**
 		 * allrevisionssince = select the latest revisions which were created after the specified point in time
 		 */
 		'allrevisionssince' => [
-			'default'	=> null,
-			'timestamp'	=> true,
+			'default'			=> null,
+			'timestamp'			=> true,
 			'open_ref_conflict'	=> true
 		],
 		/**

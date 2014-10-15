@@ -63,7 +63,7 @@ class Main {
 			return (Options::$options['RunFromProtectedPagesOnly']);
 		}
 
-		$tableNames = self::getTableNames();
+		$tableNames = Query::getTableNames();
 
 		// Extension variables
 		// Allowed namespaces for DPL: all namespaces except the first 2: Media (-2) and Special (-1), because we cannot use the DB for these to generate dynamic page lists.
@@ -1462,31 +1462,6 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			$key          = intval(preg_replace('/.*#/', '', $skey[$a]));
 			$articles[$a] = $cArticles[$key];
 		}
-	}
-
-	/**
-	 * Return prefixed and quoted tables that are needed.
-	 *
-	 * @access	private
-	 * @return	array	Prepared table names.
-	 */
-	static private function getTableNames() {
-		$tables = [
-			'categorylinks',
-			'dpl_clview',
-			'externallinks',
-			'flaggedpages',
-			'imagelinks',
-			'page',
-			'pagelinks',
-			'recentchanges',
-			'revision',
-			'templatelinks'
-		];
-		foreach ($tables as $table) {
-			$tableNames[$table] = self::$DB->tableName($table);
-		}
-		return $tableNames;
 	}
 }
 ?>
