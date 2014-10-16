@@ -626,11 +626,11 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _title($option) {
-		// we replace blanks by underscores to meet the internal representation
-		// of page names in the database
 		$title = \Title::newFromText($option);
 		if ($title) {
-			$this->setParameter('titleis', str_replace(' ', '_', $title->getText()));
+			$data = $this->getParameter('title');
+			$data['='][] = str_replace(' ', '_', $title->getText());
+			$this->setParameter('title', $data);
 			$this->setParameter('namespaces', array_merge($this->getParameter('namespaces'), $title->getNamespace()));
 			$this->setParameter('pagelistmode', 'userformat');
 			$this->setParameter('ordermethods', []);
@@ -638,6 +638,82 @@ class Parameters extends ParametersData {
 			$this->setParameter('allowcachedresults', true);
 			$this->setOpenReferencesConflict(true);
 		}
+	}
+
+	/**
+	 * Clean and test 'titleregexp' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _titleregexp($option) {
+		$data = $this->getParameter('title');
+		if (!is_array($data['regexp'])) {
+			$data['regexp'] = [];
+		}
+		$newMatches = explode('|', str_replace(' ', '\_', $option));
+		$data['regexp'] = array_merge($data['regexp'], $newMatches);
+		$this->setParameter('title', $data);
+		$this->setSelectionCriteriaFound(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'titlematch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _titlematch($option) {
+		$data = $this->getParameter('title');
+		if (!is_array($data['like'])) {
+			$data['like'] = [];
+		}
+		$newMatches = explode('|', str_replace(' ', '\_', $option));
+		$data['like'] = array_merge($data['like'], $newMatches);
+		$this->setParameter('title', $data);
+		$this->setSelectionCriteriaFound(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'nottitleregexp' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _nottitleregexp($option) {
+		$data = $this->getParameter('nottitle');
+		if (!is_array($data['regexp'])) {
+			$data['regexp'] = [];
+		}
+		$newMatches = explode('|', str_replace(' ', '\_', $option));
+		$data['regexp'] = array_merge($data['regexp'], $newMatches);
+		$this->setParameter('nottitle', $data);
+		$this->setSelectionCriteriaFound(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'nottitlematch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _nottitlematch($option) {
+		$data = $this->getParameter('nottitle');
+		if (!is_array($data['like'])) {
+			$data['like'] = [];
+		}
+		$newMatches = explode('|', str_replace(' ', '\_', $option));
+		$data['like'] = array_merge($data['like'], $newMatches);
+		$this->setParameter('nottitle', $data);
+		$this->setSelectionCriteriaFound(true);
+		return true;
 	}
 
 	/**
@@ -995,60 +1071,6 @@ class Parameters extends ParametersData {
 				$this->setOption['reset'][7] = false;
 			}
 		}
-	}
-
-	/**
-	 * Clean and test 'titlematch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _titlematch($option) {
-		$this->setParameter('titlematch', explode('|', str_replace(' ', '_', $option)));
-		$this->setSelectionCriteriaFound(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'titleregexp' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _titleregexp($option) {
-		$sTitleMatchMode         = ' REGEXP ';
-		$this->setParameter('titlematch', [$option]);
-		$this->setSelectionCriteriaFound(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'nottitlematch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _nottitlematch($option) {
-		$this->setParameter('nottitlematch', explode('|', str_replace(' ', '_', $option)));
-		$this->setSelectionCriteriaFound(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'nottitleregexp' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _nottitleregexp($option) {
-		$sNotTitleMatchMode      = ' REGEXP ';
-		$this->setParameter('nottitlematch', [$option]);
-		$this->setSelectionCriteriaFound(true);
-		return true;
 	}
 }
 ?>

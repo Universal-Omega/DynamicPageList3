@@ -1050,48 +1050,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'nottitlematch' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _nottitlematch($option) {
-		$where .= '(';
-		$i = 0;
-		foreach ($aNotTitleMatch as $link) {
-			if ($i > 0) {
-				$where .= ' OR ';
-			}
-			if ($this->parameters->getParameter('openreferences')) {
-				if ($this->parameters->getParameter('ignorecase')) {
-					$where .= 'LOWER(CAST(pl_title AS char))'.$sNotTitleMatchMode.'LOWER('.$this->DB->addQuotes($link).')';
-				} else {
-					$where .= 'pl_title'.$sNotTitleMatchMode.$this->DB->addQuotes($link);
-				}
-			} else {
-				if ($this->parameters->getParameter('ignorecase')) {
-					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sNotTitleMatchMode.'LOWER('.$this->DB->addQuotes($link).')';
-				} else {
-					$where .= $this->tableNames['page'].'.page_title'.$sNotTitleMatchMode.$this->DB->addQuotes($link);
-				}
-			}
-			$i++;
-		}
-		$where .= ')';
-		$this->addWhere($where);
-	}
-
-	/**
-	 * Set SQL for 'nottitleregexp' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _nottitleregexp($option) { }
-
-	/**
 	 * Set SQL for 'notuses' parameter.
 	 *
 	 * @access	private
@@ -1380,13 +1338,56 @@ class Query {
 	 * @return	void
 	 */
 	private function _title($option) {
-		if ($sTitleIs != '') {
-			if ($this->parameters->getParameter('ignorecase')) {
-				$this->addWhere("LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER(".$this->DB->addQuotes($sTitleIs).")");
-			} else {
-				$this->addWhere($this->tableNames['page'].'.page_title = '.$this->DB->addQuotes($sTitleIs));
+		foreach ($option as $comparisonType => $titles) {
+			foreach ($titles as $title) {
+				if ($this->parameters->getParameter('openreferences')) {
+					if ($this->parameters->getParameter('ignorecase')) {
+						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}".strtolower($this->DB->addQuotes($title));
+					} else {
+						$_or = "pl_title {$comparisonType} ".$this->DB->addQuotes($title);
+					}
+				} else {
+					if ($this->parameters->getParameter('ignorecase')) {
+						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}".strtolower($this->DB->addQuotes($title));
+					} else {
+						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}".$this->DB->addQuotes($title);
+					}
+				}
+				$ors[] = $_or;
 			}
 		}
+		$where .= '('.implode(' OR ', $ors).')';
+		$this->addWhere($where);
+	}
+
+	/**
+	 * Set SQL for 'nottitle' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _nottitle($option) {
+		foreach ($option as $comparisonType => $titles) {
+			foreach ($titles as $title) {
+				if ($this->parameters->getParameter('openreferences')) {
+					if ($this->parameters->getParameter('ignorecase')) {
+						$_or = "LOWER(CAST(pl_title AS char)) {$comparisonType}".strtolower($this->DB->addQuotes($title));
+					} else {
+						$_or = "pl_title {$comparisonType} ".$this->DB->addQuotes($title);
+					}
+				} else {
+					if ($this->parameters->getParameter('ignorecase')) {
+						$_or = "LOWER(CAST({$this->tableNames['page']}.page_title AS char)) {$comparisonType}".strtolower($this->DB->addQuotes($title));
+					} else {
+						$_or = "{$this->tableNames['page']}.page_title {$comparisonType}".$this->DB->addQuotes($title);
+					}
+				}
+				$ors[] = $_or;
+			}
+		}
+		$where .= 'NOT ('.implode(' OR ', $ors).')';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1440,39 +1441,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'titlematch' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _titlematch($option) {
-		$where = '(';
-		$i = 0;
-		foreach ($aTitleMatch as $link) {
-			if ($i > 0) {
-				$where .= ' OR ';
-			}
-			if ($this->parameters->getParameter('openreferences')) {
-				if ($this->parameters->getParameter('ignorecase')) {
-					$where .= 'LOWER(CAST(pl_title AS char))'.$sTitleMatchMode.strtolower($this->DB->addQuotes($link));
-				} else {
-					$where .= 'pl_title'.$sTitleMatchMode.$this->DB->addQuotes($link);
-				}
-			} else {
-				if ($this->parameters->getParameter('ignorecase')) {
-					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sTitleMatchMode.strtolower($this->DB->addQuotes($link));
-				} else {
-					$where .= $this->tableNames['page'].'.page_title'.$sTitleMatchMode.$this->DB->addQuotes($link);
-				}
-			}
-			$i++;
-		}
-		$where .= ')';
-		$this->addWhere($where);
-	}
-
-	/**
 	 * Set SQL for 'titlemaxlength' parameter.
 	 *
 	 * @access	private
@@ -1480,15 +1448,6 @@ class Query {
 	 * @return	void
 	 */
 	private function _titlemaxlength($option) { }
-
-	/**
-	 * Set SQL for 'titleregexp' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _titleregexp($option) {	}
 
 	/**
 	 * Set SQL for 'updaterules' parameter.
@@ -1507,33 +1466,22 @@ class Query {
 	 * @return	void
 	 */
 	private function _usedby($option) {
-		if (count($aUsedBy) > 0) {
-			if ($this->parameters->getParameter('openreferences')) {
-				$sSqlCond_page_tpl .= ' AND (';
-				$n = 0;
-				foreach ($aUsedBy as $link) {
-					if ($n > 0) {
-						$sSqlCond_page_tpl .= ' OR ';
-					}
-					$sSqlCond_page_tpl .= '(tpl_from='.$link->getArticleID().')';
-					$n++;
-				}
-				$sSqlCond_page_tpl .= ')';
-			} else {
-				$sSqlPageLinksTable .= $this->tableNames['templatelinks'].' AS tpl, '.$this->tableNames['page'].'AS tplsrc, ';
-				$sSqlCond_page_tpl .= ' AND '.$this->tableNames['page'].'.page_title = tpl.tl_title	 AND tplsrc.page_id=tpl.tl_from AND (';
-				$sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
-				$n			 = 0;
-				foreach ($aUsedBy as $link) {
-					if ($n > 0) {
-						$sSqlCond_page_tpl .= ' OR ';
-					}
-					$sSqlCond_page_tpl .= '(tpl.tl_from='.$link->getArticleID().')';
-					$n++;
-				}
-				$sSqlCond_page_tpl .= ')';
+		if ($this->parameters->getParameter('openreferences')) {
+			foreach ($option as $link) {
+				$ors[] = '(tpl_from='.intval($link->getArticleID()).')';
 			}
+			$where = '('.implode(' OR ', $ors).')';
+		} else {
+			$this->addTable('templatelinks', 'tpl');
+			$this->addTable('page', 'tplsrc');
+			$this->addSelect(['tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace']);
+			$where = $this->tableNames['page'].'.page_title = tpl.tl_title AND tplsrc.page_id=tpl.tl_from AND (';
+			foreach ($option as $link) {
+				$ors[] = '(tpl.tl_from='.intval($link->getArticleID()).')';
+			}
+			$where .= '('.implode(' OR ', $ors).')';
 		}
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1554,24 +1502,19 @@ class Query {
 	 * @return	void
 	 */
 	private function _uses($option) {
-		if (count($aUses) > 0) {
-			$sSqlPageLinksTable .= ' '.$this->tableNames['templatelinks'].' as tl, ';
-			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=tl.tl_from	 AND (';
-			$n = 0;
-			foreach ($aUses as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
-				}
-				$sSqlCond_page_pl .= '(tl.tl_namespace='.intval($link->getNamespace());
-				if ($this->parameters->getParameter('ignorecase')) {
-					$sSqlCond_page_pl .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).'))';
-				} else {
-					$sSqlCond_page_pl .= " AND		 tl.tl_title=".$this->DB->addQuotes($link->getDbKey()).')';
-				}
-				$n++;
+		$this->addTable('templatelinks', 'tl');
+		$where = $this->tableNames['page'].'.page_id=tl.tl_from AND (';
+		foreach ($option as $link) {
+			$_or = '(tl.tl_namespace='.intval($link->getNamespace());
+			if ($this->parameters->getParameter('ignorecase')) {
+				$_or .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).'))';
+			} else {
+				$_or .= " AND tl.tl_title=".$this->DB->addQuotes($link->getDbKey()).')';
 			}
-			$sSqlCond_page_pl .= ')';
+			$ors[] = $_or;
 		}
+		$where .= implode(' OR ', $ors).')';
+		$this->addWhere($where);
 	}
 }
 ?>
