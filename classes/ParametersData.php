@@ -1056,7 +1056,7 @@ class ParametersData {
 		 * table is a short hand for combined values of listseparators, colseparators and mulicolseparators
 		 */
 		'table' => [
-			'default'	=> ''
+			'default'	=> null
 		],
 		/**
 		 * tablerow allows to define individual formats for table columns

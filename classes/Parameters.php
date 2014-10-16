@@ -33,6 +33,13 @@ class Parameters extends ParametersData {
 	private $openReferencesConflict = false;
 
 	/**
+	 * Parameters that have already been processed.
+	 *
+	 * @var		array
+	 */
+	private $parametersProcessed = [];
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -54,6 +61,7 @@ class Parameters extends ParametersData {
 	public function __call($parameter, $arguments) {
 		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
 		$function = "_".$parameter;
+		$this->parametersProcessed[$parameter] = true;
 		if (method_exists($this, $function)) {
 			return call_user_func_array($this->$function, $arguments);
 		}
@@ -928,6 +936,56 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _table($option) {
+		$defaultTemplateSuffix = '';
+		$sPageListMode         = 'userformat';
+		$sInlTxt               = '';
+		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
+
+		foreach (explode(',', $option) as $tabnr => $tab) {
+			if ($tabnr == 0) {
+				if ($tab == '') {
+					$tab = 'class=wikitable';
+				}
+				$listSeparators[0] = '{|' . $tab;
+			} else {
+				if ($tabnr == 1 && $tab == '-') {
+					$withHLink = '';
+					continue;
+				}
+				if ($tabnr == 1 && $tab == '') {
+					$tab = wfMessage('article')->text();
+				}
+				$listSeparators[0] .= "\n!{$tab}";
+			}
+		}
+		$listSeparators[1] = '';
+		// the user may have specified the third parameter of 'format' to add meta attributes of articles to the table
+		if (!array_key_exists(2, $listSeparators)) {
+			$listSeparators[2] = '';
+		}
+		$listSeparators[3] = "\n|}";
+		//Overwrite 'listseparators'.
+		$this->parameters->setParameter('listseparators', $listSeparators);
+
+		for ($i = 0; $i < count($aSecLabels); $i++) {
+			if ($i == 0) {
+				$aSecSeparators[0]      = "\n|-\n|" . $withHLink; //."\n";
+				$aSecSeparators[1]      = '';
+				$aMultiSecSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
+			} else {
+				$aSecSeparators[2 * $i]     = "\n|"; // ."\n";
+				$aSecSeparators[2 * $i + 1] = '';
+				if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0] == '#') {
+					$aMultiSecSeparators[$i] = "\n----\n";
+				}
+				if ($aSecLabels[$i][0] == '#') {
+					$aMultiSecSeparators[$i] = "\n----\n";
+				} else {
+					$aMultiSecSeparators[$i] = "<br/>\n";
+				}
+			}
+		}
+
 		$this->setParameter('table', str_replace(['\n', "¶"], "\n", $option));
 		return true;
 	}
