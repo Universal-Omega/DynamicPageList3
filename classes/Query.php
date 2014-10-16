@@ -647,17 +647,18 @@ class Query {
 	 */
 	private function _imagecontainer($option) {
 		$this->addTable('imagelinks', 'ic');
+		$this->addSelect(['sortkey' => 'il.il_to']);
 		if ($this->parameters->getParameter('openreferences')) {
 			$where .= '(';
 		} else {
-			$where .= $this->tableNames['page'].".page_namespace=".NS_FILE." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
+			$where .= "{$this->tableNames['page']}.page_namespace=".NS_FILE." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
 		}
 		$i = 0;
 		foreach ($option as $link) {
 			if ($i > 0) {
 				$where .= ' OR ';
 			}
-			if ($bIgnoreCase) {
+			if ($this->parameters->getParameter('ignorecase')) {
 				$where .= "LOWER(CAST(ic.il_from AS char)=LOWER(".$this->DB->addQuotes($link->getArticleID()).')';
 			} else {
 				$where .= "ic.il_from=".$this->DB->addQuotes($link->getArticleID());
@@ -680,11 +681,11 @@ class Query {
 		$this->addSelect(['image_sel_title' => 'il`.`il_to']);
 		$where .= $this->tableNames['page'].'.page_id=il.il_from AND (';
 		$i = 0;
-		foreach ($aImageUsed as $link) {
+		foreach ($option as $link) {
 			if ($i > 0) {
 				$where .= ' OR ';
 			}
-			if ($bIgnoreCase) {
+			if ($this->parameters->getParameter('ignorecase')) {
 				$where .= "LOWER(CAST(il.il_to AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).')';
 			} else {
 				$where .= "il.il_to=".$this->DB->addQuotes($link->getDbKey());
@@ -802,7 +803,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _lastmodifiedby($option) {
-	    $sSqlCond_page_rev .= ' AND '.$this->DB->addQuotes($parameters->getParameter('lastmodifiedby')).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
+	   $this->addWhere($this->DB->addQuotes($parameters->getParameter('lastmodifiedby')).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -839,7 +840,7 @@ class Query {
 				} else {
 					$operator = '=';
 				}
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
 				} else {
 					$sSqlCond_page_pl .= ' AND		 '.$this->tableNames['pagelinks'].'.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey()).')';
@@ -879,7 +880,7 @@ class Query {
 					} else {
 						$operator = '=';
 					}
-					if ($bIgnoreCase) {
+					if ($this->parameters->getParameter('ignorecase')) {
 						$sSqlCond_page_pl .= ' AND LOWER(CAST(pl.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
 					} else {
 						$sSqlCond_page_pl .= ' AND pl.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey()).')';
@@ -906,7 +907,7 @@ class Query {
 					} else {
 						$operator = '=';
 					}
-					if ($bIgnoreCase) {
+					if ($this->parameters->getParameter('ignorecase')) {
 						$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).')';
 					} else {
 						$sSqlCond_page_pl .= ' AND '.$this->tableNames['pagelinks'].'.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey());
@@ -1230,13 +1231,13 @@ class Query {
 				$where .= ' OR ';
 			}
 			if ($this->parameters->getParameter('openreferences')) {
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$where .= 'LOWER(CAST(pl_title AS char))'.$sNotTitleMatchMode.'LOWER('.$this->DB->addQuotes($link).')';
 				} else {
 					$where .= 'pl_title'.$sNotTitleMatchMode.$this->DB->addQuotes($link);
 				}
 			} else {
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sNotTitleMatchMode.'LOWER('.$this->DB->addQuotes($link).')';
 				} else {
 					$where .= $this->tableNames['page'].'.page_title'.$sNotTitleMatchMode.$this->DB->addQuotes($link);
@@ -1273,7 +1274,7 @@ class Query {
 					$sSqlCond_page_pl .= ' OR ';
 				}
 				$sSqlCond_page_pl .= '('.$this->tableNames['templatelinks'].'.tl_namespace='.intval($link->getNamespace());
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['templatelinks'].'.tl_title AS char))=LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
 				} else {
 					$sSqlCond_page_pl .= ' AND '.$this->tableNames['templatelinks'].'.tl_title='.$this->DB->addQuotes($link->getDbKey()).')';
@@ -1547,7 +1548,7 @@ class Query {
 	 */
 	private function _title($option) {
 		if ($sTitleIs != '') {
-			if ($bIgnoreCase) {
+			if ($this->parameters->getParameter('ignorecase')) {
 				$this->addWhere("LOWER(CAST('.$this->tableNames['page'].'.page_title AS char)) = LOWER(".$this->DB->addQuotes($sTitleIs).")");
 			} else {
 				$this->addWhere($this->tableNames['page'].'.page_title = '.$this->DB->addQuotes($sTitleIs));
@@ -1620,13 +1621,13 @@ class Query {
 				$where .= ' OR ';
 			}
 			if ($this->parameters->getParameter('openreferences')) {
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$where .= 'LOWER(CAST(pl_title AS char))'.$sTitleMatchMode.strtolower($this->DB->addQuotes($link));
 				} else {
 					$where .= 'pl_title'.$sTitleMatchMode.$this->DB->addQuotes($link);
 				}
 			} else {
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$where .= 'LOWER(CAST('.$this->tableNames['page'].'.page_title AS char))'.$sTitleMatchMode.strtolower($this->DB->addQuotes($link));
 				} else {
 					$where .= $this->tableNames['page'].'.page_title'.$sTitleMatchMode.$this->DB->addQuotes($link);
@@ -1729,7 +1730,7 @@ class Query {
 					$sSqlCond_page_pl .= ' OR ';
 				}
 				$sSqlCond_page_pl .= '(tl.tl_namespace='.intval($link->getNamespace());
-				if ($bIgnoreCase) {
+				if ($this->parameters->getParameter('ignorecase')) {
 					$sSqlCond_page_pl .= " AND LOWER(CAST(tl.tl_title AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).'))';
 				} else {
 					$sSqlCond_page_pl .= " AND		 tl.tl_title=".$this->DB->addQuotes($link->getDbKey()).')';
