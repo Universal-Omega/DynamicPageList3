@@ -378,6 +378,43 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Clean and test 'categoryregexp' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _categoryregexp($option) {
+		$data = $this->getParameter('includecategories');
+		if (!is_array($data['regexp'])) {
+			$data['regexp'] = [];
+		}
+		$data['regexp'][] = $option;
+		$this->setParameter('includecategories', $data);
+		$this->setOpenReferencesConflict(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'categorymatch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _categorymatch($option) {
+		$data = $this->getParameter('includecategories');
+		if (!is_array($data['like'])) {
+			$data['like'] = [];
+		}
+		$newMatches = explode('|', $option);
+		$data['like'] = array_merge($data['like'], $newMatches);
+		$this->setParameter('includecategories', $data);
+		$this->setOpenReferencesConflict(true);
+		return true;
+	}
+
+	/**
 	 * Clean and test 'notcategory' parameter.
 	 *
 	 * @access	public
@@ -388,12 +425,42 @@ class Parameters extends ParametersData {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
 			$data = $this->getParameter('excludecategories');
-			$data[] = $title->getDbKey();
+			$data['='][] = $title->getDbKey();
 			$this->setParameter('excludecategories', $data);
 			$this->setOpenReferencesConflict(true);
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Clean and test 'notcategoryregexp' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _notcategoryregexp($option) {
+		$data = $this->getParameter('excludecategories');
+		$data['regexp'][] = $option;
+		$this->setParameter('excludecategories', $data);
+		$this->setOpenReferencesConflict(true);
+		return true;
+	}
+
+	/**
+	 * Clean and test 'notcategorymatch' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _notcategorymatch($option) {
+		$data = $this->getParameter('excludecategories');
+		$data['like'][] = $option;
+		$this->setParameter('excludecategories', $data);
+		$this->setOpenReferencesConflict(true);
+		return true;
 	}
 
 	/**
@@ -498,14 +565,11 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _distinct($option) {
-		if (in_array($option, $this->getData('distinct')['values'])) {
-			if ($option == 'strict') {
-				$this->setParameter('distinctresultset', 'strict');
-			} elseif ($this->filterBoolean($option) === true) {
-				$this->setParameter('distinctresultset', true);
-			} else {
-				$this->setParameter('distinctresultset', false);
-			}
+		$boolean = $this->filterBoolean($option);
+		if ($option == 'strict') {
+			$this->setParameter('distinctresultset', 'strict');
+		} elseif ($boolean !== null) {
+			$this->setParameter('distinctresultset', $boolean);
 		} else {
 			return false;
 		}
@@ -696,6 +760,19 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Clean and test 'includematchparsed' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _includematchparsed($option) {
+		$this->setParameter('incparsed', true);
+		$this->setParameter('seclabelsmatch', explode(',', $option));
+		return true;
+	}
+
+	/**
 	 * Clean and test 'includenotmatch' parameter.
 	 *
 	 * @access	public
@@ -703,6 +780,19 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _includenotmatch($option) {
+		$this->setParameter('seclabelsnotmatch', explode(',', $option));
+		return true;
+	}
+
+	/**
+	 * Clean and test 'includenotmatchparsed' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _includenotmatchparsed($option) {
+		$this->setParameter('incparsed', true);
 		$this->setParameter('seclabelsnotmatch', explode(',', $option));
 		return true;
 	}
@@ -905,75 +995,6 @@ class Parameters extends ParametersData {
 				$this->setOption['reset'][7] = false;
 			}
 		}
-	}
-
-	/**
-	 * Clean and test 'categoryregexp' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _categoryregexp($option) {
-		$data = $this->getParameter('includecategories');
-		if (!is_array($data['regexp'])) {
-			$data['regexp'] = [];
-		}
-		$data['regexp'][] = $option;
-		$this->setParameter('includecategories', $data);
-		$this->setOpenReferencesConflict(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'categorymatch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _categorymatch($option) {
-		$data = $this->getParameter('includecategories');
-		if (!is_array($data['like'])) {
-			$data['like'] = [];
-		}
-		$newMatches = explode('|', $option);
-		$data['like'] = array_merge($data['like'], $newMatches);
-		$this->setParameter('includecategories', $data);
-		$this->setOpenReferencesConflict(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'notcategoryregexp' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _notcategoryregexp($option) {
-		$sNotCategoryComparisonMode   = ' REGEXP ';
-		$data = $this->getParameter('excludecategories');
-		$data[] = $option;
-		$this->setParameter('excludecategories', $data);
-		$this->setOpenReferencesConflict(true);
-		return true;
-	}
-
-	/**
-	 * Clean and test 'notcategorymatch' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _notcategorymatch($option) {
-		$sNotCategoryComparisonMode   = ' LIKE ';
-		$data = $this->getParameter('excludecategories');
-		$data[] = $option;
-		$this->setParameter('excludecategories', $data);
-		$this->setOpenReferencesConflict(true);
-		return true;
 	}
 
 	/**

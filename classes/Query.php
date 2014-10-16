@@ -68,6 +68,13 @@ class Query {
 	private $this->select = [];
 
 	/**
+	 * Distinct Results
+	 *
+	 * @var		boolean
+	 */
+	private $this->distinct = true;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -131,7 +138,7 @@ class Query {
 	 * @access	public
 	 * @param	string	Raw Table Name - Will be ran through tableName().
 	 * @param	string	Table Alias
-	 * @return	boolean	Success - Added, false if the table alias already exists.
+	 * @return	boolean Success - Added, false if the table alias already exists.
 	 */
 	public function addTable($table, $alias) {
 		if (empty($table)) {
@@ -150,7 +157,7 @@ class Query {
 
 	/**
 	 * Add a where clause to the output.
-	 * Where clauses get imploded together with AND at the end.  Any custom where clauses should be preformed before placed into here.
+	 * Where clauses get imploded together with AND at the end.	 Any custom where clauses should be preformed before placed into here.
 	 *
 	 * @access	public
 	 * @param	string	Where clause
@@ -351,7 +358,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _allowcachedresults($option) {	}
+	private function _allowcachedresults($option) { }
 
 	/**
 	 * Set SQL for 'allrevisionsbefore' parameter.
@@ -433,22 +440,21 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'columns' parameter.
+	 * Set SQL for 'excludecategories' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _columns($option) {	}
-
-	/**
-	 * Set SQL for 'count' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _count($option) {	}
+	private function _excludecategories($option) {
+		foreach ($option as $comparisonType => $categories) {
+			foreach ($categories as $category) {
+				$i++;
+				$this->addJoin("LEFT OUTER JOIN {$this->tableNames['categorylinks']} AS ecl{$i} ON {$this->tableNames['page']}.page_id=ecl{$i}.cl_from AND ecl{$i}.cl_to {$comparisonType}".$this->DB->addQuotes(str_replace(' ', '_', $category)));
+				$this->addWhere("ecl{$i}.cl_to IS NULL");
+			}
+		}
+	}
 
 	/**
 	 * Set SQL for 'createdby' parameter.
@@ -460,26 +466,8 @@ class Query {
 	private function _createdby($option) {
 		$this->addTable('revision', 'creation_rev');
 		$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
-	    $this->addWhere($this->DB->addQuotes($parameters->getParameter('createdby')).' = creation_rev.rev_user_text'.' AND creation_rev.rev_page = page_id'.' AND creation_rev.rev_parent_id = 0');
+		$this->addWhere($this->DB->addQuotes($option).' = creation_rev.rev_user_text'.' AND creation_rev.rev_page = page_id'.' AND creation_rev.rev_parent_id = 0');
 	}
-
-	/**
-	 * Set SQL for 'debug' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _debug($option) {	}
-
-	/**
-	 * Set SQL for 'deleterules' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _deleterules($option) {	}
 
 	/**
 	 * Set SQL for 'distinct' parameter.
@@ -488,43 +476,15 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _distinct($option) {	}
-
-	/**
-	 * Set SQL for 'dominantsection' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _dominantsection($option) {	}
-
-	/**
-	 * Set SQL for 'dplcache' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _dplcache($option) {	}
-
-	/**
-	 * Set SQL for 'dplcacheperiod' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _dplcacheperiod($option) {	}
-
-	/**
-	 * Set SQL for 'eliminate' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _eliminate($option) {	}
+	private function _distinct($option) {
+		if ($option == 'strict' || $option === true) {
+			//@TODO: Check to add $sSqlGroupBy = 'page_title';
+			$this->distinct = true;
+		} else {
+			//@TODO: Check to remove $sSqlGroupBy = 'page_title';
+			$this->distinct = false;
+		}
+	}
 
 	/**
 	 * Set SQL for 'escapelinks' parameter.
@@ -573,7 +533,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _format($option) {	}
+	private function _format($option) { }
 
 	/**
 	 * Set SQL for 'goal' parameter.
@@ -636,7 +596,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _ignorecase($option) {	}
+	private function _ignorecase($option) { }
 
 	/**
 	 * Set SQL for 'imagecontainer' parameter.
@@ -697,105 +657,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'include' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _include($option) {	}
-
-	/**
-	 * Set SQL for 'includematch' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includematch($option) {	}
-
-	/**
-	 * Set SQL for 'includematchparsed' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includematchparsed($option) {	}
-
-	/**
-	 * Set SQL for 'includemaxlength' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includemaxlength($option) {	}
-
-	/**
-	 * Set SQL for 'includenotmatch' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includenotmatch($option) {	}
-
-	/**
-	 * Set SQL for 'includenotmatchparsed' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includenotmatchparsed($option) {	}
-
-	/**
-	 * Set SQL for 'includepage' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includepage($option) {	}
-
-	/**
-	 * Set SQL for 'includesubpages' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includesubpages($option) {	}
-
-	/**
-	 * Set SQL for 'includetrim' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _includetrim($option) {	}
-
-	/**
-	 * Set SQL for 'inlinetext' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _inlinetext($option) {	}
-
-	/**
-	 * Set SQL for 'itemattr' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _itemattr($option) {	}
-
-	/**
 	 * Set SQL for 'lastmodifiedby' parameter.
 	 *
 	 * @access	private
@@ -803,7 +664,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _lastmodifiedby($option) {
-	   $this->addWhere($this->DB->addQuotes($parameters->getParameter('lastmodifiedby')).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)');
+	   $this->addWhere($this->DB->addQuotes($option).' = (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -827,28 +688,35 @@ class Query {
 	 * @return	void
 	 */
 	private function _linksfrom($option) {
-		$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['pagelinks'].'.pl_from FROM '.$this->tableNames['pagelinks'].' WHERE (';
-		$n = 0;
-		foreach ($aNotLinksTo as $links) {
-			foreach ($links as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
+		if ($acceptOpenReferences) {
+			$sSqlCond_page_pl .= ' AND (';
+			$n = 0;
+			foreach ($aLinksFrom as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$sSqlCond_page_pl .= ' OR ';
+					}
+					$sSqlCond_page_pl .= '(pl_from=' . $link->getArticleID() . ')';
+					$n++;
 				}
-				$sSqlCond_page_pl .= '('.$this->tableNames['pagelinks'].'.pl_namespace='.intval($link->getNamespace());
-				if (strpos($link->getDbKey(), '%') >= 0) {
-					$operator = ' LIKE ';
-				} else {
-					$operator = '=';
-				}
-				if ($this->parameters->getParameter('ignorecase')) {
-					$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
-				} else {
-					$sSqlCond_page_pl .= ' AND		 '.$this->tableNames['pagelinks'].'.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey()).')';
-				}
-				$n++;
 			}
+			$sSqlCond_page_pl .= ')';
+		} else {
+			$sSqlPageLinksTable .= $sPageLinksTable . ' AS plf, ' . $sPageTable . 'AS pagesrc, ';
+			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_namespace = plf.pl_namespace AND ' . $sPageTable . '.page_title = plf.pl_title AND pagesrc.page_id=plf.pl_from AND (';
+			$sSqlSelPage = ', pagesrc.page_title AS sel_title, pagesrc.page_namespace AS sel_ns';
+			$n           = 0;
+			foreach ($aLinksFrom as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$sSqlCond_page_pl .= ' OR ';
+					}
+					$sSqlCond_page_pl .= '(plf.pl_from=' . $link->getArticleID() . ')';
+					$n++;
+				}
+			}
+			$sSqlCond_page_pl .= ')';
 		}
-		$sSqlCond_page_pl .= ') )';
 	}
 
 	/**
@@ -863,7 +731,7 @@ class Query {
 			$sSqlPageLinksTable .= $this->tableNames['pagelinks'].' AS pl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=pl.pl_from AND ';
 			$sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
-			$n           = 0;
+			$n			 = 0;
 			foreach ($aLinksTo as $linkGroup) {
 				if (++$n > 1) {
 					break;
@@ -931,7 +799,7 @@ class Query {
 			$sSqlExternalLinksTable .= $this->tableNames['externallinks'].' AS el, ';
 			$sSqlCond_page_el .= ' AND '.$this->tableNames['page'].'.page_id=el.el_from AND (';
 			$sSqlSelPage = ', el.el_to as el_to';
-			$n           = 0;
+			$n			 = 0;
 			foreach ($aLinksToExternal as $linkGroup) {
 				if (++$n > 1) {
 					break;
@@ -981,7 +849,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _listseparators($option) {	}
+	private function _listseparators($option) { }
 
 	/**
 	 * Set SQL for 'maxrevisions' parameter.
@@ -1035,8 +903,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _modifiedby($option) {
-	    $sSqlChangeRevisionTable = $this->tableNames['revision'].' AS change_rev, ';
-	    $sSqlCond_page_rev .= ' AND '.$this->DB->addQuotes($parameters->getParameter('modifiedby')).' = change_rev.rev_user_text'.' AND change_rev.rev_page = page_id';
+		$this->addTable('revision', 'change_rev');
+		$this->addWhere($this->DB->addQuotes($option).' = change_rev.rev_user_text AND change_rev.rev_page = page_id');
 	}
 
 	/**
@@ -1046,7 +914,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _multisecseparators($option) {	}
+	private function _multisecseparators($option) { }
 
 	/**
 	 * Set SQL for 'namespace' parameter.
@@ -1084,40 +952,6 @@ class Query {
 	private function _noresultsheader($option) {	}
 
 	/**
-	 * Set SQL for 'notcategory' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _notcategory($option) {
-		//@TODO: The table incremental variable needs to be on the object.
-		for ($i = 0; $i < $iExcludeCatCount; $i++) {
-			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$this->tableNames['categorylinks'].' AS cl'.$iClTable.' ON '.$this->tableNames['page'].'.page_id=cl'.$iClTable.'.cl_from'.' AND cl'.$iClTable.'.cl_to'.$sNotCategoryComparisonMode.$this->DB->addQuotes(str_replace(' ', '_', $aExcludeCategories[$i]));
-			$this->addWhere("cl{$iClTable}.cl_to IS NULL");
-			$iClTable++;
-		}
-	}
-
-	/**
-	 * Set SQL for 'notcategorymatch' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _notcategorymatch($option) {	}
-
-	/**
-	 * Set SQL for 'notcategoryregexp' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _notcategoryregexp($option) {	}
-
-	/**
 	 * Set SQL for 'notcreatedby' parameter.
 	 *
 	 * @access	private
@@ -1125,8 +959,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _notcreatedby($option) {
-	    $sSqlNoCreationRevisionTable = $this->tableNames['revision'].' AS no_creation_rev, ';
-	    $sSqlCond_page_rev .= ' AND '.$this->DB->addQuotes($parameters->getParameter('notcreatedby')).' != no_creation_rev.rev_user_text'.' AND no_creation_rev.rev_page = page_id'.' AND no_creation_rev.rev_parent_id = 0';
+		$this->addTable('revision', 'no_creation_rev');
+		$this->addWhere($this->DB->addQuotes($option).' != no_creation_rev.rev_user_text AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0');
 	}
 
 	/**
@@ -1137,7 +971,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notlastmodifiedby($option) {
-	    $sSqlCond_page_rev .= ' AND '.$this->DB->addQuotes($parameters->getParameter('notlastmodifiedby')).' != (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)';
+		$this->addWhere($this->DB->addQuotes($option).' != (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -1148,35 +982,34 @@ class Query {
 	 * @return	void
 	 */
 	private function _notlinksfrom($option) {
-		if (count($aNotLinksFrom) > 0) {
-			if ($this->parameters->getParameter('openreferences')) {
-				$sSqlCond_page_pl .= ' AND (';
-				$n = 0;
-				foreach ($aNotLinksFrom as $links) {
-					foreach ($links as $link) {
-						if ($n > 0) {
-							$sSqlCond_page_pl .= ' AND ';
-						}
-						$sSqlCond_page_pl .= 'pl_from <> '.$link->getArticleID().' ';
-						$n++;
+		if ($this->parameters->getParameter('openreferences')) {
+			$where .= '(';
+			$n = 0;
+			foreach ($option as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$where .= ' AND ';
 					}
+					$where .= 'pl_from <> '.intval($link->getArticleID()).' ';
+					$n++;
 				}
-				$sSqlCond_page_pl .= ')';
-			} else {
-				$sSqlCond_page_pl .= ' AND CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE (';
-				$n = 0;
-				foreach ($aNotLinksFrom as $links) {
-					foreach ($links as $link) {
-						if ($n > 0) {
-							$sSqlCond_page_pl .= ' OR ';
-						}
-						$sSqlCond_page_pl .= $this->tableNames['pagelinks'].'.pl_from='.$link->getArticleID().' ';
-						$n++;
-					}
-				}
-				$sSqlCond_page_pl .= '))';
 			}
+			$where .= ')';
+		} else {
+			$where .= 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE (';
+			$n = 0;
+			foreach ($option as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$where .= ' OR ';
+					}
+					$where .= $this->tableNames['pagelinks'].'.pl_from='.intval($link->getArticleID()).' ';
+					$n++;
+				}
+			}
+			$where .= '))';
 		}
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1186,7 +1019,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _notlinksto($option) {	}
+	private function _notlinksto($option) { }
 
 	/**
 	 * Set SQL for 'notmodifiedby' parameter.
@@ -1196,7 +1029,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notmodifiedby($option) {
-	    $sSqlCond_page_rev .= 'NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.$this->DB->addQuotes($parameters->getParameter('notmodifiedby')).' LIMIT 1)';
+		$this->addWhere('NOT EXISTS (SELECT 1 FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id AND '.$this->tableNames['revision'].'.rev_user_text = '.$this->DB->addQuotes($option).' LIMIT 1)');
 	}
 
 	/**
@@ -1256,7 +1089,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _nottitleregexp($option) {	}
+	private function _nottitleregexp($option) { }
 
 	/**
 	 * Set SQL for 'notuses' parameter.
@@ -1292,7 +1125,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _offset($option) {	}
+	private function _offset($option) { }
 
 	/**
 	 * Set SQL for 'oneresultfooter' parameter.
@@ -1319,7 +1152,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _openreferences($option) {	}
+	private function _openreferences($option) { }
 
 	/**
 	 * Set SQL for 'order' parameter.
@@ -1337,7 +1170,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _ordercollation($option) {	}
+	private function _ordercollation($option) { }
 
 	/**
 	 * Set SQL for 'ordermethod' parameter.
@@ -1393,7 +1226,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _replaceintitle($option) {	}
+	private function _replaceintitle($option) { }
 
 	/**
 	 * Set SQL for 'reset' parameter.
@@ -1456,7 +1289,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _scroll($option) {	}
+	private function _scroll($option) { }
 
 	/**
 	 * Set SQL for 'secseparators' parameter.
@@ -1510,7 +1343,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _suppresserrors($option) {	}
+	private function _suppresserrors($option) { }
 
 	/**
 	 * Set SQL for 'table' parameter.
@@ -1646,7 +1479,7 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _titlemaxlength($option) {	}
+	private function _titlemaxlength($option) { }
 
 	/**
 	 * Set SQL for 'titleregexp' parameter.
@@ -1688,9 +1521,9 @@ class Query {
 				$sSqlCond_page_tpl .= ')';
 			} else {
 				$sSqlPageLinksTable .= $this->tableNames['templatelinks'].' AS tpl, '.$this->tableNames['page'].'AS tplsrc, ';
-				$sSqlCond_page_tpl .= ' AND '.$this->tableNames['page'].'.page_title = tpl.tl_title  AND tplsrc.page_id=tpl.tl_from AND (';
+				$sSqlCond_page_tpl .= ' AND '.$this->tableNames['page'].'.page_title = tpl.tl_title	 AND tplsrc.page_id=tpl.tl_from AND (';
 				$sSqlSelPage = ', tplsrc.page_title AS tpl_sel_title, tplsrc.page_namespace AS tpl_sel_ns';
-				$n           = 0;
+				$n			 = 0;
 				foreach ($aUsedBy as $link) {
 					if ($n > 0) {
 						$sSqlCond_page_tpl .= ' OR ';
@@ -1723,7 +1556,7 @@ class Query {
 	private function _uses($option) {
 		if (count($aUses) > 0) {
 			$sSqlPageLinksTable .= ' '.$this->tableNames['templatelinks'].' as tl, ';
-			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=tl.tl_from  AND (';
+			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=tl.tl_from	 AND (';
 			$n = 0;
 			foreach ($aUses as $link) {
 				if ($n > 0) {

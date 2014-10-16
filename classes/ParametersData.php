@@ -273,8 +273,8 @@ class ParametersData {
 		 * perform the command and do not query the database
 		 */
 		'execandexit' => [
-			'default'			=> false,
-			'boolean'			=> true
+			'default'	=> false,
+			'boolean'	=> true
 		],
 		
 		/**
@@ -302,7 +302,10 @@ class ParametersData {
 		/**
 		 * shall the result set be distinct (=default) or not?
 		 */
-		'distinct'			   => array('default' => 'true', 'strict', 'false', 'no', 'yes', '0', '1', 'off', 'on'),
+		'distinct' => [
+			'default'	=> 'true',
+			'values'	=> ['strict']
+		],
 
 		'dplcache' => [
 			'default' => ''
@@ -395,14 +398,18 @@ class ParametersData {
 		 * @todo Make 'hitemattr' param applicable to  'none', 'definition', 'H2', 'H3', 'H4' headingmodes.
 		 * Example: hitemattr= class="topmenuli" style="color: red;"
 		 */
-		'hitemattr'			   => array('default' => ''),
+		'hitemattr' => [
+			'default'	=> null
+		],
 		/**
 		 * Attributes for the HTML list element at the heading/top level, depending on 'headingmode' (e.g. 'ol' for ordered, 'ul' for unordered, 'dl' for definition)
 		 * Not yet applicable to 'headingmode=none'.
 		 * @todo Make 'hlistattr' param applicable to  headingmode=none.
 		 * Example: hlistattr= class="topmenul" id="dmenu"
 		 */
-		'hlistattr'			   => array('default' => ''),
+		'hlistattr' => [
+			'default'	=> null
+		],
 		/**
 		 * PAGE TRANSCLUSION: includepage=... or include=...
 		 * To include the whole page, use a wildcard:
@@ -417,7 +424,9 @@ class ParametersData {
 		 * includepage =
 		 */
 
-		'includepage'		   => array('default' => ''),
+		'includepage' => [
+			'default'	=> null
+		],
 		/**
 		 * make comparisons (linksto, linksfrom ) case insensitive
 		 */
@@ -438,7 +447,9 @@ class ParametersData {
 		/**
 		 * includematch=..,..	 allows to specify regular expressions which must match the included contents
 		 */
-		'includematch'		 => array('default' => ''),
+		'includematch' => [
+			'default'	=> null
+		],
 		'includematchparsed' => [
 			'default'	=> false,
 			'boolean'	=> true
@@ -446,7 +457,9 @@ class ParametersData {
 		/** 
 		 * includenotmatch=..,..	allows to specify regular expressions which must NOT match the included contents
 		 */
-		'includenotmatch'		=> array('default' => ''),
+		'includenotmatch' => [
+			'default'	=> null
+		],
 		'includenotmatchparsed' => [
 			'default'	=> false,
 			'boolean'	=> true

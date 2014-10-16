@@ -1093,7 +1093,36 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 
 		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
 
-		$dpl = new DynamicPageList($aHeadings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $aArticles, $aOrderMethods[0], $hListMode, $listMode, $bEscapeLinks, $bAddExternalLink, $bIncPage, $iIncludeMaxLen, $aSecLabels, $aSecLabelsMatch, $aSecLabelsNotMatch, $bIncParsed, $parser, $logger, $aReplaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $sUpdateRules, $sDeleteRules);
+		$dpl = new DynamicPageList(
+			$aHeadings,
+			$bHeadingCount,
+			$iColumns,
+			$iRows,
+			$iRowSize,
+			$sRowColFormat,
+			$aArticles,
+			$aOrderMethods[0],
+			$hListMode,
+			$listMode,
+			$bEscapeLinks,
+			$bAddExternalLink,
+			$bIncPage,
+			$iIncludeMaxLen,
+			$aSecLabels,
+			$aSecLabelsMatch,
+			$aSecLabelsNotMatch,
+			$bIncParsed,
+			$parser,
+			$logger,
+			$aReplaceInTitle,
+			$iTitleMaxLen,
+			$defaultTemplateSuffix,
+			$aTableRow,
+			$bIncludeTrim,
+			$iTableSortCol,
+			$sUpdateRules,
+			$sDeleteRules
+		);
 
 		if ($rowcount == -1) {
 			$rowcount = $dpl->getRowCount();
