@@ -360,13 +360,10 @@ class Parameters extends ParametersData {
 		}
 		if (!empty($categories)) {
 			$data = $this->getParameter('includecategories');
-			if ($operator == 'OR') {
-				$data['='] = $categories;
-			} else {
-				foreach ($categories as $category) {
-					$data['='] = [$category];
-				}
+			if (!is_array($data[$operator])) {
+				$data[$operator] = [];
 			}
+			$data[$operator] = array_merge($data[$operator], $categories);
 			$this->setParameter('includecategories', $data);
 			if ($heading) {
 				$this->setParameter('catheadings', array_unique($this->getParameter('catheadings') + $categories));

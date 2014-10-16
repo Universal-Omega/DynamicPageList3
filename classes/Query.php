@@ -411,11 +411,16 @@ class Query {
 	 * @return	void
 	 */
 	private function _includecategories($option) {
+		if (array_key_exists('AND', $option)) {
+			$ands = $options['AND'];
+			unset($options['AND']);
+			$options = array_merge($options, $ands);
+		}
 		foreach ($option as $comparisonType => $categories) {
 			$i++;
 			$addJoin = "INNER JOIN ".(in_array('', $aIncludeCategories[$i]) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
 			foreach ($categories as $category) {
-				$ors[] = 'cl'.$i.'.cl_to '.$comparisonType.' '.self::$DB->addQuotes(str_replace(' ', '_', $category));
+				$ors[] = 'cl'.$i.'.cl_to '.(empty($comparisonType) || $comparisonType == 'OR' ? '=' : $comparisonType).' '.self::$DB->addQuotes(str_replace(' ', '_', $category));
 			}
 			$addJoin .= implode(' OR ', $ors);
 			$addJoin .= ')';
