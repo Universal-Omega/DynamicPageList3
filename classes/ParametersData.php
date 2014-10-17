@@ -17,7 +17,7 @@ class ParametersData {
 	 *
 	 * @var		integer
 	 */
-	static private $parameterRichness = 0;
+	private $parameterRichness = 0;
 
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
@@ -1092,6 +1092,9 @@ class ParametersData {
 	 * @return	void
 	 */
 	public function __construct() {
+		$this->setRichness(Config::getSetting('functionalRichness'));
+
+		//@TODO: Make sure this calls to the correct place during alpha/beta testing.
 		if (\DynamicPageListHooks::isLikeIntersection()) {
 			$this->data['ordermethod'] = [
 				'default'	=> 'categoryadd',
@@ -1156,8 +1159,8 @@ class ParametersData {
 	 * @param	integer	Integer level.
 	 * @return	void
 	 */
-    static public function setRichness($level) {
-		self::$parameterRichness = intval($level);
+    public function setRichness($level) {
+		$this->parameterRichness = intval($level);
 	}
 
 	/**
@@ -1166,8 +1169,8 @@ class ParametersData {
 	 * @access	public
 	 * @return	integer
 	 */
-	static public function getRichness() {
-		return self::$parameterRichness;
+	public function getRichness() {
+		return $this->parameterRichness;
 	}
 
 	/**
@@ -1177,9 +1180,9 @@ class ParametersData {
 	 * @param	string	Function to test.
 	 * @return	boolean	Valid for this functional richness level.
 	 */
-	static public function testRichness($function) {
+	public function testRichness($function) {
 		$valid = false;
-		for ($i = 0; $i <= self::getRichness(); $i++) {
+		for ($i = 0; $i <= $this->getRichness(); $i++) {
 			if (in_array($function, self::$parametersForRichnessLevel[$i])) {
 				$valid = true;
 				break;
@@ -1195,9 +1198,9 @@ class ParametersData {
 	 * @param	integer	[Optional] Maximum richness level
 	 * @return	array	The functional richness parameters list.
 	 */
-	static public function getParametersForRichness($level = null) {
+	public function getParametersForRichness($level = null) {
 		if ($level === null) {
-			$level = self::getRichness();
+			$level = $this->getRichness();
 		}
 
 		$parameters = [];

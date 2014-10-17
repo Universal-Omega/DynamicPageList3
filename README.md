@@ -1,47 +1,10 @@
-   This is the main entry point for DPL installations
-   --------------------------------------------------
+Dynamic Page List
+=================
 
-	In your LocalSettings.php you write:
+The DynamicPageList extension is a reporting tool for MediaWiki, listing category members, and intersections with various formats and details.  For full documentation, see the [manual](http://semeb.com/dpldemo/DPL:Manual) (Handbuch in Deutsch [Hilfe:DynamicPageList](http://www.wiki-aventurica.de/wiki/Hilfe:Dynamic_Page_List)).
 
-        require_once( "$IP/extensions/DynamicPageList/DynamicPageList.php" );
+In its most basic form DPL displays a list of pages in one or more categories.  Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles.  Output takes a variety of forms some of which incorporate elements of selected articles.
 
-	DPL has many features. If you do not want to enable all of them
-	you can define the "Level of Functional Richness" you want to offer to your users.
-	Make the following call in your LocalSettings.php after the require_once() statement:
+This extension is invoked with the parser function {{#dpl: .... }} or parser tag <dpl>.  A Wikimedia-compatible implementation of certain features can be invoked with <DynamicPageList>.
 
-        DynamicPageListHooks::setFunctionalRichness(  <n>  );
-
-	where <n> is a number between 0 and 4.
-
-	If your wiki has been using Extension:Intersection you must UNINSTALL that
-	extension before you can use DynamicPageList (DPL).
-
-	DPL is downward compatible with Extension:Intersection. It registers
-	the tag <DynamicPageList> and behaves exactly like ExtensionIntersection
-	(without any additional functionality).
-
-	Note that there are subtle differences in the default settings for order and ordermethod
-	between <DynamicPageList> and <DPL>. Therefore you cannot always expect the same result
-	if you change these tags.
-
-	If your wiki has been using Extension:Intersection you may want to install
-	DPL in parallel to that extension before you replace Extension:Intersection by DPL.
-	In this case you must require_once("DynamicPageListMigration.php") instead of the current file
-	in your LocalSettings.php.
-
-	Some functions of DPL are quite useful but if abused (by error or bad intention) they may put severe load
-	on your server / database. For wikis up to 10.000 pages this is normally not a problem,
-	but with larger wikis some care is advisable.
-
-	By default the RichnessLevel is set to 4 (= activate whole set of functions).
-
-	Use a different value if you do not feel comfortable with this:
-	-  level=0 will not allow any additional functionality (compared to Extension:Intersection).
-	-  level=1 brings a series of improvements which will not affect performance
-	-  level=2 brings some additional features which are roughly on the same level of database load
-			   as the basic functionality; also contains content transclusion (which may require
-               the DPL-cache on huge websites)
-	-  level=3 brings more new features: selection based on regular expressions, queries on
-	           revision level
-	-  level=4 adds a few additional features which are useful for private websites (like batch updates)
-               but should not be made available on huge public websites.
+DPL can result in computationally-expensive database queries. For best performance, use the optional parameters allowcachedresults and/or dplcache where possible.

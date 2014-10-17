@@ -219,7 +219,7 @@ class Parameters extends ParametersData {
 	 * @return	void
 	 */
 	private function setDefaults() {
-		$parameters = self::getParametersForRichness();
+		$parameters = $this->getParametersForRichness();
 		foreach ($parameters as $parameter) {
 			if ($this->getData($parameter)['default'] !== null) {
 				$this->setParameter($parameter, $this->getData($parameter)['default']);

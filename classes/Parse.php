@@ -184,7 +184,7 @@ class Parse {
 				$parameter = str_replace('>', 'gt', $parameter);
 			}
 
-			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !ParametersData::testRichness($parameter))) {
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !$this->testRichness($parameter))) {
 				continue;
 			}
 
