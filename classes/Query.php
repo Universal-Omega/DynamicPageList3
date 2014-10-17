@@ -930,6 +930,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notuses($option) {
+		//@TODO: Fix up this function.
 		if (count($aNotUses) > 0) {
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['templatelinks'].'.tl_from FROM '.$this->tableNames['templatelinks'].' WHERE (';
 			$n = 0;

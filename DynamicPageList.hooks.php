@@ -230,7 +230,7 @@ class DynamicPageListHooks {
 	 * @return	string	HTML
 	 */
 	public static function intersectionTag($input, $params = array(), Parser $parser, PPFrame $frame) {
-		self::behaveLikeIntersection(true);
+		self::setLikeIntersection(true);
 		return self::executeTag($input, $params = array(), $parser, $frame);
 	}
 
@@ -245,7 +245,7 @@ class DynamicPageListHooks {
 	 * @return	string	HTML
 	 */
 	public static function dplTag($input, $params = array(), Parser $parser, PPFrame $frame) {
-		self::behaveLikeIntersection(false);
+		self::setLikeIntersection(false);
 		return self::executeTag($input, $params = array(), $parser, $frame);
 	}
 
@@ -264,7 +264,8 @@ class DynamicPageListHooks {
 		// create list and do a recursive parse of the output
 
 		// $dump1	= self::dumpParsedRefs($parser,"before DPL tag");
-		$text	 = \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'tag');
+		$parse = new \DPL\Parse();
+		$text = $parse->parse($input, $params, $parser, $reset, 'tag');
 		// $dump2	= self::dumpParsedRefs($parser,"after DPL tag");
 		if ($reset[1]) {	// we can remove the templates by save/restore
 			$saveTemplates = $parser->mOutput->mTemplates;
@@ -298,7 +299,7 @@ class DynamicPageListHooks {
 	 * @return	string	Wiki Text
 	 */
 	static public function dplParserFunction(&$parser) {
-		self::behaveLikeIntersection(false);
+		self::setLikeIntersection(false);
 
 		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
 		$params = array();
@@ -321,11 +322,12 @@ class DynamicPageListHooks {
 
 
 		// $dump1	= self::dumpParsedRefs($parser,"before DPL func");
-		// $text	= \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'func');
+		// $text	= \DPL\Parse::parse($input, $params, $parser, $reset, 'func');
 		// $dump2	= self::dumpParsedRefs($parser,"after DPL func");
 		// return $dump1.$text.$dump2;
 
-		$dplresult = \DPL\Main::dynamicPageList($input, $params, $parser, $reset, 'func');
+		$parse = new \DPL\Parse();
+		$dplresult = $parse->parse($input, $params, $parser, $reset, 'func');
 		return array( // parser needs to be coaxed to do further recursive processing
 			$parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
 			'isLocalObj' => true,

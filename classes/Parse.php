@@ -16,7 +16,42 @@ class Parse {
 	 *
 	 * @var		object
 	 */
-	static private $DB = null;
+	private $DB = null;
+
+	/**
+	 * \DPL\Parameters Object
+	 *
+	 * @var		object
+	 */
+	private $parameters = null;
+
+	/**
+	 * \DPL\Logger Object
+	 *
+	 * @var		object
+	 */
+	private $logger = null;
+
+	/**
+	 * Array of prequoted table names.
+	 *
+	 * @var		object
+	 */
+	private $tableNames = null;
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function __construct() {
+		$this->DB = wfGetDB(DB_SLAVE);
+		$this->parameters = new Parameters();
+		$this->logger = new Logger();
+		$this->tableNames = Query::getTableNames();
+		$this->getUrlArgs();
+	}
 
 	/**
 	 * The real callback function for converting the input text to wiki text output
@@ -25,28 +60,14 @@ class Parse {
 	 * @param	
 	 * @return	string	Wiki/HTML Output
 	 */
-	public static function dynamicPageList($input, $params, $parser, &$bReset, $calledInMode) {
+	public function parse($input, $params, $parser, &$bReset, $calledInMode) {
 		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
-
-		// Output
-		$output = '';
-
-		//Make sure database is setup.
-		self::$DB = wfGetDB(DB_SLAVE);
-
-		//logger (display of debug messages)
-		$logger = new Logger();
 
 		//check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
-			$logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
-			return $logger->getMessages();
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			return $this->logger->getMessages();
 		}
-
-		/**
-		 * Initialization
-		 */
-		$parameters = new Parameters();
 
 		$dplStartTime = microtime(true);
 
@@ -55,39 +76,9 @@ class Parse {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page
 			// which is protected. Then there would be no need for the article to be protected.
 			// BUT: How can one find out from which wiki source an extension has been invoked???
-			$logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
-			return $logger->getMessages();
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
+			return $this->logger->getMessages();
 		}
-
-		$tableNames = Query::getTableNames();
-
-		// Extension variables
-		// Allowed namespaces for DPL: all namespaces except the first 2: Media (-2) and Special (-1), because we cannot use the DB for these to generate dynamic page lists.
-		if (!is_array(\DynamicPageListHooks::$allowedNamespaces)) { // Initialization
-			$aNs                                   = $wgContLang->getNamespaces();
-			\DynamicPageListHooks::$allowedNamespaces = array_slice($aNs, 2, count($aNs), true);
-			if (!is_array(Options::$options['namespace'])) {
-				Options::$options['namespace'] = \DynamicPageListHooks::$allowedNamespaces;
-			} else {
-				// Make sure user namespace options are allowed.
-				Options::$options['namespace'] = array_intersect(Options::$options['namespace'], \DynamicPageListHooks::$allowedNamespaces);
-			}
-			if (!isset(Options::$options['namespace']['default'])) {
-				Options::$options['namespace']['default'] = null;
-			}
-			if (!is_array(Options::$options['notnamespace'])) {
-				Options::$options['notnamespace'] = \DynamicPageListHooks::$allowedNamespaces;
-			} else {
-				Options::$options['notnamespace'] = array_intersect(Options::$options['notnamespace'], \DynamicPageListHooks::$allowedNamespaces);
-			}
-			if (!isset(Options::$options['notnamespace']['default'])) {
-				Options::$options['notnamespace']['default'] = null;
-			}
-		}
-
-		// check parameters which can be set via the URL
-
-		self::getUrlArgs();
 
 		if (strpos($input, '{%DPL_') >= 0) {
 			for ($i = 1; $i <= 5; $i++) {
@@ -165,7 +156,7 @@ class Parse {
 
 		foreach ($rawParameters as $key => $parameterOption) {
 			if (strpos($parameterOption, '=') === false) {
-				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
 				continue;
 			}
 
@@ -179,12 +170,12 @@ class Parse {
 				$parameter = str_replace('>', 'gt', $parameter);
 			}
 
-			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !$this->testRichness($parameter))) {
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->testRichness($parameter))) {
 				continue;
 			}
 
-			if (!$parameters->exists($parameter)) {
-				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+			if (!$this->parameters->exists($parameter)) {
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
 			}
 
 			//Ignore parameter settings without argument (except namespace and category)
@@ -195,9 +186,9 @@ class Parse {
 			}
 
 			//Parameter functions generally return their processed options, but we will grab them all at the end instead.
-			if ($parameters->$function($option) === false) {
+			if ($this->parameters->$function($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
-				$logger->msgWrongParam($parameter, $option);
+				$this->logger->msgWrongParam($parameter, $option);
 			}
 		}
 
@@ -213,7 +204,7 @@ class Parse {
 				$iCount = intval($sCount);
 			} else {
 				// wrong value
-				$output .= $logger->msgWrongParam('count', "$sCount : not a number!");
+				$output .= $this->logger->msgWrongParam('count', "$sCount : not a number!");
 				$iCount = 1;
 			}
 		}
@@ -265,7 +256,7 @@ class Parse {
 						$cachePeriod    = self::durationTime($iDPLCachePeriod);
 						$diffTime       = self::durationTime($diff);
 						$output .= substr($cachedOutput, $cachedOutputPos + 4);
-						if ($logger->iDebugLevel >= 2) {
+						if ($this->logger->iDebugLevel >= 2) {
 							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$iOffset}}";
 						}
 						// ignore further parameters, stop processing, return cache content
@@ -276,8 +267,8 @@ class Parse {
 		}
 
 		// debug level 5 puts nowiki tags around the output
-		if ($logger->iDebugLevel == 5) {
-			$logger->iDebugLevel = 2;
+		if ($this->logger->iDebugLevel == 5) {
+			$this->logger->iDebugLevel = 2;
 			$sResultsHeader      = '<pre><nowiki>' . $sResultsHeader;
 			$sResultsFooter .= '</nowiki></pre>';
 		}
@@ -333,20 +324,20 @@ class Parse {
 
 		// too many categories!
 		if (($iTotalCatCount > \DynamicPageListHooks::$maxCategoryCount) && (!\DynamicPageListHooks::$allowUnlimitedCategories)) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
 		}
 
 		// too few categories!
 		if ($iTotalCatCount < \DynamicPageListHooks::$minCategoryCount) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
 		}
 
 		// no selection criteria! Warn only if no debug level is set
 		if ($iTotalCatCount == 0 && $bSelectionCriteriaFound == false) {
-			if ($logger->iDebugLevel <= 1) {
+			if ($this->logger->iDebugLevel <= 1) {
 				return $output;
 			}
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
 		}
 
 		// ordermethod=sortkey requires ordermethod=category
@@ -355,22 +346,22 @@ class Parse {
 
 		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
 		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
 		}
 
 		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
 		// we ALLOW this parameter combination, risking ambiguous results
 		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
+		//	return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
 
 		// no more than one type of date at a time!
 		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage
 		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
 		}
 
 		// category-style output requested with not compatible order method
@@ -379,7 +370,7 @@ class Parse {
 			'title',
 			'titlewithoutnamespace'
 		))) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
@@ -387,7 +378,7 @@ class Parse {
 			'pagetouched',
 			'title'
 		))) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -396,7 +387,7 @@ class Parse {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -409,13 +400,13 @@ class Parse {
 			'firstedit',
 			'lastedit'
 		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
 		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
 			'firstedit',
 			'lastedit'
 		))) {
-			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
 		/**
@@ -424,26 +415,26 @@ class Parse {
 		if ($bIncludeUncat) {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!self::$DB->tableExists('dpl_clview')) {
-				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $tableNames['page'] . ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' ON ' . $tableNames['page'] . '.page_id=cl_from';
-				$logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
+				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
+				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
 				return $output;
 			}
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
 		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
-			$logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
 		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
-			$logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
 			$sHListMode = 'none';
 		}
 
 		// openreferences is incompatible with many other options
 		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
-			$logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
 			$acceptOpenReferences = false;
 		}
 
@@ -492,7 +483,7 @@ class Parse {
 		// recent changes  =============================
 
 		if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
-			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlRevisionTable = $this->tableNames['revision'] . ' AS rev, ';
 			$sSqlRev_timestamp = ', rev_timestamp';
 			$sSqlRev_id        = ', rev_id';
 
@@ -503,12 +494,12 @@ class Parse {
 		if ($acceptOpenReferences) {
 			// SELECT ... FROM
 			if (count($aImageContainer) > 0) {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $tableNames['imagelinks'] . ' AS ic';
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $this->tableNames['imagelinks'] . ' AS ic';
 			} else {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $tableNames['pagelinks'];
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $this->tableNames['pagelinks'];
 			}
 		} else {
-			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $tableNames['page'] . '.page_namespace AS page_namespace,' . $tableNames['page'] . '.page_title AS page_title,' . $tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $tableNames['page'];
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $this->tableNames['page'] . '.page_namespace AS page_namespace,' . $this->tableNames['page'] . '.page_title AS page_title,' . $this->tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $this->tableNames['page'];
 		}
 
 		// JOIN ...
@@ -530,7 +521,7 @@ class Parse {
 
 		// check against forbidden namespaces
 		if (is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0 && implode(',', $wgNonincludableNamespaces) != '') {
-			$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
+			$sSqlWhere .= ' AND ' . $this->tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
 		}
 
 		// page_id=pl.pl_from (if pagelinks table required)
@@ -549,7 +540,7 @@ class Parse {
 			);
 			# Either involves the same JOIN here...
 			if (in_array($sStable, $filterSet) || in_array($sQuality, $filterSet)) {
-				$sSqlSelectFrom .= " LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id";
+				$sSqlSelectFrom .= " LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id";
 			}
 			switch ($sStable) {
 				case 'only':
@@ -598,7 +589,7 @@ class Parse {
 		// of a selection on the categorylinks
 
 		if ($sGoal == 'categories') {
-			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $tableNames['categorylinks'] . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $tableNames['page'] . '.page_id FROM ', $sSqlSelectFrom);
+			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $this->tableNames['categorylinks'] . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $this->tableNames['page'] . '.page_id FROM ', $sSqlSelectFrom);
 			if ($sOrder == 'descending') {
 				$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
 			} else {
@@ -608,13 +599,13 @@ class Parse {
 
 
 		// ###### DUMP SQL QUERY ######
-		if ($logger->iDebugLevel >= 3) {
+		if ($this->logger->iDebugLevel >= 3) {
 			//DEBUG: output SQL query
 			$output .= "DPL debug -- Query=<br />\n<tt>" . $sSqlSelectFrom . $sSqlWhere . "</tt>\n\n";
 		}
 
 		// Do NOT proces the SQL command if debug==6; this is useful if the SQL statement contains bad code
-		if ($logger->iDebugLevel == 6) {
+		if ($this->logger->iDebugLevel == 6) {
 			return $output;
 		}
 
@@ -644,7 +635,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 			self::$DB->freeResult($res);
 			return $output;
@@ -888,7 +879,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 
 		// special sort for card suits (Bridge)
 		if ($bOrderSuitSymbols) {
-			self::cardSuitSort($aArticles);
+			$aArticles = self::cardSuitSort($aArticles);
 		}
 
 
@@ -946,7 +937,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
 			}
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 		} else {
 			if ($sResultsHeader != '') {
@@ -1011,7 +1002,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			fwrite($cFile, $output);
 			fclose($cFile);
 			$dplElapsedTime = time() - $dplStartTime;
-			if ($logger->iDebugLevel >= 2) {
+			if ($this->logger->iDebugLevel >= 2) {
 				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$iOffset}}";
 			}
 			$parser->disableCache();
@@ -1095,10 +1086,10 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			self::$DB = wfGetDB(DB_SLAVE);
 		}
 		$cats = $cat;
-		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='".NS_CATEGORY."'");
+		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $this->tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='".NS_CATEGORY."'");
 		foreach ($res as $row) {
 			if ($depth > 1) {
-				$cats .= '|' . self::getSubcategories($row->page_title, $tableNames['page'], $depth - 1);
+				$cats .= '|' . self::getSubcategories($row->page_title, $this->tableNames['page'], $depth - 1);
 			} else {
 				$cats .= '|' . $row->page_title;
 			}
@@ -1139,10 +1130,15 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		}
 	}
 
-	// this function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc
-	// in the form of a variable which can be accessed as {{#var:xyz}} if ExtensionVariables is installed
-	private static function getUrlArgs() {
+	/**
+	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	private function getUrlArgs() {
 		global $wgRequest, $wgExtVariables;
+		//@TODO: Figure out why this function needs to set ALL request variables and not just those related to DPL.
 		$args = $wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
 			Variables::setVar(array(
@@ -1162,8 +1158,12 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		}
 	}
 
-	// this function uses the Variables extension to provide navigation aids like DPL_firstTitle, DPL_lastTitle, DPL_findTitle
-	// these variables can be accessed as {{#var:DPL_firstTitle}} etc. if ExtensionVariables is installed
+	/**
+	 * This function uses the Variables extension to provide navigation aids like DPL_firstTitle, DPL_lastTitle, DPL_findTitle.  These variables can be accessed as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
 	private static function defineScrollVariables($firstNamespace, $firstTitle, $lastNamespace, $lastTitle, $scrollDir, $dplCount, $dplElapsedTime, $totalPages, $pages) {
 		global $wgExtVariables;
 		Variables::setVar(array(
@@ -1236,7 +1236,14 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		$wgExtVariables->vardefine($dummy, 'DPL_pages', $pages);
 	}
 
-	private static function cardSuitSort(&$articles) {
+	/**
+	 * Sort an array of Article objects by the card suit symbol.
+	 *
+	 * @access	public
+	 * @param	array	Article objects in an array.
+	 * @return	array	Sorted objects
+	 */
+	private static function cardSuitSort($articles) {
 		$skey = array();
 		for ($a = 0; $a < count($articles); $a++) {
 			$title  = preg_replace('/.*:/', '', $articles[$a]->mTitle);
@@ -1277,6 +1284,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			$key          = intval(preg_replace('/.*#/', '', $skey[$a]));
 			$articles[$a] = $cArticles[$key];
 		}
+		return $articles;
 	}
 }
 ?>
