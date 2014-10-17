@@ -262,24 +262,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'addeditdate' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _addeditdate($option) {	}
-
-	/**
-	 * Set SQL for 'addexternallink' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _addexternallink($option) {	}
-
-	/**
 	 * Set SQL for 'addfirstcategorydate' parameter.
 	 *
 	 * @access	private
@@ -350,15 +332,6 @@ class Query {
 	private function _adduser($option) {
 		$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 	}
-
-	/**
-	 * Set SQL for 'allowcachedresults' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _allowcachedresults($option) { }
 
 	/**
 	 * Set SQL for 'allrevisionsbefore' parameter.
@@ -487,24 +460,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'escapelinks' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _escapelinks($option) {	}
-
-	/**
-	 * Set SQL for 'execandexit' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _execandexit($option) {	}
-
-	/**
 	 * Set SQL for 'firstrevisionsince' parameter.
 	 *
 	 * @access	private
@@ -516,15 +471,6 @@ class Query {
 		$this->addSelect(['rev_id', 'rev_timestamp']);
 		$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$this->DB->addQuotes($option).')');
 	}
-
-	/**
-	 * Set SQL for 'fixcategory' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _fixcategory($option) {	}
 
 	/**
 	 * Set SQL for 'format' parameter.
@@ -542,25 +488,9 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _goal($option) {	}
-
-	/**
-	 * Set SQL for 'headingcount' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _headingcount($option) {	}
-
-	/**
-	 * Set SQL for 'headingmode' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _headingmode($option) {	}
+	private function _goal($option) {
+		//@TODO: This function.  Does some weird changes to the output.
+	}
 
 	/**
 	 * Set SQL for 'hiddencategories' parameter.
@@ -569,34 +499,9 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _hiddencategories($option) {	}
-
-	/**
-	 * Set SQL for 'hitemattr' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _hitemattr($option) {	}
-
-	/**
-	 * Set SQL for 'hlistattr' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _hlistattr($option) {	}
-
-	/**
-	 * Set SQL for 'ignorecase' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _ignorecase($option) { }
+	private function _hiddencategories($option) {
+		//@TODO: Unfinished functionality!  Never implemented by original by original author.
+	}
 
 	/**
 	 * Set SQL for 'imagecontainer' parameter.
