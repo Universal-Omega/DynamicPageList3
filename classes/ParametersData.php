@@ -165,7 +165,7 @@ class ParametersData {
 	 *
 	 * @var		array
 	 */ 
-	private $data = array(
+	private $data = [
 		'addauthor' => [
 			'default'			=> false,
 			'boolean'			=> true,
@@ -223,8 +223,8 @@ class ParametersData {
 		],
 		
 		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
-		'allowcachedresults' [
-			'default'			=> \DynamicPageListHooks::$respectParserCache,
+		'allowcachedresults' => [
+			'default'			=> '',//\DynamicPageListHooks::$respectParserCache,
 			'boolean'			=> true
 		],
 		/**
@@ -657,7 +657,7 @@ class ParametersData {
 		/**
 		 * allows to specify a username who must be the last editor of the pages we select
 		 */
-		'lastmodifiedby'	=> [
+		'lastmodifiedby' => [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true
@@ -977,6 +977,7 @@ class ParametersData {
 				'images',
 				'all',
 				'none'
+			]
 		],
 		/**
 		 * fixcategory=..	prevents a category from being reset
@@ -1004,7 +1005,7 @@ class ParametersData {
 		 * the html tags used for columns and rows
 		 */
 		'rowcolformat' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		/**
@@ -1080,7 +1081,7 @@ class ParametersData {
 			'default'	=> null,
 			'integer'	=> true
 		]
-	);
+	];
 
 	/**
 	 * Main Constructor

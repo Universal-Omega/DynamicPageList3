@@ -30,7 +30,7 @@ class Query {
 	 *
 	 * @var		array
 	 */
-	private $this->tableNames = [];
+	private $tableNames = [];
 
 	/**
 	 * Parameters that have already been processed.
@@ -44,35 +44,35 @@ class Query {
 	 *
 	 * @var		array
 	 */
-	private $this->tables = [];
+	private $tables = [];
 
 	/**
 	 * Where Clauses
 	 *
 	 * @var		array
 	 */
-	private $this->where = [];
+	private $where = [];
 
 	/**
 	 * Group By Clauses
 	 *
 	 * @var		array
 	 */
-	private $this->groupBy = [];
+	private $groupBy = [];
 
 	/**
 	 * Select Fields
 	 *
 	 * @var		array
 	 */
-	private $this->select = [];
+	private $select = [];
 
 	/**
 	 * Distinct Results
 	 *
 	 * @var		boolean
 	 */
-	private $this->distinct = true;
+	private $distinct = true;
 
 	/**
 	 * Main Constructor
@@ -394,7 +394,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _articlecategory($option) {
-		$this->addWhere("{$this->tableNames['page']}.page_title IN (SELECT p2.page_title FROM {$this->tableNames['page']} p2 INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".$this->DB->addQuotes($option).") WHERE p2.page_namespace = 0)";
+		$this->addWhere("{$this->tableNames['page']}.page_title IN (SELECT p2.page_title FROM {$this->tableNames['page']} p2 INNER JOIN {$this->tableNames['categorylinks']} clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ".$this->DB->addQuotes($option).") WHERE p2.page_namespace = 0)");
 	}
 
 	/**
