@@ -283,6 +283,34 @@ class Query {
 	}
 
 	/**
+	 * Recursively get and return an array of subcategories.
+	 *
+	 * @access	public
+	 * @param	string	Category Name
+	 * @param	integer	[Optional] Maximum Depth
+	 * @return	array	Subcategories
+	 */
+	static private function getSubcategories($categoryName, $depth = 1) {
+		if ($depth > 2) {
+			//Hard constrain depth because lots of recursion is bad.
+			$depth = 2;
+		}
+		$categories = [];
+		//@TODO: Convert this to a proper $this->DB->select() statement.
+		$res = $this->DB->query("SELECT DISTINCT page_title FROM {$this->tableNames['page']} INNER JOIN {$this->tableNames['categorylinks']} AS cl0 ON {$this->tableNames['page']}.`page_id` = `cl0`.`cl_from` AND `cl0`.`cl_to` = ".$this->DB->addQuotes(str_replace(' ', '_', $categoryName))."  WHERE page_namespace = ".intval(NS_CATEGORY));
+		foreach ($res as $row) {
+			if ($depth > 1) {
+				$categories[] = array_merge($categories, self::getSubcategories($row->page_title, $depth - 1));
+			} else {
+				$categories[] = $row->page_title;
+			}
+		}
+		$categories
+		$this->DB->freeResult($res);
+		return $categories;
+	}
+
+	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
 	 * @access	private

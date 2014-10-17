@@ -358,9 +358,9 @@ class Parameters extends ParametersData {
 			} elseif (!empty($parameter)) {
 				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
 					if (substr($parameter, 1, 2) == '*') {
-						$subCategories = explode('|', self::getSubcategories(substr($parameter, 2), $sPageTable, 2));
+						$subCategories = explode('|', self::getSubcategories(substr($parameter, 2), 2));
 					} else {
-						$subCategories = explode('|', self::getSubcategories(substr($parameter, 1), $sPageTable, 1));
+						$subCategories = explode('|', self::getSubcategories(substr($parameter, 1), 1));
 					}
 					foreach ($subCategories as $subCategory) {
 						$title = \Title::newFromText($subCategory);

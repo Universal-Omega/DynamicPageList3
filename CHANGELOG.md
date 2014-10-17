@@ -495,3 +495,4 @@
 * Cache can now be set to any standard Mediawiki cache type.  Default: CACHE_ANYTHING
 * Configuration is now standardized instead of calling into static class functions or modifying objects directly.
 * Some parameters are now position sensitive in the parser call.  For example, putting 'linksto=Mediawiki|ignorecase=true|linksfrom=project' in that order would case 'linksto' to be case sensitive with 'linksfrom' being case insensitive.
+* Fixed several SQL injection exploits with 'ordercollation' and 'category'.

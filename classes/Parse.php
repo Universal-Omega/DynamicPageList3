@@ -193,7 +193,6 @@ class Parse {
 			$resultsHeader = '{{DPL Cache Warning}}'.$resultsHeader;
 		}
 		if ($DPLCache != '') {
-			global $wgUploadDirectory, $wgRequest;
 			$cache = wfGetCache(Config::getSetting('cacheType'));
 
 			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
@@ -370,7 +369,7 @@ class Parse {
 		 */
 		if ($bIncludeUncat) {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
-			if (!self::$DB->tableExists('dpl_clview')) {
+			if (!$this->DB->tableExists('dpl_clview')) {
 				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
 				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
 				return $output;
@@ -515,7 +514,7 @@ class Parse {
 		// ###### PROCESS SQL QUERY ######
 		$queryError = false;
 		try {
-			$res = self::$DB->query($sSqlSelectFrom . $sSqlWhere);
+			$res = $this->DB->query($sSqlSelectFrom . $sSqlWhere);
 		}
 		catch (Exception $e) {
 			$queryError = true;
@@ -523,11 +522,11 @@ class Parse {
 		if ($queryError == true || $res === false) {
 			$result = "The DPL extension (version " . DPL_VERSION . ") produced a SQL statement which lead to a Database error.<br/>\n
 The reason may be an internal error of DPL or an error which you made, especially when using DPL options like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>\n
-Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
+Error message was:<br />\n<tt>" . $this->DB->lastError() . "</tt>\n\n";
 			return $result;
 		}
 
-		if (self::$DB->numRows($res) <= 0) {
+		if ($this->DB->numRows($res) <= 0) {
 			$header = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsHeader));
 			if ($sNoResultsHeader != '') {
 				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
@@ -539,7 +538,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
-			self::$DB->freeResult($res);
+			$this->DB->freeResult($res);
 			return $output;
 		}
 
@@ -550,7 +549,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		$aArticles = array();
 
 		if (isset($iRandomCount) && $iRandomCount > 0) {
-			$nResults = self::$DB->numRows($res);
+			$nResults = $this->DB->numRows($res);
 			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
 			if ($iRandomCount > $nResults) {
 				$iRandomCount = $nResults;
@@ -765,13 +764,13 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 
 			$aArticles[] = $dplArticle;
 		}
-		self::$DB->freeResult($res);
+		$this->DB->freeResult($res);
 		$rowcount = -1;
 		if ($sSqlCalcFoundRows != '') {
-			$res      = self::$DB->query('SELECT FOUND_ROWS() AS rowcount');
-			$row      = self::$DB->fetchObject($res);
+			$res      = $this->DB->query('SELECT FOUND_ROWS() AS rowcount');
+			$row      = $this->DB->fetchObject($res);
 			$rowcount = $row->rowcount;
-			self::$DB->freeResult($res);
+			$this->DB->freeResult($res);
 		}
 
 		// backward scrolling: if the user specified titleLE we reverse the output order
@@ -1003,45 +1002,9 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		}
 	}
 
-	private static function getSubcategories($cat, $pageTable, $depth) {
-		if (self::$DB === null) {
-			self::$DB = wfGetDB(DB_SLAVE);
-		}
-		$cats = $cat;
-		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $this->tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='".NS_CATEGORY."'");
-		foreach ($res as $row) {
-			if ($depth > 1) {
-				$cats .= '|' . self::getSubcategories($row->page_title, $this->tableNames['page'], $depth - 1);
-			} else {
-				$cats .= '|' . $row->page_title;
-			}
-		}
-		self::$DB->freeResult($res);
-		return $cats;
-	}
-
-	private static function prettyTimeStamp($t) {
-		return substr($t, 0, 4) . '/' . substr($t, 4, 2) . '/' . substr($t, 6, 2) . '  ' . substr($t, 8, 2) . ':' . substr($t, 10, 2) . ':' . substr($t, 12, 2);
-	}
-
-	private static function durationTime($t) {
-		if ($t < 60) {
-			return "00:00:" . str_pad($t, 2, "0", STR_PAD_LEFT);
-		}
-		if ($t < 3600) {
-			return "00:" . str_pad(floor($t / 60), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod($t, 60)), 2, "0", STR_PAD_LEFT);
-		}
-		if ($t < 86400) {
-			return str_pad(floor($t / 3600), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod(floor($t / 60), 60)), 2, "0", STR_PAD_LEFT) . ':' . str_pad(fmod($t, 60), 2, "0", STR_PAD_LEFT);
-		}
-		if ($t < 2 * 86400) {
-			return "1 day";
-		}
-		return floor($t / 86400) . ' days';
-	}
-
 	private static function resolveUrlArg($input, $arg) {
 		global $wgRequest;
+		//@TODO: Also figure out what this function does.
 		$dplArg = $wgRequest->getVal($arg, '');
 		if ($dplArg == '') {
 			$input = preg_replace('/\{%' . $arg . ':(.*)%\}/U', '\1', $input);
