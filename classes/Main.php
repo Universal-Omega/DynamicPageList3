@@ -1,7 +1,7 @@
 <?php
 /**
  * DynamicPageList
- * Parameters
+ * DPL Parse Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL
@@ -10,7 +10,7 @@
  **/
 namespace DPL;
 
-class Main {
+class Parse {
 	/**
 	 * Mediawiki Database Object
 	 *
@@ -22,11 +22,11 @@ class Main {
 	 * The real callback function for converting the input text to wiki text output
 	 *
 	 * @access	public
-	 * @return	????
+	 * @param	
+	 * @return	string	Wiki/HTML Output
 	 */
 	public static function dynamicPageList($input, $params, $parser, &$bReset, $calledInMode) {
-		global $wgUser, $wgLang, $wgContLang, $wgRequest;
-		global $wgNonincludableNamespaces;
+		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
 
 		// Output
 		$output = '';
@@ -39,7 +39,8 @@ class Main {
 
 		//check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
-			return $logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			$logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			return $logger->getMessages();
 		}
 
 		/**
