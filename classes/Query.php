@@ -688,6 +688,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _linksfrom($option) {
+		//@TODO: Fix up this function.
 		if ($acceptOpenReferences) {
 			$sSqlCond_page_pl .= ' AND (';
 			$n = 0;
@@ -727,6 +728,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _linksto($option) {
+		//@TODO: Fix up this function.
 		if (count($aLinksTo) > 0) {
 			$sSqlPageLinksTable .= $this->tableNames['pagelinks'].' AS pl, ';
 			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=pl.pl_from AND ';
@@ -788,6 +790,77 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'notlinksfrom' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _notlinksfrom($option) {
+		if ($this->parameters->getParameter('openreferences')) {
+			$where .= '(';
+			$n = 0;
+			foreach ($option as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$where .= ' AND ';
+					}
+					$where .= 'pl_from <> '.intval($link->getArticleID()).' ';
+					$n++;
+				}
+			}
+			$where .= ')';
+		} else {
+			$where .= 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE (';
+			$n = 0;
+			foreach ($option as $links) {
+				foreach ($links as $link) {
+					if ($n > 0) {
+						$where .= ' OR ';
+					}
+					$where .= $this->tableNames['pagelinks'].'.pl_from='.intval($link->getArticleID()).' ';
+					$n++;
+				}
+			}
+			$where .= '))';
+		}
+		$this->addWhere($where);
+	}
+
+	/**
+	 * Set SQL for 'notlinksto' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _notlinksto($option) {
+		//@TODO: Fix up this function.
+		$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id NOT IN (SELECT ' . $sPageLinksTable . '.pl_from FROM ' . $sPageLinksTable . ' WHERE (';
+		$n = 0;
+		foreach ($aNotLinksTo as $links) {
+			foreach ($links as $link) {
+				if ($n > 0) {
+					$sSqlCond_page_pl .= ' OR ';
+				}
+				$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
+				if (strpos($link->getDbKey(), '%') >= 0) {
+					$operator = ' LIKE ';
+				} else {
+					$operator = '=';
+				}
+				if ($bIgnoreCase) {
+					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . $dbr->addQuotes($link->getDbKey()) . '))';
+				} else {
+					$sSqlCond_page_pl .= ' AND ' . $sPageLinksTable . '.pl_title' . $operator . $dbr->addQuotes($link->getDbKey()) . ')';
+				}
+				$n++;
+			}
+		}
+		$sSqlCond_page_pl .= ') )';
+	}
+
+	/**
 	 * Set SQL for 'linkstoexternal' parameter.
 	 *
 	 * @access	private
@@ -834,24 +907,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'listattr' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _listattr($option) {	}
-
-	/**
-	 * Set SQL for 'listseparators' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _listseparators($option) { }
-
-	/**
 	 * Set SQL for 'maxrevisions' parameter.
 	 *
 	 * @access	private
@@ -887,15 +942,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'mode' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _mode($option) {	}
-
-	/**
 	 * Set SQL for 'modifiedby' parameter.
 	 *
 	 * @access	private
@@ -906,15 +952,6 @@ class Query {
 		$this->addTable('revision', 'change_rev');
 		$this->addWhere($this->DB->addQuotes($option).' = change_rev.rev_user_text AND change_rev.rev_page = page_id');
 	}
-
-	/**
-	 * Set SQL for 'multisecseparators' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _multisecseparators($option) { }
 
 	/**
 	 * Set SQL for 'namespace' parameter.
@@ -932,24 +969,6 @@ class Query {
 			}
 		}
 	}
-
-	/**
-	 * Set SQL for 'noresultsfooter' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _noresultsfooter($option) {	}
-
-	/**
-	 * Set SQL for 'noresultsheader' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _noresultsheader($option) {	}
 
 	/**
 	 * Set SQL for 'notcreatedby' parameter.
@@ -973,53 +992,6 @@ class Query {
 	private function _notlastmodifiedby($option) {
 		$this->addWhere($this->DB->addQuotes($option).' != (SELECT rev_user_text FROM '.$this->tableNames['revision'].' WHERE '.$this->tableNames['revision'].'.rev_page=page_id ORDER BY '.$this->tableNames['revision'].'.rev_timestamp DESC LIMIT 1)');
 	}
-
-	/**
-	 * Set SQL for 'notlinksfrom' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _notlinksfrom($option) {
-		if ($this->parameters->getParameter('openreferences')) {
-			$where .= '(';
-			$n = 0;
-			foreach ($option as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$where .= ' AND ';
-					}
-					$where .= 'pl_from <> '.intval($link->getArticleID()).' ';
-					$n++;
-				}
-			}
-			$where .= ')';
-		} else {
-			$where .= 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE (';
-			$n = 0;
-			foreach ($option as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$where .= ' OR ';
-					}
-					$where .= $this->tableNames['pagelinks'].'.pl_from='.intval($link->getArticleID()).' ';
-					$n++;
-				}
-			}
-			$where .= '))';
-		}
-		$this->addWhere($where);
-	}
-
-	/**
-	 * Set SQL for 'notlinksto' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _notlinksto($option) { }
 
 	/**
 	 * Set SQL for 'notmodifiedby' parameter.
@@ -1083,34 +1055,9 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _offset($option) { }
-
-	/**
-	 * Set SQL for 'oneresultfooter' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _oneresultfooter($option) {	}
-
-	/**
-	 * Set SQL for 'oneresultheader' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _oneresultheader($option) {	}
-
-	/**
-	 * Set SQL for 'openreferences' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _openreferences($option) { }
+	private function _offset($option) {
+		//@TODO: This function.
+	}
 
 	/**
 	 * Set SQL for 'order' parameter.
@@ -1119,7 +1066,69 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _order($option) {	}
+	private function _order($option) {
+		//@TODO: Fix up this function.  Note: The $sSqlWhere variables are being used to set the order fields and NOT the where statements.
+		if ($aOrderMethods[0] != '' && $aOrderMethods[0] != 'none') {
+			$sSqlWhere .= ' ORDER BY ';
+			foreach ($aOrderMethods as $i => $sOrderMethod) {
+
+				if ($i > 0) {
+					$sSqlWhere .= ', ';
+				}
+
+				switch ($sOrderMethod) {
+					case 'category':
+						$sSqlWhere .= 'cl_head.cl_to';
+						break;
+					case 'categoryadd':
+						$sSqlWhere .= 'cl0.cl_timestamp';
+						break;
+					case 'counter':
+						$sSqlWhere .= 'page_counter';
+						break;
+					case 'size':
+						$sSqlWhere .= 'page_len';
+						break;
+					case 'firstedit':
+						$sSqlWhere .= 'rev_timestamp';
+						break;
+					case 'lastedit':
+						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
+						if (\DynamicPageListHooks::isLikeIntersection()) {
+							$sSqlWhere .= 'page_touched';
+						} else {
+							$sSqlWhere .= 'rev_timestamp';
+						}
+						break;
+					case 'pagetouched':
+						$sSqlWhere .= 'page_touched';
+						break;
+					case 'sortkey':
+					case 'title':
+					case 'pagesel':
+						$sSqlWhere .= 'sortkey';
+						break;
+					case 'titlewithoutnamespace':
+						if ($acceptOpenReferences) {
+							$sSqlWhere .= "pl_title";
+						} else {
+							$sSqlWhere .= "page_title";
+						}
+						break;
+					case 'user':
+						// rev_user_text can discriminate anonymous users (e.g. based on IP), rev_user cannot (=' 0' for all)
+						$sSqlWhere .= 'rev_user_text';
+						break;
+					default:
+				}
+			}
+			if ($sOrder == 'descending') {
+				$sSqlWhere .= ' DESC';
+			} else {
+				$sSqlWhere .= ' ASC';
+			}
+		}
+	}
 
 	/**
 	 * Set SQL for 'ordercollation' parameter.
@@ -1128,7 +1137,21 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _ordercollation($option) { }
+	private function _ordercollation($option) {
+		$option = mb_strtolower($option);
+
+		$results = $this->DB->query('SHOW CHARACTER SETS');
+		if (!$results) {
+			return false;
+		}
+
+		while ($row = $results->fetchRow()) {
+			if ($option == $row['Default collation']) {
+				$this->setCollation($option);
+				break;
+			}
+		}
+	}
 
 	/**
 	 * Set SQL for 'ordermethod' parameter.
@@ -1137,7 +1160,94 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _ordermethod($option) {	}
+	private function _ordermethod($option) {
+		//@TODO: Fix up this function.
+		foreach ($aOrderMethods as $sOrderMethod) {
+			switch ($sOrderMethod) {
+				case 'category':
+					$sSqlCl_to             = "cl_head.cl_to, "; // Gives category headings in the result
+					$sSqlClHeadTable       = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
+					$sSqlCond_page_cl_head = 'page_id=cl_head.cl_from';
+					if (!empty($aCatHeadings)) {
+						$sSqlWhere .= " AND cl_head.cl_to IN (" . self::$DB->makeList($aCatHeadings) . ")";
+					}
+					if (!empty($aCatNotHeadings)) {
+						$sSqlWhere .= " AND NOT (cl_head.cl_to IN (" . self::$DB->makeList($aCatNotHeadings) . "))";
+					}
+					break;
+				case 'firstedit':
+					$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+					$sSqlRev_timestamp = ', rev_timestamp';
+					// deleted because of conflict with revsion-parameters
+					$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+					break;
+				case 'pagetouched':
+					$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
+					break;
+				case 'lastedit':
+					if (\DynamicPageListHooks::isLikeIntersection()) {
+						$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
+					} else {
+						$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+						$sSqlRev_timestamp = ', rev_timestamp';
+						// deleted because of conflict with revision-parameters
+						$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+					}
+					break;
+				case 'sortkey':
+					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
+					$aStrictNs      = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
+					// map ns index to name
+					$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
+					foreach ($aStrictNs as $iNs => $sNs)
+						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+					$sSqlNsIdToText .= ' END';
+					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
+					// UTF-8 created problems with non-utf-8 MySQL databases
+					//see line 2011 (order method sortkey requires category
+					if (count($aIncludeCategories) + count($aExcludeCategories) > 0) {
+						if (in_array('category', $aOrderMethods) && (count($aIncludeCategories) + count($aExcludeCategories) > 0)) {
+							$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+						} else {
+							$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+						}
+					} else {
+						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+					}
+					break;
+				case 'pagesel':
+					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
+					break;
+				case 'titlewithoutnamespace':
+					$sSqlSortkey = ", {$tableNames['page']}.page_title " . $sOrderCollation . " as sortkey";
+					break;
+				case 'title':
+					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
+					// map namespace index to name
+					if ($acceptOpenReferences) {
+						$sSqlNsIdToText = 'CASE pl_namespace';
+						foreach ($aStrictNs as $iNs => $sNs)
+							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+						$sSqlNsIdToText .= ' END';
+						$sSqlSortkey = ", REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+					} else {
+						$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
+						foreach ($aStrictNs as $iNs => $sNs)
+							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+						$sSqlNsIdToText .= ' END';
+						// Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
+						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+					}
+					break;
+				case 'user':
+					$sSqlRevisionTable = $tableNames['revision'] . ', ';
+					$sSqlRev_user      = ', rev_user, rev_user_text, rev_comment';
+					break;
+				case 'none':
+					break;
+			}
+		}
+	}
 
 	/**
 	 * Set SQL for 'redirects' parameter.
