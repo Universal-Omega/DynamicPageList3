@@ -50,18 +50,13 @@ class Parse {
 
 		$dplStartTime = microtime(true);
 
-		// Local parser created. See http://www.mediawiki.org/wiki/Extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
-		$localParser = new \Parser();
-		$pOptions    = $parser->mOptions;
-
 		// check if DPL shall only be executed from protected pages
-		if (array_key_exists('RunFromProtectedPagesOnly', Options::$options) && Options::$options['RunFromProtectedPagesOnly'] == true && !($parser->mTitle->isProtected('edit'))) {
-
+		if (Config::getSetting('runFromProtectedPagesOnly') === true && !$parser->mTitle->isProtected('edit')) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page
 			// which is protected. Then there would be no need for the article to be protected.
 			// BUT: How can one find out from which wiki source an extension has been invoked???
-
-			return (Options::$options['RunFromProtectedPagesOnly']);
+			$logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
+			return $logger->getMessages();
 		}
 
 		$tableNames = Query::getTableNames();
@@ -1028,11 +1023,14 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 		// we use a local parser to avoid interference with the main parser
 
 		if ($bReset[4] || $bReset[5] || $bReset[6] || $bReset[7]) {
-			// register a hook to reset links which were produced during parsing DPL output
 			global $wgHooks;
+			//Register a hook to reset links which were produced during parsing DPL output
 			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
 			}
+
+			//Use a new parser to handle rendering.
+			$localParser = new \Parser();
 			$parserOutput = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
 		}
 		if ($bReset[4]) { // LINKS

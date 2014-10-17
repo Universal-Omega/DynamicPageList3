@@ -489,21 +489,20 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _namespace($option) {
+		global $wgContLang;
 		$extraParams = explode('|', $option);
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
-			$data = $this->getParameter('namespace');
-			if (in_array($parameter, $this->getData('namespace')['values'])) {
-				$data[] = $wgContLang->getNsIndex($parameter);
-				$this->setParameter('namespaces', $data);
-				$this->setSelectionCriteriaFound(true);
-			} elseif (array_key_exists($parameter, array_keys($this->getData('namespace')['values']))) {
-				$data[] = $parameter;
-				$this->setParameter('namespaces', $data);
-				$this->setSelectionCriteriaFound(true);
-			} else {
+			$namespaceId = $wgContLang->getNsIndex($parameter);
+			if ($namespaceId === false || (is_array(Config::getSetting('allowedNamespaces')) && !in_array($parameter, Config::getSetting('allowedNamespaces')))) {
+				//Let the user know this namespace is not allowed or does not exist.
 				return false;
 			}
+			$data = $this->getParameter('namespace');
+			$data[] = $parameter;
+			$data = array_unique($data);
+			$this->setParameter('namespaces', $data);
+			$this->setSelectionCriteriaFound(true);
 		}
 		return true;
 	}
@@ -516,13 +515,22 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _notnamespace($option) {
-		if (!in_array($option, $this->getData('notnamespace')['values'])) {
-			return false;
+		global $wgContLang;
+		$extraParams = explode('|', $option);
+		foreach ($extraParams as $parameter) {
+			$parameter = trim($parameter);
+			$namespaceId = $wgContLang->getNsIndex($parameter);
+			//@TODO: I am not entirely sure why the namespace needs to be allowed to be NOT included, but this is how the original code worked.
+			if ($namespaceId === false || (is_array(Config::getSetting('allowedNamespaces')) && !in_array($parameter, Config::getSetting('allowedNamespaces')))) {
+				//Let the user know this namespace is not allowed or does not exist.
+				return false;
+			}
+			$data = $this->getParameter('notnamespaces');
+			$data[] = $parameter;
+			$data = array_unique($data);
+			$this->setParameter('notnamespaces', $data);
+			$this->setSelectionCriteriaFound(true);
 		}
-		$data = $this->getParameter('excludenamespaces');
-		$data[] = $wgContLang->getNsIndex($option);
-		$this->setParameter('excludenamespaces', $data);
-		$this->setSelectionCriteriaFound(true);
 		return true;
 	}
 

@@ -46,6 +46,8 @@ class DynamicPageListHooks {
 
 	const FATAL_MISSINGPARAMFUNCTION				= 22;
 
+	const FATAL_NOTPROTECTED						= 23;
+
 	// ERROR
 
 	// WARN

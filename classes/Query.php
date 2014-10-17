@@ -866,12 +866,10 @@ class Query {
 	 * @return	void
 	 */
 	private function _namespace($option) {
-		if (!empty($aNamespaces)) {
-			if ($this->parameters->getParameter('openreferences')) {
-				$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".$this->DB->makeList($aNamespaces).")");
-			} else {
-				$this->addWhere("{$this->tableNames['page']}.page_namespace IN (".$this->DB->makeList($aNamespaces).")");
-			}
+		if ($this->parameters->getParameter('openreferences')) {
+			$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".$this->DB->makeList($option).")");
+		} else {
+			$this->addWhere("{$this->tableNames['page']}.page_namespace IN (".$this->DB->makeList($option).")");
 		}
 	}
 
@@ -917,12 +915,10 @@ class Query {
 	 * @return	void
 	 */
 	private function _notnamespace($option) {
-		if (!empty($aExcludeNamespaces)) {
-			if ($this->parameters->getParameter('openreferences')) {
-				$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".$this->DB->makeList($aExcludeNamespaces).")");
-			} else {
-				$this->addWhere($this->tableNames['page'].".page_namespace NOT IN (".$this->DB->makeList($aExcludeNamespaces).")");
-			}
+		if ($this->parameters->getParameter('openreferences')) {
+			$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".$this->DB->makeList($option).")");
+		} else {
+			$this->addWhere($this->tableNames['page'].".page_namespace NOT IN (".$this->DB->makeList($option).")");
 		}
 	}
 
