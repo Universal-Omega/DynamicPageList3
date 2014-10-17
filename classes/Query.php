@@ -1140,15 +1140,6 @@ class Query {
 	private function _ordermethod($option) {	}
 
 	/**
-	 * Set SQL for 'qualitypages' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _qualitypages($option) {	}
-
-	/**
 	 * Set SQL for 'randomcount' parameter.
 	 *
 	 * @access	private
@@ -1283,43 +1274,52 @@ class Query {
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _stablepages($option) {	}
+	private function _stablepages($option) {
+		if (function_exists('efLoadFlaggedRevs')) {
+			//Do not add this again if 'qualitypages' has already added it.
+			if (!$this->parametersProcessed['qualitypages']) {
+				$this->addJoin("LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id");
+			}
+			switch ($option) {
+				case 'only':
+					$this->addWhere('fp_stable IS NOT NULL');
+					break;
+				case 'exclude':
+					$this->addWhere('fp_stable IS NULL');
+					break;
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
-	 * Set SQL for 'suppresserrors' parameter.
+	 * Set SQL for 'qualitypages' parameter.
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
 	 * @return	void
 	 */
-	private function _suppresserrors($option) { }
-
-	/**
-	 * Set SQL for 'table' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _table($option) {	}
-
-	/**
-	 * Set SQL for 'tablerow' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _tablerow($option) {	}
-
-	/**
-	 * Set SQL for 'tablesortcol' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _tablesortcol($option) {	}
+	private function _qualitypages($option) {
+		if (function_exists('efLoadFlaggedRevs')) {
+			//Do not add this again if 'stablepages' has already added it.
+			if (!$this->parametersProcessed['stablepages']) {
+				$this->addJoin("LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id");
+			}
+			switch ($option) {
+				case 'only':
+					$this->addWhere('fp_quality >= 1');
+					break;
+				case 'exclude':
+					$this->addWhere('fp_quality = 0');
+					break;
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * Set SQL for 'title' parameter.
@@ -1434,24 +1434,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'titlemaxlength' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _titlemaxlength($option) { }
-
-	/**
-	 * Set SQL for 'updaterules' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _updaterules($option) {	}
-
-	/**
 	 * Set SQL for 'usedby' parameter.
 	 *
 	 * @access	private
@@ -1475,16 +1457,6 @@ class Query {
 			$where .= '('.implode(' OR ', $ors).')';
 		}
 		$this->addWhere($where);
-	}
-
-	/**
-	 * Set SQL for 'userdateformat' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _userdateformat($option) {
 	}
 
 	/**

@@ -935,8 +935,8 @@ class ParametersData {
 		 * - only: lists only stable pages in lists
 		 */
 		'stablepages' => [
-			'default'	=> 'include',
-			'values'	=> ['include', 'exclude', 'only']
+			'default'	=> null,
+			'values'	=> ['exclude', 'only']
 		],
 		/**
 		 * qualitypages =...
@@ -945,8 +945,8 @@ class ParametersData {
 		 * - only: lists only quality pages in lists
 		 */
 		'qualitypages' => [
-			'default'	=> 'include',
-			'values'	=> ['include', 'exclude', 'only']
+			'default'	=> null,
+			'values'	=> ['exclude', 'only']
 		],
 		/**
 		 * resultsheader / footer is some wiki text which will be output before / after the result list
