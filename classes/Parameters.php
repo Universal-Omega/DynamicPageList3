@@ -482,6 +482,21 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Clean and test 'count' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _count($option) {
+		if (!Config::getSetting('allowUnlimitedResults') && $option <= Config::getSetting('maxResultCount') && $option > 0) {
+			$this->setParameter('count', intval($option));
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Clean and test 'namespace' parameter.
 	 *
 	 * @access	public
@@ -983,6 +998,7 @@ class Parameters extends ParametersData {
 		//Overwrite 'listseparators'.
 		$this->parameters->setParameter('listseparators', $listSeparators);
 
+		//@TODO: Fixed up things past here.
 		for ($i = 0; $i < count($aSecLabels); $i++) {
 			if ($i == 0) {
 				$aSecSeparators[0]      = "\n|-\n|" . $withHLink; //."\n";

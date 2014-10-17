@@ -158,64 +158,42 @@ class Parse {
 
 			//Ignore parameter settings without argument (except namespace and category)
 			if (empty($option)) {
-				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && array_key_exists($parameter, Options::$options)) {
+				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && $this->parameters->exists($parameter)) {
 					continue;
 				}
 			}
 
-			//Parameter functions generally return their processed options, but we will grab them all at the end instead.
+			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
 			if ($this->parameters->$function($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
-				$this->logger->msgWrongParam($parameter, $option);
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
 			}
 		}
 
-		// set COUNT
-
-		if ($sCount == '') {
-			$sCount = $sCountScroll;
-		}
-		if ($sCount == '') {
-			$iCount = -1;
-		} else {
-			if (preg_match(Options::$options['count']['pattern'], $sCount)) {
-				$iCount = intval($sCount);
-			} else {
-				// wrong value
-				$output .= $this->logger->msgWrongParam('count', "$sCount : not a number!");
-				$iCount = 1;
-			}
-		}
-		if (!\DynamicPageListHooks::$allowUnlimitedResults && ($iCount < 0 || $iCount > \DynamicPageListHooks::$maxResultCount)) {
-			// justify limits;
-			$iCount = \DynamicPageListHooks::$maxResultCount;
-		}
-
-
-		// disable parser cache if caching is not allowed (which is default for DPL but not for <DynamicPageList>)
-		if (!$bAllowCachedResults) {
-			$parser->disableCache();
-		}
-		// place cache warning in resultsheader
-		if ($bWarnCachedResults) {
-			$sResultsHeader = '{{DPL Cache Warning}}' . $sResultsHeader;
-		}
-
-
-
-		if ($sExecAndExit != '') {
-			// the keyword "geturlargs" is used to return the Url arguments and do nothing else.
+		/*************************/
+		/* Execute and Exit Only */
+		/*************************/
+		if ($this->parameters->getParameter('execandexit')) {
+			//@TODO: Fix up this parameter's arguments in ParameterData and handle it handles the response.
+			//The keyword "geturlargs" is used to return the Url arguments and do nothing else.
 			if ($sExecAndExit == 'geturlargs') {
 				return '';
 			}
-			// in all other cases we return the value of the argument (which may contain parser function calls)
+			//In all other cases we return the value of the argument (which may contain parser function calls)
 			return $sExecAndExit;
 		}
 
 
 
-		// if Caching is desired AND if the cache is up to date: get result from Cache and exit
-
+		/*******************/
+		/* Are we caching? */
+		/*******************/
+		if (!$this->parameters->getParameter('allowcachedresults')) {
+			$parser->disableCache();
+		}
+		if ($this->parameters->getParameter('warncachedresults')) {
+			$resultsHeader = '{{DPL Cache Warning}}'.$resultsHeader;
+		}
 		global $wgUploadDirectory, $wgRequest;
 		if ($DPLCache != '') {
 			$cacheFile = "$wgUploadDirectory/dplcache/$DPLCachePath/$DPLCache";
@@ -247,7 +225,7 @@ class Parse {
 		// debug level 5 puts nowiki tags around the output
 		if ($this->logger->iDebugLevel == 5) {
 			$this->logger->iDebugLevel = 2;
-			$sResultsHeader      = '<pre><nowiki>' . $sResultsHeader;
+			$resultsHeader      = '<pre><nowiki>' . $resultsHeader;
 			$sResultsFooter .= '</nowiki></pre>';
 		}
 
@@ -432,7 +410,7 @@ class Parse {
 		$sSqlPage_size     = '';
 		$sSqlPage_touched  = '';
 		$sSqlCalcFoundRows = '';
-		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
+		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($resultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
 			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
 		}
 		if ($sDistinctResultSet === false) {
@@ -486,56 +464,12 @@ class Parse {
 			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $sSqlClHeadTable . ($b2tables ? ', ' : '') . $sSqlClTableForGC . ' ON (' . $sSqlCond_page_cl_head . ($b2tables ? ' AND ' : '') . $sSqlCond_page_cl_gc . ')';
 		}
 
-		// Include categories...
-
-		// Exclude categories...
-
-		// page_id=rev_page (if revision table required)
-		$sSqlWhere .= $sSqlCond_page_rev;
-
-
 		// count(all categories) <= max no of categories
 		$sSqlWhere .= $sSqlCond_MaxCat;
 
 		// check against forbidden namespaces
 		if (is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0 && implode(',', $wgNonincludableNamespaces) != '') {
 			$sSqlWhere .= ' AND ' . $this->tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
-		}
-
-		// page_id=pl.pl_from (if pagelinks table required)
-		$sSqlWhere .= $sSqlCond_page_pl;
-
-		// page_id=el.el_from (if external links table required)
-		$sSqlWhere .= $sSqlCond_page_el;
-
-		// page_id=tpl.tl_from (if templatelinks table required)
-		$sSqlWhere .= $sSqlCond_page_tpl;
-
-		if (function_exists('efLoadFlaggedRevs')) {
-			$filterSet = array(
-				'only',
-				'exclude'
-			);
-			# Either involves the same JOIN here...
-			if (in_array($sStable, $filterSet) || in_array($sQuality, $filterSet)) {
-				$sSqlSelectFrom .= " LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id";
-			}
-			switch ($sStable) {
-				case 'only':
-					$sSqlWhere .= ' AND fp_stable IS NOT NULL ';
-					break;
-				case 'exclude':
-					$sSqlWhere .= ' AND fp_stable IS NULL ';
-					break;
-			}
-			switch ($sQuality) {
-				case 'only':
-					$sSqlWhere .= ' AND fp_quality >= 1';
-					break;
-				case 'exclude':
-					$sSqlWhere .= ' AND fp_quality = 0';
-					break;
-			}
 		}
 
 		// GROUP BY ...
@@ -551,16 +485,6 @@ class Parse {
 				$sSqlWhere .= ', ';
 			}
 			$sSqlWhere .= 'rev_id DESC';
-		}
-
-		// LIMIT ....
-		// we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
-		if ((!\DynamicPageListHooks::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
-			$sSqlWhere .= " LIMIT $offset, ";
-			if ($iCount < 0) {
-				$iCount = intval(Options::$options['count']['default']);
-			}
-			$sSqlWhere .= $iCount;
 		}
 
 		// when we go for a list of categories as result we transform the output of the normal query into a subquery
@@ -918,8 +842,8 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 			}
 		} else {
-			if ($sResultsHeader != '') {
-				$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsHeader));
+			if ($resultsHeader != '') {
+				$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $resultsHeader));
 			}
 		}
 		$header = str_replace('\n', "\n", str_replace("¶", "\n", $header));

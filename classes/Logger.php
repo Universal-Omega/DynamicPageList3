@@ -71,10 +71,11 @@ class Logger {
 	 * @return	string
 	 */
 	public function msg($errorId) {
+		//@TODO: Test how bad/wrong parameter/option messages are returned.
 		if ($this->iDebugLevel >= \DynamicPageListHooks::$debugMinLevels[$errorId]) {
 			$args = func_get_args();
 			array_shift($args);
-			$val = '';
+
 			if (array_key_exists(0, $args)) {
 				$val = $args[0];
 			}
@@ -97,46 +98,6 @@ class Logger {
 			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DPL_VERSION . ' : ' . $text . '</p>';
 		}
 		return false;
-	}
-
-	/**
-	 * Get a "wrong parameter" message.
-	 *
-	 * @access	public
-	 * @param	string	The parameter name
-	 * @param	string	The unescaped input value
-	 * @return	string	HTML error message
-	 */
-	public function msgWrongParam($paramvar, $val) {
-		$errorId = \DynamicPageListHooks::WARN_WRONGPARAM;
-		switch ($paramvar) {
-			case 'namespace':
-			case 'notnamespace':
-				$errorId = \DynamicPageListHooks::FATAL_WRONGNS;
-				break;
-			case 'linksto':
-			case 'notlinksto':
-			case 'linksfrom':
-				$errorId = \DynamicPageListHooks::FATAL_WRONGLINKSTO;
-				break;
-			case 'titlemaxlength':
-			case 'includemaxlength':
-				$errorId = \DynamicPageListHooks::WARN_WRONGPARAM_INT;
-				break;
-			default:
-				$errorId = \DynamicPageListHooks::WARN_UNKNOWNPARAM;
-				break;
-		}
-
-		if (Options::$options[$paramvar] != null) {
-			$paramoptions = array_unique(Options::$options[$paramvar]);
-			sort($paramoptions);
-			$paramoptions = implode(' | ', $paramoptions);
-		} else {
-			$paramoptions = null;
-		}
-
-		return $this->escapeMsg($errorId, $paramvar, htmlspecialchars($val), Options::$options[$paramvar]['default'], $paramoptions);
 	}
 }
 ?>

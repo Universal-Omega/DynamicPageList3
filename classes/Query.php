@@ -54,6 +54,13 @@ class Query {
 	private $where = [];
 
 	/**
+	 * Select Fields
+	 *
+	 * @var		array
+	 */
+	private $select = [];
+
+	/**
 	 * Group By Clauses
 	 *
 	 * @var		array
@@ -61,11 +68,25 @@ class Query {
 	private $groupBy = [];
 
 	/**
-	 * Select Fields
+	 * Join Clauses
 	 *
 	 * @var		array
 	 */
-	private $select = [];
+	private $join = [];
+
+	/**
+	 * Limit
+	 *
+	 * @var		integer
+	 */
+	private $limit = false;
+
+	/**
+	 * Offset
+	 *
+	 * @var		integer
+	 */
+	private $offset = false;
 
 	/**
 	 * Distinct Results
@@ -211,6 +232,53 @@ class Query {
 			throw new MWException(__METHOD__.': An empty group by clause was passed.');
 		}
 		$this->groupBy[] = $groupBy;
+		return true;
+	}
+
+	/**
+	 * Add a join clause to the output.
+	 *
+	 * @access	public
+	 * @param	string	Join clause
+	 * @return	boolean Success
+	 */
+	public function addJoin($join) {
+		if (empty($join)) {
+			throw new MWException(__METHOD__.': An join clause was passed.');
+		}
+		$this->$join[] = $join;
+		return true;
+	}
+
+	/**
+	 * Set the limit.
+	 *
+	 * @access	public
+	 * @param	mixed	Integer limit or false to unset.
+	 * @return	boolean Success
+	 */
+	public function setLimit($limit) {
+		if (is_numeric($limit)) {
+			$this->limit = invtal($limit);
+		} else {
+			$this->limit = false;
+		}
+		return true;
+	}
+
+	/**
+	 * Set the offset.
+	 *
+	 * @access	public
+	 * @param	mixed	Integer offset or false to unset.
+	 * @return	boolean Success
+	 */
+	public function setOffset($offset) {
+		if (is_numeric($offset)) {
+			$this->offset = invtal($offset);
+		} else {
+			$this->offset = false;
+		}
 		return true;
 	}
 
@@ -490,6 +558,7 @@ class Query {
 	 */
 	private function _goal($option) {
 		//@TODO: This function.  Does some weird changes to the output.
+		//@TODO: Goal turns off offset/limit when in category mode.
 	}
 
 	/**
@@ -951,6 +1020,17 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'count' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _count($option) {
+		$this->setLimit($option);
+	}
+
+	/**
 	 * Set SQL for 'offset' parameter.
 	 *
 	 * @access	private
@@ -958,7 +1038,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _offset($option) {
-		//@TODO: This function.
+		$this->setOffset($option);
 	}
 
 	/**
