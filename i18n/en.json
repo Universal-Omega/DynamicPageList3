@@ -32,5 +32,7 @@
     "dpl_log_20": "Warning: An infinite transclusion loop is created by page '$0'.",
     "dpl_log_21": "Query: <code>$0</code>",
     "dpl_articlecount": "There {{PLURAL:$1|is one article|are $1 articles}} in this heading.",
-    "dpl_description": "A flexible report generator for MediaWiki. See [http://semeb.com/dpldemo] for the manual and examples"
+    "dpl_description": "A flexible report generator for MediaWiki. See [http://semeb.com/dpldemo] for the manual and examples",
+	"action-dpl_param_update_rules": "to use the parameter 'updaterules'",
+	"action-dpl_param_delete_rules": "to use the parameter 'deleterules'"
 }

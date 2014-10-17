@@ -59,6 +59,17 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Successful
 	 */
 	public function __call($parameter, $arguments) {
+		$parameterData = $this->getData($parameter);
+
+		//Check permission to use this parameter.
+		if (array_key_exists('permission', $parameterData)) {
+			global $wgUser;
+			if (!$wgUser->isAllowed($parameterData['permission'])) {
+				throw new PermissionsError($parameterData['permission']);
+				return;
+			}
+		}
+
 		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
 		$function = "_".$parameter;
 		$this->parametersProcessed[$parameter] = true;
@@ -70,7 +81,6 @@ class Parameters extends ParametersData {
 
 		//Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
 		$success = true;
-		$parameterData = $this->getData($parameter);
 		if ($parameterData !== false) {
 			//If a parameter specifies options then enforce them.
 			if (is_array($parameterData['values']) === true && !in_array($option, $parameterData['values'])) {

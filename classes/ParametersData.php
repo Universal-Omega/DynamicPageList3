@@ -777,10 +777,12 @@ class ParametersData {
 			'strip_html'	=> true
 		],
 		'updaterules' => [
-			'default'	=> null
+			'default'		=> null,
+			'permission'	=> ['dpl_param_update_rules']
 		],
 		'deleterules' => [
-			'default'	=> null
+			'default'		=> null,
+			'permission'	=> ['dpl_param_delete_rules']
 		],
 
 		/**

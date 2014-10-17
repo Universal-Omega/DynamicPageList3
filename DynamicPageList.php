@@ -33,6 +33,9 @@ $wgExtensionCredits['parserhook'][] = $credits;
 /******************************************/
 $extDir = __DIR__;
 
+$wgAvailableRights[] = 'dpl_param_update_rules';
+$wgAvailableRights[] = 'dpl_param_delete_rules';
+
 $wgMessagesDirs['DynamicPageList']					= "{$extDir}/i18n";
 $wgExtensionMessagesFiles['DynamicPageList']		= "{$extDir}/DynamicPageList.i18n.php";
 $wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i18n.magic.php";
@@ -54,6 +57,14 @@ if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 	$wgHooks['ParserFirstCallInit'][]					= 'DynamicPageListHooks::setupMigration';
 } else {
 	$wgHooks['ParserFirstCallInit'][]					= 'DynamicPageListHooks::onParserFirstCallInit';
+}
+
+//Give sysops permission to use updaterules and deleterules by default.
+if (!isset($wgGroupPermissions['sysop']['dpl_param_update_rules'])) {
+	$wgGroupPermissions['sysop']['dpl_param_update_rules'] = true;
+}
+if (!isset($wgGroupPermissions['sysop']['dpl_param_delete_rules'])) {
+	$wgGroupPermissions['sysop']['dpl_param_delete_rules'] = true;
 }
 
 /******************************************/
