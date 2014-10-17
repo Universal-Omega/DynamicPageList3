@@ -1,7 +1,7 @@
 <?php
 /**
  * DynamicPageList
- * DPL Class
+ * DPL Parse Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL
@@ -10,1481 +10,1275 @@
  **/
 namespace DPL;
 
-class DynamicPageList {
-	public $mArticles;
-	public $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
-	public $mHListMode; // html list mode for headings
-	public $mListMode; // html list mode for pages
-	public $mEscapeLinks; // whether to escape img/cat or not
-	public $mAddExternalLink; // whether to add the text of an external link or not
-	public $mIncPage; // true only if page transclusion is enabled
-	public $mIncMaxLen; // limit for text to include
-	public $mIncSecLabels = array(); // array of labels of sections to transclude
-	public $mIncSecLabelsMatch = array(); // array of match patterns for sections to transclude
-	public $mIncSecLabelsNotMatch = array(); // array of NOT match patterns for sections to transclude
-	public $mIncParsed; // whether to match raw parameters or parsed contents
-	public $mParser;
-	public $mParserOptions;
-	public $mParserTitle;
-	public $mLogger; // DPLLogger
-	public $mOutput;
-	public $mReplaceInTitle;
-	public $filteredCount = 0; // number of (filtered) row count
-	public $nameSpaces;
-	public $mTableRow; // formatting rules for table fields
-
-	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
-		
-		global $wgContLang;
-		$this->nameSpaces       = $wgContLang->getNamespaces();
-		$this->mArticles        = $articles;
-		$this->mListMode        = $listmode;
-		$this->mEscapeLinks     = $bescapelinks;
-		$this->mAddExternalLink = $baddexternallink;
-		$this->mIncPage         = $includepage;
-		if ($includepage) {
-			$this->mIncSecLabels         = $includeseclabels;
-			$this->mIncSecLabelsMatch    = $includeseclabelsmatch;
-			$this->mIncSecLabelsNotMatch = $includeseclabelsnotmatch;
-			$this->mIncParsed            = $includematchparsed;
-		}
-		
-		if (isset($includemaxlen)) {
-			$this->mIncMaxLen = $includemaxlen + 1;
-		} else {
-			$this->mIncMaxLen = 0;
-		}
-		$this->mLogger         = $logger;
-		$this->mReplaceInTitle = $replaceInTitle;
-		$this->mTableRow       = $aTableRow;
-		
-		// cloning the parser in the following statement leads in some cases to a php error in MW 1.15
-		// 	You must apply the following patch to avoid this:
-		// add in LinkHoldersArray.php at the beginning of function 'merge' the following code lines:
-		//		if (!isset($this->interwikis)) {
-		//			$this->internals = array();
-		//			$this->interwikis = array();
-		//			$this->size = 0;
-		//			$this->parent  = $other->parent;
-		//		}
-		$this->mParser = clone $parser;
-		// clear state of cloned parser; if the above patch of LinkHoldersArray is not made this
-		// can lead to links not being shown in the original document (probably the UIQ_QINU-tags no longer
-		// get replaced properly; in combination with the patch however, it does not do any harm.
-		
-		// The CITE extension registers a hook on parser->clearState
-		// We must UNDO the effect of that call (Cite->clearState) because otherwise all Cititations would be lost
-		// that were made before a DPL call; we borrow a handle to the cite object from the parser´s tag hooks
-		
-		$citeObject = null;
-		// store current state of Cite Object
-		if (isset($parser->mTagHooks['references'])) {
-			$citeObject              = $parser->mTagHooks['references'][0];
-			$tmpCiteGroupCnt         = $citeObject->mGroupCnt;
-			$tmpCiteOutCnt           = $citeObject->mOutCnt;
-			$tmpCiteCallCnt          = $citeObject->mCallCnt;
-			$tmpCiteRefs             = $citeObject->mRefs;
-			$tmpCiteReferencesErrors = $citeObject->mReferencesErrors;
-			$tmpCiteRefCallStack     = $citeObject->mRefCallStack;
-		}
-		// now clear the state
-		$this->mParser->clearState(); // eliminated to avoid conflicht with CITE extension
-		// restore Cite Object
-		if ($citeObject != null) {
-			$citeObject->mGroupCnt         = $tmpCiteGroupCnt;
-			$citeObject->mOutCnt           = $tmpCiteOutCnt;
-			$citeObject->mCallCnt          = $tmpCiteCallCnt;
-			$citeObject->mRefs             = $tmpCiteRefs;
-			$citeObject->mReferencesErrors = $tmpCiteReferencesErrors;
-			$citeObject->mRefCallStack     = $tmpCiteRefCallStack;
-		}
-		
-		$this->mParserOptions = $parser->mOptions;
-		$this->mParserTitle   = $parser->mTitle;
-		
-		if (!empty($headings)) {
-			if ($iColumns != 1 || $iRows != 1) {
-				$hspace = 2; // the extra space for headings
-				// repeat outer tags for each of the specified columns / rows in the output
-				// we assume that a heading roughly takes the space of two articles
-				$count  = count($articles) + $hspace * count($headings);
-				if ($iColumns != 1) {
-					$iGroup = $iColumns;
-				} else {
-					$iGroup = $iRows;
-				}
-				$nsize = floor($count / $iGroup);
-				$rest  = $count - (floor($nsize) * floor($iGroup));
-				if ($rest > 0) {
-					$nsize += 1;
-				}
-				$this->mOutput .= "{|" . $sRowColFormat . "\n|\n";
-				if ($nsize < $hspace + 1) {
-					$nsize = $hspace + 1; // correction for result sets with one entry
-				}
-				$this->mHeadingType = $headingtype;
-				$this->mHListMode   = $hlistmode;
-				$this->mOutput .= $hlistmode->sListStart;
-				$nstart = 0;
-				$greml  = $nsize; // remaining lines in current group
-				$g      = 0;
-				$offset = 0;
-				foreach ($headings as $headingCount) {
-					$headingLink = $articles[$nstart - $offset]->mParentHLink;
-					$this->mOutput .= $hlistmode->sItemStart;
-					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
-					if ($bHeadingCount) {
-						$this->mOutput .= $this->formatCount($headingCount);
-					}
-					$offset += $hspace;
-					$nstart += $hspace;
-					$portion = $headingCount;
-					$greml -= $hspace;
-					do {
-						$greml -= $portion;
-						// $this->mOutput .= "nsize=$nsize, portion=$portion, greml=$greml";
-						if ($greml > 0) {
-							$this->mOutput .= $this->formatList($nstart - $offset, $portion, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-							$nstart += $portion;
-							$portion = 0;
-							break;
-						} else {
-							$this->mOutput .= $this->formatList($nstart - $offset, $portion + $greml, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-							$nstart += ($portion + $greml);
-							$portion = (-$greml);
-							if ($iColumns != 1) {
-								$this->mOutput .= "\n|valign=top|\n";
-							} else {
-								$this->mOutput .= "\n|-\n|\n";
-							}
-							++$g;
-							// if ($rest != 0 && $g==$rest) $nsize -= 1;
-							if ($nstart + $nsize > $count) {
-								$nsize = $count - $nstart;
-							}
-							$greml = $nsize;
-							if ($greml <= 0) {
-								break;
-							}
-						}
-					} while ($portion > 0);
-					$this->mOutput .= $hlistmode->sItemEnd;
-				}
-				$this->mOutput .= $hlistmode->sListEnd;
-				$this->mOutput .= "\n|}\n";
-			} else {
-				$this->mHeadingType = $headingtype;
-				$this->mHListMode   = $hlistmode;
-				$this->mOutput .= $hlistmode->sListStart;
-				$headingStart = 0;
-				foreach ($headings as $headingCount) {
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$this->mOutput .= $hlistmode->sItemStart;
-					$this->mOutput .= $hlistmode->sHeadingStart . $headingLink . $hlistmode->sHeadingEnd;
-					if ($bHeadingCount) {
-						$this->mOutput .= $this->formatCount($headingCount);
-					}
-					$this->mOutput .= $this->formatList($headingStart, $headingCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-					$this->mOutput .= $hlistmode->sItemEnd;
-					$headingStart += $headingCount;
-				}
-				$this->mOutput .= $hlistmode->sListEnd;
-			}
-		} else if ($iColumns != 1 || $iRows != 1) {
-			// repeat outer tags for each of the specified columns / rows in the output
-			$nstart = 0;
-			$count  = count($articles);
-			if ($iColumns != 1) {
-				$iGroup = $iColumns;
-			} else {
-				$iGroup = $iRows;
-			}
-			$nsize = floor($count / $iGroup);
-			$rest  = $count - (floor($nsize) * floor($iGroup));
-			if ($rest > 0) {
-				$nsize += 1;
-			}
-			$this->mOutput .= "{|" . $sRowColFormat . "\n|\n";
-			for ($g = 0; $g < $iGroup; $g++) {
-				$this->mOutput .= $this->formatList($nstart, $nsize, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-				if ($iColumns != 1) {
-					$this->mOutput .= "\n|valign=top|\n";
-				} else {
-					$this->mOutput .= "\n|-\n|\n";
-				}
-				$nstart = $nstart + $nsize;
-				// if ($rest != 0 && $g+1==$rest) $nsize -= 1;
-				if ($nstart + $nsize > $count) {
-					$nsize = $count - $nstart;
-				}
-			}
-			$this->mOutput .= "\n|}\n";
-		} else if ($iRowSize > 0) {
-			// repeat row header after n lines of output
-			$nstart = 0;
-			$nsize  = $iRowSize;
-			$count  = count($articles);
-			$this->mOutput .= '{|' . $sRowColFormat . "\n|\n";
-			do {
-				if ($nstart + $nsize > $count) {
-					$nsize = $count - $nstart;
-				}
-				$this->mOutput .= $this->formatList($nstart, $nsize, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-				$this->mOutput .= "\n|-\n|\n";
-				$nstart = $nstart + $nsize;
-				if ($nstart >= $count) {
-					break;
-				}
-			} while (true);
-			$this->mOutput .= "\n|}\n";
-		} else {
-			$this->mOutput .= $this->formatList(0, count($articles), $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
-		}
-	}
-	
-	public function formatCount($numart) {
-		global $wgLang;
-		if ($this->mHeadingType == 'category') {
-			$message = 'categoryarticlecount';
-		} else {
-			$message = 'dpl_articlecount';
-		}
-		return '<p>' . $this->msgExt($message, array(), $numart) . '</p>';
-	}
-	
-	// substitute symbolic names within a user defined format tag
-	public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
-		global $wgLang;
-		if (strchr($tag, '%') < 0) {
-			return $tag;
-		}
-		$sTag = str_replace('%PAGE%', $pagename, $tag);
-		$sTag = str_replace('%PAGEID%', $article->mID, $sTag);
-		$sTag = str_replace('%NAMESPACE%', $this->nameSpaces[$article->mNamespace], $sTag);
-		$sTag = str_replace('%IMAGE%', $imageUrl, $sTag);
-		$sTag = str_replace('%EXTERNALLINK%', $article->mExternalLink, $sTag);
-		$sTag = str_replace('%EDITSUMMARY%', $article->mComment, $sTag);
-		
-		$title = $article->mTitle->getText();
-		if (strpos($title, '%TITLE%') >= 0) {
-			if ($this->mReplaceInTitle[0] != '') {
-				$title = preg_replace($this->mReplaceInTitle[0], $this->mReplaceInTitle[1], $title);
-			}
-			if (isset($titleMaxLength) && (strlen($title) > $titleMaxLength)) {
-				$title = substr($title, 0, $titleMaxLength) . '...';
-			}
-			$sTag = str_replace('%TITLE%', $title, $sTag);
-		}
-		
-		$sTag = str_replace('%NR%', $nr, $sTag);
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNT%', $article->mCounter, $sTag);
-		}
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNTFS%', floor(log($article->mCounter) * 0.7), $sTag);
-		}
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNTFS2%', floor(sqrt(log($article->mCounter))), $sTag);
-		}
-		if ($article->mSize != '') {
-			$sTag = str_replace('%SIZE%', $article->mSize, $sTag);
-		}
-		if ($article->mSize != '') {
-			$sTag = str_replace('%SIZEFS%', floor(sqrt(log($article->mSize)) * 2.5 - 5), $sTag);
-		}
-		if ($article->mDate != '') {
-			// note: we must avoid literals in the code which could create confusion when transferred via http
-			//       therefore we write '%'.'DA...'
-			if ($article->myDate != '') {
-				$sTag = str_replace('%' . 'DATE%', $article->myDate, $sTag);
-			} else {
-				$sTag = str_replace('%' . 'DATE%', $wgLang->timeanddate($article->mDate, true), $sTag);
-			}
-		}
-		if ($article->mRevision != '') {
-			$sTag = str_replace('%REVISION%', $article->mRevision, $sTag);
-		}
-		if ($article->mContribution != '') {
-			$sTag = str_replace('%CONTRIBUTION%', $article->mContribution, $sTag);
-			$sTag = str_replace('%CONTRIB%', $article->mContrib, $sTag);
-			$sTag = str_replace('%CONTRIBUTOR%', $article->mContributor, $sTag);
-		}
-		if ($article->mUserLink != '') {
-			$sTag = str_replace('%USER%', $article->mUser, $sTag);
-		}
-		if ($article->mSelTitle != '') {
-			if ($article->mSelNamespace == 0) {
-				$sTag = str_replace('%PAGESEL%', str_replace('_', ' ', $article->mSelTitle), $sTag);
-			} else {
-				$sTag = str_replace('%PAGESEL%', $this->nameSpaces[$article->mSelNamespace] . ':' . str_replace('_', ' ', $article->mSelTitle), $sTag);
-			}
-		}
-		if ($article->mImageSelTitle != '') {
-			$sTag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $sTag);
-		}
-		if (strpos($sTag, "%CAT") >= 0) {
-			if (!empty($article->mCategoryLinks)) {
-				$sTag = str_replace('%' . 'CATLIST%', implode(', ', $article->mCategoryLinks), $sTag);
-				$sTag = str_replace('%' . 'CATBULLETS%', '* ' . implode("\n* ", $article->mCategoryLinks), $sTag);
-				$sTag = str_replace('%' . 'CATNAMES%', implode(', ', $article->mCategoryTexts), $sTag);
-			} else {
-				$sTag = str_replace('%' . 'CATLIST%', '', $sTag);
-				$sTag = str_replace('%' . 'CATBULLETS%', '', $sTag);
-				$sTag = str_replace('%' . 'CATNAMES%', '', $sTag);
-			}
-		}
-		return $sTag;
-	}
-	
-	public function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
-		global $wgUser, $wgLang, $wgContLang;
-		
-		$mode = $this->mListMode;
-		//categorypage-style list output mode
-		if ($mode->name == 'category') {
-			return $this->formatCategoryList($iStart, $iCount);
-		}
-		
-		//process results of query, outputing equivalent of <li>[[Article]]</li> for each result,
-		//or something similar if the list uses other startlist/endlist;
-		$rBody = '';
-		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
-		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
-			
-			$article  = $this->mArticles[$i];
-			$pagename = $article->mTitle->getPrefixedText();
-			$imageUrl = '';
-			if ($article->mNamespace == NS_FILE) {
-				// calculate URL for existing images
-				// $img = Image::newFromName($article->mTitle->getText());
-				$img = wfFindFile(Title::makeTitle(NS_IMAGE, $article->mTitle->getText()));
-				if ($img && $img->exists()) {
-					$imageUrl = $img->getURL();
-					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
-				} else {
-					$iTitle   = Title::makeTitleSafe(6, $article->mTitle->getDBKey());
-					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
-				}
-			}
-			if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
-				// links to categories or images need an additional ":"
-				$pagename = ':' . $pagename;
-			}
-			
-			// Page transclusion: get contents and apply selection criteria based on that contents
-			
-			if ($this->mIncPage) {
-				$matchFailed = false;
-				if (empty($this->mIncSecLabels) || $this->mIncSecLabels[0] == '*') { // include whole article
-					$title = $article->mTitle->getPrefixedText();
-					if ($mode->name == 'userformat') {
-						$incwiki = '';
-					} else {
-						$incwiki = '<br/>';
-					}
-					$text = $this->mParser->fetchTemplate(Title::newFromText($title));
-					if ((count($this->mIncSecLabelsMatch) <= 0 || $this->mIncSecLabelsMatch[0] == '' || !preg_match($this->mIncSecLabelsMatch[0], $text) == false) && (count($this->mIncSecLabelsNotMatch) <= 0 || $this->mIncSecLabelsNotMatch[0] == '' || preg_match($this->mIncSecLabelsNotMatch[0], $text) == false)) {
-						if ($this->mIncMaxLen > 0 && (strlen($text) > $this->mIncMaxLen)) {
-							$text = LST::limitTranscludedText($text, $this->mIncMaxLen, ' [[' . $title . '|..→]]');
-						}
-						$this->filteredCount = $this->filteredCount + 1;
-						
-						// update article if include=* and updaterules are given
-						if ($updateRules != '') {
-							$message = $this->updateArticleByRule($title, $text, $updateRules);
-							// append update message to output
-							$incwiki .= $message;
-						} else if ($deleteRules != '') {
-							$message = $this->deleteArticleByRule($title, $text, $deleteRules);
-							// append delete message to output
-							$incwiki .= $message;
-						} else {
-							// append full text to output
-							if (array_key_exists('0', $mode->sSectionTags)) {
-								$incwiki .= $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-								$pieces = array(
-									0 => $text
-								);
-								$this->formatSingleItems($pieces, 0, $article);
-								$incwiki .= $pieces[0];
-							} else
-								$incwiki .= $text;
-						}
-					} else {
-						continue;
-					}
-					
-				} else {
-					// identify section pieces
-					$secPiece       = array();
-					$dominantPieces = false;
-					// ONE section can be marked as "dominant"; if this section contains multiple entries
-					// we will create a separate output row for each value of the dominant section
-					// the values of all other columns will be repeated
-					
-					foreach ($this->mIncSecLabels as $s => $sSecLabel) {
-						$sSecLabel = trim($sSecLabel);
-						if ($sSecLabel == '') {
-							break;
-						}
-						// if sections are identified by number we have a % at the beginning
-						if ($sSecLabel[0] == '%') {
-							$sSecLabel = '#' . $sSecLabel;
-						}
-						
-						$maxlen = -1;
-						if ($sSecLabel == '-') {
-							// '-' is used as a dummy parameter which will produce no output
-							// if maxlen was 0 we suppress all output; note that for matching we used the full text
-							$secPieces = array(
-								''
-							);
-							$this->formatSingleItems($secPieces, $s, $article);
-							
-						} else if ($sSecLabel[0] != '{') {
-							$limpos      = strpos($sSecLabel, '[');
-							$cutLink     = 'default';
-							$skipPattern = array();
-							if ($limpos > 0 && $sSecLabel[strlen($sSecLabel) - 1] == ']') {
-								// regular expressions which define a skip pattern may precede the text
-								$fmtSec    = explode('~', substr($sSecLabel, $limpos + 1, strlen($sSecLabel) - $limpos - 2));
-								$sSecLabel = substr($sSecLabel, 0, $limpos);
-								$cutInfo   = explode(" ", $fmtSec[count($fmtSec) - 1], 2);
-								$maxlen    = intval($cutInfo[0]);
-								if (array_key_exists('1', $cutInfo)) {
-									$cutLink = $cutInfo[1];
-								}
-								foreach ($fmtSec as $skipKey => $skipPat) {
-									if ($skipKey == count($fmtSec) - 1) {
-										continue;
-									}
-									$skipPattern[] = $skipPat;
-								}
-							}
-							if ($maxlen < 0) {
-								$maxlen = -1; // without valid limit include whole section
-							}
-						}
-						
-						// find out if the user specified an includematch / includenotmatch condition
-						if (count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '') {
-							$mustMatch = $this->mIncSecLabelsMatch[$s];
-						} else {
-							$mustMatch = '';
-						}
-						if (count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '') {
-							$mustNotMatch = $this->mIncSecLabelsNotMatch[$s];
-						} else {
-							$mustNotMatch = '';
-						}
-						
-						// if chapters are selected by number, text or regexp we get the heading from LST::includeHeading
-						$sectionHeading[0] = '';
-						if ($sSecLabel == '-') {
-							$secPiece[$s] = $secPieces[0];
-							
-						} else if ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
-							$sectionHeading[0] = substr($sSecLabel, 1);
-							// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-							$secPieces         = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
-							if ($mustMatch != '' || $mustNotMatch != '') {
-								$secPiecesTmp = $secPieces;
-								$offset       = 0;
-								foreach ($secPiecesTmp as $nr => $onePiece) {
-									if (($mustMatch != '' && preg_match($mustMatch, $onePiece) == false) || ($mustNotMatch != '' && preg_match($mustNotMatch, $onePiece) != false)) {
-										array_splice($secPieces, $nr - $offset, 1);
-										$offset++;
-									}
-								}
-							}
-							// if maxlen was 0 we suppress all output; note that for matching we used the full text
-							if ($maxlen == 0) {
-								$secPieces = array(
-									''
-								);
-							}
-							
-							$this->formatSingleItems($secPieces, $s, $article);
-							if (!array_key_exists(0, $secPieces)) {
-								// avoid matching against a non-existing array element
-								// and skip the article if there was a match condition
-								if ($mustMatch != '' || $mustNotMatch != '') {
-									$matchFailed = true;
-								}
-								break;
-							}
-							$secPiece[$s] = $secPieces[0];
-							for ($sp = 1; $sp < count($secPieces); $sp++) {
-								if (isset($mode->aMultiSecSeparators[$s])) {
-									$secPiece[$s] .= str_replace('%SECTION%', $sectionHeading[$sp], $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-								}
-								$secPiece[$s] .= $secPieces[$sp];
-							}
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
-								$dominantPieces = $secPieces;
-							}
-							if (($mustMatch != '' || $mustNotMatch != '') && count($secPieces) <= 0) {
-								$matchFailed = true; // NOTHING MATCHED
-								break;
-							}
-							
-						} else if ($sSecLabel[0] == '{') {
-							// Uses LST::includeTemplate() from LabeledSectionTransclusion extension to include templates from the page
-							// primary syntax {template}suffix
-							$template1 = trim(substr($sSecLabel, 1, strpos($sSecLabel, '}') - 1));
-							$template2 = trim(str_replace('}', '', substr($sSecLabel, 1)));
-							// alternate syntax: {template|surrogate}
-							if ($template2 == $template1 && strpos($template1, '|') > 0) {
-								$template1 = preg_replace('/\|.*/', '', $template1);
-								$template2 = preg_replace('/^.+\|/', '', $template2);
-							}
-							$secPieces    = LST::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2 . $defaultTemplateSuffix, $mustMatch, $mustNotMatch, $this->mIncParsed, $iTitleMaxLen, implode(', ', $article->mCategoryLinks));
-							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
-								$dominantPieces = $secPieces;
-							}
-							if (($mustMatch != '' || $mustNotMatch != '') && count($secPieces) <= 1 && $secPieces[0] == '') {
-								$matchFailed = true; // NOTHING MATCHED
-								break;
-							}
-						} else {
-							// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-							$secPieces    = LST::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $bIncludeTrim, $skipPattern);
-							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
-								$dominantPieces = $secPieces;
-							}
-							if (($mustMatch != '' && preg_match($mustMatch, $secPiece[$s]) == false) || ($mustNotMatch != '' && preg_match($mustNotMatch, $secPiece[$s]) != false)) {
-								$matchFailed = true;
-								break;
-							}
-						}
-						
-						// separator tags
-						if (count($mode->sSectionTags) == 1) {
-							// If there is only one separator tag use it always
-							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else if (isset($mode->sSectionTags[$s * 2])) {
-							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else
-							$septag[$s * 2] = '';
-						if (isset($mode->sSectionTags[$s * 2 + 1])) {
-							$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2 + 1], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else
-							$septag[$s * 2 + 1] = '';
-						
-					}
-					
-					// if there was a match condition on included contents which failed we skip the whole page
-					if ($matchFailed) {
-						continue;
-					}
-					$this->filteredCount = $this->filteredCount + 1;
-					
-					// assemble parts with separators
-					$incwiki = '';
-					if ($dominantPieces != false) {
-						foreach ($dominantPieces as $dominantPiece) {
-							foreach ($secPiece as $s => $piece) {
-								if ($s == $mode->iDominantSection) {
-									$incwiki .= $this->formatItem($dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]);
-								} else {
-									$incwiki .= $this->formatItem($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
-								}
-							}
-						}
-					} else {
-						foreach ($secPiece as $s => $piece) {
-							$incwiki .= $this->formatItem($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
-						}
-					}
-				}
-			} else {
-				$this->filteredCount = $this->filteredCount + 1;
-			}
-			
-			if ($i > $iStart) {
-				$rBody .= $mode->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
-			}
-			
-			// symbolic substitution of %PAGE% by the current article's name
-			if ($mode->name == 'userformat') {
-				$rBody .= $this->substTagParm($mode->sItemStart, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-			} else {
-				$rBody .= $mode->sItemStart;
-				if ($article->mDate != '') {
-					if ($article->myDate != '') {
-						$rBody .= $article->myDate . ' ';
-					} else {
-						$rBody .= $wgLang->timeanddate($article->mDate, true) . ' ';
-					}
-					if ($article->mRevision != '') {
-						$rBody .= '[{{fullurl:' . $article->mTitle . '|oldid=' . $article->mRevision . '}} ' . htmlspecialchars($article->mTitle) . ']';
-					} else {
-						$rBody .= $article->mLink;
-					}
-				} else {
-					// output the link to the article
-					$rBody .= $article->mLink;
-				}
-				if ($article->mSize != '' && $mode->name != 'userformat') {
-					if (strlen($article->mSize) > 3) {
-						$rBody .= ' [' . substr($article->mSize, 0, strlen($article->mSize) - 3) . ' kB]';
-					} else {
-						$rBody .= ' [' . $article->mSize . ' B]';
-					}
-				}
-				if ($article->mCounter != '' && $mode->name != 'userformat') {
-					// Adapted from SpecialPopularPages::formatResult()
-					// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
-					$nv = $this->msgExt('nviews', array(
-						'escape'
-					), $wgLang->formatNum($article->mCounter));
-					$rBody .= ' ' . $wgContLang->getDirMark() . '(' . $nv . ')';
-				}
-				if ($article->mUserLink != '') {
-					$rBody .= ' . . [[User:' . $article->mUser . '|' . $article->mUser . ']]';
-					if ($article->mComment != '') {
-						$rBody .= ' { ' . $article->mComment . ' }';
-					}
-				}
-				if ($article->mContributor != '') {
-					$rBody .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
-				}
-				
-				
-				
-				if (!empty($article->mCategoryLinks)) {
-					$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
-				}
-				if ($this->mAddExternalLink && $article->mExternalLink != '') {
-					$rBody .= ' → ' . $article->mExternalLink;
-				}
-			}
-			
-			// add included contents
-			
-			if ($this->mIncPage) {
-				LST::open($this->mParser, $this->mParserTitle->getPrefixedText());
-				$rBody .= $incwiki;
-				LST::close($this->mParser, $this->mParserTitle->getPrefixedText());
-			}
-			
-			if ($mode->name == 'userformat') {
-				$rBody .= $this->substTagParm($mode->sItemEnd, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-			} else {
-				$rBody .= $mode->sItemEnd;
-			}
-		}
-		// if requested we sort the table by the contents of a given column
-		if ($iTableSortCol != 0) {
-			$sortcol = abs($iTableSortCol);
-			$rows    = explode("\n|-", $rBody);
-			foreach ($rows as $index => $row) {
-				if (strlen($row) > 0) {
-					if ((($word = explode("\n|", $row, $sortcol + 2)) !== false) && (count($word) > $sortcol)) {
-						$rowsKey[$index] = $word[$sortcol];
-					} else {
-						$rowsKey[$index] = $row;
-					}
-				}
-			}
-			if ($iTableSortCol < 0) {
-				arsort($rowsKey);
-			} else {
-				asort($rowsKey);
-			}
-			$rBody = "";
-			foreach ($rowsKey as $index => $val)
-				$rBody .= "\n|-" . $rows[$index];
-		}
-		// increase start value of ordered lists at multi-column output
-		$actStart = $mode->sListStart;
-		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actStart);
-		if ($start != '') {
-			$start += $iCount;
-			$mode->sListStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
-		}
-		
-		return $actStart . $rBody . $mode->sListEnd;
-		
-	}
-	
+class Parse {
 	/**
-	 * this fucntion hast three tasks (depending on $exec):
-	 * (1) show an edit dialogue for template fields (exec = edit)
-	 * (2) set template parameters to  values specified in the query (exec=set)v
-	 * (2) preview the source code including any changes of these parameters made in the edit form or with other changes (exec=preview)
-	 * (3) save the article with the changed value set or with other changes (exec=save)
-	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
-	 * inserted before or after a pattern occuring in the text
-	 */
-	
-	public function updateArticleByRule($title, $text, $rulesText) {
-		// we use ; as command delimiter; \; stands for a semicolon
-		// \n is translated to a real linefeed
-		$rulesText       = str_replace(";", '°', $rulesText);
-		$rulesText       = str_replace('\°', ';', $rulesText);
-		$rulesText       = str_replace("\\n", "\n", $rulesText);
-		$rules           = explode('°', $rulesText);
-		$exec            = 'edit';
-		$replaceThis     = '';
-		$replacement     = '';
-		$after           = '';
-		$insertionAfter  = '';
-		$before          = '';
-		$insertionBefore = '';
-		$template        = '';
-		$parameter       = array();
-		$value           = array();
-		$afterparm       = array();
-		$format          = array();
-		$preview         = array();
-		$save            = array();
-		$tooltip         = array();
-		$optional        = array();
-		
-		$lastCmd         = '';
-		$message         = '';
-		$summary         = '';
-		$editForm        = false;
-		$action          = '';
-		$hidden          = array();
-		$legendPage      = '';
-		$instructionPage = '';
-		$table           = '';
-		$fieldFormat     = '';
-		
-		// $message .= 'updaterules=<pre><nowiki>';
-		$nr = -1;
-		foreach ($rules as $rule) {
-			if (preg_match('/^\s*#/', $rule) > 0) {
-				continue; // # is comment symbol
-			}
-			
-			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
-			$cmd  = preg_split("/ +/", $rule, 2);
-			if (count($cmd) > 1) {
-				$arg = $cmd[1];
-			} else {
-				$arg = '';
-			}
-			$cmd[0] = trim($cmd[0]);
-			
-			// after ... insert ...     ,   before ... insert ...
-			if ($cmd[0] == 'before') {
-				$before  = $arg;
-				$lastCmd = 'B';
-			}
-			if ($cmd[0] == 'after') {
-				$after   = $arg;
-				$lastCmd = 'A';
-			}
-			if ($cmd[0] == 'insert' && $lastCmd != '') {
-				if ($lastCmd == 'A') {
-					$insertionAfter = $arg;
-				}
-				if ($lastCmd == 'B') {
-					$insertionBefore = $arg;
-				}
-			}
-			if ($cmd[0] == 'template') {
-				$template = $arg;
-			}
-			
-			if ($cmd[0] == 'parameter') {
-				$nr++;
-				$parameter[$nr] = $arg;
-				if ($nr > 0) {
-					$afterparm[$nr] = array(
-						$parameter[$nr - 1]
-					);
-					$n              = $nr - 1;
-					while ($n > 0 && array_key_exists($n, $optional)) {
-						$n--;
-						$afterparm[$nr][] = $parameter[$n];
-					}
-				}
-			}
-			if ($cmd[0] == 'value') {
-				$value[$nr] = $arg;
-			}
-			if ($cmd[0] == 'format') {
-				$format[$nr] = $arg;
-			}
-			if ($cmd[0] == 'tooltip') {
-				$tooltip[$nr] = $arg;
-			}
-			if ($cmd[0] == 'optional') {
-				$optional[$nr] = true;
-			}
-			if ($cmd[0] == 'afterparm') {
-				$afterparm[$nr] = array(
-					$arg
-				);
-			}
-			if ($cmd[0] == 'legend') {
-				$legendPage = $arg;
-			}
-			if ($cmd[0] == 'instruction') {
-				$instructionPage = $arg;
-			}
-			if ($cmd[0] == 'table') {
-				$table = $arg;
-			}
-			if ($cmd[0] == 'field') {
-				$fieldFormat = $arg;
-			}
-			
-			if ($cmd[0] == 'replace') {
-				$replaceThis = $arg;
-			}
-			if ($cmd[0] == 'by') {
-				$replacement = $arg;
-			}
-			
-			if ($cmd[0] == 'editform') {
-				$editForm = $arg;
-			}
-			if ($cmd[0] == 'action') {
-				$action = $arg;
-			}
-			if ($cmd[0] == 'hidden') {
-				$hidden[] = $arg;
-			}
-			if ($cmd[0] == 'preview') {
-				$preview[] = $arg;
-			}
-			if ($cmd[0] == 'save') {
-				$save[] = $arg;
-			}
-			
-			if ($cmd[0] == 'summary') {
-				$summary = $arg;
-			}
-			if ($cmd[0] == 'exec') {
-				$exec = $arg; // desired action (set or edit or preview)
-			}
-		}
-		
-		if ($summary == '') {
-			$summary .= "\nbulk update:";
-			if ($replaceThis != '') {
-				$summary .= "\n replace $replaceThis\n by $replacement";
-			}
-			if ($before != '') {
-				$summary .= "\n before  $before\n insertionBefore";
-			}
-			if ($after != '') {
-				$summary .= "\n after   $after\n insertionAfter";
-			}
-		}
-		
-		// $message.= '</nowiki></pre>';
-		
-		// perform changes to the wiki source text =======================================
-		
-		if ($replaceThis != '') {
-			$text = preg_replace("$replaceThis", $replacement, $text);
-		}
-		
-		if ($insertionBefore != '' && $before != '') {
-			$text = preg_replace("/($before)/", $insertionBefore . '\1', $text);
-		}
-		
-		if ($insertionAfter != '' && $after != '') {
-			$text = preg_replace("/($after)/", '\1' . $insertionAfter, $text);
-		}
-		
-		// deal with template parameters =================================================
-		
-		global $wgRequest, $wgUser;
-		
-		if ($template != '') {
-			
-			if ($exec == 'edit') {
-				$tpv        = $this->getTemplateParmValues($text, $template);
-				$legendText = '';
-				if ($legendPage != '') {
-					$legendTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
-					LST::text($parser, $legendPage, $legendTitle, $legendText);
-					$legendText = preg_replace('/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s', '', $legendText);
-					$legendText = preg_replace('/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText);
-				}
-				$instructionText = '';
-				$instructions    = array();
-				if ($instructionPage != '') {
-					$instructionTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
-					LST::text($parser, $instructionPage, $instructionTitle, $instructionText);
-					$instructions = $this->getTemplateParmValues($instructionText, 'Template field');
-				}
-				// construct an edit form containing all template invocations
-				$form = "<html><form method=post action=\"$action\" $editForm>\n";
-				foreach ($tpv as $call => $tplValues) {
-					$form .= "<table $table>\n";
-					foreach ($parameter as $nr => $parm) {
-						// try to extract legend from the docs of the template
-						$myToolTip = '';
-						if (array_key_exists($nr, $tooltip)) {
-							$myToolTip = $tooltip[$nr];
-						}
-						$myInstruction = '';
-						$myType        = '';
-						foreach ($instructions as $instruct) {
-							if (array_key_exists('field', $instruct) && $instruct['field'] == $parm) {
-								if (array_key_exists('doc', $instruct)) {
-									$myInstruction = $instruct['doc'];
-								}
-								if (array_key_exists('type', $instruct)) {
-									$myType = $instruct['type'];
-								}
-								break;
-							}
-						}
-						$myFormat = '';
-						if (array_key_exists($nr, $format)) {
-							$myFormat = $format[$nr];
-						}
-						$myOptional = array_key_exists($nr, $optional);
-						if ($legendText != '' && $myToolTip == '') {
-							$myToolTip = preg_replace('/^.*\<section\s+begin\s*=\s*' . preg_quote($parm, '/') . '\s*\/\>/s', '', $legendText);
-							if (strlen($myToolTip) == strlen($legendText)) {
-								$myToolTip = '';
-							} else {
-								$myToolTip = preg_replace('/\<section\s+end\s*=\s*' . preg_quote($parm, '/') . '\s*\/\>.*/s', '', $myToolTip);
-							}
-						}
-						$myValue = '';
-						if (array_key_exists($parm, $tpv[$call])) {
-							$myValue = $tpv[$call][$parm];
-						}
-						$form .= $this->editTemplateCall($text, $template, $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat);
-					}
-					$form .= "</table>\n<br/><br/>";
-				}
-				foreach ($hidden as $hide) {
-					$form .= "<input type=hidden " . $hide . " />";
-				}
-				$form .= "<input type=hidden name=\"token\" value=\"" . $wgUser->editToken() . "\" />";
-				foreach ($preview as $prev) {
-					$form .= "<input type=submit " . $prev . " /> ";
-				}
-				$form .= "</form></html>\n";
-				return $form;
-			} else if ($exec == 'set' || $exec == 'preview') {
-				// loop over all invocations and parameters, this could be improved to enhance performance
-				$matchCount = 10;
-				for ($call = 0; $call < 10; $call++) {
-					foreach ($parameter as $nr => $parm) {
-						// set parameters to values specified in the dpl source or get them from the http request
-						if ($exec == 'set') {
-							$myvalue = $value[$nr];
-						}
-						else {
-							if ($call >= $matchCount) {
-								break;
-							}
-							$myValue = $wgRequest->getVal(urlencode($call . '_' . $parm), '');
-						}
-						$myOptional  = array_key_exists($nr, $optional);
-						$myAfterParm = array();
-						if (array_key_exists($nr, $afterparm)) {
-							$myAfterParm = $afterparm[$nr];
-						}
-						$text = $this->updateTemplateCall($matchCount, $text, $template, $call, $parm, $myValue, $myAfterParm, $myOptional);
-					}
-					if ($exec == 'set') {
-						break; // values taken from dpl text only populate the first invocation
-					}
-				}
-			}
-		}
-		
-		if ($exec == 'set') {
-			return $this->updateArticle($title, $text, $summary);
-		} else if ($exec == 'preview') {
-			global $wgScriptPath, $wgRequest;
-			$titleX   = Title::newFromText($title);
-			$articleX = new Article($titleX);
-			$form     = '<html><form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode($title) . '&action=submit" ' . 'enctype="multipart/form-data">' . "\n" . '<input type="hidden" value="" name="wpSection" />' . "\n" . '<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />' . "\n" . '<input type="hidden" value="' . $articleX->getTimestamp() . '" name="wpEdittime" />' . "\n" . '<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />' . "\n" . '<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $wgUser->getIntOption('rows') . '" cols="' . $wgUser->getIntOption('cols') . '" >' . htmlspecialchars($text) . '</textarea>' . "\n" . '<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />' . '<input name="wpAutoSummary" type="hidden" value="" />' . '<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />' . '<input type="hidden" value="' . $wgRequest->getVal('token') . '" name="wpEditToken" />' . "\n" . '</form></html>' . "\n";
-			return $form;
-		}
-		return "exec must be one of the following: edit, preview, set";
-	}
-	
-	public function updateArticle($title, $text, $summary) {
-		global $wgUser, $wgRequest, $wgOut;
-		
-		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
-			$wgOut->addWikiMsg('sessionfailure');
-			return 'session failure';
-		}
-		
-		$titleX            = Title::newFromText($title);
-		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
-		if (count($permission_errors) == 0) {
-			$articleX = new Article($titleX);
-			$articleX->doEdit($text, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
-			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
-			return '';
-		} else {
-			$wgOut->showPermissionsErrorPage($permission_errors);
-			return 'permission error';
-		}
-	}
-	
-	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
-		$matches = array();
-		$nlCount = preg_match_all('/\n/', $value, $matches);
-		if ($nlCount > 0) {
-			$rows = $nlCount + 1;
-		} else {
-			$rows = floor(strlen($value) / 50) + 1;
-		}
-		if (preg_match('/rows\s*=/', $format) <= 0) {
-			$format .= " rows=$rows";
-		}
-		$cols = 50;
-		if (preg_match('/cols\s*=/', $format) <= 0) {
-			$format .= " cols=$cols";
-		}
-		$textArea = "<textarea name=\"" . urlencode($call . '_' . $parameter) . "\" $format/>" . htmlspecialchars($value) . "</textarea>";
-		return str_replace('%NAME%', htmlspecialchars(str_replace('_', ' ', $parameter)), str_replace('%TYPE%', $type, str_replace('%INPUT%', $textArea, str_replace('%LEGEND%', "</html>" . htmlspecialchars($legend) . "<html>", str_replace('%INSTRUCTION%', "</html>" . htmlspecialchars($instruction) . "<html>", $fieldFormat)))));
-	}
-	
-	/**
-	 * return an array of template invocations; each element is an associative array of parameter and value
-	 */
-	public function getTemplateParmValues($text, $template) {
-		$matches   = array();
-		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
-		if ($noMatches <= 0) {
-			return '';
-		}
-		$textLen = strlen($text);
-		$tval    = array(); // the result array of template values
-		$call    = -1; // index for tval
-		
-		foreach ($matches as $matchA) {
-			foreach ($matchA as $matchB) {
-				$match         = $matchB[0];
-				$start         = $matchB[1];
-				$tval[++$call] = array();
-				$nr            = 0; // number of parameter if no name given
-				$parmValue     = '';
-				$parmName      = '';
-				$parm          = '';
-				
-				if ($match[strlen($match) - 1] == '}') {
-					break; // template was called without parameters, continue with next invocation
-				}
-				
-				// search to the end of the template call
-				$cbrackets = 2;
-				for ($i = $start + strlen($match); $i < $textLen; $i++) {
-					$c = $text[$i];
-					if ($c == '{' || $c == '[') {
-						$cbrackets++; // we count both types of brackets
-					}
-					if ($c == '}' || $c == ']') {
-						$cbrackets--;
-					}
-					if (($cbrackets == 2 && $c == '|') || ($cbrackets == 1 && $c == '}')) {
-						// parameter (name or value) found
-						if ($parmName == '') {
-							$tval[$call][++$nr] = trim($parm);
-						} else {
-							$tval[$call][$parmName] = trim($parmValue);
-						}
-						$parmName  = '';
-						$parmValue = '';
-						$parm      = '';
-						continue;
-					} else {
-						if ($parmName == '') {
-							if ($c == '=') {
-								$parmName = trim($parm);
-							}
-						} else {
-							$parmValue .= $c;
-						}
-					}
-					$parm .= $c;
-					if ($cbrackets == 0) {
-						break; // end of parameter list
-					}
-				}
-			}
-		}
-		return $tval;
-	}
-	
-	/*
-	 * Changes a single parameter value within a certain call of a tempplate
-	 */
-	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
-		
-		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
-		if ($optional && $value == '') {
-			return $text;
-		}
-		
-		$matches   = array();
-		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
-		if ($noMatches <= 0) {
-			return $text;
-		}
-		$beginSubst  = -1;
-		$endSubst    = -1;
-		$posInsertAt = 0;
-		$apNrLast    = 1000; // last (optional) predecessor
-		
-		foreach ($matches as $matchA) {
-			$matchCount = count($matchA);
-			foreach ($matchA as $occurence => $matchB) {
-				if ($occurence < $call) {
-					continue;
-				}
-				$match = $matchB[0];
-				$start = $matchB[1];
-				
-				if ($match[strlen($match) - 1] == '}') {
-					// template was called without parameters, add new parameter and value
-					// append parameter and value
-					$beginSubst   = $i;
-					$endSubst     = $i;
-					$substitution = "|$parameter = $value";
-					break;
-				} else {
-					// there is already a list of parameters; we search to the end of the template call
-					$cbrackets = 2;
-					$parm      = '';
-					$pos       = $start + strlen($match) - 1;
-					$textLen   = strlen($text);
-					for ($i = $pos + 1; $i < $textLen; $i++) {
-						$c = $text[$i];
-						if ($c == '{' || $c == '[') {
-							$cbrackets++; // we count both types of brackets
-						}
-						if ($c == '}' || $c == ']') {
-							$cbrackets--;
-						}
-						if (($cbrackets == 2 && $c == '|') || ($cbrackets == 1 && $c == '}')) {
-							// parameter (name / value) found
-							
-							$token = explode('=', $parm, 2);
-							if (count($token) == 2) {
-								// we need a pair of name / value
-								$parmName = trim($token[0]);
-								if ($parmName == $parameter) {
-									// we found the parameter, now replace the current value
-									$parmValue = trim($token[1]);
-									if ($parmValue == $value) {
-										break; // no need to change when values are identical
-									}
-									// keep spaces;
-									if ($parmValue == '') {
-										if (strlen($token[1]) > 0 && $token[1][strlen($token[1]) - 1] == "\n") {
-											$substitution = str_replace("\n", $value . "\n", $token[1]);
-										} else {
-											$substitution = $value . $token[1];
-										}
-									} else {
-										$substitution = str_replace($parmValue, $value, $token[1]);
-									}
-									$beginSubst = $pos + strlen($token[0]) + 2;
-									$endSubst   = $i;
-									break;
-								} else {
-									foreach ($afterParm as $apNr => $ap) {
-										// store position for insertion
-										if ($parmName == $ap && $apNr < $apNrLast) {
-											$posInsertAt = $i;
-											$apNrLast    = $apNr;
-											break;
-										}
-									}
-								}
-							}
-							
-							if ($c == '}') {
-								// end of template call reached, insert at stored position or here
-								if ($posInsertAt != 0) {
-									$beginSubst = $posInsertAt;
-								} else {
-									$beginSubst = $i;
-								}
-								$substitution = "|$parameter = $value";
-								if ($text[$beginSubst - 1] == "\n") {
-									--$beginSubst;
-									$substitution = "\n" . $substitution;
-								}
-								$endSubst = $beginSubst;
-								break;
-							}
-							
-							$pos  = $i;
-							$parm = '';
-						} else {
-							$parm .= $c;
-						}
-						if ($cbrackets == 0) {
-							break;
-						}
-					}
-				}
-				break;
-			}
-			break;
-		}
-		
-		if ($beginSubst < 0) {
-			return $text;
-		}
-		
-		return substr($text, 0, $beginSubst) . $substitution . substr($text, $endSubst);
-		
-	}
-	
-	public function deleteArticleByRule($title, $text, $rulesText) {
-		
-		global $wgUser, $wgOut;
-		
-		// return "deletion of articles by DPL is disabled.";
-		
-		
-		// we use ; as command delimiter; \; stands for a semicolon
-		// \n is translated to a real linefeed
-		$rulesText = str_replace(";", '°', $rulesText);
-		$rulesText = str_replace('\°', ';', $rulesText);
-		$rulesText = str_replace("\\n", "\n", $rulesText);
-		$rules     = explode('°', $rulesText);
-		$exec      = false;
-		$message   = '';
-		$reason    = '';
-		
-		
-		foreach ($rules as $rule) {
-			if (preg_match('/^\s*#/', $rule) > 0) {
-				continue; // # is comment symbol
-			}
-			
-			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
-			$cmd  = preg_split("/ +/", $rule, 2);
-			if (count($cmd) > 1) {
-				$arg = $cmd[1];
-			} else {
-				$arg = '';
-			}
-			$cmd[0] = trim($cmd[0]);
-			
-			if ($cmd[0] == 'reason') {
-				$reason = $arg;
-			}
-			
-			// we execute only if "exec" is given, otherwise we merely show what would be done
-			if ($cmd[0] == 'exec') {
-				$exec = true;
-			}
-		}
-		$reason .= "\nbulk delete by DPL query";
-		
-		$titleX = Title::newFromText($title);
-		if ($exec) {
-			# Check permissions
-			$permission_errors = $titleX->getUserPermissionsErrors('delete', $wgUser);
-			if (count($permission_errors) > 0) {
-				$wgOut->showPermissionsErrorPage($permission_errors);
-				return 'permission error';
-			} else if (wfReadOnly()) {
-				$wgOut->readOnlyPage();
-				return 'DPL: read only mode';
-			} else {
-				$articleX = new Article($titleX);
-				$articleX->doDelete($reason);
-			}
-		} else
-			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
-		$message .= "<pre><nowiki>" . "\n" . $text . "</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
-		return $message;
-	}
-	
-	// generate a hyperlink to the article
-	public function articleLink($tag, $article, $iTitleMaxLen) {
-		$pagename = $article->mTitle->getPrefixedText();
-		if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
-			// links to categories or images need an additional ":"
-			$pagename = ':' . $pagename;
-		}
-		return $this->substTagParm($tag, $pagename, $article, $this->filteredCount, '', $iTitleMaxLen);
-	}
-	
-	//format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)
-	public function formatItem($piece, $tagStart, $tagEnd) {
-		return $tagStart . $piece . $tagEnd;
-	}
-	
-	//format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter)
-	public function formatSingleItems(&$pieces, $s, $article) {
-		$firstCall = true;
-		foreach ($pieces as $key => $val) {
-			if (array_key_exists($s, $this->mTableRow)) {
-				if ($s == 0 || $firstCall) {
-					$pieces[$key] = str_replace('%%', $val, $this->mTableRow[$s]);
-				} else {
-					$n = strpos($this->mTableRow[$s], '|');
-					if ($n === false || !(strpos(substr($this->mTableRow[$s], 0, $n), '{') === false) || !(strpos(substr($this->mTableRow[$s], 0, $n), '[') === false)) {
-						$pieces[$key] = str_replace('%%', $val, $this->mTableRow[$s]);
-					} else {
-						$pieces[$key] = str_replace('%%', $val, substr($this->mTableRow[$s], $n + 1));
-					}
-				}
-				$pieces[$key] = str_replace('%IMAGE%', self::imageWithPath($val), $pieces[$key]);
-				$pieces[$key] = str_replace('%PAGE%', $article->mTitle->getPrefixedText(), $pieces[$key]);
-				if (strpos($pieces[$key], "%CAT") >= 0) {
-					if (!empty($article->mCategoryLinks)) {
-						$pieces[$key] = str_replace('%' . 'CATLIST%', implode(', ', $article->mCategoryLinks), $pieces[$key]);
-						$pieces[$key] = str_replace('%' . 'CATBULLETS%', '* ' . implode("\n* ", $article->mCategoryLinks), $pieces[$key]);
-						$pieces[$key] = str_replace('%' . 'CATNAMES%', implode(', ', $article->mCategoryTexts), $pieces[$key]);
-					} else {
-						$pieces[$key] = str_replace('%' . 'CATLIST%', '', $pieces[$key]);
-						$pieces[$key] = str_replace('%' . 'CATBULLETS%', '', $pieces[$key]);
-						$pieces[$key] = str_replace('%' . 'CATNAMES%', '', $pieces[$key]);
-					}
-				}
-			}
-			$firstCall = false;
-		}
-	}
-	
-	//format one single template argument of one occurence of one item from the include parameter
-	// is called via a backlink from LST::includeTemplate()
-	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxlen, $article) {
-		// we could try to format fields differently within the first call of a template
-		// currently we do not make such a difference
-		
-		// if the result starts with a '-' we add a leading space; thus we avoid a misinterpretation of |- as
-		// a start of a new row (wiki table syntax)
-		if (array_key_exists("$s.$argNr", $this->mTableRow)) {
-			$n = -1;
-			if ($s >= 1 && $argNr == 0 && !$firstCall) {
-				$n = strpos($this->mTableRow["$s.$argNr"], '|');
-				if ($n === false || !(strpos(substr($this->mTableRow["$s.$argNr"], 0, $n), '{') === false) || !(strpos(substr($this->mTableRow["$s.$argNr"], 0, $n), '[') === false)) {
-					$n = -1;
-				}
-			}
-			$result = str_replace('%%', $arg, substr($this->mTableRow["$s.$argNr"], $n + 1));
-			$result = str_replace('%PAGE%', $article->mTitle->getPrefixedText(), $result);
-			$result = str_replace('%IMAGE%', self::imageWithPath($arg), $result);
-			$result = $this->cutAt($maxlen, $result);
-			if (strlen($result) > 0 && $result[0] == '-') {
-				return ' ' . $result;
-			} else {
-				return $result;
-			}
-		}
-		$result = $this->cutAt($maxlen, $arg);
-		if (strlen($result) > 0 && $result[0] == '-') {
-			return ' ' . $result;
-		} else {
-			return $result;
-		}
-	}
-	
-	//return the total number of rows (filtered)
-	public function getRowCount() {
-		return $this->filteredCount;
-	}
-	
-	/**
-	 * Truncate a portion of wikitext so that ..
-	 * ... it is not larger that $lim characters
-	 * ... it is balanced in terms of braces, brackets and tags
-	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
-	 * @param  $lim     limit of character count for the result
-	 * @param  $text    the wikitext to be truncated
-	 * @return the truncated text; note that in some cases it may be slightly longer than the given limit
-	 *         if the text is alread shorter than the limit or if the limit is negative, the text
-	 *         will be returned without any checks for balance of tags
-	 */
-	public function cutAt($lim, $text) {
-		if ($lim < 0) {
-			return $text;
-		}
-		return LST::limitTranscludedText($text, $lim);
-	}
-	
-	//slightly different from CategoryViewer::formatList() (no need to instantiate a CategoryViewer object)
-	public function formatCategoryList($iStart, $iCount) {
-		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
-			$aArticles[]            = $this->mArticles[$i]->mLink;
-			$aArticles_start_char[] = $this->mArticles[$i]->mStartChar;
-			$this->filteredCount    = $this->filteredCount + 1;
-		}
-		require_once('CategoryPage.php');
-		if (count($aArticles) > DynamicPageListHooks::$categoryStyleListCutoff) {
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::columnList($aArticles, $aArticles_start_char);
-		} elseif (count($aArticles) > 0) {
-			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::shortList($aArticles, $aArticles_start_char);
-		}
-		return '';
-	}
-	
-	/**
-	 * Prepends an image name with its hash path.
+	 * Mediawiki Database Object
 	 *
-	 * @param  $imgName name of the image (may start with Image: or File:)
-	 * @return $uniq_prefix
+	 * @var		object
 	 */
-	static public function imageWithPath($imgName) {
-		$title = Title::newfromText('Image:' . $imgName);
-		if (!is_null($title)) {
-			$iTitle   = Title::makeTitleSafe(6, $title->getDBKey());
-			$imageUrl = preg_replace('~^.*images/(.*)~', '\1', RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
-		} else {
-			$imageUrl = '???';
-		}
-		return $imageUrl;
-	}
-	
+	static private $DB = null;
+
 	/**
-	 * Returns message in the requested format after parsing wikitext to html
-	 * This is meant to be equivalent to wfMsgExt() with parse, parsemag and escape as available options but using the DPL local parser instead of the global one (bugfix).
+	 * The real callback function for converting the input text to wiki text output
+	 *
+	 * @access	public
+	 * @param	
+	 * @return	string	Wiki/HTML Output
 	 */
-	public function msgExt($key, $options) {
-		$args = func_get_args();
-		array_shift($args);
-		array_shift($args);
-		
-		if (!is_array($options)) {
-			$options = array(
-				$options
+	public static function dynamicPageList($input, $params, $parser, &$bReset, $calledInMode) {
+		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
+
+		// Output
+		$output = '';
+
+		//Make sure database is setup.
+		self::$DB = wfGetDB(DB_SLAVE);
+
+		//logger (display of debug messages)
+		$logger = new Logger();
+
+		//check that we are not in an infinite transclusion loop
+		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
+			$logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+			return $logger->getMessages();
+		}
+
+		/**
+		 * Initialization
+		 */
+		$parameters = new Parameters();
+
+		$dplStartTime = microtime(true);
+
+		// Local parser created. See http://www.mediawiki.org/wiki/Extensions_FAQ#How_do_I_render_wikitext_in_my_extension.3F
+		$localParser = new \Parser();
+		$pOptions    = $parser->mOptions;
+
+		// check if DPL shall only be executed from protected pages
+		if (array_key_exists('RunFromProtectedPagesOnly', Options::$options) && Options::$options['RunFromProtectedPagesOnly'] == true && !($parser->mTitle->isProtected('edit'))) {
+
+			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page
+			// which is protected. Then there would be no need for the article to be protected.
+			// BUT: How can one find out from which wiki source an extension has been invoked???
+
+			return (Options::$options['RunFromProtectedPagesOnly']);
+		}
+
+		$tableNames = Query::getTableNames();
+
+		// Extension variables
+		// Allowed namespaces for DPL: all namespaces except the first 2: Media (-2) and Special (-1), because we cannot use the DB for these to generate dynamic page lists.
+		if (!is_array(\DynamicPageListHooks::$allowedNamespaces)) { // Initialization
+			$aNs                                   = $wgContLang->getNamespaces();
+			\DynamicPageListHooks::$allowedNamespaces = array_slice($aNs, 2, count($aNs), true);
+			if (!is_array(Options::$options['namespace'])) {
+				Options::$options['namespace'] = \DynamicPageListHooks::$allowedNamespaces;
+			} else {
+				// Make sure user namespace options are allowed.
+				Options::$options['namespace'] = array_intersect(Options::$options['namespace'], \DynamicPageListHooks::$allowedNamespaces);
+			}
+			if (!isset(Options::$options['namespace']['default'])) {
+				Options::$options['namespace']['default'] = null;
+			}
+			if (!is_array(Options::$options['notnamespace'])) {
+				Options::$options['notnamespace'] = \DynamicPageListHooks::$allowedNamespaces;
+			} else {
+				Options::$options['notnamespace'] = array_intersect(Options::$options['notnamespace'], \DynamicPageListHooks::$allowedNamespaces);
+			}
+			if (!isset(Options::$options['notnamespace']['default'])) {
+				Options::$options['notnamespace']['default'] = null;
+			}
+		}
+
+		// check parameters which can be set via the URL
+
+		self::getUrlArgs();
+
+		if (strpos($input, '{%DPL_') >= 0) {
+			for ($i = 1; $i <= 5; $i++) {
+				$input = self::resolveUrlArg($input, 'DPL_arg' . $i);
+			}
+		}
+
+		$_sOffset = $wgRequest->getVal('DPL_offset', Options::$options['offset']['default']);
+		$iOffset  = ($_sOffset == '') ? 0 : intval($_sOffset);
+
+		// commandline parameters like %DPL_offset% are replaced
+		$input = self::resolveUrlArg($input, 'DPL_offset');
+		$input = self::resolveUrlArg($input, 'DPL_count');
+		$input = self::resolveUrlArg($input, 'DPL_fromTitle');
+		$input = self::resolveUrlArg($input, 'DPL_findTitle');
+		$input = self::resolveUrlArg($input, 'DPL_toTitle');
+
+		$originalInput = $input;
+
+		$bDPLRefresh = ($wgRequest->getVal('DPL_refresh', '') == 'yes');
+
+		//Options
+		$DPLCache        = '';
+		$DPLCachePath    = '';
+
+		//Array for LINK / TEMPLATE / CATGEORY / IMAGE by RESET / ELIMINATE
+		if (Options::$options['eliminate'] == 'all') {
+			$bReset = array(
+				false,
+				false,
+				false,
+				false,
+				true,
+				true,
+				true,
+				true
+			);
+		} else {
+			$bReset = array(
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false
 			);
 		}
-		
-		$string = wfMsgNoTrans($key);
-		
-		$string = wfMsgReplaceArgs($string, $args);
-		
-		$this->mParserOptions->setInterfaceMessage(true);
-		$string = $this->mParser->recursiveTagParse($string);
-		$this->mParserOptions->setInterfaceMessage(false);
-		
-		if (in_array('escape', $options)) {
-			$string = htmlspecialchars($string);
+
+		// ###### PARSE PARAMETERS ######
+
+		// we replace double angle brackets by < > ; thus we avoid premature tag expansion in the input
+		$input = str_replace('»', '>', $input);
+		$input = str_replace('«', '<', $input);
+
+		// use the ¦ as a general alias for |
+		$input = str_replace('¦', '|', $input); // the symbol is utf8-escaped
+
+		// the combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution
+		// which is crucial for DPL queries which call other DPL queries
+		$input = str_replace('²{', '{{', $input);
+		$input = str_replace('}²', '}}', $input);
+
+		$input = str_replace(["\r\n", "\r"], "\n", $input);
+		$input = trim($input, "\n");
+		$rawParameters	= explode("\n", $input);
+		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
+
+		// version 0.9:
+		// we do not parse parameters recursively when reading them in.
+		// we rather leave them unchanged, produce the complete output and then finally
+		// parse the result recursively. This allows to build complex structures in the output
+		// which are only understood by the parser if seen as a whole
+
+		foreach ($rawParameters as $key => $parameterOption) {
+			if (strpos($parameterOption, '=') === false) {
+				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
+				continue;
+			}
+
+			list($parameter, $option) = explode('=', $parameterOption, 2);
+			$parameter = trim($parameter);
+			$option  = trim($option);
+
+			if (strpos($parameter, '<') !== false || strpos($parameter, '>') !== false) {
+				//Having the actual less than and greater than symbols is nasty for programatic look up.  The old parameter is still supported along with the new, but we just fix it here before calling it.
+				$parameter = str_replace('<', 'lt', $parameter);
+				$parameter = str_replace('>', 'gt', $parameter);
+			}
+
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !ParametersData::testRichness($parameter))) {
+				continue;
+			}
+
+			if (!$parameters->exists($parameter)) {
+				$logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+			}
+
+			//Ignore parameter settings without argument (except namespace and category)
+			if (empty($option)) {
+				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && array_key_exists($parameter, Options::$options)) {
+					continue;
+				}
+			}
+
+			//Parameter functions generally return their processed options, but we will grab them all at the end instead.
+			if ($parameters->$function($option) === false) {
+				//Do not build this into the output just yet.  It will be collected at the end.
+				$logger->msgWrongParam($parameter, $option);
+			}
 		}
-		
-		return $string;
+
+		// set COUNT
+
+		if ($sCount == '') {
+			$sCount = $sCountScroll;
+		}
+		if ($sCount == '') {
+			$iCount = -1;
+		} else {
+			if (preg_match(Options::$options['count']['pattern'], $sCount)) {
+				$iCount = intval($sCount);
+			} else {
+				// wrong value
+				$output .= $logger->msgWrongParam('count', "$sCount : not a number!");
+				$iCount = 1;
+			}
+		}
+		if (!\DynamicPageListHooks::$allowUnlimitedResults && ($iCount < 0 || $iCount > \DynamicPageListHooks::$maxResultCount)) {
+			// justify limits;
+			$iCount = \DynamicPageListHooks::$maxResultCount;
+		}
+
+
+		// disable parser cache if caching is not allowed (which is default for DPL but not for <DynamicPageList>)
+		if (!$bAllowCachedResults) {
+			$parser->disableCache();
+		}
+		// place cache warning in resultsheader
+		if ($bWarnCachedResults) {
+			$sResultsHeader = '{{DPL Cache Warning}}' . $sResultsHeader;
+		}
+
+
+
+		if ($sExecAndExit != '') {
+			// the keyword "geturlargs" is used to return the Url arguments and do nothing else.
+			if ($sExecAndExit == 'geturlargs') {
+				return '';
+			}
+			// in all other cases we return the value of the argument (which may contain parser function calls)
+			return $sExecAndExit;
+		}
+
+
+
+		// if Caching is desired AND if the cache is up to date: get result from Cache and exit
+
+		global $wgUploadDirectory, $wgRequest;
+		if ($DPLCache != '') {
+			$cacheFile = "$wgUploadDirectory/dplcache/$DPLCachePath/$DPLCache";
+			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
+			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
+			// otherwise we accept thecache if it is not too old
+			if (!$bDPLRefresh && file_exists($cacheFile)) {
+				// find out if cache is acceptable or too old
+				$diff = time() - filemtime($cacheFile);
+				if ($diff <= $iDPLCachePeriod) {
+					$cachedOutput    = file_get_contents($cacheFile);
+					$cachedOutputPos = strpos($cachedOutput, "+++\n");
+					// when submitting a page we check if the DPL statement has changed
+					if ($wgRequest->getVal('action', 'view') != 'submit' || ($originalInput == substr($cachedOutput, 0, $cachedOutputPos))) {
+						$cacheTimeStamp = self::prettyTimeStamp(date('YmdHis', filemtime($cacheFile)));
+						$cachePeriod    = self::durationTime($iDPLCachePeriod);
+						$diffTime       = self::durationTime($diff);
+						$output .= substr($cachedOutput, $cachedOutputPos + 4);
+						if ($logger->iDebugLevel >= 2) {
+							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$iOffset}}";
+						}
+						// ignore further parameters, stop processing, return cache content
+						return $output;
+					}
+				}
+			}
+		}
+
+		// debug level 5 puts nowiki tags around the output
+		if ($logger->iDebugLevel == 5) {
+			$logger->iDebugLevel = 2;
+			$sResultsHeader      = '<pre><nowiki>' . $sResultsHeader;
+			$sResultsFooter .= '</nowiki></pre>';
+		}
+
+		// construct internal keys for TableRow according to the structure of "include"
+		// this will be needed in the output phase
+		self::updateTableRowKeys($aTableRow, $aSecLabels);
+		// foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br/>";
+
+		$iIncludeCatCount      = count($aIncludeCategories);
+		$iTotalIncludeCatCount = count($aIncludeCategories, COUNT_RECURSIVE) - $iIncludeCatCount;
+		$iExcludeCatCount      = count($aExcludeCategories);
+		$iTotalCatCount        = $iTotalIncludeCatCount + $iExcludeCatCount;
+
+		if ($calledInMode == 'tag') {
+			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
+			if ($bReset[5]) {
+				$bReset[1] = true;
+				$bReset[5] = false;
+			}
+			if ($bReset[6]) {
+				$bReset[2] = true;
+				$bReset[6] = false;
+			}
+			if ($bReset[7]) {
+				$bReset[3] = true;
+				$bReset[7] = false;
+			}
+		} else {
+			if ($bReset[1]) {
+				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
+			}
+			if ($bReset[2]) {
+				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
+			}
+			if ($bReset[3]) {
+				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
+			}
+		}
+		if (($calledInMode == 'tag' && $bReset[0]) || $calledInMode == 'func') {
+			if ($bReset[0]) {
+				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
+			}
+			// register a hook to reset links which were produced during parsing DPL output
+			global $wgHooks;
+			if (!in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
+			}
+		}
+
+
+		// ###### CHECKS ON PARAMETERS ######
+
+		// too many categories!
+		if (($iTotalCatCount > \DynamicPageListHooks::$maxCategoryCount) && (!\DynamicPageListHooks::$allowUnlimitedCategories)) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
+		}
+
+		// too few categories!
+		if ($iTotalCatCount < \DynamicPageListHooks::$minCategoryCount) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
+		}
+
+		// no selection criteria! Warn only if no debug level is set
+		if ($iTotalCatCount == 0 && $bSelectionCriteriaFound == false) {
+			if ($logger->iDebugLevel <= 1) {
+				return $output;
+			}
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
+		}
+
+		// ordermethod=sortkey requires ordermethod=category
+		// delayed to the construction of the SQL query, see near line 2211, gs
+		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
+
+		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
+		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+		}
+
+		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
+		// we ALLOW this parameter combination, risking ambiguous results
+		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
+		//	return $logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
+
+		// no more than one type of date at a time!
+		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+		}
+
+		// the dominant section must be one of the sections mentioned in includepage
+		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+		}
+
+		// category-style output requested with not compatible order method
+		if ($sPageListMode == 'category' && !array_intersect($aOrderMethods, array(
+			'sortkey',
+			'title',
+			'titlewithoutnamespace'
+		))) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+		}
+
+		// addpagetoucheddate=true with unappropriate order methods
+		if ($bAddPageTouchedDate && !array_intersect($aOrderMethods, array(
+			'pagetouched',
+			'title'
+		))) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+		}
+
+		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
+		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
+		if ($bAddEditDate && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+		}
+
+		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
+		/**
+		 * @todo allow to add user for other order methods.
+		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
+		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
+		 */
+		if ($bAddUser && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+		}
+		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		))) {
+			return $logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+		}
+
+		/**
+		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
+		 */
+		if ($bIncludeUncat) {
+			// If the view is not there, we can't perform logical operations on the Uncategorized.
+			if (!self::$DB->tableExists('dpl_clview')) {
+				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $tableNames['page'] . ' LEFT OUTER JOIN ' . $tableNames['categorylinks'] . ' ON ' . $tableNames['page'] . '.page_id=cl_from';
+				$logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
+				return $output;
+			}
+		}
+
+		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
+		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
+			$logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
+		}
+
+		//headingmode has effects with ordermethod on multiple components only
+		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
+			$logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+			$sHListMode = 'none';
+		}
+
+		// openreferences is incompatible with many other options
+		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
+			$logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
+			$acceptOpenReferences = false;
+		}
+
+		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
+		if ($sTitleLE != '' && $sTitleGE == '') {
+			if ($sOrder == 'ascending') {
+				$sOrder = 'descending';
+			}
+		}
+
+		$output .= '{{Extension DPL}}';
+
+
+
+		// ###### BUILD SQL QUERY ######
+		$sSqlPage_counter  = '';
+		$sSqlPage_size     = '';
+		$sSqlPage_touched  = '';
+		$sSqlCalcFoundRows = '';
+		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($sResultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
+			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
+		}
+		if ($sDistinctResultSet === false) {
+			$sSqlDistinct = '';
+		} else {
+			$sSqlDistinct = 'DISTINCT';
+		}
+		$sSqlGroupBy = '';
+		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0) {
+			$sSqlGroupBy = 'page_title';
+		}
+
+		$sSqlWhere              = ' WHERE 1=1 ';
+		$sSqlSelPage            = ''; // initial page for selection
+
+		// normally we create a result of normal pages, but when goal=categories is set, we create a list of categories
+		// as this conflicts with some options we need to avoid producing incoorect SQl code
+		$bGoalIsPages = true;
+		if ($sGoal == 'categories') {
+			$aOrderMethods = explode(',', '');
+			$bGoalIsPages  = false;
+		}
+
+
+
+		// recent changes  =============================
+
+		if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
+			$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+			$sSqlRev_timestamp = ', rev_timestamp';
+			$sSqlRev_id        = ', rev_id';
+
+
+		}
+
+		// SELECT ... FROM
+		if ($acceptOpenReferences) {
+			// SELECT ... FROM
+			if (count($aImageContainer) > 0) {
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $tableNames['imagelinks'] . ' AS ic';
+			} else {
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $tableNames['pagelinks'];
+			}
+		} else {
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $tableNames['page'] . '.page_namespace AS page_namespace,' . $tableNames['page'] . '.page_title AS page_title,' . $tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $tableNames['page'];
+		}
+
+		// JOIN ...
+		if ($sSqlClHeadTable != '' || $sSqlClTableForGC != '') {
+			$b2tables = ($sSqlClHeadTable != '') && ($sSqlClTableForGC != '');
+			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $sSqlClHeadTable . ($b2tables ? ', ' : '') . $sSqlClTableForGC . ' ON (' . $sSqlCond_page_cl_head . ($b2tables ? ' AND ' : '') . $sSqlCond_page_cl_gc . ')';
+		}
+
+		// Include categories...
+
+		// Exclude categories...
+
+		// page_id=rev_page (if revision table required)
+		$sSqlWhere .= $sSqlCond_page_rev;
+
+
+		// count(all categories) <= max no of categories
+		$sSqlWhere .= $sSqlCond_MaxCat;
+
+		// check against forbidden namespaces
+		if (is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0 && implode(',', $wgNonincludableNamespaces) != '') {
+			$sSqlWhere .= ' AND ' . $tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
+		}
+
+		// page_id=pl.pl_from (if pagelinks table required)
+		$sSqlWhere .= $sSqlCond_page_pl;
+
+		// page_id=el.el_from (if external links table required)
+		$sSqlWhere .= $sSqlCond_page_el;
+
+		// page_id=tpl.tl_from (if templatelinks table required)
+		$sSqlWhere .= $sSqlCond_page_tpl;
+
+		if (function_exists('efLoadFlaggedRevs')) {
+			$filterSet = array(
+				'only',
+				'exclude'
+			);
+			# Either involves the same JOIN here...
+			if (in_array($sStable, $filterSet) || in_array($sQuality, $filterSet)) {
+				$sSqlSelectFrom .= " LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id";
+			}
+			switch ($sStable) {
+				case 'only':
+					$sSqlWhere .= ' AND fp_stable IS NOT NULL ';
+					break;
+				case 'exclude':
+					$sSqlWhere .= ' AND fp_stable IS NULL ';
+					break;
+			}
+			switch ($sQuality) {
+				case 'only':
+					$sSqlWhere .= ' AND fp_quality >= 1';
+					break;
+				case 'exclude':
+					$sSqlWhere .= ' AND fp_quality = 0';
+					break;
+			}
+		}
+
+		// GROUP BY ...
+		if ($sSqlGroupBy != '') {
+			$sSqlWhere .= ' GROUP BY ' . $sSqlGroupBy . ' ';
+		}
+
+
+		if ($sAllRevisionsSince != '' || $sAllRevisionsBefore != '') {
+			if ($aOrderMethods[0] == '' || $aOrderMethods[0] == 'none') {
+				$sSqlWhere .= ' ORDER BY ';
+			} else {
+				$sSqlWhere .= ', ';
+			}
+			$sSqlWhere .= 'rev_id DESC';
+		}
+
+		// LIMIT ....
+		// we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
+		if ((!\DynamicPageListHooks::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
+			$sSqlWhere .= " LIMIT $iOffset, ";
+			if ($iCount < 0) {
+				$iCount = intval(Options::$options['count']['default']);
+			}
+			$sSqlWhere .= $iCount;
+		}
+
+		// when we go for a list of categories as result we transform the output of the normal query into a subquery
+		// of a selection on the categorylinks
+
+		if ($sGoal == 'categories') {
+			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $tableNames['categorylinks'] . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $tableNames['page'] . '.page_id FROM ', $sSqlSelectFrom);
+			if ($sOrder == 'descending') {
+				$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
+			} else {
+				$sSqlWhere .= ' ) ORDER BY cl3.cl_to ASC';
+			}
+		}
+
+
+		// ###### DUMP SQL QUERY ######
+		if ($logger->iDebugLevel >= 3) {
+			//DEBUG: output SQL query
+			$output .= "DPL debug -- Query=<br />\n<tt>" . $sSqlSelectFrom . $sSqlWhere . "</tt>\n\n";
+		}
+
+		// Do NOT proces the SQL command if debug==6; this is useful if the SQL statement contains bad code
+		if ($logger->iDebugLevel == 6) {
+			return $output;
+		}
+
+
+		// ###### PROCESS SQL QUERY ######
+		$queryError = false;
+		try {
+			$res = self::$DB->query($sSqlSelectFrom . $sSqlWhere);
+		}
+		catch (Exception $e) {
+			$queryError = true;
+		}
+		if ($queryError == true || $res === false) {
+			$result = "The DPL extension (version " . DPL_VERSION . ") produced a SQL statement which lead to a Database error.<br/>\n
+The reason may be an internal error of DPL or an error which you made, especially when using DPL options like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>\n
+Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
+			return $result;
+		}
+
+		if (self::$DB->numRows($res) <= 0) {
+			$header = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsHeader));
+			if ($sNoResultsHeader != '') {
+				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
+			}
+			$footer = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsFooter));
+			if ($sNoResultsFooter != '') {
+				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
+			}
+			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
+				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+			}
+			self::$DB->freeResult($res);
+			return $output;
+		}
+
+		// generate title for Special:Contributions (used if adduser=true)
+		$sSpecContribs = '[[:Special:Contributions|Contributions]]';
+
+		$aHeadings = array(); // maps heading to count (# of pages under each heading)
+		$aArticles = array();
+
+		if (isset($iRandomCount) && $iRandomCount > 0) {
+			$nResults = self::$DB->numRows($res);
+			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
+			if ($iRandomCount > $nResults) {
+				$iRandomCount = $nResults;
+			}
+
+			//This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
+			$pick = range(1, $nResults);
+			shuffle($pick);
+			$pick = array_slice($pick, 0, $iRandomCount);
+		}
+
+		$iArticle            = 0;
+		$firstNamespaceFound = '';
+		$firstTitleFound     = '';
+		$lastNamespaceFound  = '';
+		$lastTitleFound      = '';
+
+		foreach ($res as $row) {
+			$iArticle++;
+
+			// in random mode skip articles which were not chosen
+			if (isset($iRandomCount) && $iRandomCount > 0 && !in_array($iArticle, $pick)) {
+				continue;
+			}
+
+			if ($sGoal == 'categories') {
+				$pageNamespace = 14; // CATEGORY
+				$pageTitle     = $row->cl_to;
+			} else if ($acceptOpenReferences) {
+				if (count($aImageContainer) > 0) {
+					$pageNamespace = NS_FILE;
+					$pageTitle     = $row->il_to;
+				} else {
+					// maybe non-existing title
+					$pageNamespace = $row->pl_namespace;
+					$pageTitle     = $row->pl_title;
+				}
+			} else {
+				// existing PAGE TITLE
+				$pageNamespace = $row->page_namespace;
+				$pageTitle     = $row->page_title;
+			}
+
+			// if subpages are to be excluded: skip them
+			if (!$bIncludeSubpages && (!(strpos($pageTitle, '/') === false))) {
+				continue;
+			}
+
+			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
+			$thisTitle = $parser->getTitle();
+
+			// block recursion: avoid to show the page which contains the DPL statement as part of the result
+			if ($bSkipThisPage && $thisTitle->equals($title)) {
+				// $output.= 'BLOCKED '.$thisTitle->getText().' DUE TO RECURSION'."\n";
+				continue;
+			}
+
+			$dplArticle = new Article($title, $pageNamespace);
+			//PAGE LINK
+			$sTitleText = $title->getText();
+			if ($bShowNamespace) {
+				$sTitleText = $title->getPrefixedText();
+			}
+			if ($aReplaceInTitle[0] != '') {
+				$sTitleText = preg_replace($aReplaceInTitle[0], $aReplaceInTitle[1], $sTitleText);
+			}
+
+			//chop off title if "too long"
+			if (isset($iTitleMaxLen) && (strlen($sTitleText) > $iTitleMaxLen)) {
+				$sTitleText = substr($sTitleText, 0, $iTitleMaxLen) . '...';
+			}
+			if ($bShowCurID && isset($row->page_id)) {
+				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row->page_id . '}} ' . htmlspecialchars($sTitleText) . ']';
+			} else if (!$bEscapeLinks || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
+				// links to categories or images need an additional ":"
+				$articleLink = '[[' . $title->getPrefixedText() . '|' . $wgContLang->convert($sTitleText) . ']]';
+			} else {
+				$articleLink = '[{{fullurl:' . $title->getText() . '}} ' . htmlspecialchars($sTitleText) . ']';
+			}
+
+			$dplArticle->mLink = $articleLink;
+
+			//get first char used for category-style output
+			if (isset($row->sortkey)) {
+				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row->sortkey));
+			}
+			if (isset($row->sortkey)) {
+				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row->sortkey));
+			} else {
+				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($pageTitle));
+			}
+
+			// page_id
+			if (isset($row->page_id)) {
+				$dplArticle->mID = $row->page_id;
+			} else {
+				$dplArticle->mID = 0;
+			}
+
+			// external link
+			if (isset($row->el_to)) {
+				$dplArticle->mExternalLink = $row->el_to;
+			}
+
+			//SHOW PAGE_COUNTER
+			if (isset($row->page_counter)) {
+				$dplArticle->mCounter = $row->page_counter;
+			}
+
+			//SHOW PAGE_SIZE
+			if (isset($row->page_len)) {
+				$dplArticle->mSize = $row->page_len;
+			}
+			//STORE initially selected PAGE
+			if (count($aLinksTo) > 0 || count($aLinksFrom) > 0) {
+				if (!isset($row->sel_title)) {
+					$dplArticle->mSelTitle     = 'unknown page';
+					$dplArticle->mSelNamespace = 0;
+				} else {
+					$dplArticle->mSelTitle     = $row->sel_title;
+					$dplArticle->mSelNamespace = $row->sel_ns;
+				}
+			}
+
+			//STORE selected image
+			if (count($aImageUsed) > 0) {
+				if (!isset($row->image_sel_title)) {
+					$dplArticle->mImageSelTitle = 'unknown image';
+				} else {
+					$dplArticle->mImageSelTitle = $row->image_sel_title;
+				}
+			}
+
+			if ($bGoalIsPages) {
+				//REVISION SPECIFIED
+				if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
+					$dplArticle->mRevision = $row->rev_id;
+					$dplArticle->mUser     = $row->rev_user_text;
+					$dplArticle->mDate     = $row->rev_timestamp;
+				}
+
+				//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
+				if ($bAddPageTouchedDate) {
+					$dplArticle->mDate = $row->page_touched;
+				} elseif ($bAddFirstCategoryDate) {
+					$dplArticle->mDate = $row->cl_timestamp;
+				} elseif ($bAddEditDate && isset($row->rev_timestamp)) {
+					$dplArticle->mDate = $row->rev_timestamp;
+				} elseif ($bAddEditDate && isset($row->page_touched)) {
+					$dplArticle->mDate = $row->page_touched;
+				}
+
+				// time zone adjustment
+				if ($dplArticle->mDate != '') {
+					$dplArticle->mDate = $wgLang->userAdjust($dplArticle->mDate);
+				}
+
+				if ($dplArticle->mDate != '' && $sUserDateFormat != '') {
+					// we apply the userdateformat
+					$dplArticle->myDate = gmdate($sUserDateFormat, wfTimeStamp(TS_UNIX, $dplArticle->mDate));
+				}
+				// CONTRIBUTION, CONTRIBUTOR
+				if ($bAddContribution) {
+					$dplArticle->mContribution = $row->contribution;
+					$dplArticle->mContributor  = $row->contributor;
+					$dplArticle->mContrib      = substr('*****************', 0, round(log($row->contribution)));
+				}
+
+
+				//USER/AUTHOR(S)
+				// because we are going to do a recursive parse at the end of the output phase
+				// we have to generate wiki syntax for linking to a user´s homepage
+				if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
+					$dplArticle->mUserLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
+					$dplArticle->mUser     = $row->rev_user_text;
+					$dplArticle->mComment  = $row->rev_comment;
+				}
+
+				//CATEGORY LINKS FROM CURRENT PAGE
+				if ($bAddCategories && $bGoalIsPages && ($row->cats != '')) {
+					$artCatNames = explode(' | ', $row->cats);
+					foreach ($artCatNames as $artCatName) {
+						$dplArticle->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace('_', ' ', $artCatName) . ']]';
+						$dplArticle->mCategoryTexts[] = str_replace('_', ' ', $artCatName);
+					}
+				}
+				// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
+				if ($sHListMode != 'none') {
+					switch ($aOrderMethods[0]) {
+						case 'category':
+							//count one more page in this heading
+							$aHeadings[$row->cl_to] = isset($aHeadings[$row->cl_to]) ? $aHeadings[$row->cl_to] + 1 : 1;
+							if ($row->cl_to == '') {
+								//uncategorized page (used if ordermethod=category,...)
+								$dplArticle->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMsg('uncategorizedpages') . ']]';
+							} else {
+								$dplArticle->mParentHLink = '[[:Category:' . $row->cl_to . '|' . str_replace('_', ' ', $row->cl_to) . ']]';
+							}
+							break;
+						case 'user':
+							$aHeadings[$row->rev_user_text] = isset($aHeadings[$row->rev_user_text]) ? $aHeadings[$row->rev_user_text] + 1 : 1;
+							if ($row->rev_user == 0) { //anonymous user
+								$dplArticle->mParentHLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
+
+							} else {
+								$dplArticle->mParentHLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
+							}
+							break;
+					}
+				}
+			}
+
+			$aArticles[] = $dplArticle;
+		}
+		self::$DB->freeResult($res);
+		$rowcount = -1;
+		if ($sSqlCalcFoundRows != '') {
+			$res      = self::$DB->query('SELECT FOUND_ROWS() AS rowcount');
+			$row      = self::$DB->fetchObject($res);
+			$rowcount = $row->rowcount;
+			self::$DB->freeResult($res);
+		}
+
+		// backward scrolling: if the user specified titleLE we reverse the output order
+		if ($sTitleLE != '' && $sTitleGE == '' && $sOrder == 'descending') {
+			$aArticles = array_reverse($aArticles);
+		}
+
+		// special sort for card suits (Bridge)
+		if ($bOrderSuitSymbols) {
+			self::cardSuitSort($aArticles);
+		}
+
+
+		// ###### SHOW OUTPUT ######
+
+		$listMode = new ListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+
+		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+
+		$dpl = new DynamicPageList(
+			$aHeadings,
+			$bHeadingCount,
+			$iColumns,
+			$iRows,
+			$iRowSize,
+			$sRowColFormat,
+			$aArticles,
+			$aOrderMethods[0],
+			$hListMode,
+			$listMode,
+			$bEscapeLinks,
+			$bAddExternalLink,
+			$bIncPage,
+			$iIncludeMaxLen,
+			$aSecLabels,
+			$aSecLabelsMatch,
+			$aSecLabelsNotMatch,
+			$bIncParsed,
+			$parser,
+			$logger,
+			$aReplaceInTitle,
+			$iTitleMaxLen,
+			$defaultTemplateSuffix,
+			$aTableRow,
+			$bIncludeTrim,
+			$iTableSortCol,
+			$sUpdateRules,
+			$sDeleteRules
+		);
+
+		if ($rowcount == -1) {
+			$rowcount = $dpl->getRowCount();
+		}
+		$dplResult = $dpl->getText();
+		$header    = '';
+		if ($sOneResultHeader != '' && $rowcount == 1) {
+			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', 1, $sOneResultHeader));
+		} else if ($rowcount == 0) {
+			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsHeader));
+			if ($sNoResultsHeader != '') {
+				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
+			}
+			$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsFooter));
+			if ($sNoResultsFooter != '') {
+				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
+			}
+			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
+				$logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+			}
+		} else {
+			if ($sResultsHeader != '') {
+				$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsHeader));
+			}
+		}
+		$header = str_replace('\n', "\n", str_replace("¶", "\n", $header));
+		$header = str_replace('%VERSION%', DPL_VERSION, $header);
+		$footer = '';
+		if ($sOneResultFooter != '' && $rowcount == 1) {
+			$footer = str_replace('%PAGES%', 1, $sOneResultFooter);
+		} else {
+			if ($sResultsFooter != '') {
+				$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsFooter));
+			}
+		}
+		$footer = str_replace('\n', "\n", str_replace("¶", "\n", $footer));
+		$footer = str_replace('%VERSION%', DPL_VERSION, $footer);
+
+		// replace %DPLTIME% by execution time and timestamp in header and footer
+		$nowTimeStamp   = self::prettyTimeStamp(date('YmdHis'));
+		$dplElapsedTime = sprintf('%.3f sec.', microtime(true) - $dplStartTime);
+		$header         = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $header);
+		$footer         = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $footer);
+
+		// replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
+		if (($n = count($aArticles)) > 0) {
+			$firstNamespaceFound = str_replace(' ', '_', $aArticles[0]->mTitle->getNamespace());
+			$firstTitleFound     = str_replace(' ', '_', $aArticles[0]->mTitle->getText());
+			$lastNamespaceFound  = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getNamespace());
+			$lastTitleFound      = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getText());
+		}
+		$header = str_replace('%FIRSTNAMESPACE%', $firstNamespaceFound, $header);
+		$footer = str_replace('%FIRSTNAMESPACE%', $firstNamespaceFound, $footer);
+		$header = str_replace('%FIRSTTITLE%', $firstTitleFound, $header);
+		$footer = str_replace('%FIRSTTITLE%', $firstTitleFound, $footer);
+		$header = str_replace('%LASTNAMESPACE%', $lastNamespaceFound, $header);
+		$footer = str_replace('%LASTNAMESPACE%', $lastNamespaceFound, $footer);
+		$header = str_replace('%LASTTITLE%', $lastTitleFound, $header);
+		$footer = str_replace('%LASTTITLE%', $lastTitleFound, $footer);
+		$header = str_replace('%SCROLLDIR%', $scrollDir, $header);
+		$footer = str_replace('%SCROLLDIR%', $scrollDir, $footer);
+
+		$output .= $header . $dplResult . $footer;
+
+		self::defineScrollVariables($firstNamespaceFound, $firstTitleFound, $lastNamespaceFound, $lastTitleFound, $scrollDir, $iCount, "$dplElapsedTime ($nowTimeStamp)", $rowcount, $dpl->getRowCount());
+
+		// save generated wiki text to dplcache page if desired
+
+		if ($DPLCache != '') {
+			if (!is_writeable($cacheFile)) {
+				wfMkdirParents(dirname($cacheFile));
+			} else if (($bDPLRefresh || $wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
+				// if the cache file contains a path and the user requested a refesh (or saved the file) we delete all brothers
+				wfRecursiveRemoveDir(dirname($cacheFile));
+				wfMkdirParents(dirname($cacheFile));
+			}
+			$cacheTimeStamp = self::prettyTimeStamp(date('YmdHis'));
+			$cFile          = fopen($cacheFile, 'w');
+			fwrite($cFile, $originalInput);
+			fwrite($cFile, "+++\n");
+			fwrite($cFile, $output);
+			fclose($cFile);
+			$dplElapsedTime = time() - $dplStartTime;
+			if ($logger->iDebugLevel >= 2) {
+				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$iOffset}}";
+			}
+			$parser->disableCache();
+		}
+
+		// The following requires an extra parser step which may consume some time
+		// we parse the DPL output and save all references found in that output in a global list
+		// in a final user exit after the whole document processing we eliminate all these links
+		// we use a local parser to avoid interference with the main parser
+
+		if ($bReset[4] || $bReset[5] || $bReset[6] || $bReset[7]) {
+			// register a hook to reset links which were produced during parsing DPL output
+			global $wgHooks;
+			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
+			}
+			$parserOutput = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
+		}
+		if ($bReset[4]) { // LINKS
+			// we trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output
+			// this allows us to remove these links from the link list later
+			// If the article containing the DPL statement itself uses one of these links they will be thrown away!
+			\DynamicPageListHooks::$createdLinks[0] = array();
+			foreach ($parserOutput->getLinks() as $nsp => $link) {
+				\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
+			}
+		}
+		if ($bReset[5]) { // TEMPLATES
+			\DynamicPageListHooks::$createdLinks[1] = array();
+			foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
+				\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
+			}
+		}
+		if ($bReset[6]) { // CATEGORIES
+			\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
+		}
+		if ($bReset[7]) { // IMAGES
+			\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
+		}
+
+		return $output;
 	}
-	
-	public function getText() {
-		return $this->mOutput;
+
+
+	// auxiliary functions ===============================================================================
+
+	// create keys for TableRow which represent the structure of the "include=" arguments
+	private static function updateTableRowKeys(&$aTableRow, $aSecLabels) {
+		$tableRow  = $aTableRow;
+		$aTableRow = array();
+		$groupNr   = -1;
+		$t         = -1;
+		foreach ($aSecLabels as $label) {
+			$t++;
+			$groupNr++;
+			$cols = explode('}:', $label);
+			if (count($cols) <= 1) {
+				if (array_key_exists($t, $tableRow)) {
+					$aTableRow[$groupNr] = $tableRow[$t];
+				}
+			} else {
+				$n     = count(explode(':', $cols[1]));
+				$colNr = -1;
+				$t--;
+				for ($i = 1; $i <= $n; $i++) {
+					$colNr++;
+					$t++;
+					if (array_key_exists($t, $tableRow)) {
+						$aTableRow[$groupNr . '.' . $colNr] = $tableRow[$t];
+					}
+				}
+			}
+		}
 	}
-	
+
+	private static function getSubcategories($cat, $pageTable, $depth) {
+		if (self::$DB === null) {
+			self::$DB = wfGetDB(DB_SLAVE);
+		}
+		$cats = $cat;
+		$res  = self::$DB->query("SELECT DISTINCT page_title FROM ".$pageTable." INNER JOIN " . self::$DB->tableName('categorylinks') . " AS cl0 ON " . $tableNames['page'] . ".page_id = cl0.cl_from AND cl0.cl_to='" . str_replace(' ', '_', $cat) . "'" . " WHERE page_namespace='".NS_CATEGORY."'");
+		foreach ($res as $row) {
+			if ($depth > 1) {
+				$cats .= '|' . self::getSubcategories($row->page_title, $tableNames['page'], $depth - 1);
+			} else {
+				$cats .= '|' . $row->page_title;
+			}
+		}
+		self::$DB->freeResult($res);
+		return $cats;
+	}
+
+	private static function prettyTimeStamp($t) {
+		return substr($t, 0, 4) . '/' . substr($t, 4, 2) . '/' . substr($t, 6, 2) . '  ' . substr($t, 8, 2) . ':' . substr($t, 10, 2) . ':' . substr($t, 12, 2);
+	}
+
+	private static function durationTime($t) {
+		if ($t < 60) {
+			return "00:00:" . str_pad($t, 2, "0", STR_PAD_LEFT);
+		}
+		if ($t < 3600) {
+			return "00:" . str_pad(floor($t / 60), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod($t, 60)), 2, "0", STR_PAD_LEFT);
+		}
+		if ($t < 86400) {
+			return str_pad(floor($t / 3600), 2, "0", STR_PAD_LEFT) . ':' . str_pad(floor(fmod(floor($t / 60), 60)), 2, "0", STR_PAD_LEFT) . ':' . str_pad(fmod($t, 60), 2, "0", STR_PAD_LEFT);
+		}
+		if ($t < 2 * 86400) {
+			return "1 day";
+		}
+		return floor($t / 86400) . ' days';
+	}
+
+	private static function resolveUrlArg($input, $arg) {
+		global $wgRequest;
+		$dplArg = $wgRequest->getVal($arg, '');
+		if ($dplArg == '') {
+			$input = preg_replace('/\{%' . $arg . ':(.*)%\}/U', '\1', $input);
+			return str_replace('{%' . $arg . '%}', '', $input);
+		} else {
+			$input = preg_replace('/\{%' . $arg . ':.*%\}/U  ', $dplArg, $input);
+			return str_replace('{%' . $arg . '%}', $dplArg, $input);
+		}
+	}
+
+	// this function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc
+	// in the form of a variable which can be accessed as {{#var:xyz}} if ExtensionVariables is installed
+	private static function getUrlArgs() {
+		global $wgRequest, $wgExtVariables;
+		$args = $wgRequest->getValues();
+		foreach ($args as $argName => $argValue) {
+			Variables::setVar(array(
+				'',
+				'',
+				$argName,
+				$argValue
+			));
+		}
+		if (!isset($wgExtVariables)) {
+			return;
+		}
+		$args  = $wgRequest->getValues();
+		$dummy = '';
+		foreach ($args as $argName => $argValue) {
+			$wgExtVariables->vardefine($dummy, $argName, $argValue);
+		}
+	}
+
+	// this function uses the Variables extension to provide navigation aids like DPL_firstTitle, DPL_lastTitle, DPL_findTitle
+	// these variables can be accessed as {{#var:DPL_firstTitle}} etc. if ExtensionVariables is installed
+	private static function defineScrollVariables($firstNamespace, $firstTitle, $lastNamespace, $lastTitle, $scrollDir, $dplCount, $dplElapsedTime, $totalPages, $pages) {
+		global $wgExtVariables;
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_firstNamespace',
+			$firstNamespace
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_firstTitle',
+			$firstTitle
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_lastNamespace',
+			$lastNamespace
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_lastTitle',
+			$lastTitle
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_scrollDir',
+			$scrollDir
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_time',
+			$dplElapsedTime
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_count',
+			$dplCount
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_totalPages',
+			$totalPages
+		));
+		Variables::setVar(array(
+			'',
+			'',
+			'DPL_pages',
+			$pages
+		));
+
+		if (!isset($wgExtVariables)) {
+			return;
+		}
+		$dummy = '';
+		$wgExtVariables->vardefine($dummy, 'DPL_firstNamespace', $firstNamespace);
+		$wgExtVariables->vardefine($dummy, 'DPL_firstTitle', $firstTitle);
+		$wgExtVariables->vardefine($dummy, 'DPL_lastNamespace', $lastNamespace);
+		$wgExtVariables->vardefine($dummy, 'DPL_lastTitle', $lastTitle);
+		$wgExtVariables->vardefine($dummy, 'DPL_scrollDir', $scrollDir);
+		$wgExtVariables->vardefine($dummy, 'DPL_time', $dplElapsedTime);
+		$wgExtVariables->vardefine($dummy, 'DPL_count', $dplCount);
+		$wgExtVariables->vardefine($dummy, 'DPL_totalPages', $totalPages);
+		$wgExtVariables->vardefine($dummy, 'DPL_pages', $pages);
+	}
+
+	private static function cardSuitSort(&$articles) {
+		$skey = array();
+		for ($a = 0; $a < count($articles); $a++) {
+			$title  = preg_replace('/.*:/', '', $articles[$a]->mTitle);
+			$token  = preg_split('/ - */', $title);
+			$newkey = '';
+			foreach ($token as $tok) {
+				$initial = substr($tok, 0, 1);
+				if ($initial >= '1' && $initial <= '7') {
+					$newkey .= $initial;
+					$suit = substr($tok, 1);
+					if ($suit == '♣') {
+						$newkey .= '1';
+					} else if ($suit == '♦') {
+						$newkey .= '2';
+					} else if ($suit == '♥') {
+						$newkey .= '3';
+					} else if ($suit == '♠') {
+						$newkey .= '4';
+					} else if ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
+						$newkey .= '5 ';
+					} else {
+						$newkey .= $suit;
+					}
+				} else if ($initial == 'P' || $initial == 'p')
+					$newkey .= '0 ';
+				else if ($initial == 'X' || $initial == 'x')
+					$newkey .= '8 ';
+				else
+					$newkey .= $tok;
+			}
+			$skey[$a] = "$newkey#$a";
+		}
+		for ($a = 0; $a < count($articles); $a++) {
+			$cArticles[$a] = clone ($articles[$a]);
+		}
+		sort($skey);
+		for ($a = 0; $a < count($cArticles); $a++) {
+			$key          = intval(preg_replace('/.*#/', '', $skey[$a]));
+			$articles[$a] = $cArticles[$key];
+		}
+	}
 }
 ?>
