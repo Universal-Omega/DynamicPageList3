@@ -781,7 +781,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _replaceintitle($option) {
-		// we offer a possibility to replace some part of the title
+		//We offer a possibility to replace some part of the title
 		$replaceInTitle = explode(',', $option, 2);
 		if (isset($replaceInTitle[1])) {
 			$replaceInTitle[1] = self::stripHtmlTags($replaceInTitle[1]);

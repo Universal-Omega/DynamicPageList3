@@ -451,58 +451,6 @@ class Main {
 			$acceptOpenReferences = false;
 		}
 
-
-		// if 'table' parameter is set: derive values for listseparators, secseparators and multisecseparators
-		$defaultTemplateSuffix = '.default';
-		if ($sTable != '') {
-			$defaultTemplateSuffix = '';
-			$sPageListMode         = 'userformat';
-			$sInlTxt               = '';
-			$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
-			foreach (explode(',', $sTable) as $tabnr => $tab) {
-				if ($tabnr == 0) {
-					if ($tab == '') {
-						$tab = 'class=wikitable';
-					}
-					$aListSeparators[0] = '{|' . $tab;
-				} else {
-					if ($tabnr == 1 && $tab == '-') {
-						$withHLink = '';
-						continue;
-					}
-					if ($tabnr == 1 && $tab == '') {
-						$tab = 'Article';
-					}
-					$aListSeparators[0] .= "\n!$tab";
-				}
-			}
-			$aListSeparators[1] = '';
-			// the user may have specified the third parameter of 'format' to add meta attributes of articles to the table
-			if (!array_key_exists(2, $aListSeparators)) {
-				$aListSeparators[2] = '';
-			}
-			$aListSeparators[3] = "\n|}";
-
-			for ($i = 0; $i < count($aSecLabels); $i++) {
-				if ($i == 0) {
-					$aSecSeparators[0]      = "\n|-\n|" . $withHLink; //."\n";
-					$aSecSeparators[1]      = '';
-					$aMultiSecSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
-				} else {
-					$aSecSeparators[2 * $i]     = "\n|"; // ."\n";
-					$aSecSeparators[2 * $i + 1] = '';
-					if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0] == '#') {
-						$aMultiSecSeparators[$i] = "\n----\n";
-					}
-					if ($aSecLabels[$i][0] == '#') {
-						$aMultiSecSeparators[$i] = "\n----\n";
-					} else {
-						$aMultiSecSeparators[$i] = "<br/>\n";
-					}
-				}
-			}
-		}
-
 		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
 		if ($sTitleLE != '' && $sTitleGE == '') {
 			if ($sOrder == 'ascending') {

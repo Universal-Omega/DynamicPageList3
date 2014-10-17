@@ -1140,15 +1140,6 @@ class Query {
 	private function _ordermethod($option) {	}
 
 	/**
-	 * Set SQL for 'randomcount' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _randomcount($option) {	}
-
-	/**
 	 * Set SQL for 'redirects' parameter.
 	 *
 	 * @access	private
@@ -1167,105 +1158,6 @@ class Query {
 			}
 		}
 	}
-
-	/**
-	 * Set SQL for 'replaceintitle' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _replaceintitle($option) { }
-
-	/**
-	 * Set SQL for 'reset' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _reset($option) {	}
-
-	/**
-	 * Set SQL for 'resultsfooter' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _resultsfooter($option) {	}
-
-	/**
-	 * Set SQL for 'resultsheader' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _resultsheader($option) {	}
-
-	/**
-	 * Set SQL for 'rowcolformat' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _rowcolformat($option) {	}
-
-	/**
-	 * Set SQL for 'rows' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _rows($option) {	}
-
-	/**
-	 * Set SQL for 'rowsize' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _rowsize($option) {	}
-
-	/**
-	 * Set SQL for 'secseparators' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _secseparators($option) {	}
-
-	/**
-	 * Set SQL for 'showcurid' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _showcurid($option) {	}
-
-	/**
-	 * Set SQL for 'shownamespace' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _shownamespace($option) {	}
-
-	/**
-	 * Set SQL for 'skipthispage' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _skipthispage($option) {	}
 
 	/**
 	 * Set SQL for 'stablepages' parameter.
@@ -1288,9 +1180,6 @@ class Query {
 					$this->addWhere('fp_stable IS NULL');
 					break;
 			}
-			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -1315,9 +1204,6 @@ class Query {
 					$this->addWhere('fp_quality = 0');
 					break;
 			}
-			return true;
-		} else {
-			return false;
 		}
 	}
 
