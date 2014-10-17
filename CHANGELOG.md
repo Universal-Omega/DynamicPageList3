@@ -489,3 +489,9 @@
 * Added a CAST to CHAR at all LOWER statemens in SQL (MediaWiki changed to varbinary types since 1.17)
 * #Version 2.01
 * Re-merged all changes from SVN since DPL 1.8.6
+
+#Version 3.0
+* THE MOTHER OF ALL OVERHAULS! - Seriously, the entire code base was ripped to shreds and redone to be easily worked on in the future.
+* Cache can now be set to any standard Mediawiki cache type.  Default: CACHE_ANYTHING
+* Configuration is now standardized instead of calling into static class functions or modifying objects directly.
+* Some parameters are now position sensitive in the parser call.  For example, putting 'linksto=Mediawiki|ignorecase=true|linksfrom=project' in that order would case 'linksto' to be case sensitive with 'linksfrom' being case insensitive.

@@ -183,8 +183,6 @@ class Parse {
 			return $sExecAndExit;
 		}
 
-
-
 		/*******************/
 		/* Are we caching? */
 		/*******************/
@@ -194,10 +192,10 @@ class Parse {
 		if ($this->parameters->getParameter('warncachedresults')) {
 			$resultsHeader = '{{DPL Cache Warning}}'.$resultsHeader;
 		}
-		global $wgUploadDirectory, $wgRequest;
 		if ($DPLCache != '') {
-			$cacheFile = "$wgUploadDirectory/dplcache/$DPLCachePath/$DPLCache";
-			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
+			global $wgUploadDirectory, $wgRequest;
+			$cache = wfGetCache(Config::getSetting('cacheType'));
+
 			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
 			// otherwise we accept thecache if it is not too old
 			if (!$bDPLRefresh && file_exists($cacheFile)) {
@@ -222,7 +220,9 @@ class Parse {
 			}
 		}
 
-		// debug level 5 puts nowiki tags around the output
+		/*******************************/
+		/* Add Debug Helpers If Needed */
+		/*******************************/
 		if ($this->logger->iDebugLevel == 5) {
 			$this->logger->iDebugLevel = 2;
 			$resultsHeader      = '<pre><nowiki>' . $resultsHeader;

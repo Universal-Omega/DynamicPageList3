@@ -97,6 +97,11 @@ if (!isset($dplSettings['behavingLikeIntersection']) {
 	$dplSettings['behavingLikeIntersection'] = false;
 }
 
+//This sets up a standard Mediawiki caching interface, whether it be file, Memcache, or Redis.
+if (!isset($dplSettings['cacheType']) {
+	$dplSettings['cacheType'] = CACHE_ANYTHING;
+}
+
 //Maximum number of items in a category list before being cut off.
 if (!isset($dplSettings['categoryStyleListCutoff']) {
 	$dplSettings['categoryStyleListCutoff'] = 6;
