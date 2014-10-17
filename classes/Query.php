@@ -1241,15 +1241,6 @@ class Query {
 	private function _rowsize($option) {	}
 
 	/**
-	 * Set SQL for 'scroll' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _scroll($option) { }
-
-	/**
 	 * Set SQL for 'secseparators' parameter.
 	 *
 	 * @access	private
@@ -1398,17 +1389,18 @@ class Query {
 	 * @return	void
 	 */
 	private function _titlegt($option) {
-		if (substr($sTitleGE, 0, 2) == '=_') {
+		$where = '(';
+		if (substr($option, 0, 2) == '=_') {
 			if ($this->parameters->getParameter('openreferences')) {
-				$where .= 'pl_title >='.$this->DB->addQuotes(substr($sTitleGE, 2));
+				$where .= 'pl_title >= '.$this->DB->addQuotes(substr($sTitleGE, 2));
 			} else {
-				$where .= $this->tableNames['page'].'.page_title >='.$this->DB->addQuotes(substr($sTitleGE, 2));
+				$where .= $this->tableNames['page'].'.page_title >= '.$this->DB->addQuotes(substr($option, 2));
 			}
 		} else {
 			if ($this->parameters->getParameter('openreferences')) {
-				$where .= 'pl_title >'.$this->DB->addQuotes($sTitleGE);
+				$where .= 'pl_title > '.$this->DB->addQuotes($option);
 			} else {
-				$where .= $this->tableNames['page'].'.page_title >'.$this->DB->addQuotes($sTitleGE);
+				$where .= $this->tableNames['page'].'.page_title > '.$this->DB->addQuotes($option);
 			}
 		}
 		$where .= ')';
@@ -1423,17 +1415,18 @@ class Query {
 	 * @return	void
 	 */
 	private function _titlelt($option) {
-		if (substr($sTitleLE, 0, 2) == '=_') {
+		$where = '(';
+		if (substr($option, 0, 2) == '=_') {
 			if ($this->parameters->getParameter('openreferences')) {
-				$where .= 'pl_title <='.$this->DB->addQuotes(substr($sTitleLE, 2));
+				$where .= 'pl_title <= '.$this->DB->addQuotes(substr($option, 2));
 			} else {
-				$where .= $this->tableNames['page'].'.page_title <='.$this->DB->addQuotes(substr($sTitleLE, 2));
+				$where .= $this->tableNames['page'].'.page_title <= '.$this->DB->addQuotes(substr($option, 2));
 			}
 		} else {
 			if ($this->parameters->getParameter('openreferences')) {
-				$where .= 'pl_title <'.$this->DB->addQuotes($sTitleLE);
+				$where .= 'pl_title < '.$this->DB->addQuotes($option);
 			} else {
-				$where .= $this->tableNames['page'].'.page_title <'.$this->DB->addQuotes($sTitleLE);
+				$where .= $this->tableNames['page'].'.page_title < '.$this->DB->addQuotes($option);
 			}
 		}
 		$where .= ')';

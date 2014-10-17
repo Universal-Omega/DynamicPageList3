@@ -177,6 +177,12 @@ class Main {
 			$parameter = trim($parameter);
 			$option  = trim($option);
 
+			if (strpos($parameter, '<') !== false || strpos($parameter, '>') !== false) {
+				//Having the actual less than and greater than symbols is nasty for programatic look up.  The old parameter is still supported along with the new, but we just fix it here before calling it.
+				$parameter = str_replace('<', 'lt', $parameter);
+				$parameter = str_replace('>', 'gt', $parameter);
+			}
+
 			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($parameters->exists($parameter) && !ParametersData::testRichness($parameter))) {
 				continue;
 			}

@@ -732,36 +732,34 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _scroll($option) {
-		if (in_array($option, $this->getData('scroll')['values'])) {
-			$this->setParameter('scroll', $this->filterBoolean($option));
-			// if scrolling is active we adjust the values for certain other parameters
-			// based on URL arguments
-			if ($this->getParameter('scroll') === true) {
-				$sTitleGE = $wgRequest->getVal('DPL_fromTitle', '');
-				if (strlen($sTitleGE) > 0) {
-					$sTitleGE[0] = strtoupper($sTitleGE[0]);
-				}
-				// findTitle has priority over fromTitle
-				$findTitle = $wgRequest->getVal('DPL_findTitle', '');
-				if (strlen($findTitle) > 0) {
-					$findTitle[0] = strtoupper($findTitle[0]);
-				}
-				if ($findTitle != '') {
-					$this->setParameter('titlege', '=_' . $findTitle);
-				}
-				$sTitleLE = $wgRequest->getVal('DPL_toTitle', '');
-				if (strlen($sTitleLE) > 0) {
-					$sTitleLE[0] = strtoupper($sTitleLE[0]);
-				}
-				$this->setParameter('titlege', str_replace(' ', '_', $sTitleGE));
-				$this->setParameter('titlele', str_replace(' ', '_', $sTitleLE));
-				$this->setParameter('scrolldir', $wgRequest->getVal('DPL_scrollDir', ''));
-				// also set count limit from URL if not otherwise set
-				$this->setParameter('countscroll', $wgRequest->getVal('DPL_count', ''));
+		$option = $this->filterBoolean($option);
+		$this->setParameter('scroll', $option);
+		//If scrolling is active we adjust the values for certain other parameters based on URL arguments
+		if ($option === true) {
+			global $wgRequest;
+
+			//The 'findTitle' option has argument over the 'fromTitle' argument.
+			$titlegt = $wgRequest->getVal('DPL_findTitle', '');
+			if (!empty($titlegt)) {
+				$titlegt = '=_'.ucfirst($titlegt);
+			} else {
+				$titlegt = $wgRequest->getVal('DPL_fromTitle', '');
+				$titlegt = ucfirst($titlegt);
 			}
-		} else {
-			return false;
+			$this->setParameter('titlegt', str_replace(' ', '_', $titlegt));
+
+			//Lets get the 'toTitle' argument.
+			$titlelt = $wgRequest->getVal('DPL_toTitle', '');
+			$titlelt = ucfirst($titlelt);
+			$this->setParameter('titlelt', str_replace(' ', '_', $titlelt));
+
+			//Make sure the 'scrollDir' arugment is captured.  This is mainly used for the Variables extension and in the header/footer replacements.
+			$this->setParameter('scrolldir', $wgRequest->getVal('DPL_scrollDir', ''));
+
+			//Also set count limit from URL if not otherwise set.
+			$this->setParameter('scroll', $wgRequest->getVal('DPL_count', ''));
 		}
+		//We do not return false since they could have just left it out.  Who knows why they put the parameter in the list in the first place.
 		return true;
 	}
 

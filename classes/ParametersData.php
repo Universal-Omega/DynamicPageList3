@@ -752,12 +752,12 @@ class ParametersData {
 		 * titlematch is a (SQL-LIKE-expression) pattern
 		 * which restricts the result to pages matching that pattern
 		*/
-		'title<' => [
+		'titlelt' => [
 			'default'				=> null,
 			'db_format'				=> true,
 			'set_criteria_found'	=> true
 		],
-		'title>' => [
+		'titlegt' => [
 			'default'				=> null,
 			'db_format'				=> true,
 			'set_criteria_found'	=> true
