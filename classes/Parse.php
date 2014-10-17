@@ -63,19 +63,17 @@ class Parse {
 	public function parse($input, $params, $parser, &$bReset, $calledInMode) {
 		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
 
-		//check that we are not in an infinite transclusion loop
+		wfProfileIn(__METHOD__);
+
+		//Check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
 			return $this->logger->getMessages();
 		}
 
-		$dplStartTime = microtime(true);
-
-		// check if DPL shall only be executed from protected pages
+		//Check if DPL shall only be executed from protected pages.
 		if (Config::getSetting('runFromProtectedPagesOnly') === true && !$parser->mTitle->isProtected('edit')) {
-			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page
-			// which is protected. Then there would be no need for the article to be protected.
-			// BUT: How can one find out from which wiki source an extension has been invoked???
+			//Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected.  However, how can one find out from which wiki source an extension has been invoked???
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
 			return $this->logger->getMessages();
 		}
@@ -86,8 +84,7 @@ class Parse {
 			}
 		}
 
-		$_sOffset = $wgRequest->getVal('DPL_offset', Options::$options['offset']['default']);
-		$iOffset  = ($_sOffset == '') ? 0 : intval($_sOffset);
+		$offset = $wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']);
 
 		// commandline parameters like %DPL_offset% are replaced
 		$input = self::resolveUrlArg($input, 'DPL_offset');
@@ -129,30 +126,11 @@ class Parse {
 			);
 		}
 
-		// ###### PARSE PARAMETERS ######
-
-		// we replace double angle brackets by < > ; thus we avoid premature tag expansion in the input
-		$input = str_replace('»', '>', $input);
-		$input = str_replace('«', '<', $input);
-
-		// use the ¦ as a general alias for |
-		$input = str_replace('¦', '|', $input); // the symbol is utf8-escaped
-
-		// the combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution
-		// which is crucial for DPL queries which call other DPL queries
-		$input = str_replace('²{', '{{', $input);
-		$input = str_replace('}²', '}}', $input);
-
-		$input = str_replace(["\r\n", "\r"], "\n", $input);
-		$input = trim($input, "\n");
-		$rawParameters	= explode("\n", $input);
+		/***************************************/
+		/* User Input preparation and parsing. */
+		/***************************************/
+		$rawParameters	= $this->prepareUserInput($input);
 		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
-
-		// version 0.9:
-		// we do not parse parameters recursively when reading them in.
-		// we rather leave them unchanged, produce the complete output and then finally
-		// parse the result recursively. This allows to build complex structures in the output
-		// which are only understood by the parser if seen as a whole
 
 		foreach ($rawParameters as $key => $parameterOption) {
 			if (strpos($parameterOption, '=') === false) {
@@ -257,7 +235,7 @@ class Parse {
 						$diffTime       = self::durationTime($diff);
 						$output .= substr($cachedOutput, $cachedOutputPos + 4);
 						if ($this->logger->iDebugLevel >= 2) {
-							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$iOffset}}";
+							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$offset}}";
 						}
 						// ignore further parameters, stop processing, return cache content
 						return $output;
@@ -578,7 +556,7 @@ class Parse {
 		// LIMIT ....
 		// we must switch off LIMITS when going for categories as output goal (due to mysql limitations)
 		if ((!\DynamicPageListHooks::$allowUnlimitedResults || $iCount >= 0) && $sGoal != 'categories') {
-			$sSqlWhere .= " LIMIT $iOffset, ";
+			$sSqlWhere .= " LIMIT $offset, ";
 			if ($iCount < 0) {
 				$iCount = intval(Options::$options['count']['default']);
 			}
@@ -885,9 +863,9 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 
 		// ###### SHOW OUTPUT ######
 
-		$listMode = new ListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+		$listMode = new ListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $offset, $iDominantSection);
 
-		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $iOffset, $iDominantSection);
+		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $offset, $iDominantSection);
 
 		$dpl = new DynamicPageList(
 			$aHeadings,
@@ -1003,7 +981,7 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			fclose($cFile);
 			$dplElapsedTime = time() - $dplStartTime;
 			if ($this->logger->iDebugLevel >= 2) {
-				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$iOffset}}";
+				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$offset}}";
 			}
 			$parser->disableCache();
 		}
@@ -1046,9 +1024,29 @@ Error message was:<br />\n<tt>" . self::$DB->lastError() . "</tt>\n\n";
 			\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 		}
 
+		wfProfileOut(__METHOD__);
+
 		return $output;
 	}
 
+	/**
+	 * Do basic clean up and structuring of raw user input.
+	 *
+	 * @access	private
+	 * @param	string	Raw User Input
+	 * @return	array	Array of raw text parameter => option.
+	 */
+	private function prepareUserInput($input) {
+		//We replace double angle brackets with single angle brackets to avoid premature tag expansion in the input.
+		//The ¦ symbol is an alias for |.
+		//The combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution which is crucial for DPL queries which call other DPL queries.
+		$input = str_replace(['«', '»', '¦', '²{', '}²'], ['<', '>', '|', '{{', '}}'], $input);
+
+		//Standard new lines into the standard \n and clean up any hanging new lines.
+		$input = str_replace(["\r\n", "\r"], "\n", $input);
+		$input = trim($input, "\n");
+		return explode("\n", $input);
+	}
 
 	// auxiliary functions ===============================================================================
 
