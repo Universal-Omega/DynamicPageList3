@@ -57,10 +57,13 @@ class Parse {
 	 * The real callback function for converting the input text to wiki text output
 	 *
 	 * @access	public
-	 * @param	
+	 * @param	string	Raw User Input
+	 * @param	object	Parser object.
+	 * @param	array	Reset Booleans(@TODO: Redo this documentation after fixing reset parameter.)
+	 * @param	boolean	[Optional] Call as a parser tag
 	 * @return	string	Wiki/HTML Output
 	 */
-	public function parse($input, $params, $parser, &$bReset, $calledInMode) {
+	public function parse($input, Parser $parser, &$bReset, $isParserTag = true) {
 		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
 
 		wfProfileIn(__METHOD__);
@@ -238,7 +241,7 @@ class Parse {
 		$iExcludeCatCount      = count($aExcludeCategories);
 		$iTotalCatCount        = $iTotalIncludeCatCount + $iExcludeCatCount;
 
-		if ($calledInMode == 'tag') {
+		if ($isParserTag === false) {
 			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
 			if ($bReset[5]) {
 				$bReset[1] = true;
@@ -263,7 +266,7 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
 			}
 		}
-		if (($calledInMode == 'tag' && $bReset[0]) || $calledInMode == 'func') {
+		if (($isParserTag === false && $bReset[0]) || $isParserTag === true) {
 			if ($bReset[0]) {
 				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}

@@ -223,49 +223,49 @@ class DynamicPageListHooks {
 	 * Tag <section> entry point.
 	 *
 	 * @access	public
-	 * @param	string	Namespace prefixed article of the PDF file to display.
+	 * @param	string	Raw User Input
 	 * @param	array	Arguments on the tag.
 	 * @param	object	Parser object.
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	public static function intersectionTag($input, $params = array(), Parser $parser, PPFrame $frame) {
+	public static function intersectionTag($input, array $args, Parser $parser, PPFrame $frame) {
 		self::setLikeIntersection(true);
-		return self::executeTag($input, $params = array(), $parser, $frame);
+		return self::executeTag($input, $args, $parser, $frame);
 	}
 
 	/**
 	 * Tag <dpl> entry point.
 	 *
 	 * @access	public
-	 * @param	string	Namespace prefixed article of the PDF file to display.
+	 * @param	string	Raw User Input
 	 * @param	array	Arguments on the tag.
 	 * @param	object	Parser object.
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	public static function dplTag($input, $params = array(), Parser $parser, PPFrame $frame) {
+	public static function dplTag($input, array $args, Parser $parser, PPFrame $frame) {
 		self::setLikeIntersection(false);
-		return self::executeTag($input, $params = array(), $parser, $frame);
+		return self::executeTag($input, $args, $parser, $frame);
 	}
 
 	/**
 	 * The callback function wrapper for converting the input text to HTML output
 	 *
 	 * @access	public
-	 * @param	string	Namespace prefixed article of the PDF file to display.
-	 * @param	array	Arguments on the tag.
+	 * @param	string	Raw User Input
+	 * @param	array	Arguments on the tag.(While not used, it is left here for future compatibility.)
 	 * @param	object	Parser object.
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	private static function executeTag($input, $params = array(), Parser $parser, PPFrame $frame) {
+	private static function executeTag($input, array $args, Parser $parser, PPFrame $frame) {
 		// entry point for user tag <dpl>  or  <DynamicPageList>
 		// create list and do a recursive parse of the output
 
 		// $dump1	= self::dumpParsedRefs($parser,"before DPL tag");
 		$parse = new \DPL\Parse();
-		$text = $parse->parse($input, $params, $parser, $reset, 'tag');
+		$text = $parse->parse($input, $parser, $reset, false);
 		// $dump2	= self::dumpParsedRefs($parser,"after DPL tag");
 		if ($reset[1]) {	// we can remove the templates by save/restore
 			$saveTemplates = $parser->mOutput->mTemplates;
@@ -327,7 +327,7 @@ class DynamicPageListHooks {
 		// return $dump1.$text.$dump2;
 
 		$parse = new \DPL\Parse();
-		$dplresult = $parse->parse($input, $params, $parser, $reset, 'func');
+		$dplresult = $parse->parse($input, $params, $parser, $reset, true);
 		return array( // parser needs to be coaxed to do further recursive processing
 			$parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
 			'isLocalObj' => true,
