@@ -193,6 +193,7 @@ class Parse {
 			$parser->disableCache();
 		}
 		if ($this->parameters->getParameter('warncachedresults')) {
+			//@TODO: Better way to add the cache warning?
 			$resultsHeader = '{{DPL Cache Warning}}'.$resultsHeader;
 		}
 		if ($DPLCache != '') {
@@ -236,11 +237,6 @@ class Parse {
 		self::updateTableRowKeys($aTableRow, $aSecLabels);
 		// foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br/>";
 
-		$iIncludeCatCount      = count($aIncludeCategories);
-		$iTotalIncludeCatCount = count($aIncludeCategories, COUNT_RECURSIVE) - $iIncludeCatCount;
-		$iExcludeCatCount      = count($aExcludeCategories);
-		$iTotalCatCount        = $iTotalIncludeCatCount + $iExcludeCatCount;
-
 		if ($isParserTag === false) {
 			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
 			if ($bReset[5]) {
@@ -277,123 +273,10 @@ class Parse {
 			}
 		}
 
-
-		// ###### CHECKS ON PARAMETERS ######
-
-		// too many categories!
-		if (($iTotalCatCount > \DynamicPageListHooks::$maxCategoryCount) && (!\DynamicPageListHooks::$allowUnlimitedCategories)) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, \DynamicPageListHooks::$maxCategoryCount);
-		}
-
-		// too few categories!
-		if ($iTotalCatCount < \DynamicPageListHooks::$minCategoryCount) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, \DynamicPageListHooks::$minCategoryCount);
-		}
-
-		// no selection criteria! Warn only if no debug level is set
-		if ($iTotalCatCount == 0 && $bSelectionCriteriaFound == false) {
-			if ($this->logger->iDebugLevel <= 1) {
-				return $output;
-			}
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
-		}
-
-		// ordermethod=sortkey requires ordermethod=category
-		// delayed to the construction of the SQL query, see near line 2211, gs
-		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
-
-		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
-		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
-		}
-
-		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
-		// we ALLOW this parameter combination, risking ambiguous results
-		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
-
-		// no more than one type of date at a time!
-		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
-		}
-
-		// the dominant section must be one of the sections mentioned in includepage
-		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
-		}
-
-		// category-style output requested with not compatible order method
-		if ($sPageListMode == 'category' && !array_intersect($aOrderMethods, array(
-			'sortkey',
-			'title',
-			'titlewithoutnamespace'
-		))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
-		}
-
-		// addpagetoucheddate=true with unappropriate order methods
-		if ($bAddPageTouchedDate && !array_intersect($aOrderMethods, array(
-			'pagetouched',
-			'title'
-		))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
-		}
-
-		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
-		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ($bAddEditDate && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
-		}
-
-		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
-		/**
-		 * @todo allow to add user for other order methods.
-		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
-		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
-		 */
-		if ($bAddUser && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
-		}
-		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
-		}
-
-		/**
-		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
-		 */
-		if ($bIncludeUncat) {
-			// If the view is not there, we can't perform logical operations on the Uncategorized.
-			if (!$this->DB->tableExists('dpl_clview')) {
-				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
-				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
-				return $output;
-			}
-		}
-
-		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
-			$this->logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
-		}
-
-		//headingmode has effects with ordermethod on multiple components only
-		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
-			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
-			$sHListMode = 'none';
-		}
-
-		// openreferences is incompatible with many other options
-		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
-			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
-			$acceptOpenReferences = false;
+		$errors = $this->doErrorChecks();
+		if ($errors === false) {
+			//WHAT HAS HAPPENED OH NOOOOOOOOOOOOO.
+			return;
 		}
 
 		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
@@ -518,15 +401,11 @@ class Parse {
 		$queryError = false;
 		try {
 			$res = $this->DB->query($sSqlSelectFrom . $sSqlWhere);
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$queryError = true;
 		}
 		if ($queryError == true || $res === false) {
-			$result = "The DPL extension (version " . DPL_VERSION . ") produced a SQL statement which lead to a Database error.<br/>\n
-The reason may be an internal error of DPL or an error which you made, especially when using DPL options like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>\n
-Error message was:<br />\n<tt>" . $this->DB->lastError() . "</tt>\n\n";
-			return $result;
+			return wfMessage('dpl_query_error', DPL_VERSION, $this->DB->lastError());
 		}
 
 		if ($this->DB->numRows($res) <= 0) {
@@ -972,6 +851,139 @@ Error message was:<br />\n<tt>" . $this->DB->lastError() . "</tt>\n\n";
 		$input = str_replace(["\r\n", "\r"], "\n", $input);
 		$input = trim($input, "\n");
 		return explode("\n", $input);
+	}
+
+	/**
+	 * Work through processed parameters and check for potential issues.
+	 *
+	 * @access	private
+	 * @return	void
+	 */
+	private function doErrorChecks() {
+		/**************************/
+		/* Parameter Error Checks */
+		/**************************/
+
+		$totalCategory = count($this->parameters->getParameter('category'), COUNT_RECURSIVE) - count($this->parameters->getParameter('category'));
+		$totalNotCategory = count($this->parameters->getParameter('notcategory'), COUNT_RECURSIVE) - count($this->parameters->getParameter('notcategory'));
+		$totalCategories = $totalCategory + $totalNotCategory;
+
+		//Too many categories.
+		if ($totalCategories > Config::getSetting('maxCategoryCount') && !Config::getSetting('allowUnlimitedCategories')) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOMANYCATS, Config::getSetting('maxCategoryCount'));
+			return false;
+		}
+
+		//Not enough categories.(Really?)
+		if ($totalCategories < Config::getSetting('minCategoryCount')) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_TOOFEWCATS, Config::getSetting('minCategoryCount'));
+			return false;
+		}
+
+		//Selection criteria needs to be found.  @TODO: Figure out why the original check skips this if categories are found.  Maybe goal=categories?  If so, fix the check to look at the goal parameter for confirmation.
+		if (!$totalCategories == 0 && !$this->parameters->isSelectionCriteriaFound()) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
+			return false;
+		}
+
+		//ordermethod=sortkey requires ordermethod=category
+		//Delayed to the construction of the SQL query, see near line 2211, gs
+		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
+
+		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
+		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+		}
+
+		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
+		// we ALLOW this parameter combination, risking ambiguous results
+		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
+		//	return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
+
+		// no more than one type of date at a time!
+		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+		}
+
+		// the dominant section must be one of the sections mentioned in includepage
+		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+		}
+
+		// category-style output requested with not compatible order method
+		if ($sPageListMode == 'category' && !array_intersect($aOrderMethods, array(
+			'sortkey',
+			'title',
+			'titlewithoutnamespace'
+		))) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+		}
+
+		// addpagetoucheddate=true with unappropriate order methods
+		if ($bAddPageTouchedDate && !array_intersect($aOrderMethods, array(
+			'pagetouched',
+			'title'
+		))) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+		}
+
+		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
+		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
+		if ($bAddEditDate && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+		}
+
+		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
+		/**
+		 * @todo allow to add user for other order methods.
+		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
+		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
+		 */
+		if ($bAddUser && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+		}
+		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
+			'firstedit',
+			'lastedit'
+		))) {
+			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+		}
+
+		/**
+		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
+		 */
+		if ($bIncludeUncat) {
+			// If the view is not there, we can't perform logical operations on the Uncategorized.
+			if (!$this->DB->tableExists('dpl_clview')) {
+				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
+				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
+				return $output;
+			}
+		}
+
+		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
+		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
+		}
+
+		//headingmode has effects with ordermethod on multiple components only
+		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
+			$sHListMode = 'none';
+		}
+
+		// openreferences is incompatible with many other options
+		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
+			$acceptOpenReferences = false;
+		}
+		return true;
 	}
 
 	// auxiliary functions ===============================================================================

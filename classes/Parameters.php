@@ -377,12 +377,12 @@ class Parameters extends ParametersData {
 			}
 		}
 		if (!empty($categories)) {
-			$data = $this->getParameter('includecategories');
+			$data = $this->getParameter('category');
 			if (!is_array($data[$operator])) {
 				$data[$operator] = [];
 			}
 			$data[$operator] = array_merge($data[$operator], $categories);
-			$this->setParameter('includecategories', $data);
+			$this->setParameter('category', $data);
 			if ($heading) {
 				$this->setParameter('catheadings', array_unique($this->getParameter('catheadings') + $categories));
 			}
@@ -403,12 +403,9 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categoryregexp($option) {
-		$data = $this->getParameter('includecategories');
-		if (!is_array($data['regexp'])) {
-			$data['regexp'] = [];
-		}
+		$data = $this->getParameter('category');
 		$data['regexp'][] = $option;
-		$this->setParameter('includecategories', $data);
+		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
 	}
@@ -421,13 +418,13 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categorymatch($option) {
-		$data = $this->getParameter('includecategories');
+		$data = $this->getParameter('category');
 		if (!is_array($data['like'])) {
 			$data['like'] = [];
 		}
 		$newMatches = explode('|', $option);
 		$data['like'] = array_merge($data['like'], $newMatches);
-		$this->setParameter('includecategories', $data);
+		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
 	}
@@ -442,9 +439,9 @@ class Parameters extends ParametersData {
 	public function _notcategory($option) {
 		$title = \Title::newFromText($option);
 		if (!is_null($title)) {
-			$data = $this->getParameter('excludecategories');
+			$data = $this->getParameter('notcategory');
 			$data['='][] = $title->getDbKey();
-			$this->setParameter('excludecategories', $data);
+			$this->setParameter('notcategory', $data);
 			$this->setOpenReferencesConflict(true);
 			return true;
 		}
@@ -459,9 +456,9 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _notcategoryregexp($option) {
-		$data = $this->getParameter('excludecategories');
+		$data = $this->getParameter('notcategory');
 		$data['regexp'][] = $option;
-		$this->setParameter('excludecategories', $data);
+		$this->setParameter('notcategory', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
 	}
@@ -474,9 +471,13 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _notcategorymatch($option) {
-		$data = $this->getParameter('excludecategories');
-		$data['like'][] = $option;
-		$this->setParameter('excludecategories', $data);
+		$data = $this->getParameter('notcategory');
+		if (!is_array($data['like'])) {
+			$data['like'] = [];
+		}
+		$newMatches = explode('|', $option);
+		$data['like'] = array_merge($data['like'], $newMatches);
+		$this->setParameter('notcategory', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
 	}
