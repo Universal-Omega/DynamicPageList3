@@ -182,9 +182,10 @@ class Parameters extends ParametersData {
 		$priority = [
 			'openreferences' => 1,
 			'category' => 2,
-			'ordermethod' => 3,
-			'includepage' => 4,
-			'include' => 5
+			'ordercollation' => 3,
+			'ordermethod' => 4,
+			'includepage' => 5,
+			'include' => 6
 		];
 		$_first = array_intersect_key($parameters, $priority);
 		if (count($_first)) {
@@ -254,7 +255,7 @@ class Parameters extends ParametersData {
 	private function setDefaults() {
 		$parameters = $this->getParametersForRichness();
 		foreach ($parameters as $parameter) {
-			if ($this->getData($parameter)['default'] !== null) {
+			if ($this->getData($parameter)['default'] !== null && !($this->getData($parameter)['default'] === false && $this->getData($parameter)['boolean'] === true)) {
 				$this->setParameter($parameter, $this->getData($parameter)['default']);
 			}
 		}
@@ -584,14 +585,14 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'ordermethods' parameter.(NOTE THE PLURAL 'S')
+	 * Clean and test 'ordermethod' parameter.(NOTE THE PLURAL 'S')
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
 	 * @return	boolean	Success
 	 */
 	public function _ordermethod($option) {
-		$methods   = explode(',', $option);
+		$methods = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
 			if (!in_array($method, $this->getData('ordermethod')['values'])) {
@@ -599,7 +600,7 @@ class Parameters extends ParametersData {
 			}
 		}
 
-		$this->setParameter('ordermethods', $methods);
+		$this->setParameter('ordermethod', $methods);
 		if ($methods[0] !== 'none') {
 			$this->setOpenReferencesConflict(true);
 		}
@@ -708,7 +709,7 @@ class Parameters extends ParametersData {
 			$this->setParameter('title', $data);
 			$this->setParameter('namespaces', array_merge($this->getParameter('namespaces'), $title->getNamespace()));
 			$this->setParameter('pagelistmode', 'userformat');
-			$this->setParameter('ordermethods', []);
+			$this->setParameter('ordermethod', []);
 			$this->setParameter('selectioncriteriafound', true);
 			$this->setParameter('allowcachedresults', true);
 			$this->setOpenReferencesConflict(true);

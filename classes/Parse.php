@@ -113,7 +113,7 @@ class Parse {
 
 		foreach ($cleanParameters as $parameter => $option) {
 			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
-			var_dump($parameter);
+			var_dump($parameter." => ".$option);
 			if ($this->parameters->$parameter($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
@@ -226,6 +226,11 @@ class Parse {
 			return;
 		}
 
+		$this->query = new Query($this->parameters);
+		$sql = $this->query->build();
+		var_dump($sql);
+		exit;
+
 		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
 		if ($sTitleLE != '' && $sTitleGE == '') {
 			if ($sOrder == 'ascending') {
@@ -235,8 +240,6 @@ class Parse {
 
 		$output .= '{{Extension DPL}}';
 
-
-
 		// ###### BUILD SQL QUERY ######
 		$sSqlPage_counter  = '';
 		$sSqlPage_size     = '';
@@ -244,11 +247,6 @@ class Parse {
 		$sSqlCalcFoundRows = '';
 		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($resultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
 			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
-		}
-		if ($sDistinctResultSet === false) {
-			$sSqlDistinct = '';
-		} else {
-			$sSqlDistinct = 'DISTINCT';
 		}
 		$sSqlGroupBy = '';
 		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0) {
@@ -262,20 +260,8 @@ class Parse {
 		// as this conflicts with some options we need to avoid producing incoorect SQl code
 		$bGoalIsPages = true;
 		if ($sGoal == 'categories') {
-			$aOrderMethods = explode(',', '');
+			$aOrderMethods = [];
 			$bGoalIsPages  = false;
-		}
-
-
-
-		// recent changes  =============================
-
-		if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
-			$sSqlRevisionTable = $this->tableNames['revision'] . ' AS rev, ';
-			$sSqlRev_timestamp = ', rev_timestamp';
-			$sSqlRev_id        = ', rev_id';
-
-
 		}
 
 		// SELECT ... FROM
@@ -842,6 +828,7 @@ class Parse {
 	 * @return	void
 	 */
 	private function doQueryErrorChecks() {
+		//@TODO: Many things to fix in here still.
 		/**************************/
 		/* Parameter Error Checks */
 		/**************************/
@@ -890,7 +877,7 @@ class Parse {
 		}
 
 		// category-style output requested with not compatible order method
-		if ($sPageListMode == 'category' && !array_intersect($aOrderMethods, array(
+		if ($sPageListMode == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
 			'sortkey',
 			'title',
 			'titlewithoutnamespace'
@@ -899,7 +886,7 @@ class Parse {
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
-		if ($bAddPageTouchedDate && !array_intersect($aOrderMethods, array(
+		if ($bAddPageTouchedDate && !array_intersect($this->parameters->getParameter('ordermethod'), array(
 			'pagetouched',
 			'title'
 		))) {
@@ -908,7 +895,7 @@ class Parse {
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ($this->parameters->getParameter('addeditdate') && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
+		if ($this->parameters->getParameter('addeditdate') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
@@ -918,10 +905,10 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($bAddUser && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+		if ($bAddUser && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
-		if (isset($sMinorEdits) && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit'])) {
+		if (isset($sMinorEdits) && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit'])) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
@@ -943,7 +930,7 @@ class Parse {
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
-		if ($sHListMode != 'none' && count($aOrderMethods) < 2) {
+		if ($sHListMode != 'none' && count($this->parameters->getParameter('ordermethod')) < 2) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
 			$sHListMode = 'none';
 		}

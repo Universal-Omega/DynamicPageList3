@@ -40,6 +40,13 @@ class Query {
 	private $parametersProcessed = [];
 
 	/**
+	 * Select Fields
+	 *
+	 * @var		array
+	 */
+	private $select = [];
+
+	/**
 	 * Prefixed and escaped table names.
 	 *
 	 * @var		array
@@ -52,13 +59,6 @@ class Query {
 	 * @var		array
 	 */
 	private $where = [];
-
-	/**
-	 * Select Fields
-	 *
-	 * @var		array
-	 */
-	private $select = [];
 
 	/**
 	 * Group By Clauses
@@ -100,7 +100,7 @@ class Query {
 	 *
 	 * @var		string
 	 */
-	private $direction = false;
+	private $direction = 'ASC';
 
 	/**
 	 * Distinct Results
@@ -108,6 +108,13 @@ class Query {
 	 * @var		boolean
 	 */
 	private $distinct = true;
+
+	/**
+	 * Character Set Collation
+	 *
+	 * @var		string
+	 */
+	private $collation = false;
 
 	/**
 	 * Main Constructor
@@ -140,6 +147,66 @@ class Query {
 			}
 			$this->parametersProcessed[$parameter] = true;
 		}
+
+		//Add things that are always part of the query.
+		$this->addTable('page', 'page');
+		$this->addSelect([$this->tableNames['page'].'.page_namespace']);
+		$this->addSelect([$this->tableNames['page'].'.page_title']);
+		$this->addSelect([$this->tableNames['page'].'.page_id']);
+
+		$query['select'] = null;
+		if (count($this->select)) {
+			foreach ($this->select as $alias => $select) {
+				if (!is_numeric($alias)) {
+					$_select[] = "{$select} AS {$alias}";
+				} else {
+					$_select[] = "{$select}";
+				}
+			}
+			$query['select'] = implode(', ', $_select);
+		}
+
+		$query['tables'] = null;
+		if (count($this->tables)) {
+			foreach ($this->tables as $alias => $table) {
+				$_tables[] = "{$table} AS {$alias}";
+			}
+			$query['tables'] = implode(', ', $_tables);
+		}
+
+		$query['join'] = null;
+		if (count($this->join)) {
+			$query['join'] = implode(' ', $this->join);
+		}
+
+		$query['where'] = null;
+		if (count($this->where)) {
+			$query['where'] = implode(' AND ', $this->where);
+		}
+		var_dump($this->join);
+		$limit = null;
+		if ($this->offset === false && $this->limit > 0) {
+			$limit = "LIMIT {$this->limit}";
+		} elseif ($this->offset > 0 && $this->limit > 0) {
+			$limit = "LIMIT {$this->offset}, {$this->limit}";
+		} elseif ($this->offset > 0 && !$this->limit) {
+			$limit = "LIMIT {$this->offset}, ".$this->parameters->getData('count')['default'];
+		}
+
+
+		/*if ($acceptOpenReferences) {
+			// SELECT ... FROM
+			if (count($aImageContainer) > 0) {
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $this->tableNames['imagelinks'] . ' AS ic';
+			} else {
+				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $this->tableNames['pagelinks'];
+			}
+		} else {
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $this->tableNames['page'] . '.page_namespace AS page_namespace,' . $this->tableNames['page'] . '.page_title AS page_title,' . $this->tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $this->tableNames['page'];
+		}*/
+		$sql = "SELECT ".($this->distinct ? "DISTINCT " : null)."{$query['select']} FROM {$query['tables']} {$query['join']} WHERE {$query['where']}".(count($this->groupBy) ? " GROUP BY ".implode(', ', $this->groupBy) : null).(count($this->orderBy) ? " ORDER BY ".implode(', ', $this->orderBy)." ".$this->direction : null).($limit ? " ".$limit : null);
+
+		return $sql;
 	}
 
 	/**
@@ -178,10 +245,10 @@ class Query {
 	 */
 	public function addTable($table, $alias) {
 		if (empty($table)) {
-			throw new MWException(__METHOD__.': An empty table name was passed.');
+			throw new \MWException(__METHOD__.': An empty table name was passed.');
 		}
 		if (empty($alias) || is_numeric($alias)) {
-			throw new MWException(__METHOD__.': An empty or numeric table alias was passed.');
+			throw new \MWException(__METHOD__.': An empty or numeric table alias was passed.');
 		}
 		if (!array_key_exists($alias, $this->tables)) {
 			$this->tables[$alias] = $this->DB->tableName($table);
@@ -201,7 +268,7 @@ class Query {
 	 */
 	public function addWhere($where) {
 		if (empty($where)) {
-			throw new MWException(__METHOD__.': An empty where clause was passed.');
+			throw new \MWException(__METHOD__.': An empty where clause was passed.');
 		}
 		$this->where[] = $where;
 		return true;
@@ -216,16 +283,16 @@ class Query {
 	 */
 	public function addSelect($fields) {
 		if (!is_array($fields)) {
-			throw new MWException(__METHOD__.': A non-array was passed.');
+			throw new \MWException(__METHOD__.': A non-array was passed.');
 		}
 		foreach ($fields as $alias => $field) {
+			if (!is_numeric($alias) && array_key_exists($alias, $this->select) && $this->select[$alias] != $field) {
+				//In case of a code bug that is overwriting an existing field alias throw an exception.
+				throw new \MWException(__METHOD__.": Attempted to overwrite existing field alias `{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`.");
+			}
 			//String alias and does not exist already.
 			if (!is_numeric($alias) && !array_key_exists($alias, $this->select)) {
 				$this->select[$alias] = $field;
-			}
-			if (array_key_exists($alias, $this->select) && $this->select[$alias] != $field) {
-				//In case of a code bug that is overwriting an existing field alias throw an exception.
-				throw new MWException(__METHOD__.": Attempted to overwrite existing field alias `{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`.");
 			}
 
 			if (is_numeric($alias) && !in_array($field, $this->select)) {
@@ -244,7 +311,7 @@ class Query {
 	 */
 	public function addGroupBy($groupBy) {
 		if (empty($groupBy)) {
-			throw new MWException(__METHOD__.': An empty group by clause was passed.');
+			throw new \MWException(__METHOD__.': An empty group by clause was passed.');
 		}
 		$this->groupBy[] = $groupBy;
 		return true;
@@ -259,7 +326,7 @@ class Query {
 	 */
 	public function addOrderBy($orderBy) {
 		if (empty($orderBy)) {
-			throw new MWException(__METHOD__.': An empty order by clause was passed.');
+			throw new \MWException(__METHOD__.': An empty order by clause was passed.');
 		}
 		$this->orderBy[] = $orderBy;
 		return true;
@@ -274,7 +341,7 @@ class Query {
 	 */
 	public function addJoin($join) {
 		if (empty($join)) {
-			throw new MWException(__METHOD__.': An join clause was passed.');
+			throw new \MWException(__METHOD__.': An join clause was passed.');
 		}
 		$this->join[] = $join;
 		return true;
@@ -289,7 +356,7 @@ class Query {
 	 */
 	public function setLimit($limit) {
 		if (is_numeric($limit)) {
-			$this->limit = invtal($limit);
+			$this->limit = intval($limit);
 		} else {
 			$this->limit = false;
 		}
@@ -316,16 +383,23 @@ class Query {
 	 * Set the ORDER BY direction
 	 *
 	 * @access	public
-	 * @param	mixed	SQL direction key word or false to unset.
+	 * @param	string	SQL direction key word.
 	 * @return	boolean Success
 	 */
 	public function setOrderDir($direction) {
-		if ($direction === false) {
-			$this->direction = false;
-		} else {
-			$this->direction = $direction;
-		}
+		$this->direction = $direction;
 		return true;
+	}
+
+	/**
+	 * Set the character set collation.
+	 *
+	 * @access	public
+	 * @param	string	Collation
+	 * @return	void
+	 */
+	public function setCollation($collation) {
+		$this->collation = $collation;
 	}
 
 	/**
@@ -695,7 +769,7 @@ class Query {
 	 */
 	private function _imageused($option) {
 		$this->addTable('imagelinks', 'il');
-		$this->addSelect(['image_sel_title' => 'il`.`il_to']);
+		$this->addSelect(['image_sel_title' => 'il.il_to']);
 		$where .= $this->tableNames['page'].'.page_id=il.il_from AND (';
 		$i = 0;
 		foreach ($option as $link) {
@@ -1132,8 +1206,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _order($option) {
-		//@TODO: Fix up this function.  Note: The $sSqlWhere variables are being used to set the order fields and NOT the where statements.
-		if (is_array($this->parameters->getParameter('openreferences')) && $this->parameters->getParameter('openreferences')[0] !== 'none') {
+		if (is_array($this->parameters->getParameter('ordermethod')) && $this->parameters->getParameter('ordermethod')[0] !== 'none') {
 			if ($option == 'descending') {
 				$this->setOrderDir('DESC');
 			} else {
@@ -1174,13 +1247,14 @@ class Query {
 	 */
 	private function _ordermethod($option) {
 		//@TODO: Fix up this function.
+		var_dump($option);
 		foreach ($option as $orderMethod) {
 			switch ($orderMethod) {
 				case 'category':
 					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
 					//@TODO: Deferred parameter processing for checks?
-					$_clTable = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
+					$_clTable = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
 					$this->addJoin("LEFT OUTER JOIN {$_clTable} ON page_id = cl_head.cl_from");
 					if (!empty($aCatHeadings)) {
 						$this->addWhere("cl_head.cl_to IN (".$this->DB->makeList($aCatHeadings).")");
@@ -1200,36 +1274,35 @@ class Query {
 					$this->addTable('revision', 'rev');
 					$sSqlRev_timestamp = ', rev_timestamp';
 					//@TODO: Duplicate check.
-					$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+					$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
 						$this->addOrderBy('page_touched');
-						$this->addSelect(["{$tableNames['page']}.page_touched"]);
+						$this->addSelect(["{$this->tableNames['page']}.page_touched"]);
 					} else {
 						$this->addOrderBy('rev_timestamp');
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev_timestamp']);
 						//@TODO: Duplicate check.
-						$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+						$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					}
 					break;
 				case 'pagesel':
 					$this->addOrderBy('sortkey');
-					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
+					$this->addSelect(['CONCAT(pl.pl_namespace,pl.pl_title) '.($this->collation !== false ? 'COLLATE '.$this->collation : null).' as sortkey']);
 					break;
 				case 'pagetouched':
 					$this->addOrderBy('page_touched');
-					$this->addSelect(["{$tableNames['page']}.page_touched"]);
+					$this->addSelect(["{$this->tableNames['page']}.page_touched"]);
 					break;
 				case 'size':
 					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
-					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
-					$aStrictNs      = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
-					// map ns index to name
-					$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
+					//@TODO: Fix up this namespace thingy here with the one below.
+					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
+					$sSqlNsIdToText = 'CASE pl_namespace';
 					foreach ($aStrictNs as $iNs => $sNs) {
 						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
 					}
@@ -1237,14 +1310,14 @@ class Query {
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
 					//see line 2011 (order method sortkey requires category
-					if (count($acategory) + count($anotcategory) > 0) {
-						if (in_array('category', $aOrderMethods) && (count($acategory) + count($anotcategory) > 0)) {
-							$sSqlSortkey = ", IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
+						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
+							$this->addSelect(["IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(" . $this->tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $this->tableNames['page'] . ".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 						} else {
-							$sSqlSortkey = ", IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ')) " . $sOrderCollation . " as sortkey";
+							$this->addSelect(["IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(" . $this->tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $this->tableNames['page'] . ".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 						}
 					} else {
-						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+						$this->addSelect(["REPLACE(CONCAT( IF(" . $this->tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $this->tableNames['page'] . ".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 					}
 					break;
 				case 'titlewithoutnamespace':
@@ -1253,24 +1326,21 @@ class Query {
 					} else {
 						$this->addOrderBy("page_title");
 					}
-					$sSqlSortkey = ", {$tableNames['page']}.page_title " . $sOrderCollation . " as sortkey";
+					$this->addSelect(["{$this->tableNames['page']}.page_title ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 					break;
 				case 'title':
 					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
+					$sSqlNsIdToText = 'CASE pl_namespace';
+					foreach ($aStrictNs as $iNs => $sNs) {
+						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
+					}
+					$sSqlNsIdToText .= ' END';
 					// map namespace index to name
 					if ($this->parameters->getParameter('openreferences')) {
-						$sSqlNsIdToText = 'CASE pl_namespace';
-						foreach ($aStrictNs as $iNs => $sNs)
-							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
-						$sSqlNsIdToText .= ' END';
-						$sSqlSortkey = ", REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+						$this->addSelect(["REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 					} else {
-						$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
-						foreach ($aStrictNs as $iNs => $sNs)
-							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
-						$sSqlNsIdToText .= ' END';
 						// Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
-						$this->addWhere("REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey");
+						$this->addWhere("REPLACE(CONCAT( IF(" . $this->tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $this->tableNames['page'] . ".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey");
 					}
 					break;
 				case 'user':
@@ -1315,7 +1385,7 @@ class Query {
 		if (function_exists('efLoadFlaggedRevs')) {
 			//Do not add this again if 'qualitypages' has already added it.
 			if (!$this->parametersProcessed['qualitypages']) {
-				$this->addJoin("LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id");
+				$this->addJoin("LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id");
 			}
 			switch ($option) {
 				case 'only':
@@ -1339,7 +1409,7 @@ class Query {
 		if (function_exists('efLoadFlaggedRevs')) {
 			//Do not add this again if 'stablepages' has already added it.
 			if (!$this->parametersProcessed['stablepages']) {
-				$this->addJoin("LEFT JOIN {$tableNames['flaggedpages']} ON page_id = fp_page_id");
+				$this->addJoin("LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id");
 			}
 			switch ($option) {
 				case 'only':
