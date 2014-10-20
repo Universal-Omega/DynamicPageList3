@@ -164,6 +164,31 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Sort cleaned parameter arrays by priority.
+	 * Users can not be told to put the parameters into a specific order each time.  Some parameters are dependent on each other coming in a certain order due to some procedural legacy issues.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function sortByPriority($data) {
+		if (!is_array($data)) {
+			throw new MWException(__METHOD__.': A non-array was passed.');
+		}
+		//'category' to get category headings first for ordermethod.
+		//'include'/'includepage' to make sure section labels are ready for 'table'.
+		$priority = ['category', 'include', 'includepage'];
+
+		foreach ($priority as $parameter) {
+			if (array_key_exists($parameter, $data)) {
+				$_temp = $data[$parameter];
+				unset($data[$parameter]);
+				$data = array_unshift($data, $_temp);
+			}
+		}
+		return $data;
+	}
+
+	/**
 	 * Set Selection Criteria Found
 	 *
 	 * @access	public
@@ -171,7 +196,7 @@ class Parameters extends ParametersData {
 	 * @return	void
 	 */
 	private function setSelectionCriteriaFound($found = true) {
-		if (!is_bool($conflict)) {
+		if (!is_bool($found)) {
 			throw new MWException(__METHOD__.': A non-boolean was passed.');
 		}
 		$this->selectionCriteriaFound = $found;
@@ -837,13 +862,13 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Short cut to includeParameter();
+	 * Short cut to _include();
 	 *
 	 * @access	public
 	 * @return	mixed
 	 */
 	public function _includepage() {
-		return call_user_func_array([$this, 'includeParameter'], func_get_args());
+		return call_user_func_array([$this, 'include'], func_get_args());
 	}
 
 	/**
@@ -999,7 +1024,7 @@ class Parameters extends ParametersData {
 		//Overwrite 'listseparators'.
 		$this->parameters->setParameter('listseparators', $listSeparators);
 
-		//@TODO: Fixed up things past here.
+		//@TODO: Fixed up things past here.  This code might need to be moved into Parse due to parameter order issues.
 		for ($i = 0; $i < count($aSecLabels); $i++) {
 			if ($i == 0) {
 				$aSecSeparators[0]      = "\n|-\n|" . $withHLink; //."\n";

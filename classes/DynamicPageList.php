@@ -296,9 +296,9 @@ class DynamicPageList {
 			// note: we must avoid literals in the code which could create confusion when transferred via http
 			//       therefore we write '%'.'DA...'
 			if ($article->myDate != '') {
-				$sTag = str_replace('%' . 'DATE%', $article->myDate, $sTag);
+				$sTag = str_replace('%DATE%', $article->myDate, $sTag);
 			} else {
-				$sTag = str_replace('%' . 'DATE%', $wgLang->timeanddate($article->mDate, true), $sTag);
+				$sTag = str_replace('%DATE%', $wgLang->timeanddate($article->mDate, true), $sTag);
 			}
 		}
 		if ($article->mRevision != '') {

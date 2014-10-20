@@ -246,7 +246,7 @@ class Query {
 		if (empty($join)) {
 			throw new MWException(__METHOD__.': An join clause was passed.');
 		}
-		$this->$join[] = $join;
+		$this->join[] = $join;
 		return true;
 	}
 
@@ -296,17 +296,30 @@ class Query {
 			$depth = 2;
 		}
 		$categories = [];
-		//@TODO: Convert this to a proper $this->DB->select() statement.
-		$res = $this->DB->query("SELECT DISTINCT page_title FROM {$this->tableNames['page']} INNER JOIN {$this->tableNames['categorylinks']} AS cl0 ON {$this->tableNames['page']}.`page_id` = `cl0`.`cl_from` AND `cl0`.`cl_to` = ".$this->DB->addQuotes(str_replace(' ', '_', $categoryName))."  WHERE page_namespace = ".intval(NS_CATEGORY));
-		foreach ($res as $row) {
+		$result = $this->DB->select(
+			['page', 'categorylinks'],
+			['page_title'],
+			[
+				'page_namespace'		=> intval(NS_CATEGORY),
+				'categorylinks.cl_to'	=> str_replace(' ', '_', $categoryName)
+			],
+			__METHOD__,
+			['DISTINCT'],
+			[
+				'categorylinks' => [
+					'INNER JOIN', 'page.page_id = categorylinks.cl_from'
+				]
+			]
+		);
+		while ($row = $result->fetchRow()) {
 			if ($depth > 1) {
-				$categories[] = array_merge($categories, self::getSubcategories($row->page_title, $depth - 1));
+				$categories[] = array_merge($categories, self::getSubcategories($row['page_title'], $depth - 1));
 			} else {
-				$categories[] = $row->page_title;
+				$categories[] = $row['page_title'];
 			}
 		}
-		$categories
-		$this->DB->freeResult($res);
+		$categories = array_unique($categories);
+		$this->DB->freeResult($result);
 		return $categories;
 	}
 
@@ -334,13 +347,9 @@ class Query {
 	 * @return	void
 	 */
 	private function _addcategories($option) {
-		if ($bAddCategories) {
-			$this->addSelect(["GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats"]);
-			$this->addTable('categorylinks', 'cl_gc');
-			//@TODO: Figure out how to get this LEFT OUTER JOIN thingy to work.
-			$sSqlCond_page_cl_gc = 'page_id=cl_gc.cl_from';
-			$this->addGroupBy($this->tableNames['page'].'.page_id');
-		}
+		$this->addSelect(["GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ') AS cats"]);
+		$this->addJoin('LEFT OUTER JOIN categorylinks AS cl_gc ON page_id = cl_gc.cl_from');
+		$this->addGroupBy($this->tableNames['page'].'.page_id');
 	}
 
 	/**
@@ -1175,33 +1184,34 @@ class Query {
 		foreach ($aOrderMethods as $sOrderMethod) {
 			switch ($sOrderMethod) {
 				case 'category':
-					$sSqlCl_to             = "cl_head.cl_to, "; // Gives category headings in the result
-					$sSqlClHeadTable       = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
-					$sSqlCond_page_cl_head = 'page_id=cl_head.cl_from';
+					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
+					//@TODO: Deferred parameter processing for checks?
+					$_clTable = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
+					$this->addJoin("LEFT OUTER JOIN {$_clTable} ON page_id = cl_head.cl_from");
 					if (!empty($aCatHeadings)) {
-						$sSqlWhere .= " AND cl_head.cl_to IN (" . self::$DB->makeList($aCatHeadings) . ")";
+						$this->addWhere("cl_head.cl_to IN (".$this->DB->makeList($aCatHeadings).")");
 					}
 					if (!empty($aCatNotHeadings)) {
-						$sSqlWhere .= " AND NOT (cl_head.cl_to IN (" . self::$DB->makeList($aCatNotHeadings) . "))";
+						$this->addWhere("NOT (cl_head.cl_to IN (".$this->DB->makeList($aCatNotHeadings)."))");
 					}
 					break;
 				case 'firstedit':
-					$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
+					$this->addTable('revision', 'rev');
 					$sSqlRev_timestamp = ', rev_timestamp';
-					// deleted because of conflict with revsion-parameters
-					$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MIN(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+					//@TODO: Duplicate check.
+					$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					break;
 				case 'pagetouched':
-					$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
+					$this->addSelect(["{$tableNames['page']}.page_touched"]);
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
-						$sSqlPage_touched = ", {$tableNames['page']}.page_touched as page_touched";
+						$this->addSelect(["{$tableNames['page']}.page_touched"]);
 					} else {
-						$sSqlRevisionTable = $tableNames['revision'] . ' AS rev, ';
-						$sSqlRev_timestamp = ', rev_timestamp';
-						// deleted because of conflict with revision-parameters
-						$sSqlCond_page_rev = ' AND ' . $tableNames['page'] . '.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM ' . $tableNames['revision'] . ' AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )';
+						$this->addTable('revision', 'rev');
+						$this->addSelect(['rev_timestamp']);
+						//@TODO: Duplicate check.
+						$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					}
 					break;
 				case 'sortkey':
@@ -1209,8 +1219,9 @@ class Query {
 					$aStrictNs      = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
 					// map ns index to name
 					$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
-					foreach ($aStrictNs as $iNs => $sNs)
-						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+					foreach ($aStrictNs as $iNs => $sNs) {
+						$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
+					}
 					$sSqlNsIdToText .= ' END';
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
@@ -1237,21 +1248,21 @@ class Query {
 					if ($acceptOpenReferences) {
 						$sSqlNsIdToText = 'CASE pl_namespace';
 						foreach ($aStrictNs as $iNs => $sNs)
-							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
 						$sSqlNsIdToText .= ' END';
 						$sSqlSortkey = ", REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), pl_title), '_', ' ') " . $sOrderCollation . " as sortkey";
 					} else {
 						$sSqlNsIdToText = 'CASE ' . $tableNames['page'] . '.page_namespace';
 						foreach ($aStrictNs as $iNs => $sNs)
-							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . self::$DB->addQuotes($sNs);
+							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
 						$sSqlNsIdToText .= ' END';
 						// Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
-						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
+						$this->addWhere("REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey");
 					}
 					break;
 				case 'user':
-					$sSqlRevisionTable = $tableNames['revision'] . ', ';
-					$sSqlRev_user      = ', rev_user, rev_user_text, rev_comment';
+					$this->addTable('revision', 'rev');
+					$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 					break;
 				case 'none':
 					break;

@@ -132,40 +132,11 @@ class Parse {
 		/***************************************/
 		/* User Input preparation and parsing. */
 		/***************************************/
-		$rawParameters	= $this->prepareUserInput($input);
+		$cleanParameters = $this->prepareUserInput($input);
+		$cleanParameters = $this->parameters->sortByPriority($cleanParameters);
 		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
 
-		foreach ($rawParameters as $key => $parameterOption) {
-			if (strpos($parameterOption, '=') === false) {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
-				continue;
-			}
-
-			list($parameter, $option) = explode('=', $parameterOption, 2);
-			$parameter = trim($parameter);
-			$option  = trim($option);
-
-			if (strpos($parameter, '<') !== false || strpos($parameter, '>') !== false) {
-				//Having the actual less than and greater than symbols is nasty for programatic look up.  The old parameter is still supported along with the new, but we just fix it here before calling it.
-				$parameter = str_replace('<', 'lt', $parameter);
-				$parameter = str_replace('>', 'gt', $parameter);
-			}
-
-			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->testRichness($parameter))) {
-				continue;
-			}
-
-			if (!$this->parameters->exists($parameter)) {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
-			}
-
-			//Ignore parameter settings without argument (except namespace and category)
-			if (empty($option)) {
-				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && $this->parameters->exists($parameter)) {
-					continue;
-				}
-			}
-
+		foreach ($cleanParameters as $key => $parameterOption) {
 			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
 			if ($this->parameters->$function($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
@@ -232,10 +203,8 @@ class Parse {
 			$sResultsFooter .= '</nowiki></pre>';
 		}
 
-		// construct internal keys for TableRow according to the structure of "include"
-		// this will be needed in the output phase
-		self::updateTableRowKeys($aTableRow, $aSecLabels);
-		// foreach ($aTableRow as $key => $val) $output .= "TableRow($key)=$val;<br/>";
+		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
+		$this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels'));
 
 		if ($isParserTag === false) {
 			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
@@ -273,7 +242,7 @@ class Parse {
 			}
 		}
 
-		$errors = $this->doErrorChecks();
+		$errors = $this->doQueryErrorChecks();
 		if ($errors === false) {
 			//WHAT HAS HAPPENED OH NOOOOOOOOOOOOO.
 			return;
@@ -850,7 +819,42 @@ class Parse {
 		//Standard new lines into the standard \n and clean up any hanging new lines.
 		$input = str_replace(["\r\n", "\r"], "\n", $input);
 		$input = trim($input, "\n");
-		return explode("\n", $input);
+		$rawParameters = explode("\n", $input);
+
+		foreach ($rawParameters as $key => $parameterOption) {
+			if (strpos($parameterOption, '=') === false) {
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
+				continue;
+			}
+
+			list($parameter, $option) = explode('=', $parameterOption, 2);
+			$parameter = trim($parameter);
+			$option  = trim($option);
+
+			if (strpos($parameter, '<') !== false || strpos($parameter, '>') !== false) {
+				//Having the actual less than and greater than symbols is nasty for programatic look up.  The old parameter is still supported along with the new, but we just fix it here before calling it.
+				$parameter = str_replace('<', 'lt', $parameter);
+				$parameter = str_replace('>', 'gt', $parameter);
+			}
+
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->testRichness($parameter))) {
+				continue;
+			}
+
+			if (!$this->parameters->exists($parameter)) {
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+				continue;
+			}
+
+			//Ignore parameter settings without argument (except namespace and category).
+			if (empty($option)) {
+				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && $this->parameters->exists($parameter)) {
+					continue;
+				}
+			}
+			$parameters[$parameter] = $option;
+		}
+		return $parameters;
 	}
 
 	/**
@@ -859,7 +863,7 @@ class Parse {
 	 * @access	private
 	 * @return	void
 	 */
-	private function doErrorChecks() {
+	private function doQueryErrorChecks() {
 		/**************************/
 		/* Parameter Error Checks */
 		/**************************/
@@ -890,18 +894,15 @@ class Parse {
 		//Delayed to the construction of the SQL query, see near line 2211, gs
 		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
 
-		// no included categories but ordermethod=categoryadd or addfirstcategorydate=true!
-		if ($iTotalIncludeCatCount == 0 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true)) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+		//Throw an error in no categories were selected when using category sorting modes or requesting category information.
+		if (!$totalCategories == 0 && ($this->parameters->getParameter('ordermethod') == 'categoryadd' || $this->parameters->getParameter('addfirstcategorydate') === true)) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
+			return false;
 		}
 
-		// more than one included category but ordermethod=categoryadd or addfirstcategorydate=true!
-		// we ALLOW this parameter combination, risking ambiguous results
-		//if ($iTotalIncludeCatCount > 1 && ($aOrderMethods[0] == 'categoryadd' || $bAddFirstCategoryDate == true) )
-		//	return $this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTMORETHAN1CAT);
-
-		// no more than one type of date at a time!
-		if ($bAddPageTouchedDate + $bAddFirstCategoryDate + $bAddEditDate > 1) {
+		//No more than one type of date at a time!
+		//@TODO: Can this be fixed to allow all three later after fixing the article class?
+		if ((intval($this->parameters->getParameter('addpagetoucheddate')) + intval($this->parameters->getParameter('addfirstcategorydate')) + intval($this->parameters->getParameter('addeditdate'))) > 1) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
 		}
 
@@ -929,10 +930,7 @@ class Parse {
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ($bAddEditDate && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+		if ($this->parameters->getParameter('addeditdate') && !array_intersect($aOrderMethods, ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
@@ -942,16 +940,10 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($bAddUser && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		)) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+		if ($bAddUser && !array_intersect($aOrderMethods, ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
-		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, array(
-			'firstedit',
-			'lastedit'
-		))) {
+		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, ['firstedit', 'lastedit'])) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
@@ -979,6 +971,7 @@ class Parse {
 		}
 
 		// openreferences is incompatible with many other options
+		//@TODO: Fatal, but does not interrupt execution?
 		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
 			$acceptOpenReferences = false;
@@ -986,21 +979,26 @@ class Parse {
 		return true;
 	}
 
-	// auxiliary functions ===============================================================================
-
-	// create keys for TableRow which represent the structure of the "include=" arguments
-	private static function updateTableRowKeys(&$aTableRow, $aSecLabels) {
-		$tableRow  = $aTableRow;
-		$aTableRow = array();
-		$groupNr   = -1;
-		$t         = -1;
-		foreach ($aSecLabels as $label) {
+	/**
+	 * Create keys for TableRow which represent the structure of the "include=" arguments.
+	 *
+	 * @access	public
+	 * @param	array	Array of 'tablerow' parameter data.
+	 * @param	array	Array of 'include' parameter data.
+	 * @return	array	Updated 'tablerow' parameter.
+	 */
+	private static function updateTableRowKeys($tableRow, $sectionLabels) {
+		$_tableRow	= $tableRow;
+		$tableRow	= [];
+		$groupNr	= -1;
+		$t			= -1;
+		foreach ($sectionLabels as $label) {
 			$t++;
 			$groupNr++;
 			$cols = explode('}:', $label);
 			if (count($cols) <= 1) {
-				if (array_key_exists($t, $tableRow)) {
-					$aTableRow[$groupNr] = $tableRow[$t];
+				if (array_key_exists($t, $_tableRow)) {
+					$tableRow[$groupNr] = $_tableRow[$t];
 				}
 			} else {
 				$n     = count(explode(':', $cols[1]));
@@ -1009,12 +1007,13 @@ class Parse {
 				for ($i = 1; $i <= $n; $i++) {
 					$colNr++;
 					$t++;
-					if (array_key_exists($t, $tableRow)) {
-						$aTableRow[$groupNr . '.' . $colNr] = $tableRow[$t];
+					if (array_key_exists($t, $_tableRow)) {
+						$tableRow[$groupNr.'.'.$colNr] = $_tableRow[$t];
 					}
 				}
 			}
 		}
+		return $tableRow;
 	}
 
 	private static function resolveUrlArg($input, $arg) {
