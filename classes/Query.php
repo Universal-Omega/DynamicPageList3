@@ -131,10 +131,11 @@ class Query {
 	/**
 	 * Return prefixed and quoted tables that are needed.
 	 *
-	 * @access	private
+	 * @access	public
 	 * @return	array	Prepared table names.
 	 */
-	static private function getTableNames() {
+	static public function getTableNames() {
+		$DB = wfGetDB(DB_SLAVE);
 		$tables = [
 			'categorylinks',
 			'dpl_clview',
@@ -148,7 +149,7 @@ class Query {
 			'templatelinks'
 		];
 		foreach ($tables as $table) {
-			$tableNames[$table] = $this->DB->tableName($table);
+			$tableNames[$table] = $DB->tableName($table);
 		}
 		return $tableNames;
 	}

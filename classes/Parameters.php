@@ -74,7 +74,7 @@ class Parameters extends ParametersData {
 		$function = "_".$parameter;
 		$this->parametersProcessed[$parameter] = true;
 		if (method_exists($this, $function)) {
-			return call_user_func_array($this->$function, $arguments);
+			return call_user_func_array([$this, $function], $arguments);
 		}
 		$option = $arguments[0];
 		$parameter = strtolower($parameter);
@@ -653,7 +653,7 @@ class Parameters extends ParametersData {
 		if ($option == 'bridge') {
 			$this->setParameter('ordersuitsymbols', true);
 		} elseif (!empty($option)) {
-			$this->setParameter('ordercollation', "COLLATE ".self::$DB->strencode($option));
+			$this->setParameter('ordercollation', $option);
 		}
 	}
 

@@ -39,7 +39,7 @@ class Config {
 	 * @return	mixed	The setting's actual setting or null if it does not exist.
 	 */
 	static public function getSetting($setting) {
-		return (array_key_exists($setting, self::$settings ? self::$settings[$setting] : null));
+		return (array_key_exists($setting, self::$settings) ? self::$settings[$setting] : null);
 	}
 
 	/**

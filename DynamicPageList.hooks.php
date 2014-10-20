@@ -302,8 +302,7 @@ class DynamicPageListHooks {
 		self::setLikeIntersection(false);
 
 		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
-		$params = array();
-		$input="";
+		$input = "";
 
 		$numargs = func_num_args();
 		if ($numargs < 2) {
@@ -327,7 +326,7 @@ class DynamicPageListHooks {
 		// return $dump1.$text.$dump2;
 
 		$parse = new \DPL\Parse();
-		$dplresult = $parse->parse($input, $params, $parser, $reset, true);
+		$dplresult = $parse->parse($input, $parser, $reset, true);
 		return array( // parser needs to be coaxed to do further recursive processing
 			$parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
 			'isLocalObj' => true,

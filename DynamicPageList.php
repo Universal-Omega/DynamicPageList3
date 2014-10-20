@@ -42,6 +42,7 @@ $wgExtensionMessagesFiles['DynamicPageListMagic']	= "{$extDir}/DynamicPageList.i
 
 $wgAutoloadClasses['DynamicPageListHooks']			= "{$extDir}/DynamicPageList.hooks.php";
 $wgAutoloadClasses['DPL\Article']					= "{$extDir}/classes/Article.php";
+$wgAutoloadClasses['DPL\Config']					= "{$extDir}/classes/Config.php";
 $wgAutoloadClasses['DPL\DynamicPageList']			= "{$extDir}/classes/DynamicPageList.php";
 $wgAutoloadClasses['DPL\Logger']					= "{$extDir}/classes/Logger.php";
 $wgAutoloadClasses['DPL\ListMode']					= "{$extDir}/classes/ListMode.php";
@@ -78,42 +79,42 @@ if (!isset($wgGroupPermissions['sysop']['dpl_param_delete_rules'])) {
 		NS_PROJECT
 	];
 */
-if (!isset($dplSettings['allowedNamespaces']) {
+if (!isset($dplSettings['allowedNamespaces'])) {
 	$dplSettings['allowedNamespaces'] = null;
 }
 
 //Set this to true to ignore 'maxCategoryCount' and allow unlimited categories.  Please note that large amounts of categories in a query can slow down or crash servers.
-if (!isset($dplSettings['allowUnlimitedCategories']) {
+if (!isset($dplSettings['allowUnlimitedCategories'])) {
 	$dplSettings['allowUnlimitedCategories'] = false;
 }
 
 //Set this to true to ignore 'maxResultCount' and allow unlimited results.  Please note that large result sets may result in slow or failed page loads.
-if (!isset($dplSettings['allowUnlimitedResults']) {
+if (!isset($dplSettings['allowUnlimitedResults'])) {
 	$dplSettings['allowUnlimitedResults'] = false;
 }
 
 //Set DPL to always behave like intersection.
-if (!isset($dplSettings['behavingLikeIntersection']) {
+if (!isset($dplSettings['behavingLikeIntersection'])) {
 	$dplSettings['behavingLikeIntersection'] = false;
 }
 
 //This sets up a standard Mediawiki caching interface, whether it be file, Memcache, or Redis.
-if (!isset($dplSettings['cacheType']) {
+if (!isset($dplSettings['cacheType'])) {
 	$dplSettings['cacheType'] = CACHE_ANYTHING;
 }
 
 //Maximum number of items in a category list before being cut off.
-if (!isset($dplSettings['categoryStyleListCutoff']) {
+if (!isset($dplSettings['categoryStyleListCutoff'])) {
 	$dplSettings['categoryStyleListCutoff'] = 6;
 }
 
 //This does something with preventing DPL from "looking" at these categories.  @TODO: I will figure this out later.
-if (!isset($dplSettings['fixedCategories']) {
+if (!isset($dplSettings['fixedCategories'])) {
 	$dplSettings['fixedCategories'] = [];
 }
 
 //Set the level of parameters available to end users.
-if (!isset($dplSettings['functionalRichness']) {
+if (!isset($dplSettings['functionalRichness'])) {
 	if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
 		$dplSettings['functionalRichness'] = 0;
 	} else {
@@ -122,27 +123,27 @@ if (!isset($dplSettings['functionalRichness']) {
 }
 
 //Maximum number of categories to allow in queries.
-if (!isset($dplSettings['maxCategoryCount']) {
+if (!isset($dplSettings['maxCategoryCount'])) {
 	$dplSettings['maxCategoryCount'] = 4;
 }
 
 //Maximum number of categories to allow in queries.  I guess this is needed somewhere?
-if (!isset($dplSettings['minCategoryCount']) {
+if (!isset($dplSettings['minCategoryCount'])) {
 	$dplSettings['minCategoryCount'] = 0;
 }
 
 //Maximum number of results to return from a query.
-if (!isset($dplSettings['maxResultCount']) {
+if (!isset($dplSettings['maxResultCount'])) {
 	$dplSettings['maxResultCount'] = 500;
 }
 
 //Set this to true to allow DPL to run from protected pages only.
-if (!isset($dplSettings['runFromProtectedPagesOnly']) {
+if (!isset($dplSettings['runFromProtectedPagesOnly'])) {
 	$dplSettings['runFromProtectedPagesOnly'] = false;
 }
 
 //Force DPL to respect the parser cache.  It makes DPL less dynamic, but reduces overall server load.
-if (!isset($dplSettings['respectParserCache']) {
+if (!isset($dplSettings['respectParserCache'])) {
 	$dplSettings['respectParserCache'] = false;
 }
 

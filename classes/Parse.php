@@ -48,7 +48,7 @@ class Parse {
 	public function __construct() {
 		$this->DB = wfGetDB(DB_SLAVE);
 		$this->parameters = new Parameters();
-		$this->logger = new Logger();
+		$this->logger = new Logger($this->parameters->getData('debug')['default']);
 		$this->tableNames = Query::getTableNames();
 		$this->getUrlArgs();
 	}
@@ -63,7 +63,7 @@ class Parse {
 	 * @param	boolean	[Optional] Call as a parser tag
 	 * @return	string	Wiki/HTML Output
 	 */
-	public function parse($input, Parser $parser, &$bReset, $isParserTag = true) {
+	public function parse($input, \Parser $parser, &$bReset, $isParserTag = true) {
 		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
 
 		wfProfileIn(__METHOD__);
@@ -104,31 +104,6 @@ class Parse {
 		$DPLCache        = '';
 		$DPLCachePath    = '';
 
-		//Array for LINK / TEMPLATE / CATGEORY / IMAGE by RESET / ELIMINATE
-		if (Options::$options['eliminate'] == 'all') {
-			$bReset = array(
-				false,
-				false,
-				false,
-				false,
-				true,
-				true,
-				true,
-				true
-			);
-		} else {
-			$bReset = array(
-				false,
-				false,
-				false,
-				false,
-				false,
-				false,
-				false,
-				false
-			);
-		}
-
 		/***************************************/
 		/* User Input preparation and parsing. */
 		/***************************************/
@@ -136,9 +111,9 @@ class Parse {
 		$cleanParameters = $this->parameters->sortByPriority($cleanParameters);
 		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
 
-		foreach ($cleanParameters as $key => $parameterOption) {
+		foreach ($cleanParameters as $parameter => $option) {
 			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
-			if ($this->parameters->$function($option) === false) {
+			if ($this->parameters->$parameter($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
 			}
@@ -204,7 +179,9 @@ class Parse {
 		}
 
 		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
-		$this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels'));
+		if ($this->parameters->getParameter('seclabels') !== null) {
+			$this->parameters->setParameter('tablerow', $this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels')));
+		}
 
 		if ($isParserTag === false) {
 			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
@@ -837,7 +814,7 @@ class Parse {
 				$parameter = str_replace('>', 'gt', $parameter);
 			}
 
-			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->testRichness($parameter))) {
+			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->parameters->testRichness($parameter))) {
 				continue;
 			}
 

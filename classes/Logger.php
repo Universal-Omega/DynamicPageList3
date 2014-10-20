@@ -16,7 +16,7 @@ class Logger {
 	 *
 	 * @var		integer
 	 */
-	public $debug;
+	public $debugLevel = 0;
 
 	/**
 	 * Buffer of debug messages.
@@ -29,10 +29,11 @@ class Logger {
 	 * Main Constructor
 	 *
 	 * @access	public
+	 * @param	integer	Debug Level
 	 * @return	void
 	 */
-	public function __construct() {
-		$this->iDebugLevel = ParametersData::$data['debug']['default'];
+	public function __construct($debugLevel) {
+		$this->debugLevel = $debugLevel;
 	}
 
 	/**
