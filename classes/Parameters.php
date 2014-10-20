@@ -83,8 +83,10 @@ class Parameters extends ParametersData {
 		$success = true;
 		if ($parameterData !== false) {
 			//If a parameter specifies options then enforce them.
-			if (is_array($parameterData['values']) === true && !in_array($option, $parameterData['values'])) {
+			if (is_array($parameterData['values']) === true && !in_array(strtolower($option), $parameterData['values'])) {
 				$success = false;
+			} else {
+				$option = strtolower($option);
 			}
 
 			//Strip <html> tag.
@@ -176,7 +178,8 @@ class Parameters extends ParametersData {
 		}
 		//'category' to get category headings first for ordermethod.
 		//'include'/'includepage' to make sure section labels are ready for 'table'.
-		$priority = ['category', 'include', 'includepage'];
+		//This array is LOWEST to HIGHEST priority.  This is an optimization to prevent needing to call array_reverse() so that parameters are stuck back on the beginning of the array in the correct order.
+		$priority = ['ordermethod', 'includepage', 'include', 'category', 'openreferences'];
 
 		foreach ($priority as $parameter) {
 			if (array_key_exists($parameter, $data)) {
@@ -586,16 +589,16 @@ class Parameters extends ParametersData {
 		$methods   = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
-			if (!in_array($method, $this->getData('ordermethod')['values'])) {
-				$success = false;
+			if (!in_array($method, $this->getData('ordermethods')['values'])) {
+				return false;
 			}
 		}
-		if ($success === true) {
-			$this->setParameter('ordermethods', $methods);
-			if ($methods[0] != 'none') {
-				$this->setOpenReferencesConflict(true);
-			}
+
+		$this->setParameter('ordermethods', $methods);
+		if ($methods[0] !== 'none') {
+			$this->setOpenReferencesConflict(true);
 		}
+
 		return true;
 	}
 

@@ -68,6 +68,13 @@ class Query {
 	private $groupBy = [];
 
 	/**
+	 * Order By Clauses
+	 *
+	 * @var		array
+	 */
+	private $orderBy = [];
+
+	/**
 	 * Join Clauses
 	 *
 	 * @var		array
@@ -87,6 +94,13 @@ class Query {
 	 * @var		integer
 	 */
 	private $offset = false;
+
+	/**
+	 * Order By Direction
+	 *
+	 * @var		string
+	 */
+	private $direction = false;
 
 	/**
 	 * Distinct Results
@@ -222,10 +236,10 @@ class Query {
 	}
 
 	/**
-	 * Add a group by clause to the output.
+	 * Add a GROUP BY clause to the output.
 	 *
 	 * @access	public
-	 * @param	string	Where clause
+	 * @param	string	Group By Clause
 	 * @return	boolean Success
 	 */
 	public function addGroupBy($groupBy) {
@@ -237,7 +251,22 @@ class Query {
 	}
 
 	/**
-	 * Add a join clause to the output.
+	 * Add a ORDER BY clause to the output.
+	 *
+	 * @access	public
+	 * @param	string	Order By Clause
+	 * @return	boolean Success
+	 */
+	public function addOrderBy($orderBy) {
+		if (empty($orderBy)) {
+			throw new MWException(__METHOD__.': An empty order by clause was passed.');
+		}
+		$this->orderBy[] = $orderBy;
+		return true;
+	}
+
+	/**
+	 * Add a JOIN clause to the output.
 	 *
 	 * @access	public
 	 * @param	string	Join clause
@@ -279,6 +308,22 @@ class Query {
 			$this->offset = invtal($offset);
 		} else {
 			$this->offset = false;
+		}
+		return true;
+	}
+
+	/**
+	 * Set the ORDER BY direction
+	 *
+	 * @access	public
+	 * @param	mixed	SQL direction key word or false to unset.
+	 * @return	boolean Success
+	 */
+	public function setOrderDir($direction) {
+		if ($direction === false) {
+			$this->direction = false;
+		} else {
+			$this->direction = $direction;
 		}
 		return true;
 	}
@@ -701,7 +746,7 @@ class Query {
 	 */
 	private function _linksfrom($option) {
 		//@TODO: Fix up this function.
-		if ($acceptOpenReferences) {
+		if ($this->parameters->getParameter('openreferences')) {
 			$sSqlCond_page_pl .= ' AND (';
 			$n = 0;
 			foreach ($aLinksFrom as $links) {
@@ -1088,64 +1133,11 @@ class Query {
 	 */
 	private function _order($option) {
 		//@TODO: Fix up this function.  Note: The $sSqlWhere variables are being used to set the order fields and NOT the where statements.
-		if ($aOrderMethods[0] != '' && $aOrderMethods[0] != 'none') {
-			$sSqlWhere .= ' ORDER BY ';
-			foreach ($aOrderMethods as $i => $sOrderMethod) {
-
-				if ($i > 0) {
-					$sSqlWhere .= ', ';
-				}
-
-				switch ($sOrderMethod) {
-					case 'category':
-						$sSqlWhere .= 'cl_head.cl_to';
-						break;
-					case 'categoryadd':
-						$sSqlWhere .= 'cl0.cl_timestamp';
-						break;
-					case 'counter':
-						$sSqlWhere .= 'page_counter';
-						break;
-					case 'size':
-						$sSqlWhere .= 'page_len';
-						break;
-					case 'firstedit':
-						$sSqlWhere .= 'rev_timestamp';
-						break;
-					case 'lastedit':
-						// extension:intersection used to sort by page_touched although the field is called 'lastedit'
-						if (\DynamicPageListHooks::isLikeIntersection()) {
-							$sSqlWhere .= 'page_touched';
-						} else {
-							$sSqlWhere .= 'rev_timestamp';
-						}
-						break;
-					case 'pagetouched':
-						$sSqlWhere .= 'page_touched';
-						break;
-					case 'sortkey':
-					case 'title':
-					case 'pagesel':
-						$sSqlWhere .= 'sortkey';
-						break;
-					case 'titlewithoutnamespace':
-						if ($acceptOpenReferences) {
-							$sSqlWhere .= "pl_title";
-						} else {
-							$sSqlWhere .= "page_title";
-						}
-						break;
-					case 'user':
-						// rev_user_text can discriminate anonymous users (e.g. based on IP), rev_user cannot (=' 0' for all)
-						$sSqlWhere .= 'rev_user_text';
-						break;
-					default:
-				}
-			}
-			if ($sOrder == 'descending') {
-				$sSqlWhere .= ' DESC';
+		if (!empty($this->parameters->getParameter('openreferences')) && $this->parameters->getParameter('openreferences')[0] !== 'none') {
+			if ($option == 'descending') {
+				$this->setOrderDir('DESC');
 			} else {
-				$sSqlWhere .= ' ASC';
+				$this->setOrderDir('ASC');
 			}
 		}
 	}
@@ -1182,9 +1174,10 @@ class Query {
 	 */
 	private function _ordermethod($option) {
 		//@TODO: Fix up this function.
-		foreach ($aOrderMethods as $sOrderMethod) {
-			switch ($sOrderMethod) {
+		foreach ($option as $orderMethod) {
+			switch ($orderMethod) {
 				case 'category':
+					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
 					//@TODO: Deferred parameter processing for checks?
 					$_clTable = ((in_array('', $aCatHeadings) || in_array('', $aCatNotHeadings)) ? $tableNames['dpl_clview'] : $tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
@@ -1196,24 +1189,41 @@ class Query {
 						$this->addWhere("NOT (cl_head.cl_to IN (".$this->DB->makeList($aCatNotHeadings)."))");
 					}
 					break;
+				case 'categoryadd':
+					$this->addOrderBy('cl0.cl_timestamp')
+					break;
+				case 'counter':
+					$this->addOrderBy('page_counter')
+					break;
 				case 'firstedit':
+					$this->addOrderBy('rev_timestamp')
 					$this->addTable('revision', 'rev');
 					$sSqlRev_timestamp = ', rev_timestamp';
 					//@TODO: Duplicate check.
 					$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					break;
-				case 'pagetouched':
-					$this->addSelect(["{$tableNames['page']}.page_touched"]);
-					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
+						$this->addOrderBy('page_touched')
 						$this->addSelect(["{$tableNames['page']}.page_touched"]);
 					} else {
+						$this->addOrderBy('rev_timestamp')
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev_timestamp']);
 						//@TODO: Duplicate check.
 						$this->addWhere("{$tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
 					}
+					break;
+				case 'pagesel':
+					$this->addOrderBy('sortkey')
+					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
+					break;
+				case 'pagetouched':
+					$this->addOrderBy('page_touched')
+					$this->addSelect(["{$tableNames['page']}.page_touched"]);
+					break;
+				case 'size':
+					$this->addOrderBy('page_len')
 					break;
 				case 'sortkey':
 					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
@@ -1237,16 +1247,18 @@ class Query {
 						$sSqlSortkey = ", REPLACE(CONCAT( IF(" . $tableNames['page'] . ".page_namespace=0, '', CONCAT(" . $sSqlNsIdToText . ", ':')), " . $tableNames['page'] . ".page_title), '_', ' ') " . $sOrderCollation . " as sortkey";
 					}
 					break;
-				case 'pagesel':
-					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
-					break;
 				case 'titlewithoutnamespace':
+					if ($this->parameters->getParameter('openreferences')) {
+						$this->addOrderBy("pl_title")
+					} else {
+						$this->addOrderBy("page_title")
+					}
 					$sSqlSortkey = ", {$tableNames['page']}.page_title " . $sOrderCollation . " as sortkey";
 					break;
 				case 'title':
 					$aStrictNs = array_slice(\DynamicPageListHooks::$allowedNamespaces, 1, count(\DynamicPageListHooks::$allowedNamespaces), true);
 					// map namespace index to name
-					if ($acceptOpenReferences) {
+					if ($this->parameters->getParameter('openreferences')) {
 						$sSqlNsIdToText = 'CASE pl_namespace';
 						foreach ($aStrictNs as $iNs => $sNs)
 							$sSqlNsIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
@@ -1262,6 +1274,7 @@ class Query {
 					}
 					break;
 				case 'user':
+					$this->addOrderBy('rev_user_text')
 					$this->addTable('revision', 'rev');
 					$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 					break;
