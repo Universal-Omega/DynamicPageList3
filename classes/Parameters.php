@@ -170,25 +170,30 @@ class Parameters extends ParametersData {
 	 * Users can not be told to put the parameters into a specific order each time.  Some parameters are dependent on each other coming in a certain order due to some procedural legacy issues.
 	 *
 	 * @access	public
-	 * @return	void
+	 * @param	array	Unsorted Parameters
+	 * @return	array	Sorted Parameters
 	 */
-	public function sortByPriority($data) {
-		if (!is_array($data)) {
-			throw new MWException(__METHOD__.': A non-array was passed.');
+	public function sortByPriority($parameters) {
+		if (!is_array($parameters)) {
+			throw new \MWException(__METHOD__.': A non-array was passed.');
 		}
 		//'category' to get category headings first for ordermethod.
 		//'include'/'includepage' to make sure section labels are ready for 'table'.
-		//This array is LOWEST to HIGHEST priority.  This is an optimization to prevent needing to call array_reverse() so that parameters are stuck back on the beginning of the array in the correct order.
-		$priority = ['ordermethod', 'includepage', 'include', 'category', 'openreferences'];
-
-		foreach ($priority as $parameter) {
-			if (array_key_exists($parameter, $data)) {
-				$_temp = $data[$parameter];
-				unset($data[$parameter]);
-				$data = array_unshift($data, $_temp);
+		$priority = [
+			'openreferences' => 1,
+			'category' => 2,
+			'ordermethod' => 3,
+			'includepage' => 4,
+			'include' => 5
+		];
+		$_first = array_intersect_key($parameters, $priority);
+		if (count($_first)) {
+			foreach ($_first as $key => $value) {
+				unset($parameters[$key]);
 			}
+			$parameters = array_merge($_first, $parameters);
 		}
-		return $data;
+		return $parameters;
 	}
 
 	/**
@@ -589,7 +594,7 @@ class Parameters extends ParametersData {
 		$methods   = explode(',', $option);
 		$success = true;
 		foreach ($methods as $method) {
-			if (!in_array($method, $this->getData('ordermethods')['values'])) {
+			if (!in_array($method, $this->getData('ordermethod')['values'])) {
 				return false;
 			}
 		}

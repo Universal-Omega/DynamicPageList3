@@ -1133,7 +1133,7 @@ class Query {
 	 */
 	private function _order($option) {
 		//@TODO: Fix up this function.  Note: The $sSqlWhere variables are being used to set the order fields and NOT the where statements.
-		if (!empty($this->parameters->getParameter('openreferences')) && $this->parameters->getParameter('openreferences')[0] !== 'none') {
+		if (is_array($this->parameters->getParameter('openreferences')) && $this->parameters->getParameter('openreferences')[0] !== 'none') {
 			if ($option == 'descending') {
 				$this->setOrderDir('DESC');
 			} else {
@@ -1190,13 +1190,13 @@ class Query {
 					}
 					break;
 				case 'categoryadd':
-					$this->addOrderBy('cl0.cl_timestamp')
+					$this->addOrderBy('cl0.cl_timestamp');
 					break;
 				case 'counter':
-					$this->addOrderBy('page_counter')
+					$this->addOrderBy('page_counter');
 					break;
 				case 'firstedit':
-					$this->addOrderBy('rev_timestamp')
+					$this->addOrderBy('rev_timestamp');
 					$this->addTable('revision', 'rev');
 					$sSqlRev_timestamp = ', rev_timestamp';
 					//@TODO: Duplicate check.
@@ -1204,10 +1204,10 @@ class Query {
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
-						$this->addOrderBy('page_touched')
+						$this->addOrderBy('page_touched');
 						$this->addSelect(["{$tableNames['page']}.page_touched"]);
 					} else {
-						$this->addOrderBy('rev_timestamp')
+						$this->addOrderBy('rev_timestamp');
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev_timestamp']);
 						//@TODO: Duplicate check.
@@ -1215,15 +1215,15 @@ class Query {
 					}
 					break;
 				case 'pagesel':
-					$this->addOrderBy('sortkey')
+					$this->addOrderBy('sortkey');
 					$sSqlSortkey = ', CONCAT(pl.pl_namespace,pl.pl_title) ' . $sOrderCollation . ' as sortkey';
 					break;
 				case 'pagetouched':
-					$this->addOrderBy('page_touched')
+					$this->addOrderBy('page_touched');
 					$this->addSelect(["{$tableNames['page']}.page_touched"]);
 					break;
 				case 'size':
-					$this->addOrderBy('page_len')
+					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
 					// We need the namespaces with strictly positive indices (DPL allowed namespaces, except the first one: Main).
@@ -1249,9 +1249,9 @@ class Query {
 					break;
 				case 'titlewithoutnamespace':
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addOrderBy("pl_title")
+						$this->addOrderBy("pl_title");
 					} else {
-						$this->addOrderBy("page_title")
+						$this->addOrderBy("page_title");
 					}
 					$sSqlSortkey = ", {$tableNames['page']}.page_title " . $sOrderCollation . " as sortkey";
 					break;
@@ -1274,7 +1274,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					$this->addOrderBy('rev_user_text')
+					$this->addOrderBy('rev_user_text');
 					$this->addTable('revision', 'rev');
 					$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 					break;

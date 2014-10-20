@@ -113,6 +113,7 @@ class Parse {
 
 		foreach ($cleanParameters as $parameter => $option) {
 			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
+			var_dump($parameter);
 			if ($this->parameters->$parameter($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
@@ -907,7 +908,7 @@ class Parse {
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ($this->parameters->getParameter('addeditdate') && !array_intersect($aOrderMethods, ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
+		if ($this->parameters->getParameter('addeditdate') && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 		}
 
@@ -917,10 +918,10 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($bAddUser && !array_intersect($aOrderMethods, ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+		if ($bAddUser && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
-		if (isset($sMinorEdits) && !array_intersect($aOrderMethods, ['firstedit', 'lastedit'])) {
+		if (isset($sMinorEdits) && !array_intersect($this->parameters->getParameter('ordermethods'), ['firstedit', 'lastedit'])) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
@@ -947,11 +948,10 @@ class Parse {
 			$sHListMode = 'none';
 		}
 
-		// openreferences is incompatible with many other options
+		//The 'openreferences' parameter is incompatible with many other options.
 		//@TODO: Fatal, but does not interrupt execution?
-		if ($acceptOpenReferences && $bConflictsWithOpenReferences) {
+		if ($this->parameters->isOpenReferencesConflict()) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
-			$acceptOpenReferences = false;
 		}
 		return true;
 	}
