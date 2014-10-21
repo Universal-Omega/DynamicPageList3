@@ -550,9 +550,9 @@ class Parameters extends ParametersData {
 				return false;
 			}
 			$data = $this->getParameter('namespace');
-			$data[] = $parameter;
+			$data[] = $namespaceId;
 			$data = array_unique($data);
-			$this->setParameter('namespaces', $data);
+			$this->setParameter('namespace', $data);
 			$this->setSelectionCriteriaFound(true);
 		}
 		return true;
@@ -576,10 +576,10 @@ class Parameters extends ParametersData {
 				//Let the user know this namespace is not allowed or does not exist.
 				return false;
 			}
-			$data = $this->getParameter('notnamespaces');
-			$data[] = $parameter;
+			$data = $this->getParameter('notnamespace');
+			$data[] = $namespaceId;
 			$data = array_unique($data);
-			$this->setParameter('notnamespaces', $data);
+			$this->setParameter('notnamespace', $data);
 			$this->setSelectionCriteriaFound(true);
 		}
 		return true;

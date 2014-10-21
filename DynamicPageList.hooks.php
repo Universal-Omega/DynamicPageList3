@@ -84,9 +84,14 @@ class DynamicPageListHooks {
 															// Output formatting
 															// $1: number of articles
 
+	static public $fixedCategories = [];
 
-	// Note: If you add a line like the following to your LocalSetings.php, DPL will only run from protected pages	  
-	// Options::$options['RunFromProtectedPagesOnly'] = "<small><i>Extension DPL (warning): current configuration allows execution from protected pages only.</i></small>";
+	/**
+	 * DPL acting like Extension:Intersection
+	 *
+	 * @var		boolean
+	 */
+	static public $likeIntersection = false;
 
 	public static $debugMinLevels = array();
 	public static $createdLinks; // the links created by DPL are collected here;
