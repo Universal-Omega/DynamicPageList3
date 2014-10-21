@@ -84,27 +84,6 @@ class DynamicPageListHooks {
 															// Output formatting
 															// $1: number of articles
 
-	/**
-	 * Extension options
-	 */
-	public	static $maxCategoryCount		 = 4;	  // Maximum number of categories allowed in the Query
-	public	static $minCategoryCount		 = 0;	  // Minimum number of categories needed in the Query
-	public	static $maxResultCount			 = 500;	  // Maximum number of results to allow
-	public	static $categoryStyleListCutoff	 = 6;	  // Max length to format a list of articles chunked by letter as bullet list, if list bigger, columnar format user (same as cutoff arg for CategoryPage::formatList())
-	public	static $allowUnlimitedCategories = true;  // Allow unlimited categories in the Query
-	public	static $allowUnlimitedResults	 = false; // Allow unlimited results to be shown
-	public	static $allowedNamespaces		 = null;  // to be initialized at first use of DPL, array of all namespaces except Media and Special, because we cannot use the DB for these to generate dynamic page lists. 
-													  // Cannot be customized. Use Options::$options['namespace'] or Options::$options['notnamespace'] for customization.
-	public	static $likeIntersection = false; // Changes certain default values to comply with Extension:Intersection
-
-	public static $respectParserCache		 = false; // false = make page dynamic ; true = execute only when parser cache is refreshed
-													  // .. to be changed in LocalSettings.php
-													  
-	public static $fixedCategories			 = array(); // an array which holds categories to which the page containing the DPL query
-														// shall be assigned althoug reset_all|categories has been used
-														// see the fixcategory command
-
-
 
 	// Note: If you add a line like the following to your LocalSetings.php, DPL will only run from protected pages	  
 	// Options::$options['RunFromProtectedPagesOnly'] = "<small><i>Extension DPL (warning): current configuration allows execution from protected pages only.</i></small>";
