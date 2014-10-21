@@ -222,6 +222,7 @@ class Query {
 			$addSelect = true;
 		}
 		if ($this->parameters->getParameter('openreferences')) {
+			//@TODO: Something '$sSqlCl_to' or something.
 			if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 				$sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
 				if ($addSelect) {

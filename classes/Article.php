@@ -47,4 +47,173 @@ class Article {
 		$this->mTitle     = $title;
 		$this->mNamespace = $namespace;
 	}
+
+	/**
+	 * Initialize a new instance from a database row.
+	 *
+	 * @access	public
+	 * @param	array	Database Row
+	 * @param	object	\DPL\Parameters Object
+	 * @param	object	Mediawiki Title Object
+	 * @param	integer	Page Namespace ID
+	 * @return	object	\DPL\Article Object
+	 */
+	static public function newFromRow($row, Parameters $parameters, \Title $title, $pageNamespace) {
+		global $wgLang, $wgContLang;
+
+		$article = new Article($title, $pageNamespace);
+
+		$titleText = $title->getText();
+		if ($parameters->getParameter('shownamespace')) {
+			$titleText = $title->getPrefixedText();
+		}
+		if ($parameters->getParameter('replaceintitle')[0] != '') {
+			$titleText = preg_replace($parameters->getParameter('replaceintitle')[0], $parameters->getParameter('replaceintitle')[1], $titleText);
+		}
+
+		//chop off title if "too long"
+		if (is_numeric($parameters->getParameter('titlemaxlen')) && strlen($titleText) > $parameters->getParameter('titlemaxlen')) {
+			$titleText = substr($titleText, 0, $parameters->getParameter('titlemaxlen')) . '...';
+		}
+		if ($parameters->getParameter('showcurid') && isset($row['page_id'])) {
+			$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row['page_id'] . '}} ' . htmlspecialchars($titleText) . ']';
+		} else if (!$parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
+			// links to categories or images need an additional ":"
+			$articleLink = '[[' . $title->getPrefixedText() . '|' . $wgContLang->convert($titleText) . ']]';
+		} else {
+			$articleLink = '[{{fullurl:' . $title->getText() . '}} ' . htmlspecialchars($titleText) . ']';
+		}
+
+		$article->mLink = $articleLink;
+
+		//get first char used for category-style output
+		if (isset($row['sortkey'])) {
+			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
+		}
+		if (isset($row['sortkey'])) {
+			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
+		} else {
+			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($pageTitle));
+		}
+
+		// page_id
+		if (isset($row['page_id'])) {
+			$article->mID = $row['page_id'];
+		} else {
+			$article->mID = 0;
+		}
+
+		// external link
+		if (isset($row['el_to'])) {
+			$article->mExternalLink = $row['el_to'];
+		}
+
+		//SHOW PAGE_COUNTER
+		if (isset($row['page_counter'])) {
+			$article->mCounter = $row['page_counter'];
+		}
+
+		//SHOW PAGE_SIZE
+		if (isset($row['page_len'])) {
+			$article->mSize = $row['page_len'];
+		}
+		//STORE initially selected PAGE
+		if (count($parameters->getParameter('linksto')) || count($parameters->getParameter('linksfrom'))) {
+			if (!isset($row['sel_title'])) {
+				$article->mSelTitle     = 'unknown page';
+				$article->mSelNamespace = 0;
+			} else {
+				$article->mSelTitle     = $row['sel_title'];
+				$article->mSelNamespace = $row['sel_ns'];
+			}
+		}
+
+		//STORE selected image
+		if (count($parameters->getParameter('imageused')) > 0) {
+			if (!isset($row['image_sel_title'])) {
+				$article->mImageSelTitle = 'unknown image';
+			} else {
+				$article->mImageSelTitle = $row['image_sel_title'];
+			}
+		}
+
+		if ($parameters->getParameter('goal') != 'categories') {
+			//REVISION SPECIFIED
+			if ($parameters->getParameter('lastrevisionbefore') || $parameters->getParameter('allrevisionsbefore') || $parameters->getParameter('firstrevisionsince') || $parameters->getParameter('allrevisionssince')) {
+				$article->mRevision = $row['rev_id'];
+				$article->mUser     = $row['rev_user_text'];
+				$article->mDate     = $row['rev_timestamp'];
+			}
+
+			//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
+			if ($parameters->getParameter('addpagetoucheddate')) {
+				$article->mDate = $row['page_touched'];
+			} elseif ($parameters->getParameter('addfirstcategorydate')) {
+				$article->mDate = $row['cl_timestamp'];
+			} elseif ($parameters->getParameter('addeditdate') && isset($row['rev_timestamp'])) {
+				$article->mDate = $row['rev_timestamp'];
+			} elseif ($parameters->getParameter('addeditdate') && isset($row['page_touched'])) {
+				$article->mDate = $row['page_touched'];
+			}
+
+			// time zone adjustment
+			if ($article->mDate != '') {
+				$article->mDate = $wgLang->userAdjust($article->mDate);
+			}
+
+			if ($article->mDate != '' && $parameters->getParameter('userdateformat') != '') {
+				// we apply the userdateformat
+				$article->myDate = gmdate($parameters->getParameter('userdateformat'), wfTimeStamp(TS_UNIX, $article->mDate));
+			}
+			// CONTRIBUTION, CONTRIBUTOR
+			if ($parameters->getParameter('addcontribution')) {
+				$article->mContribution = $row['contribution'];
+				$article->mContributor  = $row['contributor'];
+				$article->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
+			}
+
+
+			//USER/AUTHOR(S)
+			// because we are going to do a recursive parse at the end of the output phase
+			// we have to generate wiki syntax for linking to a user´s homepage
+			if ($parameters->getParameter('adduser') || $parameters->getParameter('addauthor') || $parameters->getParameter('addlasteditor') || $parameters->getParameter('lastrevisionbefore') || $parameters->getParameter('allrevisionsbefore') || $parameters->getParameter('firstrevisionsince') || $parameters->getParameter('allrevisionssince')) {
+				$article->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+				$article->mUser     = $row['rev_user_text'];
+				$article->mComment  = $row['rev_comment'];
+			}
+
+			//CATEGORY LINKS FROM CURRENT PAGE
+			if ($parameters->getParameter('addcategories') && ($row['cats'] != '')) {
+				$artCatNames = explode(' | ', $row['cats']);
+				foreach ($artCatNames as $artCatName) {
+					$article->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace('_', ' ', $artCatName) . ']]';
+					$article->mCategoryTexts[] = str_replace('_', ' ', $artCatName);
+				}
+			}
+			// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
+			if ($parameters->getParameter('headingmode') != 'none') {
+				switch ($parameters->getParameter('ordermethod')[0]) {
+					case 'category':
+						//count one more page in this heading
+						$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
+						if ($row['cl_to'] == '') {
+							//uncategorized page (used if ordermethod=category,...)
+							$article->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMsg('uncategorizedpages') . ']]';
+						} else {
+							$article->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace('_', ' ', $row['cl_to']) . ']]';
+						}
+						break;
+					case 'user':
+						$headings[$row['rev_user_text']] = isset($headings[$row['rev_user_text']]) ? $headings[$row['rev_user_text']] + 1 : 1;
+						if ($row['rev_user'] == 0) { //anonymous user
+							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+
+						} else {
+							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+						}
+						break;
+				}
+			}
+		}
+	}
 }
