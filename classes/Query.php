@@ -148,11 +148,13 @@ class Query {
 			$this->parametersProcessed[$parameter] = true;
 		}
 
-		//Add things that are always part of the query.
-		$this->addTable('page', 'page');
-		$this->addSelect([$this->tableNames['page'].'.page_namespace']);
-		$this->addSelect([$this->tableNames['page'].'.page_title']);
-		$this->addSelect([$this->tableNames['page'].'.page_id']);
+		if (!$this->parameters->getParameter('openreferences')) {
+			//Add things that are always part of the query.
+			$this->addTable('page', 'page');
+			$this->addSelect([$this->tableNames['page'].'.page_namespace']);
+			$this->addSelect([$this->tableNames['page'].'.page_title']);
+			$this->addSelect([$this->tableNames['page'].'.page_id']);
+		}
 
 		$query['select'] = null;
 		if (count($this->select)) {
@@ -183,7 +185,7 @@ class Query {
 		if (count($this->where)) {
 			$query['where'] = implode(' AND ', $this->where);
 		}
-		var_dump($this->join);
+
 		$limit = null;
 		if ($this->offset === false && $this->limit > 0) {
 			$limit = "LIMIT {$this->limit}";
@@ -193,18 +195,20 @@ class Query {
 			$limit = "LIMIT {$this->offset}, ".$this->parameters->getData('count')['default'];
 		}
 
-
-		/*if ($acceptOpenReferences) {
-			// SELECT ... FROM
-			if (count($aImageContainer) > 0) {
+		//I wanted to avoid building raw SQL again with this extension, but sometimes you have to start with small changes.
+		$sql = "SELECT ".($this->calcRows ? "SQL_CALC_FOUND_ROWS " : null).($this->distinct ? "DISTINCT " : null);
+		if ($this->parameters->getParameter('openreferences')) {
+			if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $this->tableNames['imagelinks'] . ' AS ic';
+				$sql .= "{$query['select']} FROM {$this->tableNames['imagelinks']} AS ic";
 			} else {
 				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $this->tableNames['pagelinks'];
+				$sql .= "{$query['select']} FROM {$this->tableNames['pagelinks']}";
 			}
 		} else {
-			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $this->tableNames['page'] . '.page_namespace AS page_namespace,' . $this->tableNames['page'] . '.page_title AS page_title,' . $this->tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $this->tableNames['page'];
-		}*/
-		$sql = "SELECT ".($this->distinct ? "DISTINCT " : null)."{$query['select']} FROM {$query['tables']} {$query['join']} WHERE {$query['where']}".(count($this->groupBy) ? " GROUP BY ".implode(', ', $this->groupBy) : null).(count($this->orderBy) ? " ORDER BY ".implode(', ', $this->orderBy)." ".$this->direction : null).($limit ? " ".$limit : null);
+			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $this->tableNames['page'];
+			$sql .= "{$query['select']} FROM {$query['tables']} {$query['join']} WHERE {$query['where']}".(count($this->groupBy) ? " GROUP BY ".implode(', ', $this->groupBy) : null).(count($this->orderBy) ? " ORDER BY ".implode(', ', $this->orderBy)." ".$this->direction : null).($limit ? " ".$limit : null);
+		}
 
 		return $sql;
 	}
