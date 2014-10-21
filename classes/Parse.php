@@ -46,10 +46,16 @@ class Parse {
 	 * @return	void
 	 */
 	public function __construct() {
-		$this->DB = wfGetDB(DB_SLAVE);
-		$this->parameters = new Parameters();
-		$this->logger = new Logger($this->parameters->getData('debug')['default']);
-		$this->tableNames = Query::getTableNames();
+		global $wgRequest, $wgLang, $wgContLang;
+
+		$this->DB			= wfGetDB(DB_SLAVE);
+		$this->parameters	= new Parameters();
+		$this->logger		= new Logger($this->parameters->getData('debug')['default']);
+		$this->tableNames	= Query::getTableNames();
+		$this->wgRequest	= $wgRequest;
+		$this->wgLang		= $wgLang;
+		$this->wgContLang	= $wgContLang;
+
 		$this->getUrlArgs();
 	}
 
@@ -64,8 +70,6 @@ class Parse {
 	 * @return	string	Wiki/HTML Output
 	 */
 	public function parse($input, \Parser $parser, &$bReset, $isParserTag = true) {
-		global $wgUser, $wgLang, $wgContLang, $wgRequest, $wgNonincludableNamespaces;
-
 		wfProfileIn(__METHOD__);
 
 		//Check that we are not in an infinite transclusion loop
@@ -83,22 +87,22 @@ class Parse {
 
 		if (strpos($input, '{%DPL_') >= 0) {
 			for ($i = 1; $i <= 5; $i++) {
-				$input = self::resolveUrlArg($input, 'DPL_arg' . $i);
+				$input = $this->resolveUrlArg($input, 'DPL_arg' . $i);
 			}
 		}
 
-		$offset = $wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']);
+		$offset = $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']);
 
 		// commandline parameters like %DPL_offset% are replaced
-		$input = self::resolveUrlArg($input, 'DPL_offset');
-		$input = self::resolveUrlArg($input, 'DPL_count');
-		$input = self::resolveUrlArg($input, 'DPL_fromTitle');
-		$input = self::resolveUrlArg($input, 'DPL_findTitle');
-		$input = self::resolveUrlArg($input, 'DPL_toTitle');
+		$input = $this->resolveUrlArg($input, 'DPL_offset');
+		$input = $this->resolveUrlArg($input, 'DPL_count');
+		$input = $this->resolveUrlArg($input, 'DPL_fromTitle');
+		$input = $this->resolveUrlArg($input, 'DPL_findTitle');
+		$input = $this->resolveUrlArg($input, 'DPL_toTitle');
 
 		$originalInput = $input;
 
-		$bDPLRefresh = ($wgRequest->getVal('DPL_refresh', '') == 'yes');
+		$bDPLRefresh = ($this->wgRequest->getVal('DPL_refresh', '') == 'yes');
 
 		//Options
 		$DPLCache        = '';
@@ -150,7 +154,7 @@ class Parse {
 					$cachedOutput    = file_get_contents($cacheFile);
 					$cachedOutputPos = strpos($cachedOutput, "+++\n");
 					// when submitting a page we check if the DPL statement has changed
-					if ($wgRequest->getVal('action', 'view') != 'submit' || ($originalInput == substr($cachedOutput, 0, $cachedOutputPos))) {
+					if ($this->wgRequest->getVal('action', 'view') != 'submit' || ($originalInput == substr($cachedOutput, 0, $cachedOutputPos))) {
 						$cacheTimeStamp = self::prettyTimeStamp(date('YmdHis', filemtime($cacheFile)));
 						$cachePeriod    = self::durationTime($iDPLCachePeriod);
 						$diffTime       = self::durationTime($diff);
@@ -254,231 +258,8 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
-		/*******************************/
-		/* Random Count Pick Generator */
-		/*******************************/
-		$randomCount = $this->parameters->getParameter('randomcount');
-		if ($randomCount > 0) {
-			$nResults = $this->DB->numRows($result);
-			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
-			//Constrain the total amount of random results to not be greater than the total results.
-			if ($randomCount > $nResults) {
-				$randomCount = $nResults;
-			}
+		$articles = $this->processQueryResults($result, $parser);
 
-			//This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
-			//Generate pick numbers for results.
-			$pick = range(1, $nResults);
-			//Shuffle the pick numbers.
-			shuffle($pick);
-			//Select pick numbers from the beginning to the maximum of $randomCount.
-			$pick = array_slice($pick, 0, $randomCount);
-		}
-
-		$headings = []; // maps heading to count (# of pages under each heading)
-		$aArticles = array();
-		$firstNamespaceFound = '';
-		$firstTitleFound     = '';
-		$lastNamespaceFound  = '';
-		$lastTitleFound      = '';
-
-		while ($row = $result->fetchRow()) {
-			$i++;
-
-			//In random mode skip articles which were not chosen.
-			if ($randomCount > 0 && !in_array($i, $pick)) {
-				continue;
-			}
-
-			if ($this->parameters->getParameter('goal') == 'categories') {
-				$pageNamespace = 14; // CATEGORY
-				$pageTitle     = $row['cl_to'];
-			} else if ($this->parameters->getParameter('openreferences')) {
-				if (count($this->parameters->getParameter('imagecontainer')) > 0) {
-					$pageNamespace = NS_FILE;
-					$pageTitle     = $row['il_to'];
-				} else {
-					// maybe non-existing title
-					$pageNamespace = $row['pl_namespace'];
-					$pageTitle     = $row['pl_title'];
-				}
-			} else {
-				// existing PAGE TITLE
-				$pageNamespace = $row['page_namespace'];
-				$pageTitle     = $row['page_title'];
-			}
-
-			// if subpages are to be excluded: skip them
-			if (!$this->parameters->getParameter('includesubpages') && (!(strpos($pageTitle, '/') === false))) {
-				continue;
-			}
-
-			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
-			$thisTitle = $parser->getTitle();
-
-			// block recursion: avoid to show the page which contains the DPL statement as part of the result
-			if ($this->parameters->getParameter('skipthispage') && $thisTitle->equals($title)) {
-				continue;
-			}
-
-			$dplArticle = new Article($title, $pageNamespace);
-			//PAGE LINK
-			$sTitleText = $title->getText();
-			if ($this->parameters->getParameter('shownamespace')) {
-				$sTitleText = $title->getPrefixedText();
-			}
-			if ($this->parameters->getParameter('replaceintitle')[0] != '') {
-				$sTitleText = preg_replace($this->parameters->getParameter('replaceintitle')[0], $this->parameters->getParameter('replaceintitle')[1], $sTitleText);
-			}
-
-			//chop off title if "too long"
-			if (is_numeric($this->parameters->getParameter('titlemaxlen')) && strlen($sTitleText) > $this->parameters->getParameter('titlemaxlen')) {
-				$sTitleText = substr($sTitleText, 0, $this->parameters->getParameter('titlemaxlen')) . '...';
-			}
-			if ($this->parameters->getParameter('showcurid') && isset($row['page_id'])) {
-				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row['page_id'] . '}} ' . htmlspecialchars($sTitleText) . ']';
-			} else if (!$this->parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
-				// links to categories or images need an additional ":"
-				$articleLink = '[[' . $title->getPrefixedText() . '|' . $wgContLang->convert($sTitleText) . ']]';
-			} else {
-				$articleLink = '[{{fullurl:' . $title->getText() . '}} ' . htmlspecialchars($sTitleText) . ']';
-			}
-
-			$dplArticle->mLink = $articleLink;
-
-			//get first char used for category-style output
-			if (isset($row['sortkey'])) {
-				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
-			}
-			if (isset($row['sortkey'])) {
-				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
-			} else {
-				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($pageTitle));
-			}
-
-			// page_id
-			if (isset($row['page_id'])) {
-				$dplArticle->mID = $row['page_id'];
-			} else {
-				$dplArticle->mID = 0;
-			}
-
-			// external link
-			if (isset($row['el_to'])) {
-				$dplArticle->mExternalLink = $row['el_to'];
-			}
-
-			//SHOW PAGE_COUNTER
-			if (isset($row['page_counter'])) {
-				$dplArticle->mCounter = $row['page_counter'];
-			}
-
-			//SHOW PAGE_SIZE
-			if (isset($row['page_len'])) {
-				$dplArticle->mSize = $row['page_len'];
-			}
-			//STORE initially selected PAGE
-			if (count($aLinksTo) > 0 || count($aLinksFrom) > 0) {
-				if (!isset($row['sel_title'])) {
-					$dplArticle->mSelTitle     = 'unknown page';
-					$dplArticle->mSelNamespace = 0;
-				} else {
-					$dplArticle->mSelTitle     = $row['sel_title'];
-					$dplArticle->mSelNamespace = $row['sel_ns'];
-				}
-			}
-
-			//STORE selected image
-			if (count($aImageUsed) > 0) {
-				if (!isset($row['image_sel_title'])) {
-					$dplArticle->mImageSelTitle = 'unknown image';
-				} else {
-					$dplArticle->mImageSelTitle = $row['image_sel_title'];
-				}
-			}
-
-			if ($this->parameters->getParameter('goal') != 'categories') {
-				//REVISION SPECIFIED
-				if ($this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
-					$dplArticle->mRevision = $row['rev_id'];
-					$dplArticle->mUser     = $row['rev_user_text'];
-					$dplArticle->mDate     = $row['rev_timestamp'];
-				}
-
-				//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
-				if ($this->parameters->getParameter('addpagetoucheddate')) {
-					$dplArticle->mDate = $row['page_touched'];
-				} elseif ($this->parameters->getParameter('addfirstcategorydate')) {
-					$dplArticle->mDate = $row['cl_timestamp'];
-				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['rev_timestamp'])) {
-					$dplArticle->mDate = $row['rev_timestamp'];
-				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['page_touched'])) {
-					$dplArticle->mDate = $row['page_touched'];
-				}
-
-				// time zone adjustment
-				if ($dplArticle->mDate != '') {
-					$dplArticle->mDate = $wgLang->userAdjust($dplArticle->mDate);
-				}
-
-				if ($dplArticle->mDate != '' && $this->parameters->getParameter('userdateformat') != '') {
-					// we apply the userdateformat
-					$dplArticle->myDate = gmdate($this->parameters->getParameter('userdateformat'), wfTimeStamp(TS_UNIX, $dplArticle->mDate));
-				}
-				// CONTRIBUTION, CONTRIBUTOR
-				if ($this->parameters->getParameter('addcontribution')) {
-					$dplArticle->mContribution = $row['contribution'];
-					$dplArticle->mContributor  = $row['contributor'];
-					$dplArticle->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
-				}
-
-
-				//USER/AUTHOR(S)
-				// because we are going to do a recursive parse at the end of the output phase
-				// we have to generate wiki syntax for linking to a user´s homepage
-				if ($this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addlasteditor') || $this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
-					$dplArticle->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-					$dplArticle->mUser     = $row['rev_user_text'];
-					$dplArticle->mComment  = $row['rev_comment'];
-				}
-
-				//CATEGORY LINKS FROM CURRENT PAGE
-				if ($this->parameters->getParameter('addcategories') && ($row['cats'] != '')) {
-					$artCatNames = explode(' | ', $row['cats']);
-					foreach ($artCatNames as $artCatName) {
-						$dplArticle->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace('_', ' ', $artCatName) . ']]';
-						$dplArticle->mCategoryTexts[] = str_replace('_', ' ', $artCatName);
-					}
-				}
-				// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
-				if ($this->parameters->getParameter('headingmode') != 'none') {
-					switch ($this->parameters->getParameter('ordermethod')[0]) {
-						case 'category':
-							//count one more page in this heading
-							$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
-							if ($row['cl_to'] == '') {
-								//uncategorized page (used if ordermethod=category,...)
-								$dplArticle->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMsg('uncategorizedpages') . ']]';
-							} else {
-								$dplArticle->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace('_', ' ', $row['cl_to']) . ']]';
-							}
-							break;
-						case 'user':
-							$headings[$row['rev_user_text']] = isset($headings[$row['rev_user_text']]) ? $headings[$row['rev_user_text']] + 1 : 1;
-							if ($row['rev_user'] == 0) { //anonymous user
-								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-
-							} else {
-								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-							}
-							break;
-					}
-				}
-			}
-
-			$aArticles[] = $dplArticle;
-		}
-		$this->DB->freeResult($result);
 		$foundRows = null;
 		if ($calcRows) {
 			$foundRows = $this->query->getFoundRows();
@@ -486,17 +267,18 @@ class Parse {
 
 		// backward scrolling: if the user specified titleLE we reverse the output order
 		if ($this->parameters->getParameter('titlelt') && !$this->parameters->getParameter('titlegt') && $this->parameters->getParameter('order') == 'descending') {
-			$aArticles = array_reverse($aArticles);
+			$articles = array_reverse($articles);
 		}
 
 		// special sort for card suits (Bridge)
 		if ($this->parameters->getParameter('ordersuitsymbols')) {
-			$aArticles = self::cardSuitSort($aArticles);
+			$articles = self::cardSuitSort($articles);
 		}
 
 
-		// ###### SHOW OUTPUT ######
-
+		/*******************/
+		/* Generate Output */
+		/*******************/
 		$listMode = new ListMode(
 			$this->parameters->getParameter('pagelistmode'),
 			$this->parameters->getParameter('secseparators'),
@@ -528,7 +310,7 @@ class Parse {
 			$this->parameters->getParameter('rows'),
 			$this->parameters->getParameter('rowsize'),
 			$this->parameters->getParameter('rowcolformat'),
-			$aArticles,
+			$articles,
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
 			$listMode,
@@ -603,11 +385,11 @@ class Parse {
 		$replacementVariables['%DPLTIME%'] = "{$dplElapsedTime} ({$nowTimeStamp})";
 
 		// replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
-		if (($n = count($aArticles)) > 0) {
-			$firstNamespaceFound = str_replace(' ', '_', $aArticles[0]->mTitle->getNamespace());
-			$firstTitleFound     = str_replace(' ', '_', $aArticles[0]->mTitle->getText());
-			$lastNamespaceFound  = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getNamespace());
-			$lastTitleFound      = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getText());
+		if (($n = count($articles)) > 0) {
+			$firstNamespaceFound = str_replace(' ', '_', $articles[0]->mTitle->getNamespace());
+			$firstTitleFound     = str_replace(' ', '_', $articles[0]->mTitle->getText());
+			$lastNamespaceFound  = str_replace(' ', '_', $articles[$n - 1]->mTitle->getNamespace());
+			$lastTitleFound      = str_replace(' ', '_', $articles[$n - 1]->mTitle->getText());
 		}
 		$replacementVariables['%FIRSTNAMESPACE%'] = $firstNamespaceFound;
 		$replacementVariables['%FIRSTTITLE%'] = $firstTitleFound;
@@ -625,7 +407,7 @@ class Parse {
 		if ($DPLCache != '') {
 			if (!is_writeable($cacheFile)) {
 				wfMkdirParents(dirname($cacheFile));
-			} else if (($this->parameters->getParameter('dplrefresh') || $wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
+			} else if (($this->parameters->getParameter('dplrefresh') || $this->wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
 				// if the cache file contains a path and the user requested a refesh (or saved the file) we delete all brothers
 				wfRecursiveRemoveDir(dirname($cacheFile));
 				wfMkdirParents(dirname($cacheFile));
@@ -684,6 +466,243 @@ class Parse {
 		wfProfileOut(__METHOD__);
 
 		return $this->getFullOutput();
+	}
+
+	/**
+	 * Process Query Results
+	 *
+	 * @access	private
+	 * @param	object	Mediawiki Result Object
+	 * @param	object	Mediawiki Parser Object
+	 * @return	array	Array of Article objects.
+	 */
+	private function processQueryResults($result, \Parser $parser) {
+		/*******************************/
+		/* Random Count Pick Generator */
+		/*******************************/
+		$randomCount = $this->parameters->getParameter('randomcount');
+		if ($randomCount > 0) {
+			$nResults = $this->DB->numRows($result);
+			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
+			//Constrain the total amount of random results to not be greater than the total results.
+			if ($randomCount > $nResults) {
+				$randomCount = $nResults;
+			}
+
+			//This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
+			//Generate pick numbers for results.
+			$pick = range(1, $nResults);
+			//Shuffle the pick numbers.
+			shuffle($pick);
+			//Select pick numbers from the beginning to the maximum of $randomCount.
+			$pick = array_slice($pick, 0, $randomCount);
+		}
+
+		$headings = []; //Maps heading to count (# of pages under each heading)
+		$articles = [];
+
+		/*******************************/
+		/* Article Generation          */
+		/*******************************/
+		while ($row = $result->fetchRow()) {
+			$i++;
+
+			//In random mode skip articles which were not chosen.
+			if ($randomCount > 0 && !in_array($i, $pick)) {
+				continue;
+			}
+
+			if ($this->parameters->getParameter('goal') == 'categories') {
+				$pageNamespace = 14; // CATEGORY
+				$pageTitle     = $row['cl_to'];
+			} else if ($this->parameters->getParameter('openreferences')) {
+				if (count($this->parameters->getParameter('imagecontainer')) > 0) {
+					$pageNamespace = NS_FILE;
+					$pageTitle     = $row['il_to'];
+				} else {
+					// maybe non-existing title
+					$pageNamespace = $row['pl_namespace'];
+					$pageTitle     = $row['pl_title'];
+				}
+			} else {
+				// existing PAGE TITLE
+				$pageNamespace = $row['page_namespace'];
+				$pageTitle     = $row['page_title'];
+			}
+
+			// if subpages are to be excluded: skip them
+			if (!$this->parameters->getParameter('includesubpages') && (!(strpos($pageTitle, '/') === false))) {
+				continue;
+			}
+
+			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
+			$thisTitle = $parser->getTitle();
+
+			// block recursion: avoid to show the page which contains the DPL statement as part of the result
+			if ($this->parameters->getParameter('skipthispage') && $thisTitle->equals($title)) {
+				continue;
+			}
+
+			$dplArticle = new Article($title, $pageNamespace);
+			//PAGE LINK
+			$sTitleText = $title->getText();
+			if ($this->parameters->getParameter('shownamespace')) {
+				$sTitleText = $title->getPrefixedText();
+			}
+			if ($this->parameters->getParameter('replaceintitle')[0] != '') {
+				$sTitleText = preg_replace($this->parameters->getParameter('replaceintitle')[0], $this->parameters->getParameter('replaceintitle')[1], $sTitleText);
+			}
+
+			//chop off title if "too long"
+			if (is_numeric($this->parameters->getParameter('titlemaxlen')) && strlen($sTitleText) > $this->parameters->getParameter('titlemaxlen')) {
+				$sTitleText = substr($sTitleText, 0, $this->parameters->getParameter('titlemaxlen')) . '...';
+			}
+			if ($this->parameters->getParameter('showcurid') && isset($row['page_id'])) {
+				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row['page_id'] . '}} ' . htmlspecialchars($sTitleText) . ']';
+			} else if (!$this->parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
+				// links to categories or images need an additional ":"
+				$articleLink = '[[' . $title->getPrefixedText() . '|' . $this->wgContLang->convert($sTitleText) . ']]';
+			} else {
+				$articleLink = '[{{fullurl:' . $title->getText() . '}} ' . htmlspecialchars($sTitleText) . ']';
+			}
+
+			$dplArticle->mLink = $articleLink;
+
+			//get first char used for category-style output
+			if (isset($row['sortkey'])) {
+				$dplArticle->mStartChar = $this->wgContLang->convert($this->wgContLang->firstChar($row['sortkey']));
+			}
+			if (isset($row['sortkey'])) {
+				$dplArticle->mStartChar = $this->wgContLang->convert($this->wgContLang->firstChar($row['sortkey']));
+			} else {
+				$dplArticle->mStartChar = $this->wgContLang->convert($this->wgContLang->firstChar($pageTitle));
+			}
+
+			// page_id
+			if (isset($row['page_id'])) {
+				$dplArticle->mID = $row['page_id'];
+			} else {
+				$dplArticle->mID = 0;
+			}
+
+			// external link
+			if (isset($row['el_to'])) {
+				$dplArticle->mExternalLink = $row['el_to'];
+			}
+
+			//SHOW PAGE_COUNTER
+			if (isset($row['page_counter'])) {
+				$dplArticle->mCounter = $row['page_counter'];
+			}
+
+			//SHOW PAGE_SIZE
+			if (isset($row['page_len'])) {
+				$dplArticle->mSize = $row['page_len'];
+			}
+			//STORE initially selected PAGE
+			if (count($aLinksTo) > 0 || count($aLinksFrom) > 0) {
+				if (!isset($row['sel_title'])) {
+					$dplArticle->mSelTitle     = 'unknown page';
+					$dplArticle->mSelNamespace = 0;
+				} else {
+					$dplArticle->mSelTitle     = $row['sel_title'];
+					$dplArticle->mSelNamespace = $row['sel_ns'];
+				}
+			}
+
+			//STORE selected image
+			if (count($aImageUsed) > 0) {
+				if (!isset($row['image_sel_title'])) {
+					$dplArticle->mImageSelTitle = 'unknown image';
+				} else {
+					$dplArticle->mImageSelTitle = $row['image_sel_title'];
+				}
+			}
+
+			if ($this->parameters->getParameter('goal') != 'categories') {
+				//REVISION SPECIFIED
+				if ($this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
+					$dplArticle->mRevision = $row['rev_id'];
+					$dplArticle->mUser     = $row['rev_user_text'];
+					$dplArticle->mDate     = $row['rev_timestamp'];
+				}
+
+				//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
+				if ($this->parameters->getParameter('addpagetoucheddate')) {
+					$dplArticle->mDate = $row['page_touched'];
+				} elseif ($this->parameters->getParameter('addfirstcategorydate')) {
+					$dplArticle->mDate = $row['cl_timestamp'];
+				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['rev_timestamp'])) {
+					$dplArticle->mDate = $row['rev_timestamp'];
+				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['page_touched'])) {
+					$dplArticle->mDate = $row['page_touched'];
+				}
+
+				// time zone adjustment
+				if ($dplArticle->mDate != '') {
+					$dplArticle->mDate = $this->wgLang->userAdjust($dplArticle->mDate);
+				}
+
+				if ($dplArticle->mDate != '' && $this->parameters->getParameter('userdateformat') != '') {
+					// we apply the userdateformat
+					$dplArticle->myDate = gmdate($this->parameters->getParameter('userdateformat'), wfTimeStamp(TS_UNIX, $dplArticle->mDate));
+				}
+				// CONTRIBUTION, CONTRIBUTOR
+				if ($this->parameters->getParameter('addcontribution')) {
+					$dplArticle->mContribution = $row['contribution'];
+					$dplArticle->mContributor  = $row['contributor'];
+					$dplArticle->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
+				}
+
+
+				//USER/AUTHOR(S)
+				// because we are going to do a recursive parse at the end of the output phase
+				// we have to generate wiki syntax for linking to a user´s homepage
+				if ($this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addlasteditor') || $this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
+					$dplArticle->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+					$dplArticle->mUser     = $row['rev_user_text'];
+					$dplArticle->mComment  = $row['rev_comment'];
+				}
+
+				//CATEGORY LINKS FROM CURRENT PAGE
+				if ($this->parameters->getParameter('addcategories') && ($row['cats'] != '')) {
+					$artCatNames = explode(' | ', $row['cats']);
+					foreach ($artCatNames as $artCatName) {
+						$dplArticle->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace('_', ' ', $artCatName) . ']]';
+						$dplArticle->mCategoryTexts[] = str_replace('_', ' ', $artCatName);
+					}
+				}
+				// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
+				if ($this->parameters->getParameter('headingmode') != 'none') {
+					switch ($this->parameters->getParameter('ordermethod')[0]) {
+						case 'category':
+							//count one more page in this heading
+							$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
+							if ($row['cl_to'] == '') {
+								//uncategorized page (used if ordermethod=category,...)
+								$dplArticle->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMsg('uncategorizedpages') . ']]';
+							} else {
+								$dplArticle->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace('_', ' ', $row['cl_to']) . ']]';
+							}
+							break;
+						case 'user':
+							$headings[$row['rev_user_text']] = isset($headings[$row['rev_user_text']]) ? $headings[$row['rev_user_text']] + 1 : 1;
+							if ($row['rev_user'] == 0) { //anonymous user
+								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+
+							} else {
+								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+							}
+							break;
+					}
+				}
+			}
+
+			$articles[] = $dplArticle;
+		}
+		$this->DB->freeResult($result);
+
+		return $articles;
 	}
 
 	/**
@@ -993,10 +1012,9 @@ class Parse {
 		return $tableRow;
 	}
 
-	private static function resolveUrlArg($input, $arg) {
-		global $wgRequest;
+	private function resolveUrlArg($input, $arg) {
 		//@TODO: Also figure out what this function does.
-		$dplArg = $wgRequest->getVal($arg, '');
+		$dplArg = $this->wgRequest->getVal($arg, '');
 		if ($dplArg == '') {
 			$input = preg_replace('/\{%' . $arg . ':(.*)%\}/U', '\1', $input);
 			return str_replace('{%' . $arg . '%}', '', $input);
@@ -1013,9 +1031,9 @@ class Parse {
 	 * @return	void
 	 */
 	private function getUrlArgs() {
-		global $wgRequest, $wgExtVariables;
+		global $wgExtVariables;
 		//@TODO: Figure out why this function needs to set ALL request variables and not just those related to DPL.
-		$args = $wgRequest->getValues();
+		$args = $this->wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
 			Variables::setVar(array(
 				'',
@@ -1027,7 +1045,7 @@ class Parse {
 		if (!isset($wgExtVariables)) {
 			return;
 		}
-		$args  = $wgRequest->getValues();
+		$args  = $this->wgRequest->getValues();
 		$dummy = '';
 		foreach ($args as $argName => $argValue) {
 			$wgExtVariables->vardefine($dummy, $argName, $argValue);
