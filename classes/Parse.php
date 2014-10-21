@@ -246,7 +246,7 @@ class Parse {
 			$result = $this->query->buildAndSelect($calcRows);
 		} catch (MWException $e) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage());
-			return $this->getFullOutput();
+			return $this->getFullOutput(false);
 		}
 
 		/*********************/
@@ -266,7 +266,7 @@ class Parse {
 				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsfooter'), $replacementVariables));
 			}
 			$this->DB->freeResult($result);
-			return $this->getFullOutput();
+			return $this->getFullOutput(false);
 		}
 
 		$articles = $this->processQueryResults($result, $parser);
@@ -286,7 +286,6 @@ class Parse {
 			$articles = self::cardSuitSort($articles);
 		}
 
-		var_dump($this->parameters->getParameter('mode'));
 		/*******************/
 		/* Generate Output */
 		/*******************/
@@ -416,6 +415,7 @@ class Parse {
 		// save generated wiki text to dplcache page if desired
 
 		if ($DPLCache != '') {
+			//@TODO: Handle cache updating.
 			if (!is_writeable($cacheFile)) {
 				wfMkdirParents(dirname($cacheFile));
 			} else if (($this->parameters->getParameter('dplrefresh') || $this->wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
@@ -785,14 +785,19 @@ class Parse {
 	 * Return output including header and footer.
 	 *
 	 * @access	public
+	 * @param	boolean	[Optional] Are there results in this output?
 	 * @return	string	Output
 	 */
-	private function getFullOutput() {
-		if (!$this->getHeader() && !$this->getFooter()) {
+	private function getFullOutput($results = true) {
+		if ($results === false && !$this->getHeader() && !$this->getFooter()) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
-		//@TODO: Add logger output messages here.
-		return $this->header.$this->output.$this->footer;
+		$messages = $this->logger->getMessages();
+		if (count($messages)) {
+			$messageOutput = implode("<br/>\n", $messages);
+		}
+
+		return $messageOutput.$this->header.$this->output.$this->footer;
 	}
 
 	/**
@@ -980,8 +985,9 @@ class Parse {
 
 		//The 'openreferences' parameter is incompatible with many other options.
 		//@TODO: Fatal, but does not interrupt execution?
-		if ($this->parameters->isOpenReferencesConflict()) {
+		if ($this->parameters->isOpenReferencesConflict() && $this->parameters->getParameter('openreferences') === true) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
+			return false;
 		}
 		return true;
 	}

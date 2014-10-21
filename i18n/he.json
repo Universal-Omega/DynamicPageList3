@@ -13,7 +13,7 @@
     "dpl_log_2": "שגיאה: פרמטר '$0' שגוי: '$1'! עזרה: <code>$0= <i>שם הדף המלא</i></code>. (ניתן להשתמש במילות קסם.)",
     "dpl_log_3": "שגיאה: קטגוריות רבות מדי! מקסימום: $0. עזרה: העלו את <code>DynamicPageListHooks::$maxCategoryCount</code> כדי לציין עוד קטגוריות או הגדירו <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> כדי לבטל את ההגבלה. (הגידרו את המשתנה בקובץ <code>LocalSettings.php</code>, לאחר הכללת <code>DynamicPageList.php</code>.)",
     "dpl_log_4": "שגיאה: קטגוריות מעטות מדי! מינימום: $0. עזרה: הורידו את <code>DynamicPageListHooks::$minCategoryCount</code> כדי לציין פחות קטגוריות. (הגידרו את המשתנה בקובץ <code>LocalSettings.php</code>, לאחר הכללת <code>DynamicPageList.php</code>.)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "שגיאה: עליכם להכליל לפחות קטגוריה אחת אם ברצונכם להשתמש ב־'addfirstcategorydate=true' או ב־'ordermethod=categoryadd'!",
     "dpl_log_7": "שגיאה: אם אתם מכלילים יותר מקטגוריה אחת, אינכם יכולים להשתמש ב־'addfirstcategorydate=true' או ב־'ordermethod=categoryadd'!",
     "dpl_log_8": "שגיאה: אינכם יכולים להוסיף יותר מסוג אחד של תאריך בו זמנית!",

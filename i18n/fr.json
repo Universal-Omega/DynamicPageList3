@@ -15,7 +15,7 @@
     "dpl_log_2": "ERREUR : Mauvais paramètre '$0' : '$1'! Aide :  <code>$0= <i>Nom complet de la page</i></code>. (Les mots magiques sont autorisés.)",
     "dpl_log_3": "ERREUR : Trop de catégories ! Maximum : $0. Aide : accroître <code>DynamicPageListHooks::$maxCategoryCount</code> pour autoriser plus de catégories ou régler <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> pour aucune limite. (À régler dans <code>LocalSettings.php</code>, après avoir inclus <code>DynamicPageList.php</code>.)",
     "dpl_log_4": "ERREUR : Pas assez de catégories ! Minimum : $0. Aide : décroître <code>DynamicPageListHooks::$minCategoryCount</code> pour autoriser moins de catégories. (À régler dans <code>LocalSettings.php</code> de préférence, après avoir inclus <code>DynamicPageList.php</code>.)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "ERREUR : Vous devez inclure au moins une catégorie si vous voulez utiliser 'addfirstcategorydate=true' ou 'ordermethod=categoryadd' !",
     "dpl_log_7": "ERREUR : Si vous incluez plus d’une catégorie, vous ne pouvez pas utiliser 'addfirstcategorydate=true' ou 'ordermethod=categoryadd' !",
     "dpl_log_8": "ERREUR : Vous ne pouvez pas utiliser plus d’un type de date à la fois !",

@@ -14,7 +14,7 @@
     "dpl_log_2": "ERRORE nel parametro '$0': '$1'. Suggerimento:  <code>$0= <i>nome completo della pagina</i></code>.",
     "dpl_log_3": "ERRORE: Categorie sovrabbondanti (massimo $0). Suggerimento: aumentare il valore di <code>DynamicPageListHooks::$maxCategoryCount</code> per indicare un numero maggiore di categorie, oppure impostare <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> per non avere alcun limite. (Impostare le variabili nel file <code>LocalSettings.php</code>, dopo l'inclusione di <code>DynamicPageList.php</code>.)",
     "dpl_log_4": "ERRORE: Categorie insufficienti (minimo $0). Suggerimento: diminuire il valore di <code>DynamicPageListHooks::$minCategoryCount</code> per indicare un numero minore di categorie. (Impostare la variabile nel file <code>LocalSettings.php</code>, dopo l'inclusione di <code>DynamicPageList.php</code>.)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "ERRORE: L'uso dei parametri 'addfirstcategorydate=true' e 'ordermethod=categoryadd' richiede l'inserimento di una o più categorie.",
     "dpl_log_7": "ERRORE: L'inserimento di più categorie impedisce l'uso dei parametri 'addfirstcategorydate=true' e 'ordermethod=categoryadd'.",
     "dpl_log_8": "ERRORE: Non è consentito l'uso contemporaneo di più tipi di data.",

@@ -12,7 +12,7 @@
     "dpl_log_1": "ОШИБКА: неправильный «$0»-параметр: «$1»! Подсказка:  <code>$0= <i>пустая строка</i> (Основное)$3</code>.",
     "dpl_log_3": "ОШИБКА: слишком много категорий! Максимум: $0. Подсказка: увеличте <code>DynamicPageListHooks::$maxCategoryCount</code> чтобы разрешить больше категорий или установите <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> для снятия ограничения. (Устанавливайте переменные в <code>LocalSettings.php</code>, после подключения <code>DynamicPageList.php</code>.)",
     "dpl_log_4": "ОШИБКА: слишком мало категорий! Минимум: $0. Подсказка: уменьшите <code>DynamicPageListHooks::$minCategoryCount</code> чтобы разрешить меньше категорий. (Устанавливайте переменную в <code>LocalSettings.php</code>, после подключения <code>DynamicPageList.php</code>.)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "ОШИБКА: вы должны включить хотя бы одну категорию, если вы хотите использовать «addfirstcategorydate=true» или «ordermethod=categoryadd»!",
     "dpl_log_7": "ОШИБКА: если вы включаете больше одной категории, то вы не можете использовать «addfirstcategorydate=true» или «ordermethod=categoryadd»!",
     "dpl_log_8": "ОШИБКА: вы не можете добавить более одного типа данных за раз!",

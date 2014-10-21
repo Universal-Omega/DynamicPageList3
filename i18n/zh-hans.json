@@ -13,7 +13,7 @@
     "dpl_log_1": "错误: 错误的 '$0' 参数: '$1'! 帮助:  <code>$0= <i>空白字符串</i> (主)$3</code>。",
     "dpl_log_3": "错误: 过多分类! 最大值: $0。 帮助: 增加 <code>DynamicPageListHooks::$maxCategoryCount</code> 的值去指定更多的分类或设定 <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> 以解除限制。 (当加上 <code>DynamicPageList.php</code>后，在<code>LocalSettings.php</code>中设定变量。)",
     "dpl_log_4": "错误: 过少分类! 最小值: $0。 帮助: 减少 <code>DynamicPageListHooks::$minCategoryCount</code> 的值去指定更少的分类。 (当加上 <code>DynamicPageList.php</code>后，在<code>LocalSettings.php</code>中设定一个合适的变量。)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "错误: 如果您想用 'addfirstcategorydate=true' 或 'ordermethod=categoryadd' ，您需要包含最少一个分类!",
     "dpl_log_7": "错误: 如果您包含多一个分类，您不可以用 'addfirstcategorydate=true' 或 'ordermethod=categoryadd'!",
     "dpl_log_8": "错误: 您不可以在一个时间里加入多于一种的日期!",

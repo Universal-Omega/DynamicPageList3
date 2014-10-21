@@ -33,6 +33,7 @@ class Logger {
 	 * @return	void
 	 */
 	public function __construct($debugLevel) {
+		//@TODO: Fix up debug leveling and uncomment debug test in msg() below.  Leaving it broken on purpose during alpha testing.
 		$this->debugLevel = $debugLevel;
 	}
 
@@ -71,16 +72,11 @@ class Logger {
 	 * @param	integer	Message ID
 	 * @return	string
 	 */
-	public function msg($errorId) {
+	public function msg() {
 		//@TODO: Test how bad/wrong parameter/option messages are returned.
-		if ($this->iDebugLevel >= \DynamicPageListHooks::$debugMinLevels[$errorId]) {
+		//if ($this->iDebugLevel >= \DynamicPageListHooks::$debugMinLevels[$errorId]) {
 			$args = func_get_args();
-			array_shift($args);
-
-			if (array_key_exists(0, $args)) {
-				$val = $args[0];
-			}
-			array_shift($args);
+			$errorId = array_shift($args);
 
 			if (\DynamicPageListHooks::isLikeIntersection()) {
 				if ($errorId == \DynamicPageListHooks::FATAL_TOOMANYCATS)
@@ -93,11 +89,10 @@ class Logger {
 					$text = wfMessage('intersection_noincludecats', $args)->text();
 			}
 			if (empty($text)) {
-				$text = wfMessage('dpl_log_' . $errorId, $args)->text();
-				$text = str_replace('$0', $val, $text);
+				$text = wfMessage('dpl_log_'.$errorId, $args)->text();
 			}
-			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DPL_VERSION . ' : ' . $text . '</p>';
-		}
+			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version '.DPL_VERSION.' : '.$text.'</p>';
+		//}
 		return false;
 	}
 }

@@ -235,7 +235,6 @@ class Parameters extends ParametersData {
 			throw new MWException(__METHOD__.': A non-boolean was passed.');
 		}
 		$this->openReferencesConflict = $conflict;
-		$this->setParameter('openreferences', false);
 	}
 
 	/**
@@ -972,27 +971,6 @@ class Parameters extends ParametersData {
 	public function _multisecseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter('multisecseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
-		return true;
-	}
-
-	/**
-	 * Clean and test 'openreferences' parameter.
-	 * This boolean is custom handled due to the open references conflict flag.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _openreferences($option) {
-		$option = $this->filterBoolean($option);
-		if ($option === null) {
-			return false;
-		}
-		if (!$this->isOpenReferencesConflict()) {
-			$this->setParameter('openreferences', $option);
-		} else {
-			$this->setParameter('openreferences', false);
-		}
 		return true;
 	}
 

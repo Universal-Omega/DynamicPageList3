@@ -13,7 +13,7 @@
     "dpl_log_2": "ГРЕШКА: Погрешан '$0' параметар: '$1'! Помоћ:  <code>$0= <i>пуно име странице</i></code>. (Магичне речи су дозвољене.)",
     "dpl_log_3": "ГРЕШКА: Превише категорија! Максимум је: $0. Помоћ: повећајте <code>DynamicPageListHooks::$maxCategoryCount</code> како бисте поставили више категорија или промените <code>DynamicPageListHooks::$allowUnlimitedCategories=true</code> за без граница. (Подесите варијаблу у <code>LocalSettings.php</code>, након укључивања <code>DynamicPageList.php</code>.)",
     "dpl_log_4": "ГРЕШКА: Премало категорија! Минимум је: $0. Помоћ: повећајте <code>DynamicPageListHooks::$minCategoryCount</code> како бисте поставили мање категорија. (Подесите варијаблу у <code>LocalSettings.php</code>, након укључивања <code>DynamicPageList.php</code>.)",
-    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby or their 'not' variants",
+    "dpl_log_5": "ERROR: No selection criteria found! You must use at least one of the following parameters: category, namespace, titlematch, linksto, uses, createdby, modifiedby, lastmodifiedby, or their 'not' variants",
     "dpl_log_6": "ГРЕШКА: Морате укључити бар једну категорију уколико желите да користите 'addfirstcategorydate=true' или 'ordermethod=categoryadd'!",
     "dpl_log_7": "ГРЕШКА: Уколико укључујете више од једне категорије, не можете користити 'addfirstcategorydate=true' или 'ordermethod=categoryadd'!",
     "dpl_log_8": "ГРЕШКА: Не можете додати више од једног типа датума!",
