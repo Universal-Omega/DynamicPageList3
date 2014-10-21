@@ -621,14 +621,14 @@ class Parameters extends ParametersData {
 		if (in_array($option, $this->getData('mode')['values'])) {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
-				$this->setParameter('pagelistmode', 'inline');
+				$this->setParameter('mode', 'inline');
 				$this->setParameter('inltxt', '<br/>');
 			} else if ($option == 'userformat') {
 				// userformat resets inline text to empty string
 				$this->setParameter('inltxt', '');
-				$this->setParameter('pagelistmode', $option);
+				$this->setParameter('mode', $option);
 			} else {
-				$this->setParameter('pagelistmode', $option);
+				$this->setParameter('mode', $option);
 			}
 		} else {
 			return false;
@@ -692,7 +692,7 @@ class Parameters extends ParametersData {
 		$option            = str_replace(['\n', "¶"], "\n", $option);
 		$this->setParameter('listseparators', explode(',', $option, 4));
 		// mode=userformat will be automatically assumed
-		$this->setParameter('pagelistmode', 'userformat');
+		$this->setParameter('mode', 'userformat');
 		$this->setParameter('inltxt', '');
 	}
 
@@ -710,7 +710,7 @@ class Parameters extends ParametersData {
 			$data['='][] = str_replace(' ', '_', $title->getText());
 			$this->setParameter('title', $data);
 			$this->setParameter('namespaces', array_merge($this->getParameter('namespaces'), $title->getNamespace()));
-			$this->setParameter('pagelistmode', 'userformat');
+			$this->setParameter('mode', 'userformat');
 			$this->setParameter('ordermethod', []);
 			$this->setParameter('selectioncriteriafound', true);
 			$this->setParameter('allowcachedresults', true);
@@ -1006,7 +1006,7 @@ class Parameters extends ParametersData {
 	public function _table($option) {
 		//@TODO: Fix up these parameters.
 		$defaultTemplateSuffix = '';
-		$this->setParameter('pagelistmode', 'userformat');
+		$this->setParameter('mode', 'userformat');
 		$sInlTxt               = '';
 		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
 

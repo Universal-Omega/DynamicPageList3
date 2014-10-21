@@ -108,7 +108,8 @@ class Parse {
 		}
 		$input = $this->resolveUrlArguments($input, $this->urlArguments);
 
-		$offset = $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']);
+		$this->parameters->setParameter('offset', $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']));
+		$offset = $this->parameters->getParameter('offset');
 
 		$originalInput = $input;
 
@@ -285,31 +286,31 @@ class Parse {
 			$articles = self::cardSuitSort($articles);
 		}
 
-
+		var_dump($this->parameters->getParameter('mode'));
 		/*******************/
 		/* Generate Output */
 		/*******************/
 		$listMode = new ListMode(
-			$this->parameters->getParameter('pagelistmode'),
+			$this->parameters->getParameter('mode'),
 			$this->parameters->getParameter('secseparators'),
 			$this->parameters->getParameter('multisecseparators'),
 			$this->parameters->getParameter('inltxt'),
-			$this->parameters->getParameter('listhtmlattr'),
-			$this->parameters->getParameter('itemhtmlattr'),
+			$this->parameters->getParameter('listattr'),
+			$this->parameters->getParameter('itemattr'),
 			$this->parameters->getParameter('listseparators'),
-			$this->parameters->getParameter('offset'),
+			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
 
 		$hListMode = new ListMode(
-			$this->parameters->getParameter('hlistmode'),
+			$this->parameters->getParameter('headingmode'),
 			$this->parameters->getParameter('secseparators'),
 			$this->parameters->getParameter('multisecseparators'),
 			'',
-			$this->parameters->getParameter('hlisthtmlattr'),
-			$this->parameters->getParameter('hitemhtmlattr'),
+			$this->parameters->getParameter('hlistattr'),
+			$this->parameters->getParameter('hitemattr'),
 			$this->parameters->getParameter('listseparators'),
-			$this->parameters->getParameter('offset'),
+			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
 
@@ -919,7 +920,7 @@ class Parse {
 		}
 
 		// category-style output requested with not compatible order method
-		if ($this->parameters->getParameter('pagelistmode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
+		if ($this->parameters->getParameter('mode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
 			'sortkey',
 			'title',
 			'titlewithoutnamespace'
@@ -967,14 +968,14 @@ class Parse {
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ($sPageListMode == 'category' && ($this->parameters->getParameter('addcategories') || $this->parameters->getParameter('addeditdate') || $this->parameters->getParameter('addfirstcategorydate') || $this->parameters->getParameter('addpagetoucheddate') || $this->parameters->getParameter('incpage') || $this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addcontribution') || $this->parameters->getParameter('addlasteditor'))) {
+		if ($this->parameters->getParameter('mode') == 'category' && ($this->parameters->getParameter('addcategories') || $this->parameters->getParameter('addeditdate') || $this->parameters->getParameter('addfirstcategorydate') || $this->parameters->getParameter('addpagetoucheddate') || $this->parameters->getParameter('incpage') || $this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addcontribution') || $this->parameters->getParameter('addlasteditor'))) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
 		if ($this->parameters->getParameter('headingmode') != 'none' && count($this->parameters->getParameter('ordermethod')) < 2) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter('headingmode'), 'none');
-			$this->parameters->setParameter('hlistmode', 'none');
+			$this->parameters->setParameter('headingmode', 'none');
 		}
 
 		//The 'openreferences' parameter is incompatible with many other options.
