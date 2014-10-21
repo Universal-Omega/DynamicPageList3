@@ -64,21 +64,21 @@ class Article {
 		$article = new Article($title, $pageNamespace);
 
 		$titleText = $title->getText();
-		if ($parameters->getParameter('shownamespace')) {
+		if ($parameters->getParameter('shownamespace') === true) {
 			$titleText = $title->getPrefixedText();
 		}
-		if ($parameters->getParameter('replaceintitle')[0] != '') {
+		if ($parameters->getParameter('replaceintitle') !== null) {
 			$titleText = preg_replace($parameters->getParameter('replaceintitle')[0], $parameters->getParameter('replaceintitle')[1], $titleText);
 		}
 
-		//chop off title if "too long"
-		if (is_numeric($parameters->getParameter('titlemaxlen')) && strlen($titleText) > $parameters->getParameter('titlemaxlen')) {
+		//Chop off title if longer than the 'titlemaxlen' parameter.
+		if ($parameters->getParameter('titlemaxlen') !== null && strlen($titleText) > $parameters->getParameter('titlemaxlen')) {
 			$titleText = substr($titleText, 0, $parameters->getParameter('titlemaxlen')).'...';
 		}
-		if ($parameters->getParameter('showcurid') && isset($row['page_id'])) {
+		if ($parameters->getParameter('showcurid') === true && isset($row['page_id'])) {
 			$articleLink = '[{{fullurl:'.$title->getText().'|curid='.$row['page_id'].'}} '.htmlspecialchars($titleText).']';
-		} else if (!$parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
-			// links to categories or images need an additional ":"
+		} elseif (!$parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
+			//Links to categories or images need an additional ":"
 			$articleLink = '[['.$title->getPrefixedText().'|'.$wgContLang->convert($titleText).']]';
 		} else {
 			$articleLink = '[{{fullurl:'.$title->getText().'}} '.htmlspecialchars($titleText).']';
@@ -96,14 +96,9 @@ class Article {
 			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($pageTitle));
 		}
 
-		// page_id
-		if (isset($row['page_id'])) {
-			$article->mID = $row['page_id'];
-		} else {
-			$article->mID = 0;
-		}
+		$article->mID = intval($row['page_id']);
 
-		// external link
+		//External link
 		if (isset($row['el_to'])) {
 			$article->mExternalLink = $row['el_to'];
 		}
@@ -156,13 +151,13 @@ class Article {
 				$article->mDate = $row['page_touched'];
 			}
 
-			// time zone adjustment
-			if ($article->mDate != '') {
+			//Time zone adjustment
+			if ($article->mDate) {
 				$article->mDate = $wgLang->userAdjust($article->mDate);
 			}
 
-			if ($article->mDate != '' && $parameters->getParameter('userdateformat') != '') {
-				// we apply the userdateformat
+			if ($article->mDate && $parameters->getParameter('userdateformat')) {
+				//Apply the userdateformat
 				$article->myDate = gmdate($parameters->getParameter('userdateformat'), wfTimeStamp(TS_UNIX, $article->mDate));
 			}
 			// CONTRIBUTION, CONTRIBUTOR
@@ -183,7 +178,7 @@ class Article {
 			}
 
 			//CATEGORY LINKS FROM CURRENT PAGE
-			if ($parameters->getParameter('addcategories') && ($row['cats'] != '')) {
+			if ($parameters->getParameter('addcategories') && ($row['cats'])) {
 				$artCatNames = explode(' | ', $row['cats']);
 				foreach ($artCatNames as $artCatName) {
 					$article->mCategoryLinks[] = '[[:Category:'.$artCatName.'|'.str_replace('_', ' ', $artCatName).']]';
@@ -194,7 +189,7 @@ class Article {
 			if ($parameters->getParameter('headingmode') != 'none') {
 				switch ($parameters->getParameter('ordermethod')[0]) {
 					case 'category':
-						//count one more page in this heading
+						//Count one more page in this heading
 						$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
 						if ($row['cl_to'] == '') {
 							//uncategorized page (used if ordermethod=category,...)
@@ -215,5 +210,7 @@ class Article {
 				}
 			}
 		}
+
+		return $article;
 	}
 }
