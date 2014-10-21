@@ -40,6 +40,19 @@ class Parse {
 	private $tableNames = null;
 
 	/**
+	 * Array of possible URL arguments.
+	 *
+	 * @var		array
+	 */
+	private $urlArguments = [
+		'DPL_offset',
+		'DPL_count',
+		'DPL_fromTitle',
+		'DPL_findTitle',
+		'DPL_toTitle'
+	];
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -85,20 +98,17 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
+		/************************************/
+		/* Check for URL Arguments in Input */
+		/************************************/
 		if (strpos($input, '{%DPL_') >= 0) {
 			for ($i = 1; $i <= 5; $i++) {
-				$input = $this->resolveUrlArg($input, 'DPL_arg' . $i);
+				$this->urlArguments[] = 'DPL_arg'.$i;
 			}
 		}
+		$input = $this->resolveUrlArguments($input, $this->urlArguments);
 
 		$offset = $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']);
-
-		// commandline parameters like %DPL_offset% are replaced
-		$input = $this->resolveUrlArg($input, 'DPL_offset');
-		$input = $this->resolveUrlArg($input, 'DPL_count');
-		$input = $this->resolveUrlArg($input, 'DPL_fromTitle');
-		$input = $this->resolveUrlArg($input, 'DPL_findTitle');
-		$input = $this->resolveUrlArg($input, 'DPL_toTitle');
 
 		$originalInput = $input;
 
@@ -127,7 +137,7 @@ class Parse {
 		/* Execute and Exit Only */
 		/*************************/
 		if ($this->parameters->getParameter('execandexit')) {
-			//@TODO: Fix up this parameter's arguments in ParameterData and handle it handles the response.
+			//@TODO: Fix up this parameter's arguments in ParameterData and how it handles the response.
 			//The keyword "geturlargs" is used to return the Url arguments and do nothing else.
 			if ($sExecAndExit == 'geturlargs') {
 				return '';
@@ -1012,16 +1022,27 @@ class Parse {
 		return $tableRow;
 	}
 
-	private function resolveUrlArg($input, $arg) {
-		//@TODO: Also figure out what this function does.
-		$dplArg = $this->wgRequest->getVal($arg, '');
-		if ($dplArg == '') {
-			$input = preg_replace('/\{%' . $arg . ':(.*)%\}/U', '\1', $input);
-			return str_replace('{%' . $arg . '%}', '', $input);
-		} else {
-			$input = preg_replace('/\{%' . $arg . ':.*%\}/U  ', $dplArg, $input);
-			return str_replace('{%' . $arg . '%}', $dplArg, $input);
+	/**
+	 * Resolve arguments in the input that would normally be in the URL.
+	 *
+	 * @access	public
+	 * @param	string	Raw Uncleaned User Input
+	 * @param	array	Array of URL arguments to resolve.  Non-arrays will be casted to an array.
+	 * @return	string	Raw input with variables replaced
+	 */
+	private function resolveUrlArguments($input, $arguments) {
+		$arguments = (array) $arguments;
+		foreach ($arguments as $arg) {
+			$dplArg = $this->wgRequest->getVal($arg, '');
+			if ($dplArg == '') {
+				$input = preg_replace('/\{%' . $arg . ':(.*)%\}/U', '\1', $input);
+				$input = str_replace('{%' . $arg . '%}', '', $input);
+			} else {
+				$input = preg_replace('/\{%' . $arg . ':.*%\}/U  ', $dplArg, $input);
+				$input = str_replace('{%' . $arg . '%}', $dplArg, $input);
+			}
 		}
+		return $input;
 	}
 
 	/**
@@ -1059,6 +1080,7 @@ class Parse {
 	 * @return	void
 	 */
 	private static function defineScrollVariables($firstNamespace, $firstTitle, $lastNamespace, $lastTitle, $scrollDir, $dplCount, $dplElapsedTime, $totalPages, $pages) {
+		//@TODO: $wgExtVariables is deprecated and removed.  Fix this function to use the static public functions off class ExtVariables.
 		global $wgExtVariables;
 		Variables::setVar(array(
 			'',
