@@ -180,12 +180,14 @@ class Parameters extends ParametersData {
 		//'category' to get category headings first for ordermethod.
 		//'include'/'includepage' to make sure section labels are ready for 'table'.
 		$priority = [
-			'openreferences' => 1,
-			'category' => 2,
-			'ordercollation' => 3,
-			'ordermethod' => 4,
-			'includepage' => 5,
-			'include' => 6
+			'distinct'			=> 1,
+			'openreferences'	=> 2,
+			'category'			=> 3,
+			'goal'				=> 4,
+			'ordercollation'	=> 5,
+			'ordermethod'		=> 6,
+			'includepage'		=> 7,
+			'include'			=> 8
 		];
 		$_first = array_intersect_key($parameters, $priority);
 		if (count($_first)) {
@@ -387,7 +389,7 @@ class Parameters extends ParametersData {
 			$parameter = trim($parameter);
 			if ($parameter == '_none_' || $parameter === '') {
 				$parameters[$parameter] = '';
-				$bIncludeUncat    = true;
+				$this->getParameter('includeuncat', true);
 				$categories[]    = '';
 			} elseif (!empty($parameter)) {
 				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
@@ -418,10 +420,10 @@ class Parameters extends ParametersData {
 			$data[$operator] = array_merge($data[$operator], $categories);
 			$this->setParameter('category', $data);
 			if ($heading) {
-				$this->setParameter('catheadings', array_unique($this->getParameter('catheadings') + $categories));
+				$this->setParameter('catheadings', array_unique(array_merge($this->getParameter('catheadings'), $categories)));
 			}
 			if ($notHeading) {
-				$this->setParameter('catnotheadings', array_unique($this->getParameter('catnotheadings') + $categories));
+				$this->setParameter('catnotheadings', array_unique(array_merge($this->getParameter('catnotheadings'), $categories)));
 			}
 			$this->setOpenReferencesConflict(true);
 			return true;
@@ -1002,8 +1004,9 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _table($option) {
+		//@TODO: Fix up these parameters.
 		$defaultTemplateSuffix = '';
-		$sPageListMode         = 'userformat';
+		$this->setParameter('pagelistmode', 'userformat');
 		$sInlTxt               = '';
 		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
 

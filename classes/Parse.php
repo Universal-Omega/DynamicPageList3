@@ -71,14 +71,14 @@ class Parse {
 		//Check that we are not in an infinite transclusion loop
 		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
-			return $this->logger->getMessages();
+			return $this->getFullOutput();
 		}
 
 		//Check if DPL shall only be executed from protected pages.
 		if (Config::getSetting('runFromProtectedPagesOnly') === true && !$parser->mTitle->isProtected('edit')) {
 			//Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected.  However, how can one find out from which wiki source an extension has been invoked???
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
-			return $this->logger->getMessages();
+			return $this->getFullOutput();
 		}
 
 		if (strpos($input, '{%DPL_') >= 0) {
@@ -109,11 +109,10 @@ class Parse {
 		/***************************************/
 		$cleanParameters = $this->prepareUserInput($input);
 		$cleanParameters = $this->parameters->sortByPriority($cleanParameters);
-		$bIncludeUncat = false; // to check if pseudo-category of Uncategorized pages is included
+		$this->parameters->setParameter('includeuncat', false); // to check if pseudo-category of Uncategorized pages is included
 
 		foreach ($cleanParameters as $parameter => $option) {
 			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
-			var_dump($parameter." => ".$option);
 			if ($this->parameters->$parameter($option) === false) {
 				//Do not build this into the output just yet.  It will be collected at the end.
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
@@ -138,10 +137,6 @@ class Parse {
 		/*******************/
 		if (!$this->parameters->getParameter('allowcachedresults')) {
 			$parser->disableCache();
-		}
-		if ($this->parameters->getParameter('warncachedresults')) {
-			//@TODO: Better way to add the cache warning?
-			$resultsHeader = '{{DPL Cache Warning}}'.$resultsHeader;
 		}
 		if ($DPLCache != '') {
 			$cache = wfGetCache(Config::getSetting('cacheType'));
@@ -168,15 +163,6 @@ class Parse {
 					}
 				}
 			}
-		}
-
-		/*******************************/
-		/* Add Debug Helpers If Needed */
-		/*******************************/
-		if ($this->logger->iDebugLevel == 5) {
-			$this->logger->iDebugLevel = 2;
-			$resultsHeader      = '<pre><nowiki>' . $resultsHeader;
-			$sResultsFooter .= '</nowiki></pre>';
 		}
 
 		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
@@ -220,196 +206,110 @@ class Parse {
 			}
 		}
 
+		/**************************/
+		/* Check Errors and Query */
+		/**************************/
 		$errors = $this->doQueryErrorChecks();
 		if ($errors === false) {
 			//WHAT HAS HAPPENED OH NOOOOOOOOOOOOO.
-			return;
+			return $this->getFullOutput();
 		}
 
-		$this->query = new Query($this->parameters);
-		$sql = $this->query->build();
-		var_dump($sql);
-		exit;
-
-		// backward scrolling: if the user specified titleLE and wants ascending order we reverse the SQL sort order
-		if ($sTitleLE != '' && $sTitleGE == '') {
-			if ($sOrder == 'ascending') {
-				$sOrder = 'descending';
-			}
-		}
-
-		$output .= '{{Extension DPL}}';
-
-		// ###### BUILD SQL QUERY ######
-		$sSqlPage_counter  = '';
-		$sSqlPage_size     = '';
-		$sSqlPage_touched  = '';
-		$sSqlCalcFoundRows = '';
-		if (!\DynamicPageListHooks::$allowUnlimitedResults && $sGoal != 'categories' && strpos($resultsHeader . $sResultsFooter . $sNoResultsHeader, '%TOTALPAGES%') !== false) {
-			$sSqlCalcFoundRows = 'SQL_CALC_FOUND_ROWS';
-		}
-		$sSqlGroupBy = '';
-		if ($sDistinctResultSet == 'strict' && (count($aLinksTo) + count($aNotLinksTo) + count($aLinksFrom) + count($aNotLinksFrom) + count($aLinksToExternal) + count($aImageUsed)) > 0) {
-			$sSqlGroupBy = 'page_title';
-		}
-
-		$sSqlWhere              = ' WHERE 1=1 ';
-		$sSqlSelPage            = ''; // initial page for selection
-
-		// normally we create a result of normal pages, but when goal=categories is set, we create a list of categories
-		// as this conflicts with some options we need to avoid producing incoorect SQl code
-		$bGoalIsPages = true;
-		if ($sGoal == 'categories') {
-			$aOrderMethods = [];
-			$bGoalIsPages  = false;
-		}
-
-		// SELECT ... FROM
-		if ($acceptOpenReferences) {
-			// SELECT ... FROM
-			if (count($aImageContainer) > 0) {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'ic.il_to, ' . $sSqlSelPage . "ic.il_to AS sortkey" . ' FROM ' . $this->tableNames['imagelinks'] . ' AS ic';
-			} else {
-				$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . 'pl_namespace, pl_title' . $sSqlSelPage . $sSqlSortkey . ' FROM ' . $this->tableNames['pagelinks'];
-			}
-		} else {
-			$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct " . $sSqlCl_to . $this->tableNames['page'] . '.page_namespace AS page_namespace,' . $this->tableNames['page'] . '.page_title AS page_title,' . $this->tableNames['page'] . '.page_id AS page_id' . $sSqlSelPage . $sSqlSortkey . $sSqlPage_counter . $sSqlPage_size . $sSqlPage_touched . $sSqlRev_user . $sSqlRev_timestamp . $sSqlRev_id . $sSqlCats . $sSqlCl_timestamp . ' FROM ' . $sSqlRevisionTable . $sSqlCreationRevisionTable . $sSqlNoCreationRevisionTable . $sSqlChangeRevisionTable . $sSqlRCTable . $sSqlPageLinksTable . $sSqlExternalLinksTable . $this->tableNames['page'];
+		$calcRows = false;
+		if (!Config::getSetting('allowUnlimitedResults') && $this->parameters->getParameter('goal') != 'categories' && strpos($this->parameters->getParameter('resultsheader').$this->parameters->getParameter('noresultsheader').$this->parameters->getParameter('resultsfooter'), '%TOTALPAGES%') !== false) {
+			$calcRows = true;
 		}
 
 		// JOIN ...
 		if ($sSqlClHeadTable != '' || $sSqlClTableForGC != '') {
 			$b2tables = ($sSqlClHeadTable != '') && ($sSqlClTableForGC != '');
-			$sSqlSelectFrom .= ' LEFT OUTER JOIN ' . $sSqlClHeadTable . ($b2tables ? ', ' : '') . $sSqlClTableForGC . ' ON (' . $sSqlCond_page_cl_head . ($b2tables ? ' AND ' : '') . $sSqlCond_page_cl_gc . ')';
+			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$sSqlClHeadTable.($b2tables ? ', ' : '').$sSqlClTableForGC.' ON ('.$sSqlCond_page_cl_head.($b2tables ? ' AND ' : '').$sSqlCond_page_cl_gc.')';
 		}
 
-		// count(all categories) <= max no of categories
-		$sSqlWhere .= $sSqlCond_MaxCat;
-
-		// check against forbidden namespaces
-		if (is_array($wgNonincludableNamespaces) && array_count_values($wgNonincludableNamespaces) > 0 && implode(',', $wgNonincludableNamespaces) != '') {
-			$sSqlWhere .= ' AND ' . $this->tableNames['page'] . '.page_namespace NOT IN (' . implode(',', $wgNonincludableNamespaces) . ')';
-		}
-
-		// GROUP BY ...
-		if ($sSqlGroupBy != '') {
-			$sSqlWhere .= ' GROUP BY ' . $sSqlGroupBy . ' ';
-		}
-
-
-		if ($sAllRevisionsSince != '' || $sAllRevisionsBefore != '') {
-			if ($aOrderMethods[0] == '' || $aOrderMethods[0] == 'none') {
-				$sSqlWhere .= ' ORDER BY ';
-			} else {
-				$sSqlWhere .= ', ';
-			}
-			$sSqlWhere .= 'rev_id DESC';
-		}
-
-		// when we go for a list of categories as result we transform the output of the normal query into a subquery
-		// of a selection on the categorylinks
-
-		if ($sGoal == 'categories') {
-			$sSqlSelectFrom = 'SELECT DISTINCT cl3.cl_to FROM ' . $this->tableNames['categorylinks'] . ' AS cl3 WHERE cl3.cl_from IN ( ' . preg_replace('/SELECT +DISTINCT +.* FROM /', 'SELECT DISTINCT ' . $this->tableNames['page'] . '.page_id FROM ', $sSqlSelectFrom);
-			if ($sOrder == 'descending') {
-				$sSqlWhere .= ' ) ORDER BY cl3.cl_to DESC';
-			} else {
-				$sSqlWhere .= ' ) ORDER BY cl3.cl_to ASC';
-			}
-		}
-
-
-		// ###### DUMP SQL QUERY ######
-		if ($this->logger->iDebugLevel >= 3) {
-			//DEBUG: output SQL query
-			$output .= "DPL debug -- Query=<br />\n<tt>" . $sSqlSelectFrom . $sSqlWhere . "</tt>\n\n";
-		}
-
-		// Do NOT proces the SQL command if debug==6; this is useful if the SQL statement contains bad code
-		if ($this->logger->iDebugLevel == 6) {
-			return $output;
-		}
-
-
-		// ###### PROCESS SQL QUERY ######
-		$queryError = false;
 		try {
-			$res = $this->DB->query($sSqlSelectFrom . $sSqlWhere);
-		} catch (Exception $e) {
-			$queryError = true;
-		}
-		if ($queryError == true || $res === false) {
-			return wfMessage('dpl_query_error', DPL_VERSION, $this->DB->lastError());
-		}
-
-		if ($this->DB->numRows($res) <= 0) {
-			$header = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsHeader));
-			if ($sNoResultsHeader != '') {
-				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
-			}
-			$footer = str_replace('%TOTALPAGES%', '0', str_replace('%PAGES%', '0', $sNoResultsFooter));
-			if ($sNoResultsFooter != '') {
-				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
-			}
-			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
-			}
-			$this->DB->freeResult($res);
-			return $output;
+			$this->query = new Query($this->parameters);
+			$result = $this->query->buildAndSelect($calcRows);
+		} catch (MWException $e) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage());
+			return $this->getFullOutput();
 		}
 
-		// generate title for Special:Contributions (used if adduser=true)
-		$sSpecContribs = '[[:Special:Contributions|Contributions]]';
+		/*********************/
+		/* Handle No Results */
+		/*********************/
+		$this->addOutput('{{Extension DPL}}');
 
-		$aHeadings = array(); // maps heading to count (# of pages under each heading)
-		$aArticles = array();
+		if ($this->DB->numRows($result) <= 0) {
+			$replacementVariables = [];
+			$replacementVariables['%TOTALPAGES%'] = 0;
+			$replacementVariables['%PAGES%'] = 0;
+			if ($this->parameters->getParameter('noresultsheader') !== null) {
+				$noResultsHeader = $this->parameters->getParameter('noresultsheader');
+				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsheader'), $replacementVariables));
+			}
+			if ($this->parameters->getParameter('noresultsfooter') !== null) {
+				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsfooter'), $replacementVariables));
+			}
+			$this->DB->freeResult($result);
+			return $this->getFullOutput();
+		}
 
-		if (isset($iRandomCount) && $iRandomCount > 0) {
-			$nResults = $this->DB->numRows($res);
+		/*******************************/
+		/* Random Count Pick Generator */
+		/*******************************/
+		$randomCount = $this->parameters->getParameter('randomcount');
+		if ($randomCount > 0) {
+			$nResults = $this->DB->numRows($result);
 			//mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
-			if ($iRandomCount > $nResults) {
-				$iRandomCount = $nResults;
+			//Constrain the total amount of random results to not be greater than the total results.
+			if ($randomCount > $nResults) {
+				$randomCount = $nResults;
 			}
 
 			//This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
+			//Generate pick numbers for results.
 			$pick = range(1, $nResults);
+			//Shuffle the pick numbers.
 			shuffle($pick);
-			$pick = array_slice($pick, 0, $iRandomCount);
+			//Select pick numbers from the beginning to the maximum of $randomCount.
+			$pick = array_slice($pick, 0, $randomCount);
 		}
 
-		$iArticle            = 0;
+		$headings = []; // maps heading to count (# of pages under each heading)
+		$aArticles = array();
 		$firstNamespaceFound = '';
 		$firstTitleFound     = '';
 		$lastNamespaceFound  = '';
 		$lastTitleFound      = '';
 
-		foreach ($res as $row) {
-			$iArticle++;
+		while ($row = $result->fetchRow()) {
+			$i++;
 
-			// in random mode skip articles which were not chosen
-			if (isset($iRandomCount) && $iRandomCount > 0 && !in_array($iArticle, $pick)) {
+			//In random mode skip articles which were not chosen.
+			if ($randomCount > 0 && !in_array($i, $pick)) {
 				continue;
 			}
 
-			if ($sGoal == 'categories') {
+			if ($this->parameters->getParameter('goal') == 'categories') {
 				$pageNamespace = 14; // CATEGORY
-				$pageTitle     = $row->cl_to;
-			} else if ($acceptOpenReferences) {
-				if (count($aImageContainer) > 0) {
+				$pageTitle     = $row['cl_to'];
+			} else if ($this->parameters->getParameter('openreferences')) {
+				if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 					$pageNamespace = NS_FILE;
-					$pageTitle     = $row->il_to;
+					$pageTitle     = $row['il_to'];
 				} else {
 					// maybe non-existing title
-					$pageNamespace = $row->pl_namespace;
-					$pageTitle     = $row->pl_title;
+					$pageNamespace = $row['pl_namespace'];
+					$pageTitle     = $row['pl_title'];
 				}
 			} else {
 				// existing PAGE TITLE
-				$pageNamespace = $row->page_namespace;
-				$pageTitle     = $row->page_title;
+				$pageNamespace = $row['page_namespace'];
+				$pageTitle     = $row['page_title'];
 			}
 
 			// if subpages are to be excluded: skip them
-			if (!$bIncludeSubpages && (!(strpos($pageTitle, '/') === false))) {
+			if (!$this->parameters->getParameter('includesubpages') && (!(strpos($pageTitle, '/') === false))) {
 				continue;
 			}
 
@@ -417,28 +317,27 @@ class Parse {
 			$thisTitle = $parser->getTitle();
 
 			// block recursion: avoid to show the page which contains the DPL statement as part of the result
-			if ($bSkipThisPage && $thisTitle->equals($title)) {
-				// $output.= 'BLOCKED '.$thisTitle->getText().' DUE TO RECURSION'."\n";
+			if ($this->parameters->getParameter('skipthispage') && $thisTitle->equals($title)) {
 				continue;
 			}
 
 			$dplArticle = new Article($title, $pageNamespace);
 			//PAGE LINK
 			$sTitleText = $title->getText();
-			if ($bShowNamespace) {
+			if ($this->parameters->getParameter('shownamespace')) {
 				$sTitleText = $title->getPrefixedText();
 			}
-			if ($aReplaceInTitle[0] != '') {
-				$sTitleText = preg_replace($aReplaceInTitle[0], $aReplaceInTitle[1], $sTitleText);
+			if ($this->parameters->getParameter('replaceintitle')[0] != '') {
+				$sTitleText = preg_replace($this->parameters->getParameter('replaceintitle')[0], $this->parameters->getParameter('replaceintitle')[1], $sTitleText);
 			}
 
 			//chop off title if "too long"
-			if (isset($iTitleMaxLen) && (strlen($sTitleText) > $iTitleMaxLen)) {
-				$sTitleText = substr($sTitleText, 0, $iTitleMaxLen) . '...';
+			if (is_numeric($this->parameters->getParameter('titlemaxlen')) && strlen($sTitleText) > $this->parameters->getParameter('titlemaxlen')) {
+				$sTitleText = substr($sTitleText, 0, $this->parameters->getParameter('titlemaxlen')) . '...';
 			}
-			if ($bShowCurID && isset($row->page_id)) {
-				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row->page_id . '}} ' . htmlspecialchars($sTitleText) . ']';
-			} else if (!$bEscapeLinks || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
+			if ($this->parameters->getParameter('showcurid') && isset($row['page_id'])) {
+				$articleLink = '[{{fullurl:' . $title->getText() . '|curid=' . $row['page_id'] . '}} ' . htmlspecialchars($sTitleText) . ']';
+			} else if (!$this->parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
 				// links to categories or images need an additional ":"
 				$articleLink = '[[' . $title->getPrefixedText() . '|' . $wgContLang->convert($sTitleText) . ']]';
 			} else {
@@ -448,73 +347,73 @@ class Parse {
 			$dplArticle->mLink = $articleLink;
 
 			//get first char used for category-style output
-			if (isset($row->sortkey)) {
-				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row->sortkey));
+			if (isset($row['sortkey'])) {
+				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
 			}
-			if (isset($row->sortkey)) {
-				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row->sortkey));
+			if (isset($row['sortkey'])) {
+				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
 			} else {
 				$dplArticle->mStartChar = $wgContLang->convert($wgContLang->firstChar($pageTitle));
 			}
 
 			// page_id
-			if (isset($row->page_id)) {
-				$dplArticle->mID = $row->page_id;
+			if (isset($row['page_id'])) {
+				$dplArticle->mID = $row['page_id'];
 			} else {
 				$dplArticle->mID = 0;
 			}
 
 			// external link
-			if (isset($row->el_to)) {
-				$dplArticle->mExternalLink = $row->el_to;
+			if (isset($row['el_to'])) {
+				$dplArticle->mExternalLink = $row['el_to'];
 			}
 
 			//SHOW PAGE_COUNTER
-			if (isset($row->page_counter)) {
-				$dplArticle->mCounter = $row->page_counter;
+			if (isset($row['page_counter'])) {
+				$dplArticle->mCounter = $row['page_counter'];
 			}
 
 			//SHOW PAGE_SIZE
-			if (isset($row->page_len)) {
-				$dplArticle->mSize = $row->page_len;
+			if (isset($row['page_len'])) {
+				$dplArticle->mSize = $row['page_len'];
 			}
 			//STORE initially selected PAGE
 			if (count($aLinksTo) > 0 || count($aLinksFrom) > 0) {
-				if (!isset($row->sel_title)) {
+				if (!isset($row['sel_title'])) {
 					$dplArticle->mSelTitle     = 'unknown page';
 					$dplArticle->mSelNamespace = 0;
 				} else {
-					$dplArticle->mSelTitle     = $row->sel_title;
-					$dplArticle->mSelNamespace = $row->sel_ns;
+					$dplArticle->mSelTitle     = $row['sel_title'];
+					$dplArticle->mSelNamespace = $row['sel_ns'];
 				}
 			}
 
 			//STORE selected image
 			if (count($aImageUsed) > 0) {
-				if (!isset($row->image_sel_title)) {
+				if (!isset($row['image_sel_title'])) {
 					$dplArticle->mImageSelTitle = 'unknown image';
 				} else {
-					$dplArticle->mImageSelTitle = $row->image_sel_title;
+					$dplArticle->mImageSelTitle = $row['image_sel_title'];
 				}
 			}
 
-			if ($bGoalIsPages) {
+			if ($this->parameters->getParameter('goal') != 'categories') {
 				//REVISION SPECIFIED
-				if ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
-					$dplArticle->mRevision = $row->rev_id;
-					$dplArticle->mUser     = $row->rev_user_text;
-					$dplArticle->mDate     = $row->rev_timestamp;
+				if ($this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
+					$dplArticle->mRevision = $row['rev_id'];
+					$dplArticle->mUser     = $row['rev_user_text'];
+					$dplArticle->mDate     = $row['rev_timestamp'];
 				}
 
 				//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
-				if ($bAddPageTouchedDate) {
-					$dplArticle->mDate = $row->page_touched;
-				} elseif ($bAddFirstCategoryDate) {
-					$dplArticle->mDate = $row->cl_timestamp;
-				} elseif ($bAddEditDate && isset($row->rev_timestamp)) {
-					$dplArticle->mDate = $row->rev_timestamp;
-				} elseif ($bAddEditDate && isset($row->page_touched)) {
-					$dplArticle->mDate = $row->page_touched;
+				if ($this->parameters->getParameter('addpagetoucheddate')) {
+					$dplArticle->mDate = $row['page_touched'];
+				} elseif ($this->parameters->getParameter('addfirstcategorydate')) {
+					$dplArticle->mDate = $row['cl_timestamp'];
+				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['rev_timestamp'])) {
+					$dplArticle->mDate = $row['rev_timestamp'];
+				} elseif ($this->parameters->getParameter('addeditdate') && isset($row['page_touched'])) {
+					$dplArticle->mDate = $row['page_touched'];
 				}
 
 				// time zone adjustment
@@ -522,55 +421,55 @@ class Parse {
 					$dplArticle->mDate = $wgLang->userAdjust($dplArticle->mDate);
 				}
 
-				if ($dplArticle->mDate != '' && $sUserDateFormat != '') {
+				if ($dplArticle->mDate != '' && $this->parameters->getParameter('userdateformat') != '') {
 					// we apply the userdateformat
-					$dplArticle->myDate = gmdate($sUserDateFormat, wfTimeStamp(TS_UNIX, $dplArticle->mDate));
+					$dplArticle->myDate = gmdate($this->parameters->getParameter('userdateformat'), wfTimeStamp(TS_UNIX, $dplArticle->mDate));
 				}
 				// CONTRIBUTION, CONTRIBUTOR
-				if ($bAddContribution) {
-					$dplArticle->mContribution = $row->contribution;
-					$dplArticle->mContributor  = $row->contributor;
-					$dplArticle->mContrib      = substr('*****************', 0, round(log($row->contribution)));
+				if ($this->parameters->getParameter('addcontribution')) {
+					$dplArticle->mContribution = $row['contribution'];
+					$dplArticle->mContributor  = $row['contributor'];
+					$dplArticle->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
 				}
 
 
 				//USER/AUTHOR(S)
 				// because we are going to do a recursive parse at the end of the output phase
 				// we have to generate wiki syntax for linking to a user´s homepage
-				if ($bAddUser || $bAddAuthor || $bAddLastEditor || $sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince != '') {
-					$dplArticle->mUserLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
-					$dplArticle->mUser     = $row->rev_user_text;
-					$dplArticle->mComment  = $row->rev_comment;
+				if ($this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addlasteditor') || $this->parameters->getParameter('lastrevisionbefore') || $this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('allrevisionssince')) {
+					$dplArticle->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+					$dplArticle->mUser     = $row['rev_user_text'];
+					$dplArticle->mComment  = $row['rev_comment'];
 				}
 
 				//CATEGORY LINKS FROM CURRENT PAGE
-				if ($bAddCategories && $bGoalIsPages && ($row->cats != '')) {
-					$artCatNames = explode(' | ', $row->cats);
+				if ($this->parameters->getParameter('addcategories') && ($row['cats'] != '')) {
+					$artCatNames = explode(' | ', $row['cats']);
 					foreach ($artCatNames as $artCatName) {
 						$dplArticle->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace('_', ' ', $artCatName) . ']]';
 						$dplArticle->mCategoryTexts[] = str_replace('_', ' ', $artCatName);
 					}
 				}
 				// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
-				if ($sHListMode != 'none') {
-					switch ($aOrderMethods[0]) {
+				if ($this->parameters->getParameter('headingmode') != 'none') {
+					switch ($this->parameters->getParameter('ordermethod')[0]) {
 						case 'category':
 							//count one more page in this heading
-							$aHeadings[$row->cl_to] = isset($aHeadings[$row->cl_to]) ? $aHeadings[$row->cl_to] + 1 : 1;
-							if ($row->cl_to == '') {
+							$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
+							if ($row['cl_to'] == '') {
 								//uncategorized page (used if ordermethod=category,...)
 								$dplArticle->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMsg('uncategorizedpages') . ']]';
 							} else {
-								$dplArticle->mParentHLink = '[[:Category:' . $row->cl_to . '|' . str_replace('_', ' ', $row->cl_to) . ']]';
+								$dplArticle->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace('_', ' ', $row['cl_to']) . ']]';
 							}
 							break;
 						case 'user':
-							$aHeadings[$row->rev_user_text] = isset($aHeadings[$row->rev_user_text]) ? $aHeadings[$row->rev_user_text] + 1 : 1;
-							if ($row->rev_user == 0) { //anonymous user
-								$dplArticle->mParentHLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
+							$headings[$row['rev_user_text']] = isset($headings[$row['rev_user_text']]) ? $headings[$row['rev_user_text']] + 1 : 1;
+							if ($row['rev_user'] == 0) { //anonymous user
+								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
 
 							} else {
-								$dplArticle->mParentHLink = '[[User:' . $row->rev_user_text . '|' . $row->rev_user_text . ']]';
+								$dplArticle->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
 							}
 							break;
 					}
@@ -579,105 +478,129 @@ class Parse {
 
 			$aArticles[] = $dplArticle;
 		}
-		$this->DB->freeResult($res);
-		$rowcount = -1;
-		if ($sSqlCalcFoundRows != '') {
-			$res      = $this->DB->query('SELECT FOUND_ROWS() AS rowcount');
-			$row      = $this->DB->fetchObject($res);
-			$rowcount = $row->rowcount;
-			$this->DB->freeResult($res);
+		$this->DB->freeResult($result);
+		$foundRows = null;
+		if ($calcRows) {
+			$foundRows = $this->query->getFoundRows();
 		}
 
 		// backward scrolling: if the user specified titleLE we reverse the output order
-		if ($sTitleLE != '' && $sTitleGE == '' && $sOrder == 'descending') {
+		if ($this->parameters->getParameter('titlelt') && !$this->parameters->getParameter('titlegt') && $this->parameters->getParameter('order') == 'descending') {
 			$aArticles = array_reverse($aArticles);
 		}
 
 		// special sort for card suits (Bridge)
-		if ($bOrderSuitSymbols) {
+		if ($this->parameters->getParameter('ordersuitsymbols')) {
 			$aArticles = self::cardSuitSort($aArticles);
 		}
 
 
 		// ###### SHOW OUTPUT ######
 
-		$listMode = new ListMode($sPageListMode, $aSecSeparators, $aMultiSecSeparators, $sInlTxt, $sListHtmlAttr, $sItemHtmlAttr, $aListSeparators, $offset, $iDominantSection);
-
-		$hListMode = new ListMode($sHListMode, $aSecSeparators, $aMultiSecSeparators, '', $sHListHtmlAttr, $sHItemHtmlAttr, $aListSeparators, $offset, $iDominantSection);
-
-		$dpl = new DynamicPageList(
-			$aHeadings,
-			$bHeadingCount,
-			$iColumns,
-			$iRows,
-			$iRowSize,
-			$sRowColFormat,
-			$aArticles,
-			$aOrderMethods[0],
-			$hListMode,
-			$listMode,
-			$bEscapeLinks,
-			$bAddExternalLink,
-			$bIncPage,
-			$iIncludeMaxLen,
-			$aSecLabels,
-			$aSecLabelsMatch,
-			$aSecLabelsNotMatch,
-			$bIncParsed,
-			$parser,
-			$logger,
-			$aReplaceInTitle,
-			$iTitleMaxLen,
-			$defaultTemplateSuffix,
-			$aTableRow,
-			$bIncludeTrim,
-			$iTableSortCol,
-			$sUpdateRules,
-			$sDeleteRules
+		$listMode = new ListMode(
+			$this->parameters->getParameter('pagelistmode'),
+			$this->parameters->getParameter('secseparators'),
+			$this->parameters->getParameter('multisecseparators'),
+			$this->parameters->getParameter('inltxt'),
+			$this->parameters->getParameter('listhtmlattr'),
+			$this->parameters->getParameter('itemhtmlattr'),
+			$this->parameters->getParameter('listseparators'),
+			$this->parameters->getParameter('offset'),
+			$this->parameters->getParameter('dominantsection')
 		);
 
-		if ($rowcount == -1) {
-			$rowcount = $dpl->getRowCount();
+		$hListMode = new ListMode(
+			$this->parameters->getParameter('hlistmode'),
+			$this->parameters->getParameter('secseparators'),
+			$this->parameters->getParameter('multisecseparators'),
+			'',
+			$this->parameters->getParameter('hlisthtmlattr'),
+			$this->parameters->getParameter('hitemhtmlattr'),
+			$this->parameters->getParameter('listseparators'),
+			$this->parameters->getParameter('offset'),
+			$this->parameters->getParameter('dominantsection')
+		);
+
+		$dpl = new DynamicPageList(
+			$headings,
+			$this->parameters->getParameter('headingcount'),
+			$this->parameters->getParameter('columns'),
+			$this->parameters->getParameter('rows'),
+			$this->parameters->getParameter('rowsize'),
+			$this->parameters->getParameter('rowcolformat'),
+			$aArticles,
+			$this->parameters->getParameter('ordermethods')[0],
+			$hListMode,
+			$listMode,
+			$this->parameters->getParameter('escapelinks'),
+			$this->parameters->getParameter('addexternallink'),
+			$this->parameters->getParameter('incpage'),
+			$this->parameters->getParameter('includemaxlen'),
+			$this->parameters->getParameter('seclabels'),
+			$this->parameters->getParameter('seclabelsmatch'),
+			$this->parameters->getParameter('seclabelsnotmatch'),
+			$this->parameters->getParameter('incparsed'),
+			$parser,
+			$logger,
+			$this->parameters->getParameter('replaceintitle'),
+			$this->parameters->getParameter('titlemaxlen'),
+			$defaultTemplateSuffix,
+			$this->parameters->getParameter('tablerow'),
+			$this->parameters->getParameter('includetrim'),
+			$this->parameters->getParameter('tablesortcol'),
+			$this->parameters->getParameter('updaterules'),
+			$this->parameters->getParameter('deleterules')
+		);
+
+		if ($foundRows === null) {
+			$foundRows = intval($dpl->getRowCount());
 		}
-		$dplResult = $dpl->getText();
-		$header    = '';
-		if ($sOneResultHeader != '' && $rowcount == 1) {
-			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', 1, $sOneResultHeader));
-		} else if ($rowcount == 0) {
-			$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsHeader));
-			if ($sNoResultsHeader != '') {
-				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $header));
+		$this->addOutput($dpl->getText());
+
+		/*******************************/
+		/* Start Headers/Footers       */
+		/*******************************/
+		$this->setHeader($this->parameters->getParameter('resultsheader'));
+		$this->setFooter($this->parameters->getParameter('resultsfooter'));
+		if ($this->parameters->getParameter('warncachedresults')) {
+			//@TODO: Better way to add the cache warning?
+			$this->setHeader('{{DPL Cache Warning}}'.$this->getHeader());
+		}
+		if ($this->logger->iDebugLevel == 5) {
+			$this->logger->iDebugLevel = 2;
+			$this->setHeader('<pre><nowiki>'.$this->getHeader());
+			$this->setFooter($this->setFooter().'</nowiki></pre>');
+		}
+
+		$replacementVariables = [];
+		$replacementVariables['%TOTALPAGES%'] = $foundRows;
+		$replacementVariables['%VERSION%'] = DPL_VERSION;
+		$header = $this->parameters->getParameter('resultsheader');
+		$footer = $this->parameters->getParameter('resultsfooter');
+		if ($foundRows === 1) {
+			$replacementVariables['%PAGES%'] = 1;
+			//Only override header and footers if specified.
+			if ($this->parameters->getParameter('oneresultheader') !== null) {
+				$footer = $this->parameters->getParameter('oneresultheader');
 			}
-			$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sNoResultsFooter));
-			if ($sNoResultsFooter != '') {
-				$output .= str_replace('\n', "\n", str_replace("¶", "\n", $footer));
+			if ($this->parameters->getParameter('oneresultfooter') !== null) {
+				$footer = $this->parameters->getParameter('oneresultfooter');
 			}
-			if ($sNoResultsHeader == '' && $sNoResultsFooter == '') {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+		} elseif ($foundRows === 0) {
+			$replacementVariables['%PAGES%'] = $dpl->getRowCount();
+			//Only override header and footers if specified.
+			if ($this->parameters->getParameter('noresultsheader') !== null) {
+				$footer = $this->parameters->getParameter('noresultsheader');
 			}
-		} else {
-			if ($resultsHeader != '') {
-				$header = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $resultsHeader));
+			if ($this->parameters->getParameter('noresultsfooter') !== null) {
+				$footer = $this->parameters->getParameter('noresultsfooter');
 			}
 		}
-		$header = str_replace('\n', "\n", str_replace("¶", "\n", $header));
-		$header = str_replace('%VERSION%', DPL_VERSION, $header);
-		$footer = '';
-		if ($sOneResultFooter != '' && $rowcount == 1) {
-			$footer = str_replace('%PAGES%', 1, $sOneResultFooter);
-		} else {
-			if ($sResultsFooter != '') {
-				$footer = str_replace('%TOTALPAGES%', $rowcount, str_replace('%PAGES%', $dpl->getRowCount(), $sResultsFooter));
-			}
-		}
-		$footer = str_replace('\n', "\n", str_replace("¶", "\n", $footer));
-		$footer = str_replace('%VERSION%', DPL_VERSION, $footer);
 
 		// replace %DPLTIME% by execution time and timestamp in header and footer
-		$nowTimeStamp   = self::prettyTimeStamp(date('YmdHis'));
+		$nowTimeStamp   = date('Y/m/d H:i:s');
 		$dplElapsedTime = sprintf('%.3f sec.', microtime(true) - $dplStartTime);
-		$header         = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $header);
-		$footer         = str_replace('%DPLTIME%', "$dplElapsedTime ($nowTimeStamp)", $footer);
+		$replacementVariables['%DPLTIME%'] = "{$dplElapsedTime} ({$nowTimeStamp})";
 
 		// replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
 		if (($n = count($aArticles)) > 0) {
@@ -686,27 +609,23 @@ class Parse {
 			$lastNamespaceFound  = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getNamespace());
 			$lastTitleFound      = str_replace(' ', '_', $aArticles[$n - 1]->mTitle->getText());
 		}
-		$header = str_replace('%FIRSTNAMESPACE%', $firstNamespaceFound, $header);
-		$footer = str_replace('%FIRSTNAMESPACE%', $firstNamespaceFound, $footer);
-		$header = str_replace('%FIRSTTITLE%', $firstTitleFound, $header);
-		$footer = str_replace('%FIRSTTITLE%', $firstTitleFound, $footer);
-		$header = str_replace('%LASTNAMESPACE%', $lastNamespaceFound, $header);
-		$footer = str_replace('%LASTNAMESPACE%', $lastNamespaceFound, $footer);
-		$header = str_replace('%LASTTITLE%', $lastTitleFound, $header);
-		$footer = str_replace('%LASTTITLE%', $lastTitleFound, $footer);
-		$header = str_replace('%SCROLLDIR%', $scrollDir, $header);
-		$footer = str_replace('%SCROLLDIR%', $scrollDir, $footer);
+		$replacementVariables['%FIRSTNAMESPACE%'] = $firstNamespaceFound;
+		$replacementVariables['%FIRSTTITLE%'] = $firstTitleFound;
+		$replacementVariables['%LASTNAMESPACE%'] = $lastNamespaceFound;
+		$replacementVariables['%LASTTITLE%'] = $lastTitleFound;
+		$replacementVariables['%SCROLLDIR%'] = $scrollDir;
 
-		$output .= $header . $dplResult . $footer;
+		$this->setHeader($this->replaceVariables($header, $replacementVariables));
+		$this->setFooter($this->replaceVariables($footer, $replacementVariables));
 
-		self::defineScrollVariables($firstNamespaceFound, $firstTitleFound, $lastNamespaceFound, $lastTitleFound, $scrollDir, $iCount, "$dplElapsedTime ($nowTimeStamp)", $rowcount, $dpl->getRowCount());
+		self::defineScrollVariables($firstNamespaceFound, $firstTitleFound, $lastNamespaceFound, $lastTitleFound, $scrollDir, $this->parameters->getParameter('count'), $replacementVariables['%DPLTIME%'], $foundRows, $dpl->getRowCount());
 
 		// save generated wiki text to dplcache page if desired
 
 		if ($DPLCache != '') {
 			if (!is_writeable($cacheFile)) {
 				wfMkdirParents(dirname($cacheFile));
-			} else if (($bDPLRefresh || $wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
+			} else if (($this->parameters->getParameter('dplrefresh') || $wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
 				// if the cache file contains a path and the user requested a refesh (or saved the file) we delete all brothers
 				wfRecursiveRemoveDir(dirname($cacheFile));
 				wfMkdirParents(dirname($cacheFile));
@@ -764,7 +683,7 @@ class Parse {
 
 		wfProfileOut(__METHOD__);
 
-		return $output;
+		return $this->getFullOutput();
 	}
 
 	/**
@@ -819,6 +738,100 @@ class Parse {
 			$parameters[$parameter] = $option;
 		}
 		return $parameters;
+	}
+
+	/**
+	 * Concatenate output
+	 *
+	 * @access	private
+	 * @param	string	Output to add
+	 * @return	void
+	 */
+	private function addOutput($output) {
+		$this->output .= $output;
+	}
+
+	/**
+	 * Return output including header and footer.
+	 *
+	 * @access	public
+	 * @return	string	Output
+	 */
+	private function getFullOutput() {
+		if (!$this->getHeader() && !$this->getFooter()) {
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
+		}
+		//@TODO: Add logger output messages here.
+		return $this->header.$this->output.$this->footer;
+	}
+
+	/**
+	 * Set the header text.
+	 *
+	 * @access	private
+	 * @param	string	Header Text
+	 * @return	void
+	 */
+	private function setHeader($header) {
+		$this->header = $header;
+	}
+
+	/**
+	 * Set the header text.
+	 *
+	 * @access	private
+	 * @return	string	Header Text
+	 */
+	private function getHeader() {
+		return $this->header;
+	}
+
+	/**
+	 * Set the footer text.
+	 *
+	 * @access	private
+	 * @param	string	Footer Text
+	 * @return	void
+	 */
+	private function setFooter($footer) {
+		$this->footer = $footer;
+	}
+
+	/**
+	 * Set the footer text.
+	 *
+	 * @access	private
+	 * @return	string	Footer Text
+	 */
+	private function getFooter() {
+		return $this->footer;
+	}
+
+	/**
+	 * Return text with custom new line characters replaced.
+	 *
+	 * @access	private
+	 * @param	string	Text
+	 * @return	string	New Lined Text
+	 */
+	private function replaceNewLines($text) {
+		return str_replace(['\n', "¶"], "\n", $text);
+	}
+
+	/**
+	 * Return text with variables replaced.
+	 *
+	 * @access	private
+	 * @param	string	Text
+	 * @param	array	Array of '%VARIABLE' => 'Replacement' replacements.
+	 * @return	string	Replaced Text
+	 */
+	private function replaceVariables($text, $replacements) {
+		$text = $this->replaceNewLines($text);
+		foreach ($replacements as $variable => $replacement) {
+			$text = str_replace($variable, $replacement, $text);
+		}
+		return $text;
 	}
 
 	/**
@@ -877,7 +890,7 @@ class Parse {
 		}
 
 		// category-style output requested with not compatible order method
-		if ($sPageListMode == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
+		if ($this->parameters->getParameter('pagelistmode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
 			'sortkey',
 			'title',
 			'titlewithoutnamespace'
@@ -886,7 +899,7 @@ class Parse {
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
-		if ($bAddPageTouchedDate && !array_intersect($this->parameters->getParameter('ordermethod'), array(
+		if ($this->parameters->getParameter('addpagetoucheddate') && !array_intersect($this->parameters->getParameter('ordermethod'), array(
 			'pagetouched',
 			'title'
 		))) {
@@ -905,17 +918,17 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($bAddUser && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
+		if ($this->parameters->getParameter('adduser') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 		}
-		if (isset($sMinorEdits) && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit'])) {
+		if ($this->parameters->getParameter('minoredits') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit'])) {
 			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 		}
 
 		/**
 		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
 		 */
-		if ($bIncludeUncat) {
+		if ($this->parameters->getParameter('includeuncat')) {
 			// If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!$this->DB->tableExists('dpl_clview')) {
 				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
@@ -925,14 +938,14 @@ class Parse {
 		}
 
 		//add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ($sPageListMode == 'category' && ($bAddCategories || $bAddEditDate || $bAddFirstCategoryDate || $bAddPageTouchedDate || $bIncPage || $bAddUser || $bAddAuthor || $bAddContribution || $bAddLastEditor)) {
+		if ($sPageListMode == 'category' && ($this->parameters->getParameter('addcategories') || $this->parameters->getParameter('addeditdate') || $this->parameters->getParameter('addfirstcategorydate') || $this->parameters->getParameter('addpagetoucheddate') || $this->parameters->getParameter('incpage') || $this->parameters->getParameter('adduser') || $this->parameters->getParameter('addauthor') || $this->parameters->getParameter('addcontribution') || $this->parameters->getParameter('addlasteditor'))) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_CATOUTPUTBUTWRONGPARAMS);
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
-		if ($sHListMode != 'none' && count($this->parameters->getParameter('ordermethod')) < 2) {
-			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $sHListMode, 'none');
-			$sHListMode = 'none';
+		if ($this->parameters->getParameter('headingmode') != 'none' && count($this->parameters->getParameter('ordermethod')) < 2) {
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter('headingmode'), 'none');
+			$this->parameters->setParameter('hlistmode', 'none');
 		}
 
 		//The 'openreferences' parameter is incompatible with many other options.

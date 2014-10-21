@@ -357,13 +357,13 @@ class DynamicPageList {
 			if ($article->mNamespace == NS_FILE) {
 				// calculate URL for existing images
 				// $img = Image::newFromName($article->mTitle->getText());
-				$img = wfFindFile(Title::makeTitle(NS_IMAGE, $article->mTitle->getText()));
+				$img = wfFindFile(\Title::makeTitle(NS_IMAGE, $article->mTitle->getText()));
 				if ($img && $img->exists()) {
 					$imageUrl = $img->getURL();
 					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
 				} else {
-					$iTitle   = Title::makeTitleSafe(6, $article->mTitle->getDBKey());
-					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
+					$iTitle   = \Title::makeTitleSafe(6, $article->mTitle->getDBKey());
+					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', \RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
 				}
 			}
 			if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
@@ -382,7 +382,7 @@ class DynamicPageList {
 					} else {
 						$incwiki = '<br/>';
 					}
-					$text = $this->mParser->fetchTemplate(Title::newFromText($title));
+					$text = $this->mParser->fetchTemplate(\Title::newFromText($title));
 					if ((count($this->mIncSecLabelsMatch) <= 0 || $this->mIncSecLabelsMatch[0] == '' || !preg_match($this->mIncSecLabelsMatch[0], $text) == false) && (count($this->mIncSecLabelsNotMatch) <= 0 || $this->mIncSecLabelsNotMatch[0] == '' || preg_match($this->mIncSecLabelsNotMatch[0], $text) == false)) {
 						if ($this->mIncMaxLen > 0 && (strlen($text) > $this->mIncMaxLen)) {
 							$text = LST::limitTranscludedText($text, $this->mIncMaxLen, ' [[' . $title . '|..→]]');
@@ -1008,8 +1008,8 @@ class DynamicPageList {
 			return $this->updateArticle($title, $text, $summary);
 		} else if ($exec == 'preview') {
 			global $wgScriptPath, $wgRequest;
-			$titleX   = Title::newFromText($title);
-			$articleX = new Article($titleX);
+			$titleX   = \Title::newFromText($title);
+			$articleX = new \Article($titleX);
 			$form     = '<html><form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode($title) . '&action=submit" ' . 'enctype="multipart/form-data">' . "\n" . '<input type="hidden" value="" name="wpSection" />' . "\n" . '<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />' . "\n" . '<input type="hidden" value="' . $articleX->getTimestamp() . '" name="wpEdittime" />' . "\n" . '<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />' . "\n" . '<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $wgUser->getIntOption('rows') . '" cols="' . $wgUser->getIntOption('cols') . '" >' . htmlspecialchars($text) . '</textarea>' . "\n" . '<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />' . '<input name="wpAutoSummary" type="hidden" value="" />' . '<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />' . '<input type="hidden" value="' . $wgRequest->getVal('token') . '" name="wpEditToken" />' . "\n" . '</form></html>' . "\n";
 			return $form;
 		}
@@ -1024,10 +1024,10 @@ class DynamicPageList {
 			return 'session failure';
 		}
 		
-		$titleX            = Title::newFromText($title);
+		$titleX            = \Title::newFromText($title);
 		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
 		if (count($permission_errors) == 0) {
-			$articleX = new Article($titleX);
+			$articleX = new \Article($titleX);
 			$articleX->doEdit($text, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
 			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
 			return '';
@@ -1293,7 +1293,7 @@ class DynamicPageList {
 		}
 		$reason .= "\nbulk delete by DPL query";
 		
-		$titleX = Title::newFromText($title);
+		$titleX = \Title::newFromText($title);
 		if ($exec) {
 			# Check permissions
 			$permission_errors = $titleX->getUserPermissionsErrors('delete', $wgUser);
@@ -1304,7 +1304,7 @@ class DynamicPageList {
 				$wgOut->readOnlyPage();
 				return 'DPL: read only mode';
 			} else {
-				$articleX = new Article($titleX);
+				$articleX = new \Article($titleX);
 				$articleX->doDelete($reason);
 			}
 		} else
@@ -1442,10 +1442,10 @@ class DynamicPageList {
 	 * @return $uniq_prefix
 	 */
 	static public function imageWithPath($imgName) {
-		$title = Title::newfromText('Image:' . $imgName);
+		$title = \Title::newfromText('Image:' . $imgName);
 		if (!is_null($title)) {
-			$iTitle   = Title::makeTitleSafe(6, $title->getDBKey());
-			$imageUrl = preg_replace('~^.*images/(.*)~', '\1', RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
+			$iTitle   = \Title::makeTitleSafe(6, $title->getDBKey());
+			$imageUrl = preg_replace('~^.*images/(.*)~', '\1', \RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
 		} else {
 			$imageUrl = '???';
 		}

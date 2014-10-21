@@ -224,7 +224,7 @@ class ParametersData {
 		
 		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
 		'allowcachedresults' => [
-			'default'			=> '',//\DynamicPageListHooks::$respectParserCache,
+			'default'			=> true,
 			'boolean'			=> true
 		],
 		/**
@@ -308,7 +308,7 @@ class ParametersData {
 		],
 
 		'dplcache' => [
-			'default' => ''
+			'default' => null
 		],
 		'dplcacheperiod' => [
 			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
@@ -491,7 +491,7 @@ class ParametersData {
 		 * Example: itemattr= class="submenuli" style="color: red;"
 		 */
 		'itemattr' => [
-			'default'	=> ''
+			'default'	=> null
 		],
 		/**
 		 * listseparators is an array of four tags (in wiki syntax) which defines the output of DPL
@@ -505,7 +505,7 @@ class ParametersData {
 		 *		   : listseparators={|,\n|-\n|[[%PAGE%]],,\n|}
 		 */
 		'listseparators' => [
-			'default'	=> ''
+			'default'	=> null
 		],
 		/**
 		 * sequence of four wiki tags (separated by ",") to be used together with mode = 'userformat'
@@ -514,14 +514,14 @@ class ParametersData {
 		 *	 example:	listattr=<ul>,<li>,</li>,</ul>
 		 */
 		'listattr' => [
-			'default'	=> ''
+			'default'	=> null
 		],
 		/**
 		 * this parameter restricts the output to articles which can reached via a link from the specified pages.
 		 * Examples:   linksfrom=my article|your article
 		 */
 		'linksfrom' => [
-			'default'				=> [],
+			'default'				=> null,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
 			'set_criteria_found'	=> true
@@ -531,7 +531,7 @@ class ParametersData {
 		 * Examples:   notlinksfrom=my article|your article
 		 */
 		'notlinksfrom' => [
-			'default'				=> [],
+			'default'				=> null,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
 			'set_criteria_found'	=> true
@@ -541,7 +541,7 @@ class ParametersData {
 		 * Examples:   linksto=my article|your article	 ,	linksto=Template:my template   ,  linksto = {{FULLPAGENAME}}
 		 */
 		'linksto' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -551,7 +551,7 @@ class ParametersData {
 		 * this parameter restricts the output to articles which do not contain a reference to the specified page.
 		 */
 		'notlinksto' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -562,7 +562,7 @@ class ParametersData {
 		 * Examples:   linkstoexternal= www.xyz.com|www.xyz2.com
 		 */
 		'linkstoexternal' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> false,
@@ -573,7 +573,7 @@ class ParametersData {
 		 * Examples:   imageused=Image:my image|Image:your image
 		 */
 		'imageused' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -584,7 +584,7 @@ class ParametersData {
 		 * Examples:   imagecontainer=my article|your article
 		 */
 		'imagecontainer' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -595,7 +595,7 @@ class ParametersData {
 		 * Examples:   uses=Template:my template
 		 */
 		'uses' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -606,7 +606,7 @@ class ParametersData {
 		 * Examples:   notuses=Template:my template
 		 */
 		'notuses' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -616,7 +616,7 @@ class ParametersData {
 		 * this parameter restricts the output to the template used by the specified page.
 		 */
 		'usedby' => [
-			'default'				=> [],
+			'default'				=> null,
 			'open_ref_conflict'		=> true,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
@@ -880,21 +880,21 @@ class ParametersData {
 			'default'	=> null,
 			'integer'	=> true
 		],
+		'suppresserrors' => [
+			'default'	=> false,
+			'boolean'	=> true
+		],
 		/**
 		 * noresultsheader / footer is some wiki text which will be output (instead of a warning message)
 		 * if the result set is empty; setting 'noresultsheader' to something like ' ' will suppress
 		 * the warning about empty result set.
 		 */
-		'suppresserrors' => [
-			'default'	=> false,
-			'boolean'	=> true
-		],
 		'noresultsheader' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		'noresultsfooter' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		/**
@@ -902,11 +902,11 @@ class ParametersData {
 		 * if the result set contains exactly one entry.
 		 */
 		'oneresultheader' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		'oneresultfooter' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		/**
@@ -954,11 +954,11 @@ class ParametersData {
 		 * used if there are at least TWO results
 		 */
 		'resultsheader' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		'resultsfooter' => [
-			'default'		=> '',
+			'default'		=> null,
 			'strip_html'	=> true
 		],
 		/**
@@ -1016,14 +1016,14 @@ class ParametersData {
 		 * if only one tag is given it will be used for all sections as a start tag (end tag will be empty then)
 		 */
 		'secseparators' => [
-			'default' => ''
+			'default' => null
 		],
 		/**
 		 * multisecseparators is a list of tags (which correspond to the items in includepage)
 		 * and which are put between identical sections included from the same file
 		 */
 		'multisecseparators' => [
-			'default' => ''
+			'default' => null
 		],
 		/**
 		 * dominantSection is the number (starting from 1) of an includepage argument which shall be used
@@ -1053,7 +1053,7 @@ class ParametersData {
 		 * replaceintitle applies a regex replacement to %TITLE%
 		 */
 		'replaceintitle' => [
-			'default'	=> ''
+			'default'	=> null
 		],
 		/**
 		 * table is a short hand for combined values of listseparators, colseparators and mulicolseparators
@@ -1065,7 +1065,7 @@ class ParametersData {
 		 * tablerow allows to define individual formats for table columns
 		 */
 		'tablerow' => [
-			'default'	=> []
+			'default'	=> null
 		],
 		/**
 		 * The number (starting with 1) of the column to be used for sorting
@@ -1204,7 +1204,7 @@ class ParametersData {
 
 		$parameters = [];
 		for ($i = 0; $i <= $level; $i++) {
-			$parameters = array_merge($parameters, self::$parametersForRichnessLevel[0]);
+			$parameters = array_merge($parameters, self::$parametersForRichnessLevel[$i]);
 		}
 		return $parameters;
 	}
