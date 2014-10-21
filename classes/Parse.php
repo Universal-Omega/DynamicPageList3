@@ -59,15 +59,13 @@ class Parse {
 	 * @return	void
 	 */
 	public function __construct() {
-		global $wgRequest, $wgLang, $wgContLang;
+		global $wgRequest;
 
 		$this->DB			= wfGetDB(DB_SLAVE);
 		$this->parameters	= new Parameters();
 		$this->logger		= new Logger($this->parameters->getData('debug')['default']);
 		$this->tableNames	= Query::getTableNames();
 		$this->wgRequest	= $wgRequest;
-		$this->wgLang		= $wgLang;
-		$this->wgContLang	= $wgContLang;
 
 		$this->getUrlArgs();
 	}
