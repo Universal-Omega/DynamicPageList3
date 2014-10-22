@@ -299,9 +299,7 @@ class Parse {
 		/*******************************/
 		$this->setHeader($this->parameters->getParameter('resultsheader'));
 		$this->setFooter($this->parameters->getParameter('resultsfooter'));
-		if ($this->logger->iDebugLevel == 5) {
-			//@TODO: Fix this debug check.
-			$this->logger->iDebugLevel = 2;
+		if (\DynamicPageListHooks::getDebugLevel() == 5) {
 			$this->setHeader('<pre><nowiki>'.$this->getHeader());
 			$this->setFooter($this->setFooter().'</nowiki></pre>');
 		}

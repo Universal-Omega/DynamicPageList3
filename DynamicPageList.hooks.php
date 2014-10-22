@@ -15,70 +15,70 @@
 
 class DynamicPageListHooks {
 	// FATAL
-	const FATAL_WRONGNS								= 1;	// $0: 'namespace' or 'notnamespace'
+	const FATAL_WRONGNS								= 1001;	// $0: 'namespace' or 'notnamespace'
 															// $1: wrong parameter given by user
 															// $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
 
-	const FATAL_WRONGLINKSTO						= 2;	// $0: linksto' (left as $0 just in case the parameter is renamed in the future)
+	const FATAL_WRONGLINKSTO						= 1002;	// $0: linksto' (left as $0 just in case the parameter is renamed in the future)
 															// $1: the wrong parameter given by user
 
-	const FATAL_TOOMANYCATS							= 3;	// $0: max number of categories that can be included
+	const FATAL_TOOMANYCATS							= 1003;	// $0: max number of categories that can be included
 
-	const FATAL_TOOFEWCATS							= 4;	// $0: min number of categories that have to be included
+	const FATAL_TOOFEWCATS							= 1004;	// $0: min number of categories that have to be included
 
-	const FATAL_NOSELECTION							= 5;
+	const FATAL_NOSELECTION							= 1005;
 
-	const FATAL_CATDATEBUTNOINCLUDEDCATS			= 6;
+	const FATAL_CATDATEBUTNOINCLUDEDCATS			= 1006;
 
-	const FATAL_CATDATEBUTMORETHAN1CAT				= 7;
+	const FATAL_CATDATEBUTMORETHAN1CAT				= 1007;
 
-	const FATAL_MORETHAN1TYPEOFDATE					= 8;
+	const FATAL_MORETHAN1TYPEOFDATE					= 1008;
 
-	const FATAL_WRONGORDERMETHOD					= 9;	// $0: param=val that is possible only with $1 as last 'ordermethod' parameter
+	const FATAL_WRONGORDERMETHOD					= 1009;	// $0: param=val that is possible only with $1 as last 'ordermethod' parameter
 															// $1: last 'ordermethod' parameter required for $0
 
-	const FATAL_DOMINANTSECTIONRANGE				= 10;	// $0: the number of arguments in includepage
+	const FATAL_DOMINANTSECTIONRANGE				= 1010;	// $0: the number of arguments in includepage
 
-	const FATAL_NOCLVIEW							= 11;	// $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+	const FATAL_NOCLVIEW							= 1011;	// $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
 															// $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
 
-	const FATAL_OPENREFERENCES						= 12;
+	const FATAL_OPENREFERENCES						= 1012;
 
-	const FATAL_MISSINGPARAMFUNCTION				= 22;
+	const FATAL_MISSINGPARAMFUNCTION				= 1022;
 
-	const FATAL_NOTPROTECTED						= 23;
+	const FATAL_NOTPROTECTED						= 1023;
 
-	const FATAL_SQLBUILDERROR						= 24;
+	const FATAL_SQLBUILDERROR						= 1024;
 
 	// ERROR
 
 	// WARN
 
-	const WARN_UNKNOWNPARAM							= 13;	// $0: unknown parameter given by user
+	const WARN_UNKNOWNPARAM							= 2013;	// $0: unknown parameter given by user
 															// $1: list of DPL available parameters separated by ', '
 
-	const WARN_WRONGPARAM							= 14;	// $3: list of valid param values separated by ' | '
+	const WARN_WRONGPARAM							= 2014;	// $3: list of valid param values separated by ' | '
 
-	const WARN_WRONGPARAM_INT						= 15;	// $0: param name
+	const WARN_WRONGPARAM_INT						= 2015;	// $0: param name
 															// $1: wrong param value given by user
 															// $2: default param value used instead by program
 
-	const WARN_NORESULTS							= 16;
+	const WARN_NORESULTS							= 2016;
 
-	const WARN_CATOUTPUTBUTWRONGPARAMS				= 17;
+	const WARN_CATOUTPUTBUTWRONGPARAMS				= 2017;
 
-	const WARN_HEADINGBUTSIMPLEORDERMETHOD			= 18;	// $0: 'headingmode' value given by user
+	const WARN_HEADINGBUTSIMPLEORDERMETHOD			= 2018;	// $0: 'headingmode' value given by user
 															// $1: value used instead by program (which means no heading)
 
-	const WARN_DEBUGPARAMNOTFIRST					= 19;	// $0: 'log' value
+	const WARN_DEBUGPARAMNOTFIRST					= 2019;	// $0: 'log' value
 
-	const WARN_TRANSCLUSIONLOOP						= 20;	// $0: title of page that creates an infinite transclusion loop
+	const WARN_TRANSCLUSIONLOOP						= 2020;	// $0: title of page that creates an infinite transclusion loop
 
 	// INFO
 
 	// DEBUG
 
-	const DEBUG_QUERY								= 21;	// $0: SQL query executed to generate the dynamic page list
+	const DEBUG_QUERY								= 3021;	// $0: SQL query executed to generate the dynamic page list
 
 	// TRACE
 															// Output formatting
@@ -86,17 +86,23 @@ class DynamicPageListHooks {
 
 	static public $fixedCategories = [];
 
+	public static $createdLinks; // the links created by DPL are collected here;
+								 // they can be removed during the final ouput
+								 // phase of the MediaWiki parser
+
 	/**
 	 * DPL acting like Extension:Intersection
 	 *
 	 * @var		boolean
 	 */
-	static public $likeIntersection = false;
+	static private $likeIntersection = false;
 
-	public static $debugMinLevels = array();
-	public static $createdLinks; // the links created by DPL are collected here;
-								 // they can be removed during the final ouput
-								 // phase of the MediaWiki parser
+	/**
+	 * Debugging Level
+	 *
+	 * @var		integer
+	 */
+	static private $debugLevel = 0;
 
 	/**
 	 * Sets up this extension's parser functions.
@@ -165,22 +171,6 @@ class DynamicPageListHooks {
 				$title,
 				EDIT_NEW | EDIT_FORCE_BOT
 			);
-		}
-
-		/**
-		 *	Define codes and map debug message to min debug level above which message can be displayed
-		 */
-		$debugCodes = array(
-			// FATAL
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			// WARN
-			2, 2, 2, 2, 2, 2, 2, 2,
-			// DEBUG
-			3
-		);
-
-		foreach ($debugCodes as $i => $minlevel) {
-			self::$debugMinLevels[$i] = $minlevel;
 		}
 	}
 
@@ -468,6 +458,27 @@ class DynamicPageListHooks {
 			self::$fixedCategories[$cat] = 1;
 		}
 	} 
+
+	/**
+	 * Set Debugging Level
+	 *
+	 * @access	public
+	 * @param	integer	Debug Level
+	 * @return	void
+	 */
+	static public function setDebugLevel($level) {
+		self::$debugLevel = intval($level);
+	}
+
+	/**
+	 * Return Debugging Level
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	static public function getDebugLevel() {
+		return self::$debugLevel;
+	}
 
 	// reset everything; some categories may have been fixed, however via  fixcategory=
 	public static function endReset( &$parser, $text ) {

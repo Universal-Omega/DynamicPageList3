@@ -861,10 +861,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _debug($option) {
 		if (in_array($option, $this->getData('debug')['values'])) {
-			if ($key > 1) {
-				$output .= $logger->escapeMsg(\DynamicPageListHooks::WARN_DEBUGPARAMNOTFIRST, $option);
-			}
-			$logger->iDebugLevel = intval($option);
+			\DynamicPageListHooks::setDebugLevel($option);
 		} else {
 			return false;
 		}
