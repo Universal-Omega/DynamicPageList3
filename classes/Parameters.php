@@ -182,7 +182,7 @@ class Parameters extends ParametersData {
 		$priority = [
 			'distinct'			=> 1,
 			'openreferences'	=> 2,
-			'ignorecase'		=> 3
+			'ignorecase'		=> 3,
 			'category'			=> 4,
 			'goal'				=> 5,
 			'ordercollation'	=> 6,
