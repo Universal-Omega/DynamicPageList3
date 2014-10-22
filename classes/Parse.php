@@ -281,7 +281,7 @@ class Parse {
 
 		// special sort for card suits (Bridge)
 		if ($this->parameters->getParameter('ordersuitsymbols')) {
-			$articles = self::cardSuitSort($articles);
+			$articles = $this->cardSuitSort($articles);
 		}
 
 		/*******************/
@@ -1005,11 +1005,11 @@ class Parse {
 	/**
 	 * Sort an array of Article objects by the card suit symbol.
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	array	Article objects in an array.
 	 * @return	array	Sorted objects
 	 */
-	private static function cardSuitSort($articles) {
+	private function cardSuitSort($articles) {
 		$skey = array();
 		for ($a = 0; $a < count($articles); $a++) {
 			$title  = preg_replace('/.*:/', '', $articles[$a]->mTitle);
