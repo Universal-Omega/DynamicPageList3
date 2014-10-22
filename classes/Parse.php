@@ -633,8 +633,8 @@ class Parse {
 			return false;
 		}
 
-		//Selection criteria needs to be found.  @TODO: Figure out why the original check skips this if categories are found.  Maybe goal=categories?  If so, fix the check to look at the goal parameter for confirmation.
-		if (!$totalCategories == 0 && !$this->parameters->isSelectionCriteriaFound()) {
+		//Selection criteria needs to be found.
+		if (!$totalCategories && !$this->parameters->isSelectionCriteriaFound()) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
 			return false;
 		}
@@ -720,7 +720,6 @@ class Parse {
 		}
 
 		//The 'openreferences' parameter is incompatible with many other options.
-		//@TODO: Fatal, but does not interrupt execution?
 		if ($this->parameters->isOpenReferencesConflict() && $this->parameters->getParameter('openreferences') === true) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_OPENREFERENCES);
 			return false;
@@ -978,50 +977,44 @@ class Parse {
 	 * @return	array	Sorted objects
 	 */
 	private function cardSuitSort($articles) {
-		//@TODO: Card sorter should be creating a sorting index and using that instead of cloning all of them into a new object.
-		$skey = array();
-		for ($a = 0; $a < count($articles); $a++) {
-			$title  = preg_replace('/.*:/', '', $articles[$a]->mTitle);
-			$token  = preg_split('/ - */', $title);
-			$newkey = '';
-			foreach ($token as $tok) {
-				$initial = substr($tok, 0, 1);
+		$sortKeys = [];
+		foreach ($articles as $key => $article) {
+			$title  = preg_replace('/.*:/', '', $article->mTitle);
+			$tokens  = preg_split('/ - */', $title);
+			$newKey = '';
+			foreach ($tokens as $token) {
+				$initial = substr($token, 0, 1);
 				if ($initial >= '1' && $initial <= '7') {
-					$newkey .= $initial;
-					$suit = substr($tok, 1);
+					$newKey .= $initial;
+					$suit = substr($token, 1);
 					if ($suit == '♣') {
-						$newkey .= '1';
+						$newKey .= '1';
 					} else if ($suit == '♦') {
-						$newkey .= '2';
+						$newKey .= '2';
 					} else if ($suit == '♥') {
-						$newkey .= '3';
+						$newKey .= '3';
 					} else if ($suit == '♠') {
-						$newkey .= '4';
+						$newKey .= '4';
 					} else if ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
-						$newkey .= '5 ';
+						$newKey .= '5 ';
 					} else {
-						$newkey .= $suit;
+						$newKey .= $suit;
 					}
 				} elseif ($initial == 'P' || $initial == 'p') {
-					$newkey .= '0 ';
+					$newKey .= '0 ';
 				} elseif ($initial == 'X' || $initial == 'x') {
-					$newkey .= '8 ';
+					$newKey .= '8 ';
 				} else {
-					$newkey .= $tok;
+					$newKey .= $token;
 				}
 			}
-			$skey[$a] = "$newkey#$a";
+			$sortKeys[$key] = $newKey;
 		}
-		for ($a = 0; $a < count($articles); $a++) {
-			//@TODO: Uhhhh lets not cause memory issues by cloning this.
-			$cArticles[$a] = clone $articles[$a];
+		asort($sortKeys);
+		foreach ($sortKeys as $oldKey => $newKey) {
+			$sortedArticles[] = $articles[$oldKey];
 		}
-		sort($skey);
-		for ($a = 0; $a < count($cArticles); $a++) {
-			$key          = intval(preg_replace('/.*#/', '', $skey[$a]));
-			$articles[$a] = $cArticles[$key];
-		}
-		return $articles;
+		return $sortedArticles;
 	}
 }
 ?>
