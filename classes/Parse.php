@@ -281,7 +281,7 @@ class Parse {
 			$logger,
 			$this->parameters->getParameter('replaceintitle'),
 			$this->parameters->getParameter('titlemaxlen'),
-			$defaultTemplateSuffix,
+			$this->parameters->getParameter('defaulttemplatesuffix'),
 			$this->parameters->getParameter('tablerow'),
 			$this->parameters->getParameter('includetrim'),
 			$this->parameters->getParameter('tablesortcol'),
@@ -588,7 +588,7 @@ class Parse {
 	 * @param	string	Text
 	 * @return	string	New Lined Text
 	 */
-	private function replaceNewLines($text) {
+	static public function replaceNewLines($text) {
 		return str_replace(['\n', "¶"], "\n", $text);
 	}
 
@@ -601,7 +601,7 @@ class Parse {
 	 * @return	string	Replaced Text
 	 */
 	private function replaceVariables($text, $replacements) {
-		$text = $this->replaceNewLines($text);
+		$text = self::replaceNewLines($text);
 		foreach ($replacements as $variable => $replacement) {
 			$text = str_replace($variable, $replacement, $text);
 		}

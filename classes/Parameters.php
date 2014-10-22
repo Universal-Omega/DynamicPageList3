@@ -254,6 +254,8 @@ class Parameters extends ParametersData {
 	 * @return	void
 	 */
 	private function setDefaults() {
+		$this->setParameter('defaulttemplatesuffix', '.default');
+
 		$parameters = $this->getParametersForRichness();
 		foreach ($parameters as $parameter) {
 			if ($this->getData($parameter)['default'] !== null && !($this->getData($parameter)['default'] === false && $this->getData($parameter)['boolean'] === true)) {
@@ -571,8 +573,7 @@ class Parameters extends ParametersData {
 		foreach ($extraParams as $parameter) {
 			$parameter = trim($parameter);
 			$namespaceId = $wgContLang->getNsIndex($parameter);
-			//@TODO: I am not entirely sure why the namespace needs to be allowed to be NOT included, but this is how the original code worked.
-			if ($namespaceId === false || (is_array(Config::getSetting('allowedNamespaces')) && !in_array($parameter, Config::getSetting('allowedNamespaces')))) {
+			if ($namespaceId === false) {
 				//Let the user know this namespace is not allowed or does not exist.
 				return false;
 			}
@@ -688,7 +689,7 @@ class Parameters extends ParametersData {
 		// parsing of wikitext will happen at the end of the output phase
 		// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
 		$option            = self::stripHtmlTags($option);
-		$option            = str_replace(['\n', "¶"], "\n", $option);
+		$option            = Parse::replaceNewLines($option);
 		$this->setParameter('listseparators', explode(',', $option, 4));
 		// mode=userformat will be automatically assumed
 		$this->setParameter('mode', 'userformat');
@@ -957,7 +958,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _secseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
-		$this->setParameter('secseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
+		$this->setParameter('secseparators', explode(',', Parse::replaceNewLines($option)));
 		return true;
 	}
 
@@ -970,7 +971,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _multisecseparators($option) {
 		//We replace '\n' by newline to support wiki syntax within the section separators
-		$this->setParameter('multisecseparators', explode(',', str_replace(['\n', "¶"], "\n", $option)));
+		$this->setParameter('multisecseparators', explode(',', Parse::replaceNewLines($option)));
 		return true;
 	}
 
@@ -982,10 +983,9 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _table($option) {
-		//@TODO: Fix up these parameters.
-		$defaultTemplateSuffix = '';
+		$this->setParameter('defaulttemplatesuffix', '');
 		$this->setParameter('mode', 'userformat');
-		$sInlTxt               = '';
+		$this->setParameter('inltxt', '');
 		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
 
 		foreach (explode(',', $option) as $tabnr => $tab) {
@@ -1014,27 +1014,32 @@ class Parameters extends ParametersData {
 		//Overwrite 'listseparators'.
 		$this->parameters->setParameter('listseparators', $listSeparators);
 
-		//@TODO: Fixed up things past here.  This code might need to be moved into Parse due to parameter order issues.
-		for ($i = 0; $i < count($aSecLabels); $i++) {
+		$sectionLabels = $this->getParameter('seclabels');
+		$sectionSeparators = $this->getParameter('secseparators');
+		$multiSectionSeparators = $this->getParameter('multisecseparators');
+		for ($i = 0; $i < count($sectionLabels); $i++) {
 			if ($i == 0) {
-				$aSecSeparators[0]      = "\n|-\n|" . $withHLink; //."\n";
-				$aSecSeparators[1]      = '';
-				$aMultiSecSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
+				$sectionSeparators[0]		= "\n|-\n|" . $withHLink; //."\n";
+				$sectionSeparators[1]		= '';
+				$multiSectionSeparators[0]	= "\n|-\n|" . $withHLink; // ."\n";
 			} else {
-				$aSecSeparators[2 * $i]     = "\n|"; // ."\n";
-				$aSecSeparators[2 * $i + 1] = '';
-				if (is_array($aSecLabels[$i]) && $aSecLabels[$i][0] == '#') {
-					$aMultiSecSeparators[$i] = "\n----\n";
+				$sectionSeparators[2 * $i]		= "\n|"; // ."\n";
+				$sectionSeparators[2 * $i + 1]	= '';
+				if (is_array($sectionLabels[$i]) && $sectionLabels[$i][0] == '#') {
+					$multiSectionSeparators[$i] = "\n----\n";
 				}
-				if ($aSecLabels[$i][0] == '#') {
-					$aMultiSecSeparators[$i] = "\n----\n";
+				if ($sectionLabels[$i][0] == '#') {
+					$multiSectionSeparators[$i] = "\n----\n";
 				} else {
-					$aMultiSecSeparators[$i] = "<br/>\n";
+					$multiSectionSeparators[$i] = "<br/>\n";
 				}
 			}
 		}
+		//Overwrite 'secseparators' and 'multisecseparators'.
+		$this->setParameter('secseparators', $sectionSeparators);
+		$this->setParameter('multisecseparators', $multiSectionSeparators);
 
-		$this->setParameter('table', str_replace(['\n', "¶"], "\n", $option));
+		$this->setParameter('table', Parse::replaceNewLines($option));
 		return true;
 	}
 
@@ -1046,7 +1051,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _tablerow($option) {
-		$option = str_replace(['\n', "¶"], "\n", trim($option));
+		$option = Parse::replaceNewLines(trim($option));
 		if (empty($option)) {
 			$this->setParameter('tablerow', []);
 		} else {
