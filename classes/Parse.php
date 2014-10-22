@@ -510,9 +510,9 @@ class Parse {
 		$headings = []; //Maps heading to count (# of pages under each heading)
 		$articles = [];
 
-		/*******************************/
-		/* Article Generation          */
-		/*******************************/
+		/**********************/
+		/* Article Processing */
+		/**********************/
 		while ($row = $result->fetchRow()) {
 			$i++;
 
@@ -522,32 +522,32 @@ class Parse {
 			}
 
 			if ($this->parameters->getParameter('goal') == 'categories') {
-				$pageNamespace = 14; // CATEGORY
+				$pageNamespace = NS_CATEGORY;
 				$pageTitle     = $row['cl_to'];
 			} else if ($this->parameters->getParameter('openreferences')) {
 				if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 					$pageNamespace = NS_FILE;
 					$pageTitle     = $row['il_to'];
 				} else {
-					// maybe non-existing title
+					//Maybe non-existing title
 					$pageNamespace = $row['pl_namespace'];
 					$pageTitle     = $row['pl_title'];
 				}
 			} else {
-				// existing PAGE TITLE
+				//Existing PAGE TITLE
 				$pageNamespace = $row['page_namespace'];
 				$pageTitle     = $row['page_title'];
 			}
 
 			// if subpages are to be excluded: skip them
-			if (!$this->parameters->getParameter('includesubpages') && (!(strpos($pageTitle, '/') === false))) {
+			if (!$this->parameters->getParameter('includesubpages') && strpos($pageTitle, '/') !== false) {
 				continue;
 			}
 
 			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
 			$thisTitle = $parser->getTitle();
 
-			// block recursion: avoid to show the page which contains the DPL statement as part of the result
+			//Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ($this->parameters->getParameter('skipthispage') && $thisTitle->equals($title)) {
 				continue;
 			}
