@@ -296,7 +296,7 @@ class ParametersData {
 		 * Max number of results to display, selection is based on random.
 		 */
 		'randomcount' => [
-			'default'	=> null,
+			'default'	=> 10,
 			'integer'	=> true
 		],
 		/**
@@ -347,7 +347,7 @@ class ParametersData {
 		 * all		   all of the above
 		 */
 		'eliminate' => [
-			'default'	=> null,
+			'default'	=> [],
 			'values'	=> [
 				'categories',
 				'templates',
@@ -971,7 +971,7 @@ class ParametersData {
 		 * all		   all of the above
 		 */
 		'reset' => [
-			'default' => null,
+			'default' => [],
 			'values'	=> [
 				'categories',
 				'templates',

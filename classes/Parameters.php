@@ -1089,6 +1089,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _dplcache($option) {
+		//@TODO: Fix up this function.
 		if ($option != '') {
 			$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $option) . '.dplc';
 			$DPLCachePath = $parser->mTitle->getArticleID() % 10;
@@ -1118,28 +1119,34 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _reset($option) {
-		foreach (preg_split('/[;,]/', $option) as $arg) {
-			$arg = trim($arg);
-			if (empty($arg)) {
+		$arguments = explode(',', $option);
+		$reset = [];
+		foreach ($arguments as $argument) {
+			$argument = trim($argument);
+			if (empty($argument)) {
 				continue;
 			}
-			if (!in_array($arg, $this->getData('reset')['values'])) {
+
+			$values = $this->getData('reset')['values'];
+			if (!in_array($argument, $value)) {
 				return false;
-			} elseif ($arg == 'links') {
-				$this->setOption['reset'][0] = true;
-			} elseif ($arg == 'templates') {
-				$this->setOption['reset'][1] = true;
-			} elseif ($arg == 'categories') {
-				$this->setOption['reset'][2] = true;
-			} elseif ($arg == 'images') {
-				$this->setOption['reset'][3] = true;
-			} elseif ($arg == 'all') {
-				$this->setOption['reset'][0] = true;
-				$this->setOption['reset'][1] = true;
-				$this->setOption['reset'][2] = true;
-				$this->setOption['reset'][3] = true;
+			} else {
+				if ($argument == 'all' || $argument == 'none') {
+					$boolean = ($argument == 'all' ? true : false);
+					$values = array_diff($values, ['all', 'none']);
+					$reset = array_flip($values);
+					foreach ($reset as $value => $key) {
+						$reset[$value] = $boolean;
+					}
+				} else {
+					$reset[$argument] = true;
+				}
 			}
 		}
+		$data = $this->getParameter('reset');
+		$data = array_merge($data, $reset);
+		$this->setParameter('reset', $data);
+		return true;
 	}
 
 	/**
@@ -1150,33 +1157,34 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _eliminate($option) {
-		foreach (preg_split('/[;,]/', $option) as $arg) {
-			$arg = trim($arg);
-			if (empty($arg)) {
+		$arguments = explode(',', $option);
+		$eliminate = [];
+		foreach ($arguments as $argument) {
+			$argument = trim($argument);
+			if (empty($argument)) {
 				continue;
 			}
-			if (!in_array($arg, $this->getData('eliminate')['values'])) {
+
+			$values = $this->getData('eliminate')['values'];
+			if (!in_array($argument, $value)) {
 				return false;
-			} elseif ($arg == 'links') {
-				$this->setOption['reset'][4] = true;
-			} elseif ($arg == 'templates') {
-				$this->setOption['reset'][5] = true;
-			} elseif ($arg == 'categories') {
-				$this->setOption['reset'][6] = true;
-			} elseif ($arg == 'images') {
-				$this->setOption['reset'][7] = true;
-			} elseif ($arg == 'all') {
-				$this->setOption['reset'][4] = true;
-				$this->setOption['reset'][5] = true;
-				$this->setOption['reset'][6] = true;
-				$this->setOption['reset'][7] = true;
-			} elseif ($arg == 'none') {
-				$this->setOption['reset'][4] = false;
-				$this->setOption['reset'][5] = false;
-				$this->setOption['reset'][6] = false;
-				$this->setOption['reset'][7] = false;
+			} else {
+				if ($argument == 'all' || $argument == 'none') {
+					$boolean = ($argument == 'all' ? true : false);
+					$values = array_diff($values, ['all', 'none']);
+					$eliminate = array_flip($values);
+					foreach ($reset as $value => $key) {
+						$eliminate[$value] = $boolean;
+					}
+				} else {
+					$eliminate[$argument] = true;
+				}
 			}
 		}
+		$data = $this->getParameter('eliminate');
+		$data = array_merge($data, $eliminate);
+		$this->setParameter('eliminate', $data);
+		return true;
 	}
 }
 ?>

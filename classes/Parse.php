@@ -74,11 +74,12 @@ class Parse {
 	 * @access	public
 	 * @param	string	Raw User Input
 	 * @param	object	Parser object.
-	 * @param	array	Reset Booleans(@TODO: Redo this documentation after fixing reset parameter.)
+	 * @param	array	End Reset Booleans
+	 * @param	array	End Eliminate Booleans
 	 * @param	boolean	[Optional] Call as a parser tag
 	 * @return	string	Wiki/HTML Output
 	 */
-	public function parse($input, \Parser $parser, &$bReset, $isParserTag = true) {
+	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = true) {
 		wfProfileIn(__METHOD__);
 
 		//Check that we are not in an infinite transclusion loop
@@ -182,42 +183,6 @@ class Parse {
 			$this->parameters->setParameter('tablerow', $this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels')));
 		}
 
-		if ($isParserTag === false) {
-			// in tag mode 'eliminate' is the same as 'reset' for tpl,cat,img
-			if ($bReset[5]) {
-				$bReset[1] = true;
-				$bReset[5] = false;
-			}
-			if ($bReset[6]) {
-				$bReset[2] = true;
-				$bReset[6] = false;
-			}
-			if ($bReset[7]) {
-				$bReset[3] = true;
-				$bReset[7] = false;
-			}
-		} else {
-			if ($bReset[1]) {
-				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
-			}
-			if ($bReset[2]) {
-				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
-			}
-			if ($bReset[3]) {
-				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
-			}
-		}
-		if (($isParserTag === false && $bReset[0]) || $isParserTag === true) {
-			if ($bReset[0]) {
-				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
-			}
-			// register a hook to reset links which were produced during parsing DPL output
-			global $wgHooks;
-			if (!in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
-				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
-			}
-		}
-
 		/**************************/
 		/* Check Errors and Query */
 		/**************************/
@@ -234,6 +199,7 @@ class Parse {
 
 		// JOIN ...
 		if ($sSqlClHeadTable != '' || $sSqlClTableForGC != '') {
+			//@TODO: FIIIIIIIIIIIIIIIIIIIIIIX.
 			$b2tables = ($sSqlClHeadTable != '') && ($sSqlClTableForGC != '');
 			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$sSqlClHeadTable.($b2tables ? ', ' : '').$sSqlClTableForGC.' ON ('.$sSqlCond_page_cl_head.($b2tables ? ' AND ' : '').$sSqlCond_page_cl_gc.')';
 		}
@@ -444,43 +410,7 @@ class Parse {
 			$parser->disableCache();
 		}
 
-		// The following requires an extra parser step which may consume some time
-		// we parse the DPL output and save all references found in that output in a global list
-		// in a final user exit after the whole document processing we eliminate all these links
-		// we use a local parser to avoid interference with the main parser
-
-		if ($bReset[4] || $bReset[5] || $bReset[6] || $bReset[7]) {
-			global $wgHooks;
-			//Register a hook to reset links which were produced during parsing DPL output
-			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
-				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
-			}
-
-			//Use a new parser to handle rendering.
-			$localParser = new \Parser();
-			$parserOutput = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
-		}
-		if ($bReset[4]) { // LINKS
-			// we trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output
-			// this allows us to remove these links from the link list later
-			// If the article containing the DPL statement itself uses one of these links they will be thrown away!
-			\DynamicPageListHooks::$createdLinks[0] = array();
-			foreach ($parserOutput->getLinks() as $nsp => $link) {
-				\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
-			}
-		}
-		if ($bReset[5]) { // TEMPLATES
-			\DynamicPageListHooks::$createdLinks[1] = array();
-			foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
-				\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
-			}
-		}
-		if ($bReset[6]) { // CATEGORIES
-			\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
-		}
-		if ($bReset[7]) { // IMAGES
-			\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
-		}
+		$this->triggerEndResets($reset, $eliminate, $isParserTag, $parser);
 
 		wfProfileOut(__METHOD__);
 
@@ -944,6 +874,94 @@ class Parse {
 	}
 
 	/**
+	 * Trigger Resets and Eliminates that run at the end of parsing.
+	 *
+	 * @access	private
+	 * @param	array	End Reset Booleans
+	 * @param	array	End Eliminate Booleans
+	 * @param	boolean	Call as a parser tag
+	 * @param	object	Parser object.
+	 * @return	void
+	 */
+	private function triggerEndResets(&$reset, &$eliminate, $isParserTag, \Parser $parser) {
+		global $wgHooks;
+
+		$localParser = new \Parser();
+		$parserOutput = $localParser->parse($this->getFullOutput, $parser->mTitle, $parser->mOptions);
+
+		if (!is_array($reset)) {
+			$reset = [];
+		}
+		$reset = array_merge($reset, $this->parameters->getParameter('reset'));
+
+		if (!is_array($eliminate)) {
+			$eliminate = [];
+		}
+		$eliminate = array_merge($eliminate, $this->parameters->getParameter('eliminate'));
+		if ($isParserTag === false) {
+			//In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
+			if ($eliminate['templates']) {
+				$reset['templates'] = true;
+				$eliminate['templates'] = false;
+			}
+			if ($eliminate['categories']) {
+				$reset['categories'] = true;
+				$eliminate['categories'] = false;
+			}
+			if ($eliminate['images']) {
+				$reset['images'] = true;
+				$eliminate['images'] = false;
+			}
+		} else {
+			if ($reset['templates']) {
+				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
+			}
+			if ($reset['categories']) {
+				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
+			}
+			if ($reset['images']) {
+				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
+			}
+		}
+		if (($isParserTag === false && $reset['links']) || $isParserTag === true) {
+			if ($reset['links']) {
+				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
+			}
+			//Register a hook to reset links which were produced during parsing DPL output.
+			if (!in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
+			}
+		}
+
+		if (array_sum($eliminate)) {
+			//Register a hook to reset links which were produced during parsing DPL output
+			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
+				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
+			}
+
+			if ($eliminate['links']) {
+				//Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output.  This allows us to remove these links from the link list later.  If the article containing the DPL statement itself uses one of these links they will be thrown away!
+				\DynamicPageListHooks::$createdLinks[0] = array();
+				foreach ($parserOutput->getLinks() as $nsp => $link) {
+					\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
+				}
+			}
+			if ($eliminate['templates']) {
+				\DynamicPageListHooks::$createdLinks[1] = array();
+				foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
+					\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
+				}
+			}
+			if ($eliminate['categories']) {
+				\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
+			}
+			if ($eliminate['images']) {
+				\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
+			}
+		}
+	}
+
+	/**
 	 * Sort an array of Article objects by the card suit symbol.
 	 *
 	 * @access	private
@@ -951,6 +969,7 @@ class Parse {
 	 * @return	array	Sorted objects
 	 */
 	private function cardSuitSort($articles) {
+		//@TODO: Card sorter should be creating a sorting index and using that instead of cloning all of them into a new object.
 		$skey = array();
 		for ($a = 0; $a < count($articles); $a++) {
 			$title  = preg_replace('/.*:/', '', $articles[$a]->mTitle);
@@ -974,17 +993,19 @@ class Parse {
 					} else {
 						$newkey .= $suit;
 					}
-				} else if ($initial == 'P' || $initial == 'p')
+				} elseif ($initial == 'P' || $initial == 'p') {
 					$newkey .= '0 ';
-				else if ($initial == 'X' || $initial == 'x')
+				} elseif ($initial == 'X' || $initial == 'x') {
 					$newkey .= '8 ';
-				else
+				} else {
 					$newkey .= $tok;
+				}
 			}
 			$skey[$a] = "$newkey#$a";
 		}
 		for ($a = 0; $a < count($articles); $a++) {
-			$cArticles[$a] = clone ($articles[$a]);
+			//@TODO: Uhhhh lets not cause memory issues by cloning this.
+			$cArticles[$a] = clone $articles[$a];
 		}
 		sort($skey);
 		for ($a = 0; $a < count($cArticles); $a++) {
