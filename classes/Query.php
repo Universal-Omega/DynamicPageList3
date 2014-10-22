@@ -811,7 +811,7 @@ class Query {
 		if ($this->parameters->getParameter('openreferences')) {
 			$where .= '(';
 		} else {
-			$where .= "{$this->tableNames['page']}.page_namespace=".NS_FILE." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
+			$where .= "{$this->tableNames['page']}.page_namespace=".intval(NS_FILE)." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
 		}
 		$i = 0;
 		foreach ($option as $link) {
