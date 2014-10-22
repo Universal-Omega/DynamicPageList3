@@ -808,24 +808,17 @@ class Query {
 	private function _imagecontainer($option) {
 		$this->addTable('imagelinks', 'ic');
 		$this->addSelect(['sortkey' => 'il.il_to']);
-		if ($this->parameters->getParameter('openreferences')) {
-			$where .= '(';
-		} else {
-			$where .= "{$this->tableNames['page']}.page_namespace=".intval(NS_FILE)." AND {$this->tableNames['page']}.page_title=ic.il_to AND (";
+		if (!$this->parameters->getParameter('openreferences')) {
+			$where .= "{$this->tableNames['page']}.page_namespace=".intval(NS_FILE)." AND {$this->tableNames['page']}.page_title=ic.il_to AND ";
 		}
-		$i = 0;
 		foreach ($option as $link) {
-			if ($i > 0) {
-				$where .= ' OR ';
-			}
 			if ($this->parameters->getParameter('ignorecase')) {
-				$where .= "LOWER(CAST(ic.il_from AS char)=LOWER(".$this->DB->addQuotes($link->getArticleID()).')';
+				$ors[] = "LOWER(CAST(ic.il_from AS char)=LOWER(".$this->DB->addQuotes($link->getArticleID()).')';
 			} else {
-				$where .= "ic.il_from=".$this->DB->addQuotes($link->getArticleID());
+				$ors[] = "ic.il_from=".$this->DB->addQuotes($link->getArticleID());
 			}
-			$i++;
 		}
-		$where .= ')';
+		$where .= '('.implode(' OR ', $ors).')';
 		$this->addWhere($where);
 	}
 
@@ -842,20 +835,15 @@ class Query {
 		}
 		$this->addTable('imagelinks', 'il');
 		$this->addSelect(['image_sel_title' => 'il.il_to']);
-		$where .= $this->tableNames['page'].'.page_id=il.il_from AND (';
-		$i = 0;
+		$where = $this->tableNames['page'].'.page_id=il.il_from AND ';
 		foreach ($option as $link) {
-			if ($i > 0) {
-				$where .= ' OR ';
-			}
 			if ($this->parameters->getParameter('ignorecase')) {
-				$where .= "LOWER(CAST(il.il_to AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).')';
+				$ors[] = "LOWER(CAST(il.il_to AS char))=LOWER(".$this->DB->addQuotes($link->getDbKey()).')';
 			} else {
-				$where .= "il.il_to=".$this->DB->addQuotes($link->getDbKey());
+				$ors[] = "il.il_to=".$this->DB->addQuotes($link->getDbKey());
 			}
-			$i++;
 		}
-		$where .= ')';
+		$where .= '('.implode(' OR ', $ors).')';
 		$this->addWhere($where);
 	}
 
