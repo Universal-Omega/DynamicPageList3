@@ -155,7 +155,7 @@ class Parse {
 		/*******************/
 		/* Is this cached? */
 		/*******************/
-		$this->cacheKey = md5($input);
+		$this->cacheKey = md5($this->parser->mTitle->getPrefixedText().$input);
 		if ($this->loadCache()) {
 			return $this->getFullOutput();
 		}
@@ -964,9 +964,6 @@ class Parse {
 				$cache = wfGetCache(Config::getSetting('cacheType'));
 				$cache->set($this->cacheKey, $this->getFullOutput(), ($this->parameters->getParameter('cacheperiod') ? $this->parameters->getParameter('cacheperiod') : 3600));
 				return true;
-			}
-			if ($this->logger->iDebugLevel >= 2) {
-				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$offset}}";
 			}
 		} else {
 			$this->parser->disableCache();
