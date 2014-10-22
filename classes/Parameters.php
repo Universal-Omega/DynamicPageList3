@@ -182,12 +182,13 @@ class Parameters extends ParametersData {
 		$priority = [
 			'distinct'			=> 1,
 			'openreferences'	=> 2,
-			'category'			=> 3,
-			'goal'				=> 4,
-			'ordercollation'	=> 5,
-			'ordermethod'		=> 6,
-			'includepage'		=> 7,
-			'include'			=> 8
+			'ignorecase'		=> 3
+			'category'			=> 4,
+			'goal'				=> 5,
+			'ordercollation'	=> 6,
+			'ordermethod'		=> 7,
+			'includepage'		=> 8,
+			'include'			=> 9
 		];
 		$_first = array_intersect_key($parameters, $priority);
 		if (count($_first)) {

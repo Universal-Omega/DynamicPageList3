@@ -494,8 +494,8 @@
 * THE MOTHER OF ALL OVERHAULS! - Seriously, the entire code base was ripped to shreds and redone to be easily worked on in the future.
 * Cache can now be set to any standard Mediawiki cache type.  Default: CACHE_ANYTHING
 * Configuration is now standardized instead of calling into static class functions or modifying objects directly.
-* Some parameters are now position sensitive in the parser call.  For example, putting 'linksto=Mediawiki|ignorecase=true|linksfrom=project' in that order would case 'linksto' to be case sensitive with 'linksfrom' being case insensitive.
 * Fixed several SQL injection exploits with 'ordercollation' and 'category'.
 * The 'dplcache' parameter was removed as it is now obselete.  Please use 'allowcachedresults' to control caching.
 * The 'dplcacheperiod' parameter was renamed to 'cacheperiod'.
 * The URL argument 'DPL_refresh' was renamed to 'cacherefresh'.
+* The card suit sort function no longer has a massive memory leak.

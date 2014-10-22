@@ -747,10 +747,8 @@ class Query {
 	 */
 	private function _distinct($option) {
 		if ($option == 'strict' || $option === true) {
-			//@TODO: Check to add $sSqlGroupBy = 'page_title';
 			$this->distinct = true;
 		} else {
-			//@TODO: Check to remove $sSqlGroupBy = 'page_title';
 			$this->distinct = false;
 		}
 	}
@@ -893,38 +891,24 @@ class Query {
 	 * @return	void
 	 */
 	private function _linksfrom($option) {
-		//@TODO: Fix up this function.
 		if ($this->parameters->getParameter('distinct') == 'strict') {
 			$this->addGroupBy('page_title');
 		}
 		if ($this->parameters->getParameter('openreferences')) {
-			$sSqlCond_page_pl .= ' AND (';
-			$n = 0;
-			foreach ($aLinksFrom as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$sSqlCond_page_pl .= ' OR ';
-					}
-					$sSqlCond_page_pl .= '(pl_from=' . $link->getArticleID() . ')';
-					$n++;
-				}
+			foreach ($option as $link) {
+				$ors[] = '(pl_from = '.$link->getArticleID().')';
 			}
-			$sSqlCond_page_pl .= ')';
+			$where .= '('.implode(' OR ', $ors).')';
+			$this->addWhere($where);
 		} else {
-			$sSqlPageLinksTable .= $sPageLinksTable . ' AS plf, ' . $sPageTable . 'AS pagesrc, ';
-			$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_namespace = plf.pl_namespace AND ' . $sPageTable . '.page_title = plf.pl_title AND pagesrc.page_id=plf.pl_from AND (';
-			$sSqlSelPage = ', pagesrc.page_title AS sel_title, pagesrc.page_namespace AS sel_ns';
-			$n           = 0;
-			foreach ($aLinksFrom as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$sSqlCond_page_pl .= ' OR ';
-					}
-					$sSqlCond_page_pl .= '(plf.pl_from=' . $link->getArticleID() . ')';
-					$n++;
-				}
+			$this->addTable('pagelinks', 'plf');
+			$this->addTable('page', 'pagesrc');
+			$this->addSelect(['sel_title' => 'pagesrc.page_title', 'sel_ns' => 'pagesrc.page_namespace']);
+			$where = $this->tableNames['page'].'.page_namespace = plf.pl_namespace AND '.$this->tableNames['page'].'.page_title = plf.pl_title AND pagesrc.page_id=plf.pl_from AND ';
+			foreach ($option as $link) {
+				$ors[] = '(plf.pl_from='.$link->getArticleID().')';
 			}
-			$sSqlCond_page_pl .= ')';
+			$where .= '('.implode(' OR ', $ors).')';
 		}
 	}
 
@@ -936,66 +920,54 @@ class Query {
 	 * @return	void
 	 */
 	private function _linksto($option) {
-		//@TODO: Fix up this function.
 		if ($this->parameters->getParameter('distinct') == 'strict') {
 			$this->addGroupBy('page_title');
 		}
-		if (count($aLinksTo) > 0) {
-			$sSqlPageLinksTable .= $this->tableNames['pagelinks'].' AS pl, ';
-			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id=pl.pl_from AND ';
-			$sSqlSelPage = ', pl.pl_title AS sel_title, pl.pl_namespace AS sel_ns';
-			$n			 = 0;
-			foreach ($aLinksTo as $linkGroup) {
-				if (++$n > 1) {
-					break;
-				}
-				$sSqlCond_page_pl .= '( ';
-				$m = 0;
-				foreach ($linkGroup as $link) {
-					if (++$m > 1) {
-						$sSqlCond_page_pl .= ' OR ';
-					}
-					$sSqlCond_page_pl .= '(pl.pl_namespace='.intval($link->getNamespace());
-					if (strpos($link->getDbKey(), '%') >= 0) {
-						$operator = ' LIKE ';
-					} else {
-						$operator = '=';
-					}
-					if ($this->parameters->getParameter('ignorecase')) {
-						$sSqlCond_page_pl .= ' AND LOWER(CAST(pl.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
-					} else {
-						$sSqlCond_page_pl .= ' AND pl.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey()).')';
-					}
-				}
-				$sSqlCond_page_pl .= ')';
-			}
-		}
-		if (count($aLinksTo) > 1) {
+		if (count($option) > 0) {
+			$this->addTable('pagelinks', 'pl');
+			$this->addSelect(['sel_title' => 'pl.pl_title', 'sel_ns' => 'pl.pl_namespace']);
 			$n = 0;
-			foreach ($aLinksTo as $linkGroup) {
-				if (++$n == 1) {
-					continue;
+			foreach ($option as $linkGroup) {
+				if ($n == 0) {
+					$where = $this->tableNames['page'].'.page_id=pl.pl_from AND ';
+					foreach ($linkGroup as $link) {
+						$_or = '(pl.pl_namespace='.intval($link->getNamespace());
+						if (strpos($link->getDbKey(), '%') >= 0) {
+							$operator = 'LIKE';
+						} else {
+							$operator = '=';
+						}
+						if ($this->parameters->getParameter('ignorecase')) {
+							$_or .= ' AND LOWER(CAST(pl.pl_title AS char)) '.$operator.' LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
+						} else {
+							$_or .= ' AND pl.pl_title '.$operator.' '.$this->DB->addQuotes($link->getDbKey()).')';
+						}
+						$ors[] = $_or;
+					}
+					$where .= '('.implode(' OR ', $ors).')';
+					$this->addWhere($where);
+				} else {
+					$where = 'EXISTS(select pl_from FROM '.$this->tableNames['pagelinks'].' WHERE ('.$this->tableNames['pagelinks'].'.pl_from=page_id AND ';
+					foreach ($linkGroup as $link) {
+						$_or .= '('.$this->tableNames['pagelinks'].'.pl_namespace='.intval($link->getNamespace());
+						if (strpos($link->getDbKey(), '%') >= 0) {
+							$operator = 'LIKE';
+						} else {
+							$operator = '=';
+						}
+						if ($this->parameters->getParameter('ignorecase')) {
+							$_or .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char)) '.$operator.' LOWER('.$this->DB->addQuotes($link->getDbKey()).')';
+						} else {
+							$_or .= ' AND '.$this->tableNames['pagelinks'].'.pl_title '.$operator.' '.$this->DB->addQuotes($link->getDbKey());
+						}
+						$_or .= ')';
+						$ors[] = $_or;
+					}
+					$where .= '('.implode(' OR ', $ors).')';
+					$where .= '))';
+					$this->addWhere($where);
 				}
-				$m = 0;
-				$sSqlCond_page_pl .= ' AND EXISTS(select pl_from FROM '.$this->tableNames['pagelinks'].' WHERE ('.$this->tableNames['pagelinks'].'.pl_from=page_id AND (';
-				foreach ($linkGroup as $link) {
-					if (++$m > 1) {
-						$sSqlCond_page_pl .= ' OR ';
-					}
-					$sSqlCond_page_pl .= '('.$this->tableNames['pagelinks'].'.pl_namespace='.intval($link->getNamespace());
-					if (strpos($link->getDbKey(), '%') >= 0) {
-						$operator = ' LIKE ';
-					} else {
-						$operator = '=';
-					}
-					if ($this->parameters->getParameter('ignorecase')) {
-						$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char))'.$operator.'LOWER('.$this->DB->addQuotes($link->getDbKey()).')';
-					} else {
-						$sSqlCond_page_pl .= ' AND '.$this->tableNames['pagelinks'].'.pl_title'.$operator.$this->DB->addQuotes($link->getDbKey());
-					}
-					$sSqlCond_page_pl .= ')';
-				}
-				$sSqlCond_page_pl .= ')))';
+				$n++;
 			}
 		}
 	}
@@ -1012,31 +984,18 @@ class Query {
 			$this->addGroupBy('page_title');
 		}
 		if ($this->parameters->getParameter('openreferences')) {
-			$where .= '(';
-			$n = 0;
-			foreach ($option as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$where .= ' AND ';
-					}
-					$where .= 'pl_from <> '.intval($link->getArticleID()).' ';
-					$n++;
-				}
+			foreach ($option as $link) {
+				$ors[] = 'pl_from <> '.intval($link->getArticleID()).' ';
 			}
-			$where .= ')';
+			$where .= '('.implode(' AND ', $ors).')';
+			$this->addWhere($where);
 		} else {
-			$where .= 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE (';
-			$n = 0;
-			foreach ($option as $links) {
-				foreach ($links as $link) {
-					if ($n > 0) {
-						$where .= ' OR ';
-					}
-					$where .= $this->tableNames['pagelinks'].'.pl_from='.intval($link->getArticleID()).' ';
-					$n++;
-				}
+			$where = 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) from '.$this->tableNames['pagelinks'].' WHERE ';
+			foreach ($option as $link) {
+				$ors[] = $this->tableNames['pagelinks'].'.pl_from='.intval($link->getArticleID());
 			}
-			$where .= '))';
+			$where .= '('.implode(' OR ', $ors).')';
+			$where .= ')';
 		}
 		$this->addWhere($where);
 	}
@@ -1049,32 +1008,28 @@ class Query {
 	 * @return	void
 	 */
 	private function _notlinksto($option) {
-		//@TODO: Fix up this function.
 		if ($this->parameters->getParameter('distinct') == 'strict') {
 			$this->addGroupBy('page_title');
 		}
-		$sSqlCond_page_pl .= ' AND ' . $sPageTable . '.page_id NOT IN (SELECT ' . $sPageLinksTable . '.pl_from FROM ' . $sPageLinksTable . ' WHERE (';
-		$n = 0;
-		foreach ($aNotLinksTo as $links) {
-			foreach ($links as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
-				}
-				$sSqlCond_page_pl .= '(' . $sPageLinksTable . '.pl_namespace=' . intval($link->getNamespace());
+		if (count($option)) {
+			$where = $this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['pagelinks'].'.pl_from FROM '.$this->tableNames['pagelinks'].' WHERE ';
+			foreach ($option as $link) {
+				$_or = '('.$this->tableNames['pagelinks'].'.pl_namespace='.intval($link->getNamespace());
 				if (strpos($link->getDbKey(), '%') >= 0) {
-					$operator = ' LIKE ';
+					$operator = 'LIKE';
 				} else {
 					$operator = '=';
 				}
-				if ($bIgnoreCase) {
-					$sSqlCond_page_pl .= ' AND LOWER(CAST(' . $sPageLinksTable . '.pl_title AS char))' . $operator . 'LOWER(' . $dbr->addQuotes($link->getDbKey()) . '))';
+				if ($this->parameters->getParameter('ignorecase')) {
+					$_or .= ' AND LOWER(CAST('.$this->tableNames['pagelinks'].'.pl_title AS char)) '.$operator.' LOWER('.$dbr->addQuotes($link->getDbKey()).'))';
 				} else {
-					$sSqlCond_page_pl .= ' AND ' . $sPageLinksTable . '.pl_title' . $operator . $dbr->addQuotes($link->getDbKey()) . ')';
+					$_or .= ' AND '.$this->tableNames['pagelinks'].'.pl_title '.$operator.' '.$dbr->addQuotes($link->getDbKey()).')';
 				}
-				$n++;
+				$ors[] = $_or;
 			}
+			$where .= '('.implode(' OR ', $ors).'))';
 		}
-		$sSqlCond_page_pl .= ') )';
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1085,44 +1040,31 @@ class Query {
 	 * @return	void
 	 */
 	private function _linkstoexternal($option) {
-		//@TODO: Fix up this function.
 		if ($this->parameters->getParameter('distinct') == 'strict') {
 			$this->addGroupBy('page_title');
 		}
-		if (count($aLinksToExternal) > 0) {
-			$sSqlExternalLinksTable .= $this->tableNames['externallinks'].' AS el, ';
-			$sSqlCond_page_el .= ' AND '.$this->tableNames['page'].'.page_id=el.el_from AND (';
-			$sSqlSelPage = ', el.el_to as el_to';
-			$n			 = 0;
-			foreach ($aLinksToExternal as $linkGroup) {
-				if (++$n > 1) {
-					break;
-				}
-				$m = 0;
-				foreach ($linkGroup as $link) {
-					if (++$m > 1) {
-						$sSqlCond_page_el .= ' OR ';
-					}
-					$sSqlCond_page_el .= '(el.el_to LIKE '.$this->DB->addQuotes($link).')';
-				}
-			}
-			$sSqlCond_page_el .= ')';
-		}
-		if (count($aLinksToExternal) > 1) {
+		if (count($option) > 0) {
+			$this->addTable('externallinks', 'el');
+			$this->addSelect(['el_to' => 'el.el_to']);
 			$n = 0;
-			foreach ($aLinksToExternal as $linkGroup) {
-				if (++$n == 1) {
-					continue;
-				}
-				$m = 0;
-				$sSqlCond_page_el .= ' AND EXISTS(SELECT el_from FROM '.$this->tableNames['externallinks'].' WHERE ('.$this->tableNames['externallinks'].'.el_from=page_id AND (';
-				foreach ($linkGroup as $link) {
-					if (++$m > 1) {
-						$sSqlCond_page_el .= ' OR ';
+			foreach ($option as $linkGroup) {
+				if ($n == 0) {
+					$where = $this->tableNames['page'].'.page_id=el.el_from AND ';
+					foreach ($linkGroup as $link) {
+						$ors[] = '(el.el_to LIKE '.$this->DB->addQuotes($link).')';
 					}
-					$sSqlCond_page_el .= '('.$this->tableNames['externallinks'].'.el_to LIKE '.$this->DB->addQuotes($link).')';
+					$where .= '('.implode(' OR ', $ors).')';
+					$this->addWhere($where);
+				} else {
+					$where = 'EXISTS(SELECT el_from FROM '.$this->tableNames['externallinks'].' WHERE ('.$this->tableNames['externallinks'].'.el_from=page_id AND ';
+					foreach ($linkGroup as $link) {
+						$ors[] = '('.$this->tableNames['externallinks'].'.el_to LIKE '.$this->DB->addQuotes($link).')';
+					}
+					$where .= '('.implode(' OR ', $ors).')';
+					$where .= '))';
+					$this->addWhere($where);
 				}
-				$sSqlCond_page_el .= ')))';
+				$n++;
 			}
 		}
 	}
@@ -1246,24 +1188,21 @@ class Query {
 	 * @return	void
 	 */
 	private function _notuses($option) {
-		//@TODO: Fix up this function.
-		if (count($aNotUses) > 0) {
-			$sSqlCond_page_pl .= ' AND '.$this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['templatelinks'].'.tl_from FROM '.$this->tableNames['templatelinks'].' WHERE (';
+		if (count($option) > 0) {
+			$where = $this->tableNames['page'].'.page_id NOT IN (SELECT '.$this->tableNames['templatelinks'].'.tl_from FROM '.$this->tableNames['templatelinks'].' WHERE (';
 			$n = 0;
-			foreach ($aNotUses as $link) {
-				if ($n > 0) {
-					$sSqlCond_page_pl .= ' OR ';
-				}
-				$sSqlCond_page_pl .= '('.$this->tableNames['templatelinks'].'.tl_namespace='.intval($link->getNamespace());
+			foreach ($option as $link) {
+				$_or = '('.$this->tableNames['templatelinks'].'.tl_namespace='.intval($link->getNamespace());
 				if ($this->parameters->getParameter('ignorecase')) {
-					$sSqlCond_page_pl .= ' AND LOWER(CAST('.$this->tableNames['templatelinks'].'.tl_title AS char))=LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
+					$_or .= ' AND LOWER(CAST('.$this->tableNames['templatelinks'].'.tl_title AS char))=LOWER('.$this->DB->addQuotes($link->getDbKey()).'))';
 				} else {
-					$sSqlCond_page_pl .= ' AND '.$this->tableNames['templatelinks'].'.tl_title='.$this->DB->addQuotes($link->getDbKey()).')';
+					$_or .= ' AND '.$this->tableNames['templatelinks'].'.tl_title='.$this->DB->addQuotes($link->getDbKey()).')';
 				}
-				$n++;
+				$ors[] = $_or;
 			}
-			$sSqlCond_page_pl .= ') )';
+			$where .= implode(' OR ', $ors).'))';
 		}
+		$this->addWhere($where);
 	}
 
 	/**
@@ -1337,18 +1276,17 @@ class Query {
 	 * @return	void
 	 */
 	private function _ordermethod($option) {
-		//@TODO: Fix up this function.
 		if ($this->parameters->getParameter('goal') == 'categories') {
 			//No order methods for returning categories.
 			return true;
 		}
+		$revisionAuxWhereAdded = false;
 		foreach ($option as $orderMethod) {
 			switch ($orderMethod) {
 				case 'category':
 					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
-					//@TODO: Deferred parameter processing for checks?
-					$_clTable = ((in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']) . ' AS cl_head'; // use dpl_clview if Uncategorized in headings
+					$_clTable = ((in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']).' AS cl_head'; //Use dpl_clview if Uncategorized in headings
 					$this->addJoin("LEFT OUTER JOIN {$_clTable} ON page_id = cl_head.cl_from");
 					if (is_array($this->parameters->getParameter('catheadings')) && count($this->parameters->getParameter('catheadings'))) {
 						$this->addWhere("cl_head.cl_to IN (".$this->DB->makeList($this->parameters->getParameter('catheadings')).")");
@@ -1366,9 +1304,11 @@ class Query {
 				case 'firstedit':
 					$this->addOrderBy('rev_timestamp');
 					$this->addTable('revision', 'rev');
-					$sSqlRev_timestamp = ', rev_timestamp';
-					//@TODO: Duplicate check.
-					$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+					$this->addSelect(['rev_timestamp']);
+					if (!$revisionAuxWhereAdded) {
+						$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+					}
+					$revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
@@ -1378,8 +1318,10 @@ class Query {
 						$this->addOrderBy('rev_timestamp');
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev_timestamp']);
-						//@TODO: Duplicate check.
-						$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+						if (!$revisionAuxWhereAdded) {
+							$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+						}
+						$revisionAuxWhereAdded = true;
 					}
 					break;
 				case 'pagesel':
@@ -1394,11 +1336,10 @@ class Query {
 					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
-					//@TODO: Fix up this namespace thingy here with the one below.
 					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
 					$_namespaceIdToText = 'CASE pl_namespace';
 					foreach ($aStrictNs as $iNs => $sNs) {
-						$_namespaceIdToText .= ' WHEN ' . intval($iNs) . " THEN " . $this->DB->addQuotes($sNs);
+						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
 					}
 					$_namespaceIdToText .= ' END';
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
@@ -1429,11 +1370,11 @@ class Query {
 						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
 					}
 					$_namespaceIdToText .= ' END';
-					// map namespace index to name
+					//Map namespace index to name
 					if ($this->parameters->getParameter('openreferences')) {
 						$this->addSelect(["REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
 					} else {
-						// Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases
+						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
 						$this->addWhere("REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey");
 					}
 					break;
