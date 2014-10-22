@@ -84,11 +84,10 @@ class ParametersData {
 			'addpagesize',
 			'addpagetoucheddate',
 			'adduser',
+			'cacheperiod',
 			'categoriesminmax',
 			'createdby',
 			'dominantsection',
-			'dplcache',
-			'dplcacheperiod',
 			'eliminate',
 			'fixcategory',
 			'headingcount',
@@ -306,15 +305,10 @@ class ParametersData {
 			'default'	=> 'true',
 			'values'	=> ['strict']
 		],
-
-		'dplcache' => [
-			'default' => null
-		],
-		'dplcacheperiod' => [
+		'cacheperiod' => [
 			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
 			'integer'	=> true
 		],
-
 		/**
 		 * number of columns for output, default is 1
 		 */

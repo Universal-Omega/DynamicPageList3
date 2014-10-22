@@ -298,11 +298,11 @@ class Parameters extends ParametersData {
 	/**
 	 * Filter a standard boolean like value into an actual boolean.
 	 *
-	 * @access	private
+	 * @access	public
 	 * @param	mixed	Integer or string to evaluated through filter_var().
 	 * @return	boolean
 	 */
-	private function filterBoolean($boolean) {
+	public function filterBoolean($boolean) {
 		return filter_var($boolean, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 	}
 
@@ -1077,24 +1077,6 @@ class Parameters extends ParametersData {
 			} else {
 				return false;
 			}
-		}
-		return true;
-	}
-
-	/**
-	 * Clean and test 'dplcache' parameter.
-	 *
-	 * @access	public
-	 * @param	string	Options passed to parameter.
-	 * @return	boolean	Success
-	 */
-	public function _dplcache($option) {
-		//@TODO: Fix up this function.
-		if ($option != '') {
-			$DPLCache     = $parser->mTitle->getArticleID() . '_' . str_replace("/", "_", $option) . '.dplc';
-			$DPLCachePath = $parser->mTitle->getArticleID() % 10;
-		} else {
-			return false;
 		}
 		return true;
 	}

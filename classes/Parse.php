@@ -19,6 +19,13 @@ class Parse {
 	private $DB = null;
 
 	/**
+	 * Mediawiki Parser Object
+	 *
+	 * @var		object
+	 */
+	private $parser = null;
+
+	/**
 	 * \DPL\Parameters Object
 	 *
 	 * @var		object
@@ -35,9 +42,16 @@ class Parse {
 	/**
 	 * Array of prequoted table names.
 	 *
-	 * @var		object
+	 * @var		array
 	 */
-	private $tableNames = null;
+	private $tableNames = [];
+
+	/**
+	 * Cache Key for this tag parse.
+	 *
+	 * @var		string
+	 */
+	private $cacheKey = null;
 
 	/**
 	 * Array of possible URL arguments.
@@ -73,7 +87,7 @@ class Parse {
 	 *
 	 * @access	public
 	 * @param	string	Raw User Input
-	 * @param	object	Parser object.
+	 * @param	object	Mediaiwki Parser object.
 	 * @param	array	End Reset Booleans
 	 * @param	array	End Eliminate Booleans
 	 * @param	boolean	[Optional] Call as a parser tag
@@ -81,17 +95,18 @@ class Parse {
 	 */
 	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = true) {
 		wfProfileIn(__METHOD__);
+		$this->parser = $parser;
 
 		//Check that we are not in an infinite transclusion loop
-		if (isset($parser->mTemplatePath[$parser->mTitle->getPrefixedText()])) {
-			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->mTitle->getPrefixedText());
+		if (isset($this->parser->mTemplatePath[$this->parser->mTitle->getPrefixedText()])) {
+			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $this->parser->mTitle->getPrefixedText());
 			return $this->getFullOutput();
 		}
 
 		//Check if DPL shall only be executed from protected pages.
-		if (Config::getSetting('runFromProtectedPagesOnly') === true && !$parser->mTitle->isProtected('edit')) {
+		if (Config::getSetting('runFromProtectedPagesOnly') === true && !$this->parser->mTitle->isProtected('edit')) {
 			//Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected.  However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->mTitle->getPrefixedText());
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOTPROTECTED, $this->parser->mTitle->getPrefixedText());
 			return $this->getFullOutput();
 		}
 
@@ -104,18 +119,10 @@ class Parse {
 			}
 		}
 		$input = $this->resolveUrlArguments($input, $this->urlArguments);
-		$this->getUrlArgs($parser);
+		$this->getUrlArgs($this->parser);
 
 		$this->parameters->setParameter('offset', $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']));
 		$offset = $this->parameters->getParameter('offset');
-
-		$originalInput = $input;
-
-		$bDPLRefresh = ($this->wgRequest->getVal('DPL_refresh', '') == 'yes');
-
-		//Options
-		$DPLCache        = '';
-		$DPLCachePath    = '';
 
 		/***************************************/
 		/* User Input preparation and parsing. */
@@ -146,36 +153,11 @@ class Parse {
 		}
 
 		/*******************/
-		/* Are we caching? */
+		/* Is this cached? */
 		/*******************/
-		if (!$this->parameters->getParameter('allowcachedresults')) {
-			$parser->disableCache();
-		}
-		if ($DPLCache != '') {
-			$cache = wfGetCache(Config::getSetting('cacheType'));
-
-			// when the page containing the DPL statement is changed we must recreate the cache as the DPL statement may have changed
-			// otherwise we accept thecache if it is not too old
-			if (!$bDPLRefresh && file_exists($cacheFile)) {
-				// find out if cache is acceptable or too old
-				$diff = time() - filemtime($cacheFile);
-				if ($diff <= $iDPLCachePeriod) {
-					$cachedOutput    = file_get_contents($cacheFile);
-					$cachedOutputPos = strpos($cachedOutput, "+++\n");
-					// when submitting a page we check if the DPL statement has changed
-					if ($this->wgRequest->getVal('action', 'view') != 'submit' || ($originalInput == substr($cachedOutput, 0, $cachedOutputPos))) {
-						$cacheTimeStamp = self::prettyTimeStamp(date('YmdHis', filemtime($cacheFile)));
-						$cachePeriod    = self::durationTime($iDPLCachePeriod);
-						$diffTime       = self::durationTime($diff);
-						$output .= substr($cachedOutput, $cachedOutputPos + 4);
-						if ($this->logger->iDebugLevel >= 2) {
-							$output .= "{{Extension DPL cache|mode=get|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|now=" . date('H:i:s') . "|age=$diffTime|period=$cachePeriod|offset=$offset}}";
-						}
-						// ignore further parameters, stop processing, return cache content
-						return $output;
-					}
-				}
-			}
+		$this->cacheKey = md5($input);
+		if ($this->loadCache()) {
+			return $this->getFullOutput();
 		}
 
 		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
@@ -232,7 +214,7 @@ class Parse {
 			return $this->getFullOutput(false);
 		}
 
-		$articles = $this->processQueryResults($result, $parser);
+		$articles = $this->processQueryResults($result);
 
 		$foundRows = null;
 		if ($calcRows) {
@@ -295,7 +277,7 @@ class Parse {
 			$this->parameters->getParameter('seclabelsmatch'),
 			$this->parameters->getParameter('seclabelsnotmatch'),
 			$this->parameters->getParameter('incparsed'),
-			$parser,
+			$this->parser,
 			$logger,
 			$this->parameters->getParameter('replaceintitle'),
 			$this->parameters->getParameter('titlemaxlen'),
@@ -317,10 +299,6 @@ class Parse {
 		/*******************************/
 		$this->setHeader($this->parameters->getParameter('resultsheader'));
 		$this->setFooter($this->parameters->getParameter('resultsfooter'));
-		if ($this->parameters->getParameter('warncachedresults')) {
-			//@TODO: Better way to add the cache warning?
-			$this->setHeader('{{DPL Cache Warning}}'.$this->getHeader());
-		}
 		if ($this->logger->iDebugLevel == 5) {
 			//@TODO: Fix this debug check.
 			$this->logger->iDebugLevel = 2;
@@ -385,33 +363,11 @@ class Parse {
 			'DPL_totalPages'		=> $foundRows,
 			'DPL_pages'				=> $dpl->getRowCount()
 		];
-		$this->defineScrollVariables($scrollVariables, $parser);
+		$this->defineScrollVariables($scrollVariables);
 
-		// save generated wiki text to dplcache page if desired
+		$this->updateCache();
 
-		if ($DPLCache != '') {
-			//@TODO: Handle cache updating.
-			if (!is_writeable($cacheFile)) {
-				wfMkdirParents(dirname($cacheFile));
-			} else if (($this->parameters->getParameter('dplrefresh') || $this->wgRequest->getVal('action', 'view') == 'submit') && strpos($DPLCache, '/') > 0 && strpos($DPLCache, '..') === false) {
-				// if the cache file contains a path and the user requested a refesh (or saved the file) we delete all brothers
-				wfRecursiveRemoveDir(dirname($cacheFile));
-				wfMkdirParents(dirname($cacheFile));
-			}
-			$cacheTimeStamp = self::prettyTimeStamp(date('YmdHis'));
-			$cFile          = fopen($cacheFile, 'w');
-			fwrite($cFile, $originalInput);
-			fwrite($cFile, "+++\n");
-			fwrite($cFile, $output);
-			fclose($cFile);
-			$dplElapsedTime = time() - $dplStartTime;
-			if ($this->logger->iDebugLevel >= 2) {
-				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$offset}}";
-			}
-			$parser->disableCache();
-		}
-
-		$this->triggerEndResets($reset, $eliminate, $isParserTag, $parser);
+		$this->triggerEndResets($reset, $eliminate, $isParserTag);
 
 		wfProfileOut(__METHOD__);
 
@@ -423,10 +379,9 @@ class Parse {
 	 *
 	 * @access	private
 	 * @param	object	Mediawiki Result Object
-	 * @param	object	Mediawiki Parser Object
 	 * @return	array	Array of Article objects.
 	 */
-	private function processQueryResults($result, \Parser $parser) {
+	private function processQueryResults($result) {
 		/*******************************/
 		/* Random Count Pick Generator */
 		/*******************************/
@@ -486,7 +441,7 @@ class Parse {
 			}
 
 			$title     = \Title::makeTitle($pageNamespace, $pageTitle);
-			$thisTitle = $parser->getTitle();
+			$thisTitle = $this->parser->getTitle();
 
 			//Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ($this->parameters->getParameter('skipthispage') && $thisTitle->equals($title)) {
@@ -839,17 +794,16 @@ class Parse {
 	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
 	 *
 	 * @access	public
-	 * @param	object	Parser object.
 	 * @return	void
 	 */
-	private function getUrlArgs(\Parser $parser) {
+	private function getUrlArgs() {
 		global $wgExtVariables;
 		//@TODO: Figure out why this function needs to set ALL request variables and not just those related to DPL.
 		$args = $this->wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
 			Variables::setVar(['', '', $argName, $argValue]);
 			if (defined('ExtVariables::VERSION')) {
-				\ExtVariables::get($parser)->setVarValue($argName, $argValue);
+				\ExtVariables::get($this->parser)->setVarValue($argName, $argValue);
 			}
 		}
 	}
@@ -859,16 +813,15 @@ class Parse {
 	 *
 	 * @access	public
 	 * @param	array	Array of scroll variables with the key as the variable name and the value as the value.  Non-arrays will be casted to arrays.
-	 * @param	object	Parser object.
 	 * @return	void
 	 */
-	private function defineScrollVariables($scrollVariables, \Parser $parser) {
+	private function defineScrollVariables($scrollVariables) {
 		$scrollVariables = (array) $scrollVariables;
 
 		foreach ($scrollVariables as $variable => $value) {
 			Variables::setVar(['', '', $variable, $value]);
 			if (defined('ExtVariables::VERSION')) {
-				\ExtVariables::get($parser)->setVarValue($variable, $value);
+				\ExtVariables::get($this->parser)->setVarValue($variable, $value);
 			}
 		}
 	}
@@ -880,14 +833,13 @@ class Parse {
 	 * @param	array	End Reset Booleans
 	 * @param	array	End Eliminate Booleans
 	 * @param	boolean	Call as a parser tag
-	 * @param	object	Parser object.
 	 * @return	void
 	 */
-	private function triggerEndResets(&$reset, &$eliminate, $isParserTag, \Parser $parser) {
+	private function triggerEndResets(&$reset, &$eliminate, $isParserTag) {
 		global $wgHooks;
 
 		$localParser = new \Parser();
-		$parserOutput = $localParser->parse($this->getFullOutput, $parser->mTitle, $parser->mOptions);
+		$parserOutput = $localParser->parse($this->getFullOutput, $this->parser->mTitle, $this->parser->mOptions);
 
 		if (!is_array($reset)) {
 			$reset = [];
@@ -959,6 +911,68 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}
+	}
+
+	/**
+	 * Load Cache from Configured Cache System
+	 *
+	 * @access	private
+	 * @return	boolean	Successfully loaded - True if loaded and placed into the output.  False otherwise.
+	 */
+	private function loadCache() {
+		if (Config::getSetting('cacheType') == CACHE_NONE) {
+			return false;
+		}
+
+		$isSaving = $this->wgRequest->getVal('action') === 'submit';
+		$cacheRefresh = $this->parameters->filterBoolean($this->wgRequest->getVal('cacherefresh'));
+
+		//Also do not pull from cache when editing.
+		if (!$isSaving && !$cacheRefresh) {
+			//This can throw an exception if set incorrectly.  Let it get through so that site owner knows they set it incorrectly.
+			$cache = wfGetCache(Config::getSetting('cacheType'));
+
+			$output = $cache->get($this->cacheKey);
+			if (!empty($output)) {
+				if ($this->parameters->getParameter('warncachedresults')) {
+					$this->setHeader('{{DPL Cache Warning}}');
+				}
+				//The output from the cache contains the header, footer, and body smashed together already.
+				$this->addOutput($output);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Update Cache with new output.
+	 *
+	 * @access	private
+	 * @return	boolean	Cache Updated
+	 */
+	private function updateCache() {
+		if (Config::getSetting('cacheType') == CACHE_NONE) {
+			return false;
+		}
+
+		if ($this->parameters->getParameter('allowcachedresults')) {
+			$isSaving = $this->wgRequest->getVal('action') === 'submit';
+
+			//Do not update the cache while editing.
+			if (!$isSaving) {
+				$cache = wfGetCache(Config::getSetting('cacheType'));
+				$cache->set($this->cacheKey, $this->getFullOutput(), ($this->parameters->getParameter('cacheperiod') ? $this->parameters->getParameter('cacheperiod') : 3600));
+				return true;
+			}
+			if ($this->logger->iDebugLevel >= 2) {
+				$output .= "{{Extension DPL cache|mode=update|page={{FULLPAGENAME}}|cache=$DPLCache|date=$cacheTimeStamp|age=0|now=" . date('H:i:s') . "|dpltime=$dplElapsedTime|offset=$offset}}";
+			}
+		} else {
+			$this->parser->disableCache();
+			return false;
+		}
+		return false;
 	}
 
 	/**
