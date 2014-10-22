@@ -296,7 +296,7 @@ class ParametersData {
 		 * Max number of results to display, selection is based on random.
 		 */
 		'randomcount' => [
-			'default'	=> 10,
+			'default'	=> null,
 			'integer'	=> true
 		],
 		/**
