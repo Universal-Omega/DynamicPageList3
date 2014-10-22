@@ -66,8 +66,6 @@ class Parse {
 		$this->logger		= new Logger($this->parameters->getData('debug')['default']);
 		$this->tableNames	= Query::getTableNames();
 		$this->wgRequest	= $wgRequest;
-
-		$this->getUrlArgs();
 	}
 
 	/**
@@ -105,6 +103,7 @@ class Parse {
 			}
 		}
 		$input = $this->resolveUrlArguments($input, $this->urlArguments);
+		$this->getUrlArgs($parser);
 
 		$this->parameters->setParameter('offset', $this->wgRequest->getInt('DPL_offset', $this->parameters->getData('offset')['default']));
 		$offset = $this->parameters->getParameter('offset');
@@ -408,7 +407,18 @@ class Parse {
 		$this->setHeader($this->replaceVariables($header, $replacementVariables));
 		$this->setFooter($this->replaceVariables($footer, $replacementVariables));
 
-		self::defineScrollVariables($firstNamespaceFound, $firstTitleFound, $lastNamespaceFound, $lastTitleFound, $scrollDir, $this->parameters->getParameter('count'), $replacementVariables['%DPLTIME%'], $foundRows, $dpl->getRowCount());
+		$scrollVariables = [
+			'DPL_firstNamespace'	=> $firstNamespaceFound,
+			'DPL_firstTitle'		=> $firstTitleFound,
+			'DPL_lastNamespace'		=> $lastNamespaceFound,
+			'DPL_lastTitle'			=> $lastTitleFound,
+			'DPL_scrollDir'			=> $scrollDir,
+			'DPL_time'				=> $replacementVariables['%DPLTIME%'],
+			'DPL_count'				=> $this->parameters->getParameter('count'),
+			'DPL_totalPages'		=> $foundRows,
+			'DPL_pages'				=> $dpl->getRowCount()
+		];
+		$this->defineScrollVariables($scrollVariables, $parser);
 
 		// save generated wiki text to dplcache page if desired
 
@@ -899,107 +909,38 @@ class Parse {
 	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
 	 *
 	 * @access	public
+	 * @param	object	Parser object.
 	 * @return	void
 	 */
-	private function getUrlArgs() {
+	private function getUrlArgs(\Parser $parser) {
 		global $wgExtVariables;
 		//@TODO: Figure out why this function needs to set ALL request variables and not just those related to DPL.
 		$args = $this->wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
-			Variables::setVar(array(
-				'',
-				'',
-				$argName,
-				$argValue
-			));
-		}
-		if (!isset($wgExtVariables)) {
-			return;
-		}
-		$args  = $this->wgRequest->getValues();
-		$dummy = '';
-		foreach ($args as $argName => $argValue) {
-			$wgExtVariables->vardefine($dummy, $argName, $argValue);
+			Variables::setVar(['', '', $argName, $argValue]);
+			if (defined('ExtVariables::VERSION')) {
+				\ExtVariables::get($parser)->setVarValue($argName, $argValue);
+			}
 		}
 	}
 
 	/**
-	 * This function uses the Variables extension to provide navigation aids like DPL_firstTitle, DPL_lastTitle, DPL_findTitle.  These variables can be accessed as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
+	 * This function uses the Variables extension to provide navigation aids such as DPL_firstTitle, DPL_lastTitle, or DPL_findTitle.  These variables can be accessed as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
 	 *
 	 * @access	public
+	 * @param	array	Array of scroll variables with the key as the variable name and the value as the value.  Non-arrays will be casted to arrays.
+	 * @param	object	Parser object.
 	 * @return	void
 	 */
-	private static function defineScrollVariables($firstNamespace, $firstTitle, $lastNamespace, $lastTitle, $scrollDir, $dplCount, $dplElapsedTime, $totalPages, $pages) {
-		//@TODO: $wgExtVariables is deprecated and removed.  Fix this function to use the static public functions off class ExtVariables.
-		global $wgExtVariables;
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_firstNamespace',
-			$firstNamespace
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_firstTitle',
-			$firstTitle
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_lastNamespace',
-			$lastNamespace
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_lastTitle',
-			$lastTitle
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_scrollDir',
-			$scrollDir
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_time',
-			$dplElapsedTime
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_count',
-			$dplCount
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_totalPages',
-			$totalPages
-		));
-		Variables::setVar(array(
-			'',
-			'',
-			'DPL_pages',
-			$pages
-		));
+	private function defineScrollVariables($scrollVariables, \Parser $parser) {
+		$scrollVariables = (array) $scrollVariables;
 
-		if (!isset($wgExtVariables)) {
-			return;
+		foreach ($scrollVariables as $variable => $value) {
+			Variables::setVar(['', '', $variable, $value]);
+			if (defined('ExtVariables::VERSION')) {
+				\ExtVariables::get($parser)->setVarValue($variable, $value);
+			}
 		}
-		$dummy = '';
-		$wgExtVariables->vardefine($dummy, 'DPL_firstNamespace', $firstNamespace);
-		$wgExtVariables->vardefine($dummy, 'DPL_firstTitle', $firstTitle);
-		$wgExtVariables->vardefine($dummy, 'DPL_lastNamespace', $lastNamespace);
-		$wgExtVariables->vardefine($dummy, 'DPL_lastTitle', $lastTitle);
-		$wgExtVariables->vardefine($dummy, 'DPL_scrollDir', $scrollDir);
-		$wgExtVariables->vardefine($dummy, 'DPL_time', $dplElapsedTime);
-		$wgExtVariables->vardefine($dummy, 'DPL_count', $dplCount);
-		$wgExtVariables->vardefine($dummy, 'DPL_totalPages', $totalPages);
-		$wgExtVariables->vardefine($dummy, 'DPL_pages', $pages);
 	}
 
 	/**
