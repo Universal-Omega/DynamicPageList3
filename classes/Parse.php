@@ -239,12 +239,12 @@ class Parse {
 			$foundRows = $this->query->getFoundRows();
 		}
 
-		// backward scrolling: if the user specified titleLE we reverse the output order
+		//Backward scrolling: If the user specified only titlelt with descending reverse the output order.
 		if ($this->parameters->getParameter('titlelt') && !$this->parameters->getParameter('titlegt') && $this->parameters->getParameter('order') == 'descending') {
 			$articles = array_reverse($articles);
 		}
 
-		// special sort for card suits (Bridge)
+		//Special sort for card suits (Bridge)
 		if ($this->parameters->getParameter('ordersuitsymbols')) {
 			$articles = $this->cardSuitSort($articles);
 		}
@@ -322,6 +322,7 @@ class Parse {
 			$this->setHeader('{{DPL Cache Warning}}'.$this->getHeader());
 		}
 		if ($this->logger->iDebugLevel == 5) {
+			//@TODO: Fix this debug check.
 			$this->logger->iDebugLevel = 2;
 			$this->setHeader('<pre><nowiki>'.$this->getHeader());
 			$this->setFooter($this->setFooter().'</nowiki></pre>');
@@ -659,7 +660,6 @@ class Parse {
 	 * @return	void
 	 */
 	private function doQueryErrorChecks() {
-		//@TODO: Many things to fix in here still.
 		/**************************/
 		/* Parameter Error Checks */
 		/**************************/
@@ -699,35 +699,33 @@ class Parse {
 		//No more than one type of date at a time!
 		//@TODO: Can this be fixed to allow all three later after fixing the article class?
 		if ((intval($this->parameters->getParameter('addpagetoucheddate')) + intval($this->parameters->getParameter('addfirstcategorydate')) + intval($this->parameters->getParameter('addeditdate'))) > 1) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_MORETHAN1TYPEOFDATE);
+			return false;
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage
-		if ($iDominantSection > 0 && count($aSecLabels) < $iDominantSection) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($aSecLabels));
+		if ($this->parameters->getParameter('dominantsection') > 0 && count($this->parameters->getParameter('seclabels')) < $this->parameters->getParameter('dominantsection')) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_DOMINANTSECTIONRANGE, count($this->parameters->getParameter('seclabels')));
+			return false;
 		}
 
 		// category-style output requested with not compatible order method
-		if ($this->parameters->getParameter('mode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), array(
-			'sortkey',
-			'title',
-			'titlewithoutnamespace'
-		))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+		if ($this->parameters->getParameter('mode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), ['sortkey', 'title', 'titlewithoutnamespace'])) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
+			return false;
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
-		if ($this->parameters->getParameter('addpagetoucheddate') && !array_intersect($this->parameters->getParameter('ordermethod'), array(
-			'pagetouched',
-			'title'
-		))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+		if ($this->parameters->getParameter('addpagetoucheddate') && !array_intersect($this->parameters->getParameter('ordermethod'), ['pagetouched', 'title'])) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
+			return false;
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
 		if ($this->parameters->getParameter('addeditdate') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
+			return false;
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
@@ -736,22 +734,24 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($this->parameters->getParameter('adduser') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) & ($sLastRevisionBefore . $sAllRevisionsBefore . $sFirstRevisionSince . $sAllRevisionsSince == '')) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+		if ($this->parameters->getParameter('adduser') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) && !$this->parameters->getParameter('allrevisionsbefore') && !$this->parameters->getParameter('allrevisionssince') && !$this->parameters->getParameter('firstrevisionsince') && !$this->parameters->getParameter('lastrevisionbefore')) {
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
+			return false;
 		}
 		if ($this->parameters->getParameter('minoredits') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit'])) {
-			return $this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
+			return false;
 		}
 
 		/**
-		 * If we include the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
+		 * If including the Uncategorized, we need the 'dpl_clview': VIEW of the categorylinks table where we have cl_to='' (empty string) for all uncategorized pages. This VIEW must have been created by the administrator of the mediawiki DB at installation. See the documentation.
 		 */
 		if ($this->parameters->getParameter('includeuncat')) {
-			// If the view is not there, we can't perform logical operations on the Uncategorized.
+			//If the view is not there, we can't perform logical operations on the Uncategorized.
 			if (!$this->DB->tableExists('dpl_clview')) {
-				$sSqlCreate_dpl_clview = 'CREATE VIEW ' . $this->tableNames['dpl_clview'] . " AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM " . $this->tableNames['page'] . ' LEFT OUTER JOIN ' . $this->tableNames['categorylinks'] . ' ON ' . $this->tableNames['page'] . '.page_id=cl_from';
-				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sSqlCreate_dpl_clview);
-				return $output;
+				$sql = 'CREATE VIEW '.$this->tableNames['dpl_clview']." AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM ".$this->tableNames['page'].' LEFT OUTER JOIN '.$this->tableNames['categorylinks'].' ON '.$this->tableNames['page'].'.page_id=cl_from';
+				$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOCLVIEW, $this->tableNames['dpl_clview'], $sql);
+				return false;
 			}
 		}
 
