@@ -496,6 +496,8 @@
 * Configuration is now standardized instead of calling into static class functions or modifying objects directly.
 * Fixed several SQL injection exploits with 'ordercollation' and 'category'.
 * The 'dplcache' parameter was removed as it is now obselete.  Please use 'allowcachedresults' to control caching.
+* The 'allowcachedresults' parameter default was changed to true.
 * The 'dplcacheperiod' parameter was renamed to 'cacheperiod'.
+* The 'cacheperiod' parameter default was changed to 3600 seconds.(One Hour)
 * The URL argument 'DPL_refresh' was renamed to 'cacherefresh'.
 * The card suit sort function no longer has a massive memory leak.
