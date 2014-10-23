@@ -627,14 +627,14 @@ class DynamicPageList {
 					// output the link to the article
 					$rBody .= $article->mLink;
 				}
-				if ($article->mSize != '' && $mode->name != 'userformat') {
+				if ($article->mSize != '') {
 					if (strlen($article->mSize) > 3) {
 						$rBody .= ' [' . substr($article->mSize, 0, strlen($article->mSize) - 3) . ' kB]';
 					} else {
 						$rBody .= ' [' . $article->mSize . ' B]';
 					}
 				}
-				if ($article->mCounter != '' && $mode->name != 'userformat') {
+				if ($article->mCounter != '') {
 					// Adapted from SpecialPopularPages::formatResult()
 					// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
 					$nv = $this->msgExt('nviews', array(

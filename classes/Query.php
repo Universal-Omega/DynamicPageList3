@@ -766,15 +766,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'format' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _format($option) { }
-
-	/**
 	 * Set SQL for 'goal' parameter.
 	 *
 	 * @access	private

@@ -91,7 +91,7 @@ class Parameters extends ParametersData {
 
 			//Strip <html> tag.
 			if ($parameterData['strip_html'] === true) {
-				$option = self::stripHtmlTags($option);
+				$option = $this->stripHtmlTags($option);
 			}
 
 			//Simple integer intval().
@@ -673,13 +673,13 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Short cut to formatParameter();
+	 * Short cut to _format();
 	 *
 	 * @access	public
 	 * @return	mixed
 	 */
 	public function _listseparators() {
-		return call_user_func_array([$this, 'formatParameter'], func_get_args());
+		return call_user_func_array([$this, '_format'], func_get_args());
 	}
 
 	/**
@@ -690,12 +690,11 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _format($option) {
-		// parsing of wikitext will happen at the end of the output phase
-		// we replace '\n' in the input by linefeed because wiki syntax depends on linefeeds
-		$option            = self::stripHtmlTags($option);
-		$option            = Parse::replaceNewLines($option);
+		//Parsing of wikitext will happen at the end of the output phase.  Replace '\n' in the input by linefeed because wiki syntax depends on linefeeds.
+		$option = $this->stripHtmlTags($option);
+		$option = Parse::replaceNewLines($option);
 		$this->setParameter('listseparators', explode(',', $option, 4));
-		// mode=userformat will be automatically assumed
+		//Set the 'mode' parameter to userformat automatically.
 		$this->setParameter('mode', 'userformat');
 		$this->setParameter('inltxt', '');
 	}
@@ -848,7 +847,7 @@ class Parameters extends ParametersData {
 		//We offer a possibility to replace some part of the title
 		$replaceInTitle = explode(',', $option, 2);
 		if (isset($replaceInTitle[1])) {
-			$replaceInTitle[1] = self::stripHtmlTags($replaceInTitle[1]);
+			$replaceInTitle[1] = $this->stripHtmlTags($replaceInTitle[1]);
 		}
 
 		$this->setParameter('replaceintitle', $replaceInTitle);
@@ -880,7 +879,7 @@ class Parameters extends ParametersData {
 	 * @return	mixed
 	 */
 	public function _includepage() {
-		return call_user_func_array([$this, 'include'], func_get_args());
+		return call_user_func_array([$this, '_include'], func_get_args());
 	}
 
 	/**

@@ -396,6 +396,7 @@ class Parse {
 			$pick = array_slice($pick, 0, $randomCount);
 		}
 
+		//@TODO: Broken headings due to class context.
 		$headings = []; //Maps heading to count (# of pages under each heading)
 		$articles = [];
 

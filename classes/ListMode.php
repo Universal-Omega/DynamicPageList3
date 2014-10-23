@@ -94,20 +94,7 @@ class ListMode {
 				$this->sHeadingEnd   = '</'.$listmode.'>';
 				break;
 			case 'userformat':
-				switch (count($listseparators)) {
-					case 4:
-						$this->sListEnd = $listseparators[3];
-						break;
-					case 3:
-						$this->sItemEnd = $listseparators[2];
-						break;
-					case 2:
-						$this->sItemStart = $listseparators[1];
-						break;
-					case 1:
-						$this->sListStart = $listseparators[0];
-						break;
-				}
+				list($this->sListStart, $this->sItemStart, $this->sItemEnd, $this->sListEnd) = $listseparators;
 				$this->sInline = $inlinetext;
 				break;
 		}
