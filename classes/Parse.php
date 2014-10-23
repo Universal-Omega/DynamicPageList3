@@ -142,14 +142,13 @@ class Parse {
 		/*************************/
 		/* Execute and Exit Only */
 		/*************************/
-		if ($this->parameters->getParameter('execandexit')) {
-			//@TODO: Fix up this parameter's arguments in ParameterData and how it handles the response.
+		if ($this->parameters->getParameter('execandexit') !== null) {
 			//The keyword "geturlargs" is used to return the Url arguments and do nothing else.
-			if ($sExecAndExit == 'geturlargs') {
-				return '';
+			if ($this->parameters->getParameter('execandexit') == 'geturlargs') {
+				return;
 			}
-			//In all other cases we return the value of the argument (which may contain parser function calls)
-			return $sExecAndExit;
+			//In all other cases we return the value of the argument which may contain parser function calls.
+			return $this->parameters->getParameter('execandexit');
 		}
 
 		/*******************/
@@ -165,9 +164,9 @@ class Parse {
 			$this->parameters->setParameter('tablerow', $this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels')));
 		}
 
-		/**************************/
-		/* Check Errors and Query */
-		/**************************/
+		/****************/
+		/* Check Errors */
+		/****************/
 		$errors = $this->doQueryErrorChecks();
 		if ($errors === false) {
 			//WHAT HAS HAPPENED OH NOOOOOOOOOOOOO.
@@ -179,13 +178,9 @@ class Parse {
 			$calcRows = true;
 		}
 
-		// JOIN ...
-		if ($sSqlClHeadTable != '' || $sSqlClTableForGC != '') {
-			//@TODO: FIIIIIIIIIIIIIIIIIIIIIIX.
-			$b2tables = ($sSqlClHeadTable != '') && ($sSqlClTableForGC != '');
-			$sSqlSelectFrom .= ' LEFT OUTER JOIN '.$sSqlClHeadTable.($b2tables ? ', ' : '').$sSqlClTableForGC.' ON ('.$sSqlCond_page_cl_head.($b2tables ? ' AND ' : '').$sSqlCond_page_cl_gc.')';
-		}
-
+		/*********/
+		/* Query */
+		/*********/
 		try {
 			$this->query = new Query($this->parameters);
 			$result = $this->query->buildAndSelect($calcRows);

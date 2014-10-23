@@ -272,8 +272,7 @@ class ParametersData {
 		 * Perform the command and do not query the database.
 		 */
 		'execandexit' => [
-			'default'	=> false,
-			'boolean'	=> true
+			'default'	=> null
 		],
 		
 		/**

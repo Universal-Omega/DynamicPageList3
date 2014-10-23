@@ -1068,7 +1068,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _allowcachedresults($option) {
 		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
-		if (!$this->getParameter('execandexit')) {
+		if ($this->getParameter('execandexit') !== null) {
 			if ($option == 'yes+warn') {
 				$this->setParameter('allowcachedresults', true);
 				$this->setParameter('warncachedresults', true);
