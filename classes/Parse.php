@@ -927,6 +927,11 @@ class Parse {
 			//This can throw an exception if set incorrectly.  Let it get through so that site owner knows they set it incorrectly.
 			$cache = wfGetCache(Config::getSetting('cacheType'));
 
+			if (!$this->parameters->getParameter('allowcachedresults')) {
+				$cache->delete($this->cacheKey);
+				return false;
+			}
+
 			$output = $cache->get($this->cacheKey);
 			if (!empty($output)) {
 				if ($this->parameters->getParameter('warncachedresults')) {

@@ -716,7 +716,6 @@ class Parameters extends ParametersData {
 			$this->setParameter('mode', 'userformat');
 			$this->setParameter('ordermethod', []);
 			$this->setParameter('selectioncriteriafound', true);
-			$this->setParameter('allowcachedresults', true);
 			$this->setOpenReferencesConflict(true);
 		}
 	}
@@ -1082,6 +1081,8 @@ class Parameters extends ParametersData {
 			} else {
 				return false;
 			}
+		} else {
+			$this->setParameter('allowcachedresults', false);
 		}
 		return true;
 	}

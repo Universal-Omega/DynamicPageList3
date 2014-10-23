@@ -165,9 +165,9 @@ class Query {
 		if (!$this->parameters->getParameter('openreferences')) {
 			//Add things that are always part of the query.
 			$this->addTable('page', 'page');
-			$this->addSelect([$this->tableNames['page'].'.page_namespace']);
-			$this->addSelect([$this->tableNames['page'].'.page_title']);
-			$this->addSelect([$this->tableNames['page'].'.page_id']);
+			$this->addSelect(['page_namespace' => $this->tableNames['page'].'.page_namespace']);
+			$this->addSelect(['page_title' => $this->tableNames['page'].'.page_title']);
+			$this->addSelect(['page_id' => $this->tableNames['page'].'.page_id']);
 		}
 		//Always ddd nonincludeable namespaces.
 		if (is_array($wgNonincludableNamespaces) && count($wgNonincludableNamespaces)) {
@@ -205,7 +205,7 @@ class Query {
 		}
 
 		$limit = null;
-		if ($this->offset === false && $this->limit > 0) {
+		if (!$this->offset && $this->limit > 0) {
 			$limit = "LIMIT {$this->limit}";
 		} elseif ($this->offset > 0 && $this->limit > 0) {
 			$limit = "LIMIT {$this->offset}, {$this->limit}";
@@ -1306,7 +1306,7 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy('sortkey');
-					$this->addSelect(['CONCAT(pl.pl_namespace,pl.pl_title) '.($this->collation !== false ? 'COLLATE '.$this->collation : null).' as sortkey']);
+					$this->addSelect(['sortkey' => 'CONCAT(pl.pl_namespace, pl.pl_title) '.($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 					break;
 				case 'pagetouched':
 					$this->addOrderBy('page_touched');
@@ -1327,12 +1327,12 @@ class Query {
 					//see line 2011 (order method sortkey requires category
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
-							$this->addSelect(["IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
+							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 						} else {
-							$this->addSelect(["IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
+							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 						}
 					} else {
-						$this->addSelect(["REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 					}
 					break;
 				case 'titlewithoutnamespace':
@@ -1341,7 +1341,7 @@ class Query {
 					} else {
 						$this->addOrderBy("page_title");
 					}
-					$this->addSelect(["{$this->tableNames['page']}.page_title ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
+					$this->addSelect(['sortkey' => "{$this->tableNames['page']}.page_title ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 					break;
 				case 'title':
 					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
@@ -1352,10 +1352,10 @@ class Query {
 					$_namespaceIdToText .= ' END';
 					//Map namespace index to name
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addSelect(["REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey"]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 					} else {
 						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addWhere("REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)." as sortkey");
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
 					}
 					break;
 				case 'user':
@@ -1378,7 +1378,7 @@ class Query {
 	 */
 	private function _redirects($option) {
 		if (!$this->parameters->getParameter('openreferences')) {
-			switch ($sRedirects) {
+			switch ($option) {
 				case 'only':
 					$this->addWhere($this->tableNames['page'].".page_is_redirect=1");
 					break;
