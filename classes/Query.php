@@ -343,6 +343,7 @@ class Query {
 
 	/**
 	 * Add a field to select.
+	 * Will ignore duplicate values if the exact same alias and exact same field are passed.
 	 *
 	 * @access	public
 	 * @param	array	Array of fields with the array key being the field alias.  Leave the array key as a numeric index to not specify an alias.
@@ -610,7 +611,6 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagetoucheddate($option) {
-		//@TODO: Need to check if this was added by the order methods or call this function to add it from there.
 		$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
 	}
 
@@ -782,8 +782,10 @@ class Query {
 	 * @return	void
 	 */
 	private function _goal($option) {
-		//@TODO: This function.  Does some weird changes to the output.
-		//@TODO: Goal turns off offset/limit when in category mode.
+		if ($option == 'categories') {
+			$this->setLimit(false);
+			$this->setOffset(false);
+		}
 	}
 
 	/**
@@ -1300,7 +1302,7 @@ class Query {
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
 						$this->addOrderBy('page_touched');
-						$this->addSelect(["{$this->tableNames['page']}.page_touched"]);
+						$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
 					} else {
 						$this->addOrderBy('rev_timestamp');
 						$this->addTable('revision', 'rev');
@@ -1317,7 +1319,7 @@ class Query {
 					break;
 				case 'pagetouched':
 					$this->addOrderBy('page_touched');
-					$this->addSelect(["{$this->tableNames['page']}.page_touched"]);
+					$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
 					break;
 				case 'size':
 					$this->addOrderBy('page_len');

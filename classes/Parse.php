@@ -638,8 +638,9 @@ class Parse {
 		//Delayed to the construction of the SQL query, see near line 2211, gs
 		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
 
+		$orderMethods = (array) $this->parameters->getParameter('ordermethod');
 		//Throw an error in no categories were selected when using category sorting modes or requesting category information.
-		if (!$totalCategories == 0 && ($this->parameters->getParameter('ordermethod') == 'categoryadd' || $this->parameters->getParameter('addfirstcategorydate') === true)) {
+		if (!$totalCategories == 0 && (in_array('categoryadd', $orderMethods) || $this->parameters->getParameter('addfirstcategorydate') === true)) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
 			return false;
 		}
@@ -658,20 +659,20 @@ class Parse {
 		}
 
 		// category-style output requested with not compatible order method
-		if ($this->parameters->getParameter('mode') == 'category' && !array_intersect($this->parameters->getParameter('ordermethod'), ['sortkey', 'title', 'titlewithoutnamespace'])) {
+		if ($this->parameters->getParameter('mode') == 'category' && !array_intersect($orderMethods, ['sortkey', 'title', 'titlewithoutnamespace'])) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace');
 			return false;
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
-		if ($this->parameters->getParameter('addpagetoucheddate') && !array_intersect($this->parameters->getParameter('ordermethod'), ['pagetouched', 'title'])) {
+		if ($this->parameters->getParameter('addpagetoucheddate') && !array_intersect($orderMethods, ['pagetouched', 'title'])) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title');
 			return false;
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		//firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ($this->parameters->getParameter('addeditdate') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
+		if ($this->parameters->getParameter('addeditdate') && !array_intersect($orderMethods, ['firstedit', 'lastedit']) && ($this->parameters->getParameter('allrevisionsbefore') || $this->parameters->getParameter('allrevisionssince') || $this->parameters->getParameter('firstrevisionsince') || $this->parameters->getParameter('lastrevisionbefore'))) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit');
 			return false;
 		}
@@ -682,11 +683,11 @@ class Parse {
 		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ($this->parameters->getParameter('adduser') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit']) && !$this->parameters->getParameter('allrevisionsbefore') && !$this->parameters->getParameter('allrevisionssince') && !$this->parameters->getParameter('firstrevisionsince') && !$this->parameters->getParameter('lastrevisionbefore')) {
+		if ($this->parameters->getParameter('adduser') && !array_intersect($orderMethods, ['firstedit', 'lastedit']) && !$this->parameters->getParameter('allrevisionsbefore') && !$this->parameters->getParameter('allrevisionssince') && !$this->parameters->getParameter('firstrevisionsince') && !$this->parameters->getParameter('lastrevisionbefore')) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit');
 			return false;
 		}
-		if ($this->parameters->getParameter('minoredits') && !array_intersect($this->parameters->getParameter('ordermethod'), ['firstedit', 'lastedit'])) {
+		if ($this->parameters->getParameter('minoredits') && !array_intersect($orderMethods, ['firstedit', 'lastedit'])) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit');
 			return false;
 		}
@@ -709,7 +710,7 @@ class Parse {
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
-		if ($this->parameters->getParameter('headingmode') != 'none' && count($this->parameters->getParameter('ordermethod')) < 2) {
+		if ($this->parameters->getParameter('headingmode') != 'none' && count($orderMethods) < 2) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter('headingmode'), 'none');
 			$this->parameters->setParameter('headingmode', 'none');
 		}
@@ -731,7 +732,7 @@ class Parse {
 	 * @return	array	Updated 'tablerow' parameter.
 	 */
 	private static function updateTableRowKeys($tableRow, $sectionLabels) {
-		$_tableRow	= $tableRow;
+		$_tableRow	= (array) $tableRow;
 		$tableRow	= [];
 		$groupNr	= -1;
 		$t			= -1;
@@ -789,10 +790,11 @@ class Parse {
 	 * @return	void
 	 */
 	private function getUrlArgs() {
-		global $wgExtVariables;
-		//@TODO: Figure out why this function needs to set ALL request variables and not just those related to DPL.
 		$args = $this->wgRequest->getValues();
 		foreach ($args as $argName => $argValue) {
+			if (strpos($argName, 'DPL_') === false) {
+				continue;
+			}
 			Variables::setVar(['', '', $argName, $argValue]);
 			if (defined('ExtVariables::VERSION')) {
 				\ExtVariables::get($this->parser)->setVarValue($argName, $argValue);
