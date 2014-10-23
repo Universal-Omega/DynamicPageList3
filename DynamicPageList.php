@@ -98,11 +98,6 @@ if (!isset($dplSettings['behavingLikeIntersection'])) {
 	$dplSettings['behavingLikeIntersection'] = false;
 }
 
-//This sets up a standard Mediawiki caching interface, whether it be file, Memcache, or Redis.
-if (!isset($dplSettings['cacheType'])) {
-	$dplSettings['cacheType'] = CACHE_ANYTHING;
-}
-
 //Maximum number of items in a category list before being cut off.
 if (!isset($dplSettings['categoryStyleListCutoff'])) {
 	$dplSettings['categoryStyleListCutoff'] = 6;
@@ -140,11 +135,6 @@ if (!isset($dplSettings['maxResultCount'])) {
 //Set this to true to allow DPL to run from protected pages only.
 if (!isset($dplSettings['runFromProtectedPagesOnly'])) {
 	$dplSettings['runFromProtectedPagesOnly'] = false;
-}
-
-//Force DPL to respect the parser cache.  It makes DPL less dynamic, but reduces overall server load.
-if (!isset($dplSettings['respectParserCache'])) {
-	$dplSettings['respectParserCache'] = false;
 }
 
 \DPL\Config::init($dplSettings);

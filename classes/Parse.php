@@ -151,14 +151,6 @@ class Parse {
 			return $this->parameters->getParameter('execandexit');
 		}
 
-		/*******************/
-		/* Is this cached? */
-		/*******************/
-		$this->cacheKey = md5($this->parser->mTitle->getPrefixedText().$input);
-		if ($this->loadCache()) {
-			return $this->getFullOutput();
-		}
-
 		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
 		if ($this->parameters->getParameter('seclabels') !== null) {
 			$this->parameters->setParameter('tablerow', $this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels')));
@@ -358,7 +350,11 @@ class Parse {
 		];
 		$this->defineScrollVariables($scrollVariables);
 
-		$this->updateCache();
+		if ($this->parameters->getParameter('allowcachedresults')) {
+			$this->parser->getOutput()->updateCacheExpiry($this->parameters->getParameter('cacheperiod') ? $this->parameters->getParameter('cacheperiod') : 3600);
+		} else {
+			$this->parser->disableCache();
+		}
 
 		$this->triggerEndResets($reset, $eliminate, $isParserTag);
 
@@ -906,70 +902,6 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}
-	}
-
-	/**
-	 * Load Cache from Configured Cache System
-	 *
-	 * @access	private
-	 * @return	boolean	Successfully loaded - True if loaded and placed into the output.  False otherwise.
-	 */
-	private function loadCache() {
-		if (Config::getSetting('cacheType') == CACHE_NONE) {
-			return false;
-		}
-
-		$isSaving = $this->wgRequest->getVal('action') === 'submit';
-		$cacheRefresh = $this->parameters->filterBoolean($this->wgRequest->getVal('cacherefresh'));
-
-		//Also do not pull from cache when editing.
-		if (!$isSaving && !$cacheRefresh) {
-			//This can throw an exception if set incorrectly.  Let it get through so that site owner knows they set it incorrectly.
-			$cache = wfGetCache(Config::getSetting('cacheType'));
-
-			if (!$this->parameters->getParameter('allowcachedresults')) {
-				$cache->delete($this->cacheKey);
-				return false;
-			}
-
-			$output = $cache->get($this->cacheKey);
-			if (!empty($output)) {
-				if ($this->parameters->getParameter('warncachedresults')) {
-					$this->setHeader('{{DPL Cache Warning}}');
-				}
-				//The output from the cache contains the header, footer, and body smashed together already.
-				$this->addOutput($output);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Update Cache with new output.
-	 *
-	 * @access	private
-	 * @return	boolean	Cache Updated
-	 */
-	private function updateCache() {
-		if (Config::getSetting('cacheType') == CACHE_NONE) {
-			return false;
-		}
-
-		if ($this->parameters->getParameter('allowcachedresults')) {
-			$isSaving = $this->wgRequest->getVal('action') === 'submit';
-
-			//Do not update the cache while editing.
-			if (!$isSaving) {
-				$cache = wfGetCache(Config::getSetting('cacheType'));
-				$cache->set($this->cacheKey, $this->getFullOutput(), ($this->parameters->getParameter('cacheperiod') ? $this->parameters->getParameter('cacheperiod') : 3600));
-				return true;
-			}
-		} else {
-			$this->parser->disableCache();
-			return false;
-		}
-		return false;
 	}
 
 	/**

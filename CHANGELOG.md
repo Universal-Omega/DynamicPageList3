@@ -492,12 +492,13 @@
 
 #Version 3.0
 * THE MOTHER OF ALL OVERHAULS! - Seriously, the entire code base was ripped to shreds and redone to be easily worked on in the future.
-* Cache can now be set to any standard Mediawiki cache type.  Default: CACHE_ANYTHING
 * Configuration is now standardized instead of calling into static class functions or modifying objects directly.
 * Fixed several SQL injection exploits with 'ordercollation' and 'category'.
-* The 'dplcache' parameter was removed as it is now obselete.  Please use 'allowcachedresults' to control caching.
+* Cache now works with the built Mediawiki Parser cache.  The built in DPL cache was fundamentally broken.
+* Parameter 'dplcache' was removed as it is now obselete.  Please use 'allowcachedresults' to control caching.
 * The 'allowcachedresults' parameter default was changed to true.
 * The 'dplcacheperiod' parameter was renamed to 'cacheperiod'.
 * The 'cacheperiod' parameter default was changed to 3600 seconds.(One Hour)
-* The URL argument 'DPL_refresh' was renamed to 'cacherefresh'.
+* URL argument 'DPL_refresh' was removed.  To purge the Parser cache perform a null edit on the page or place 'action=purge' as part of the URL.
+* Configuration value 'respectParserCache' was removed.
 * The card suit sort function no longer has a massive memory leak.
