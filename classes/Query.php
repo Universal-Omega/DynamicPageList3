@@ -1077,7 +1077,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _minoredits($option) {
-		if (isset($sMinorEdits) && $sMinorEdits == 'exclude') {
+		if (isset($option) && $option == 'exclude') {
 			$this->addWhere("rev_minor_edit=0");
 		}
 	}

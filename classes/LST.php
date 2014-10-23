@@ -137,7 +137,7 @@ class LST {
     
     public static function text($parser, $page, &$title, &$text) 
     {
-      $title = Title::newFromText($page);
+      $title = \Title::newFromText($page);
       
       if (is_null($title) ) {
         $text = '';
@@ -421,7 +421,7 @@ class LST {
         $page = $article->mTitle->getPrefixedText();
         $date = $article->myDate;
         $user = $article->mUserLink;
-        $title = Title::newFromText($page);
+        $title = \Title::newFromText($page);
 		/* get text and throw away html comments */
         $text = preg_replace('/<!--.*?-->/s','',$parser->fetchTemplate($title));
 

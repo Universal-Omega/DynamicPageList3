@@ -326,8 +326,8 @@ class ParametersData {
 		 * - 5: <nowiki> tags around the ouput
 		 */
 		'debug' => [
-			'default'	=> '2',
-			'values'	=> ['0', '1', '2', '3', '4', '5']
+			'default'	=> 2,
+			'values'	=> [0, 1, 2, 3, 4, 5]
 		],
 
 		/**
@@ -803,7 +803,7 @@ class ParametersData {
 		 * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
 		 */
 		'ordermethod' => [
-			'default'	=> 'titlewithoutnamespace',
+			'default'	=> ['titlewithoutnamespace'],
 			'values'	=> [
 				'counter',
 				'size',
@@ -822,11 +822,11 @@ class ParametersData {
 		],
 		/**
 		 * minoredits =... (compatible with ordermethod=...,firstedit | lastedit only)
-		 * - exclude: ignore minor edits when sorting the list (rev_minor_edit = 0 only)
+		 * - exclude: ignore minor edits (rev_minor_edit = 0 only)
 		 * - include: include minor edits
 		 */
 		'minoredits' => [
-			'default'			=> 'exclude',
+			'default'			=> null,
 			'values'			=> ['include', 'exclude'],
 			'open_ref_conflict'	=> true
 		],
