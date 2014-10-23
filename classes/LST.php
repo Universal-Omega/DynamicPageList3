@@ -27,17 +27,21 @@
 namespace DPL;
 
 class LST {
-
 	##############################################################
 	# To do transclusion from an extension, we need to interact with the parser
-	# at a low level.  This is the general transclusion functionality
+	# at a low level. This is the general transclusion functionality
 	##############################################################
 
-	///Register what we're working on in the parser, so we don't fall into a trap.
-	public static function open($parser, $part1) {
+	/**
+	 * Register what we're working on in the parser, so we don't fall into a trap.
+	 * @param $parser Parser
+	 * @param $part1
+	 * @return bool
+	 */
+	static public function open( $parser, $part1 ) {
 		// Infinite loop test
-		if (isset($parser->mTemplatePath[$part1])) {
-			wfDebug(__METHOD__ . ": template loop broken at '$part1'\n");
+		if ( isset( $parser->mTemplatePath[$part1] ) ) {
+			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
 			return false;
 		} else {
 			$parser->mTemplatePath[$part1] = 1;
@@ -46,13 +50,18 @@ class LST {
 
 	}
 
-	///Finish processing the function.
-	public static function close($parser, $part1) {
+	/**
+	 * Finish processing the function.
+	 * @param $parser Parser
+	 * @param $part1
+	 * @return bool
+	 */
+	static public function close( $parser, $part1 ) {
 		// Infinite loop test
-		if (isset($parser->mTemplatePath[$part1])) {
-			unset($parser->mTemplatePath[$part1]);
+		if ( isset( $parser->mTemplatePath[$part1] ) ) {
+			unset( $parser->mTemplatePath[$part1] );
 		} else {
-			wfDebug(__METHOD__ . ": close unopened template loop at '$part1'\n");
+			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
 		}
 	}
 
@@ -96,9 +105,16 @@ class LST {
 	# And now, the labeled section transclusion
 	##############################################################
 
-	///The section markers aren't paired, so we only need to remove them.
-	# this function doesn't seem to be in use.  remove?
-	public static function emptyString($in, $assocArgs = array(), $parser = null) {
+	/**
+	 * Parser tag hook for <section>.
+	 * The section markers aren't paired, so we only need to remove them.
+	 *
+	 * @param string $in
+	 * @param array $assocArgs
+	 * @param Parser $parser
+	 * @return string HTML output
+	 */
+	static private function noop( $in, $assocArgs = array(), $parser = null ) {
 		return '';
 	}
 
@@ -125,12 +141,33 @@ class LST {
 		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" . "['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" . "['\"]?\\1['\"]?" . "$ws\/?>/s";
 	}
 
-	///Count headings in skipped text; the $parser arg could go away in the future.
-	private static function countHeadings($text, $limit) {
-		//count skipped headings, so parser (as of r18218) can skip them, to
-		//prevent wrong heading links (see bug 6563).
-		$pat = '^(={1,6}).+\s*.*?\1\s*$';
-		return preg_match_all("/$pat/im", substr($text, 0, $limit), $m);
+	/**
+	 * Count headings in skipped text.
+	 *
+	 * Count skipped headings, so parser (as of r18218) can skip them, to
+	 * prevent wrong heading links (see bug 6563).
+	 *
+	 * @param string $text
+	 * @param int $limit Cutoff point in the text to stop searching
+	 * @return int Number of matches
+	 * @private
+	 */
+	static private function countHeadings($text, $limit) {
+		$pat = '^(={1,6}).+\1\s*$()';
+
+		$count = 0;
+		$offset = 0;
+		$m = array();
+		while ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
+			if ( $m[2][1] > $limit ) {
+				break;
+			}
+
+			$count++;
+			$offset = $m[2][1];
+		}
+
+		return $count;
 	}
 
 	public static function text($parser, $page, &$title, &$text) {
