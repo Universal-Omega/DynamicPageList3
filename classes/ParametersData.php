@@ -269,7 +269,7 @@ class ParametersData {
 			'values'	=> ['include', 'exclude', 'only']
 		],
 		/**
-		 * perform the command and do not query the database
+		 * Perform the command and do not query the database.
 		 */
 		'execandexit' => [
 			'default'	=> false,
