@@ -34,8 +34,10 @@ class DynamicPageList {
 	public $mTableRow; // formatting rules for table fields
 
 	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
-		
 		global $wgContLang;
+
+		wfProfileIn(__METHOD__);
+
 		$this->nameSpaces       = $wgContLang->getNamespaces();
 		$this->mArticles        = $articles;
 		$this->mListMode        = $listmode;
@@ -240,6 +242,7 @@ class DynamicPageList {
 		} else {
 			$this->mOutput .= $this->formatList(0, count($articles), $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
 		}
+		wfProfileOut(__METHOD__);
 	}
 	
 	public function formatCount($numart) {
