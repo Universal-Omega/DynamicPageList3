@@ -91,10 +91,11 @@ class LST {
 			if ($maxLength > 0) {
 				$text = self::limitTranscludedText($text, $maxLength, $link);
 			}
-			if ($trim)
+			if ($trim) {
 				return trim($text);
-			else
+			} else {
 				return $text;
+			}
 		} else {
 			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
 		}
@@ -124,19 +125,23 @@ class LST {
 		$to_sec = ($to == '') ? $sec : $to;
 		if ($sec[0] == '*') {
 			$any = true;
-			if ($sec == '**')
+			if ($sec == '**') {
 				$sec = '[^\/>"' . "']+";
-			else
+			} else {
 				$sec = str_replace('/', '\/', substr($sec, 1));
-		} else
+			}
+		} else {
 			$sec = preg_quote($sec, '/');
+		}
 		if ($to_sec[0] == '*') {
-			if ($to_sec == '**')
+			if ($to_sec == '**') {
 				$to_sec = '[^\/>"' . "']+";
-			else
+			} else {
 				$to_sec = str_replace('/', '\/', substr($to_sec, 1));
-		} else
+			}
+		} else {
 			$to_sec = preg_quote($to_sec, '/');
+		}
 		$ws = "(?:\s+[^>]+)?"; //was like $ws="\s*"
 		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" . "['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" . "['\"]?\\1['\"]?" . "$ws\/?>/s";
 	}
@@ -370,11 +375,11 @@ class LST {
 				$begin_off = 0;
 				$head_len  = 6;
 			} else {
-				if ($nr != 0)
+				if ($nr != 0) {
 					$pat = '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)';
-				else if ($isPlain)
+				} elseif ($isPlain) {
 					$pat = '^(={1,6})\s*' . preg_quote($sec, '/') . '\s*\1\s*($)';
-				else {
+				} else {
 					$pat = '^(={1,6})\s*' . str_replace('/', '\/', $sec) . '\s*\1\s*($)';
 				}
 				if (preg_match("/$pat/im", $text, $m, PREG_OFFSET_CAPTURE)) {
@@ -413,22 +418,26 @@ class LST {
 			}
 			if ($to != '') {
 				//if $to is supplied, try and match it.  If we don't match, just ignore it.
-				if ($isPlain)
+				if ($isPlain) {
 					$pat = '^(={1,6})\s*' . preg_quote($to, '/') . '\s*\1\s*$';
-				else
+				} else {
 					$pat = '^(={1,6})\s*' . str_replace('/', '\/', $to) . '\s*\1\s*$';
-				if (preg_match("/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off))
+				}
+				if (preg_match("/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off)) {
 					$end_off = $mm[0][1] - 1;
+				}
 			}
 			if (!isset($end_off)) {
-				if ($nr != 0)
+				if ($nr != 0) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
-				else
+				} else {
 					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
-				if (preg_match("/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off))
+				}
+				if (preg_match("/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off)) {
 					$end_off = $mm[0][1] - 1;
-				else if ($sec == '')
+				} else if ($sec == '') {
 					$end_off = -1;
+				}
 			}
 
 			$nhead = self::countHeadings($text, $begin_off);
@@ -439,10 +448,11 @@ class LST {
 					return $output;
 				}
 				$piece = substr($text, $begin_off, $end_off - $begin_off);
-				if ($sec == '')
+				if ($sec == '') {
 					$continueSearch = false;
-				else
+				} else {
 					$text = substr($text, $end_off);
+				}
 			} else {
 				$piece          = substr($text, $begin_off);
 				$continueSearch = false;
@@ -534,10 +544,11 @@ class LST {
 			// sure that we only accept exact matches of the complete template name
 			// (e.g. when looking for "foo" we must not accept "foo xyz")
 			foreach ($tCalls as $nr => $tCall) {
-				if ($tCall[0] == '}')
+				if ($tCall[0] == '}') {
 					$tCalls[$nr] = '}' . $tCall;
-				else
+				} else {
 					$tCalls[$nr] = '|' . $tCall;
+				}
 			}
 		}
 
@@ -557,8 +568,9 @@ class LST {
 				// if parameters are required directly: return empty columns
 				if (count($extractParm) > 1) {
 					$output[0] = $dpl->formatTemplateArg('', $dplNr, 0, true, -1, $article);
-					for ($i = 1; $i < count($extractParm); $i++)
+					for ($i = 1; $i < count($extractParm); $i++) {
 						$output[0] .= "\n|" . $dpl->formatTemplateArg('', $dplNr, $i, true, -1, $article);
+					}
 				} else
 					$output[0] = $dpl->formatTemplateArg('', $dplNr, 0, true, -1, $article);
 			} else {
@@ -619,19 +631,23 @@ class LST {
 
 				for ($i = 0; $i < $size; $i++) {
 					$c = $templateCall[$i];
-					if ($c == '{' || $c == '[')
+					if ($c == '{' || $c == '[') {
 						$cbrackets++; // we count both types of brackets
-					if ($c == '}' || $c == ']')
+					}
+					if ($c == '}' || $c == ']') {
 						$cbrackets--;
-					if ($cbrackets == 2 && $c == '|') {
+					}
+					if ($cbrackets == 2 && $c == '|') { {
 						$parms[] = trim($parm);
 						$hasParm = true;
 						$parm    = '';
-					} else
+					} else {
 						$parm .= $c;
+					}
 					if ($cbrackets == 0) {
-						if ($hasParm)
+						if ($hasParm) {
 							$parms[] = trim(substr($parm, 0, strlen($parm) - 2));
+						}
 						array_splice($parms, 0, 1); // remove artifact;
 						// if we must match a condition: test against it
 						$callText = substr($templateCall, 0, $i - 1);
@@ -645,8 +661,9 @@ class LST {
 									$exParm = substr($exParm, 0, $limpos);
 								}
 								if ($second) {
-									if ($output[$n] == '' || $output[$n][strlen($output[$n]) - 1] != "\n")
+									if ($output[$n] == '' || $output[$n][strlen($output[$n]) - 1] != "\n") {
 										$output[$n] .= "\n";
+									}
 									$output[$n] .= "|"; // \n";
 								}
 								$found = false;
@@ -672,10 +689,12 @@ class LST {
 									// numeric parameter
 									$np = 0;
 									foreach ($parms as $parm) {
-										if (strstr($parm, '=') === FALSE)
+										if (strstr($parm, '=') === FALSE) {
 											++$np;
-										if ($np != $exParm)
+										}
+										if ($np != $exParm) {
 											continue;
+										}
 										$found = true;
 										$output[$n] .= $dpl->formatTemplateArg($parm, $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 										break;
