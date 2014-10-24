@@ -637,7 +637,7 @@ class LST {
 					if ($c == '}' || $c == ']') {
 						$cbrackets--;
 					}
-					if ($cbrackets == 2 && $c == '|') { {
+					if ($cbrackets == 2 && $c == '|') {
 						$parms[] = trim($parm);
 						$hasParm = true;
 						$parm    = '';
