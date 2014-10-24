@@ -203,10 +203,11 @@ class LST {
 
 		foreach ($m[2] as $nr => $piece) {
 			$piece = self::parse($parser, $title, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern);
-			if ($any)
+			if ($any) {
 				$output[] = $m[1][$nr] . '::' . $piece;
-			else
+			} else {
 				$output[] = $piece;
+			}
 		}
 		return $output;
 	}
@@ -231,13 +232,15 @@ class LST {
 	public static function limitTranscludedText($text, $limit, $link = '') {
 
 		// if text is smaller than limit return complete text
-		if ($limit >= strlen($text))
+		if ($limit >= strlen($text)) {
 			return $text;
+		}
 
 		// otherwise strip html comments and check again
 		$text = preg_replace('/<!--.*?-->/s', '', $text);
-		if ($limit >= strlen($text))
+		if ($limit >= strlen($text)) {
 			return $text;
+		}
 
 		// search latest position with balanced brackets/braces
 		// store also the position of the last preceding space
@@ -248,27 +251,33 @@ class LST {
 		$nb        = 0;
 		for ($i = 0; $i < $limit; $i++) {
 			$c = $text[$i];
-			if ($c == '[')
+			if ($c == '[') {
 				$brackets++;
-			if ($c == ']')
+			}
+			if ($c == ']') {
 				$brackets--;
-			if ($c == '{')
+			}
+			if ($c == '{') {
 				$cbrackets++;
-			if ($c == '}')
+			}
+			if ($c == '}') {
 				$cbrackets--;
+			}
 			// we store the position if it is valid in terms of parentheses balancing
 			if ($brackets == 0 && $cbrackets == 0) {
 				$n0 = $i;
-				if ($c == ' ')
+				if ($c == ' ') {
 					$nb = $i;
+				}
 			}
 		}
 
 		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit 
 		if ($n0 >= 0) {
 			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			if ($nb > 0 && $nb + 15 > $n0)
+			if ($nb > 0 && $nb + 15 > $n0) {
 				$n0 = $nb;
+			}
 			$cut = substr($text, 0, $n0 + 1);
 
 			// an open html comment would be fatal, but this should not happen as we already have 
@@ -291,10 +300,11 @@ class LST {
 			if ($noMatches > 0) {
 				// calculate tag count (ignoring nesting)
 				foreach ($matches[1] as $mm) {
-					if ($mm[0] == '/')
+					if ($mm[0] == '/') {
 						$tags[substr($mm, 1)]--;
-					else
+					} else {
 						$tags[$mm]++;
+					}
 				}
 				// append missing closing tags - should the tags be ordered by precedence ?
 				foreach ($tags as $tagName => $level) {
@@ -339,10 +349,12 @@ class LST {
 		$output[$n]     = '';
 		$nr             = 0;
 		// check if we are going to fetch the n-th section
-		if (preg_match('/^%-?[1-9][0-9]*$/', $sec))
+		if (preg_match('/^%-?[1-9][0-9]*$/', $sec)) {
 			$nr = substr($sec, 1);
-		if (preg_match('/^%0$/', $sec))
+		}
+		if (preg_match('/^%0$/', $sec)) {
 			$nr = -2; // transclude text before the first section
+		}
 
 		// if the section name starts with a # or with a @ we use it as regexp, otherwise as plain string
 		$isPlain = true;
@@ -380,14 +392,15 @@ class LST {
 			}
 			// create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
 			$link = $cLink;
-			if ($link == 'default')
+			if ($link == 'default') {
 				$link = ' [[' . $page . '#' . $headLine . '|..→]]';
-			else if (strstr($link, 'img=') != false)
+			} else if (strstr($link, 'img=') != false) {
 				$link = str_replace('img=', "<linkedimage>page=" . $page . '#' . $headLine . "\nimg=Image:", $link) . "\n</linkedimage>";
-			else if (strstr($link, '%SECTION%') == false)
+			} else if (strstr($link, '%SECTION%') == false) {
 				$link = ' [[' . $page . '#' . $headLine . '|' . $link . ']]';
-			else
+			} else {
 				$link = str_replace('%SECTION%', $page . '#' . $headLine, $link);
+			}
 			if ($nr == -2) {
 				// output text before first section and done
 				$piece     = substr($text, 0, $m[1][1] - 1);
@@ -395,8 +408,9 @@ class LST {
 				return $output;
 			}
 
-			if (isset($end_off))
+			if (isset($end_off)) {
 				unset($end_off);
+			}
 			if ($to != '') {
 				//if $to is supplied, try and match it.  If we don't match, just ignore it.
 				if ($isPlain)
@@ -476,7 +490,7 @@ class LST {
 	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $dpl->formatTemplateArg()
-	public static function includeTemplate($parser, $dpl, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $iTitleMaxLen, $catlist) {
+	public static function includeTemplate($parser, &$dpl, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $iTitleMaxLen, $catlist) {
 		$page  = $article->mTitle->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
@@ -492,9 +506,11 @@ class LST {
 			// when looking for parser function calls we accept regexp search patterns
 			$text2           = preg_replace("/\{\{\s*#(" . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=\1\2|', $text);
 			$tCalls          = preg_split('/°³²/', ' ' . $text2);
-			foreach ($tCalls as $i => $tCall)
-				if (($n = strpos($tCall, ':')) !== false)
+			foreach ($tCalls as $i => $tCall) {
+				if (($n = strpos($tCall, ':')) !== false) {
 					$tCalls[$i][$n] = ' ';
+				}
+			}
 		} else if ($template1 != '' && $template1[0] == '~') {
 			// --------------------------------------------- looking for an xml-tag extension call
 			$template1       = substr($template1, 1);
@@ -549,6 +565,7 @@ class LST {
 				// put a red link into the output
 				$output[0] = $parser->preprocess('{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->mTitle, $parser->mOptions);
 			}
+			unset($title);
 			return $output;
 		}
 
@@ -568,19 +585,23 @@ class LST {
 				$cbrackets    = 0;
 				$templateCall = '{{' . $template2 . $tCall;
 				$size         = strlen($templateCall);
+
 				for ($i = 0; $i < $size; $i++) {
 					$c = $templateCall[$i];
-					if ($c == '{')
+					if ($c == '{') {
 						$cbrackets++;
-					if ($c == '}')
+					}
+					if ($c == '}') {
 						$cbrackets--;
+					}
 					if ($cbrackets == 0) {
 						// if we must match a condition: test against it
 						if (($mustMatch == '' || preg_match($mustMatch, substr($templateCall, 0, $i - 1))) && ($mustNotMatch == '' || !preg_match($mustNotMatch, substr($templateCall, 0, $i - 1)))) {
 							$invocation = substr($templateCall, 0, $i - 1);
 							$argChain   = $invocation . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText();
-							if ($catlist != '')
+							if ($catlist != '') {
 								$argChain .= "|%CATLIST%=$catlist";
+							}
 							$argChain .= '|%DATE%=' . $date . '|%USER%=' . $user . '|%ARGS%=' . str_replace('|', '§', preg_replace('/[}]+/', '}', preg_replace('/[{]+/', '{', substr($invocation, strlen($template2) + 2)))) . '}}';
 							$output[++$n] = $parser->preprocess($argChain, $parser->mTitle, $parser->mOptions);
 						}
@@ -639,8 +660,9 @@ class LST {
 									// named parameter
 									$exParmQuote = str_replace('/', '\/', $exParm);
 									foreach ($parms as $parm) {
-										if (!preg_match("/^\s*$exParmQuote\s*=/", $parm))
+										if (!preg_match("/^\s*$exParmQuote\s*=/", $parm)) {
 											continue;
+										}
 										$found = true;
 										$output[$n] .= $dpl->formatTemplateArg(preg_replace("/^$exParmQuote\s*=\s*/", "", $parm), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 										break;
@@ -670,6 +692,7 @@ class LST {
 			}
 			$firstCall = false;
 		}
+
 		return $output;
 	}
 
