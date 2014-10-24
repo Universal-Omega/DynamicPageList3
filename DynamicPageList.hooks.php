@@ -282,15 +282,15 @@ class DynamicPageListHooks {
 
 		$numargs = func_num_args();
 		if ($numargs < 2) {
-		  $input = "#dpl: no arguments specified";
-		  return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
+			$input = "#dpl: no arguments specified";
+			return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
 		}
 
 		// fetch all user-provided arguments (skipping $parser)
 		$arg_list = func_get_args();
 		for ($i = 1; $i < $numargs; $i++) {
-		  $p1 = $arg_list[$i];
-		  $input .= str_replace("\n","",$p1) ."\n";
+			$p1 = $arg_list[$i];
+			$input .= str_replace("\n","",$p1) ."\n";
 		}
 		// for debugging you may want to uncomment the following statement
 		// return str_replace('§','<','§pre>§nowiki>'.$input.'§/nowiki>§/pre>');
@@ -311,100 +311,115 @@ class DynamicPageListHooks {
 
 	}
 
-	public static function dplNumParserFunction(&$parser, $text='') {
-		$num = str_replace('&#160;',' ',$text);
-		$num = str_replace('&nbsp;',' ',$text);
-		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/','\1,\3',$num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/','\1\2 000000 ',$num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mrd/','\1\2 0000000 ',$num);
-		$num = preg_replace('/([0-9.]+),([0-9])\s*Mrd/','\1\2 00000000 ',$num);
-		$num = preg_replace('/\s*Mrd/','000000000 ',$num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mio/','\1\2 000 ',$num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mio/','\1\2 0000 ',$num);
-		$num = preg_replace('/([0-9.]+),([0-9])\s*Mio/','\1\2 00000 ',$num);
-		$num = preg_replace('/\s*Mio/','000000 ',$num);
-		$num = preg_replace('/[. ]/','',$num);
-		$num = preg_replace('/^[^0-9]+/','',$num);
-		$num = preg_replace('/[^0-9].*/','',$num);
+	public static function dplNumParserFunction(&$parser, $text = '') {
+		$num = str_replace('&#160;', ' ', $text);
+		$num = str_replace('&nbsp;', ' ', $text);
+		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/', '\1,\3', $num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/', '\1\2 000000 ', $num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mrd/', '\1\2 0000000 ', $num);
+		$num = preg_replace('/([0-9.]+),([0-9])\s*Mrd/', '\1\2 00000000 ', $num);
+		$num = preg_replace('/\s*Mrd/', '000000000 ', $num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mio/', '\1\2 000 ', $num);
+		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mio/', '\1\2 0000 ', $num);
+		$num = preg_replace('/([0-9.]+),([0-9])\s*Mio/', '\1\2 00000 ', $num);
+		$num = preg_replace('/\s*Mio/', '000000 ', $num);
+		$num = preg_replace('/[. ]/', '', $num);
+		$num = preg_replace('/^[^0-9]+/', '', $num);
+		$num = preg_replace('/[^0-9].*/', '', $num);
 		return $num;
-	} 
+	}
 
 	public static function dplVarParserFunction(&$parser, $cmd) {
 		$args = func_get_args();
-		if ($cmd=='set') {
+		if ($cmd == 'set') {
 			return \DPL\Variables::setVar($args);
-		} elseif ($cmd=='default') {
+		} elseif ($cmd == 'default') {
 			return \DPL\Variables::setVarDefault($args);
 		}
 		return \DPL\Variables::getVar($cmd);
-	} 
+	}
 
-	private static function isRegexp ($needle) {
-		if (strlen($needle)<3) {
+	private static function isRegexp($needle) {
+		if (strlen($needle) < 3) {
 			return false;
 		}
-		if (ctype_alnum($needle[0])) return false;
-		$nettoNeedle = preg_replace('/[ismu]*$/','',$needle);
-		if (strlen($nettoNeedle)<2) return false;
-		if ($needle[0] == $nettoNeedle[strlen($nettoNeedle)-1]) return true;
+		if (ctype_alnum($needle[0])) {
+			return false;
+		}
+		$nettoNeedle = preg_replace('/[ismu]*$/', '', $needle);
+		if (strlen($nettoNeedle) < 2) {
+			return false;
+		}
+		if ($needle[0] == $nettoNeedle[strlen($nettoNeedle) - 1]) {
+			return true;
+		}
 		return false;
 	}
 
-	public static function dplReplaceParserFunction(&$parser, $text, $pat, $repl='') {
-		if ($text=='' || $pat=='') return '';
+	public static function dplReplaceParserFunction(&$parser, $text, $pat, $repl = '') {
+		if ($text == '' || $pat == '')
+			return '';
 		# convert \n to a real newline character
-		$repl = str_replace('\n',"\n",$repl);
- 
-		# replace
-		if (!self::isRegexp($pat) ) $pat='`'.str_replace('`','\`',$pat).'`';
+		$repl = str_replace('\n', "\n", $repl);
 
-		return preg_replace ( $pat, $repl, $text );
+		# replace
+		if (!self::isRegexp($pat)) {
+			$pat = '`' . str_replace('`', '\`', $pat) . '`';
+		}
+
+		return preg_replace($pat, $repl, $text);
 	}
 
-	public static function dplChapterParserFunction(&$parser, $text='', $heading=' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim=false ) {
+	public static function dplChapterParserFunction(&$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false) {
 		$output = \DPL\LST::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
 		return $output[0];
 	}
 
-	public static function dplMatrixParserFunction(&$parser, $name, $yes, $no, $flip, $matrix ) {
-		$lines = explode("\n",$matrix);
-		$m = array();
-		$sources = array();
-		$targets = array();
-		$from = '';
-		$to = '';
-		if ($flip=='' | $flip=='normal') {
-			$flip=false;
+	public static function dplMatrixParserFunction(&$parser, $name, $yes, $no, $flip, $matrix) {
+		$lines   = explode("\n", $matrix);
+		$m       = [];
+		$sources = [];
+		$targets = [];
+		$from    = '';
+		$to      = '';
+		if ($flip == '' | $flip == 'normal') {
+			$flip = false;
 		} else {
-			$flip=true;
+			$flip = true;
 		}
-		if ($name=='') {
-			$name='&#160;';
+		if ($name == '') {
+			$name = '&#160;';
 		}
-		if ($yes=='') {
-			$yes= ' x '}
+		if ($yes == '') {
+			$yes = ' x ';
 		}
-		if ($no=='') {
+		if ($no == '') {
 			$no = '&#160;';
 		}
-		if ($no[0]=='-') {
+		if ($no[0] == '-') {
 			$no = " $no ";
 		}
 		foreach ($lines as $line) {
-			if (strlen($line)<=0) {
+			if (strlen($line) <= 0) {
 				continue;
 			}
-			if ($line[0]!=' ') {
-				$from = preg_split(' *\~\~ *',trim($line),2);
-				if (!array_key_exists($from[0],$sources)) {
-					if (count($from)<2 || $from[1]=='') $sources[$from[0]] = $from[0];
-					else								$sources[$from[0]] = $from[1];
-					$m[$from[0]] = array();
+			if ($line[0] != ' ') {
+				$from = preg_split(' *\~\~ *', trim($line), 2);
+				if (!array_key_exists($from[0], $sources)) {
+					if (count($from) < 2 || $from[1] == '') {
+						$sources[$from[0]] = $from[0];
+					} else {
+						$sources[$from[0]] = $from[1];
+					}
+					$m[$from[0]] = [];
 				}
 			} elseif (trim($line) != '') {
-				$to = preg_split(' *\~\~ *',trim($line),2);
-				if (count($to)<2 || $to[1]=='') $targets[$to[0]] = $to[0];
-				else							$targets[$to[0]] = $to[1];
+				$to = preg_split(' *\~\~ *', trim($line), 2);
+				if (count($to) < 2 || $to[1] == '') {
+					$targets[$to[0]] = $to[0];
+				} else {
+					$targets[$to[0]] = $to[1];
+				}
 				$m[$from[0]][$to[0]] = true;
 			}
 		}
@@ -414,62 +429,67 @@ class DynamicPageListHooks {
 
 		if ($flip) {
 			foreach ($sources as $from => $fromName) {
-				$header .= "![[$from|".$fromName."]]\n";
+				$header .= "![[$from|" . $fromName . "]]\n";
 			}
 			foreach ($targets as $to => $toName) {
 				$targets[$to] = "[[$to|$toName]]";
 				foreach ($sources as $from => $fromName) {
-					if (array_key_exists($to,$m[$from])) {
+					if (array_key_exists($to, $m[$from])) {
 						$targets[$to] .= "\n|$yes";
-					}
-					else {
+					} else {
 						$targets[$to] .= "\n|$no";
 					}
 				}
-				$targets[$to].= "\n|--\n";
+				$targets[$to] .= "\n|--\n";
 			}
-			return "{|class=dplmatrix\n|$name"."\n".$header."|--\n!".join("\n!",$targets)."\n|}";
-		}
-		else {
+			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . join("\n!", $targets) . "\n|}";
+		} else {
 			foreach ($targets as $to => $toName) {
-				$header .= "![[$to|".$toName."]]\n";
+				$header .= "![[$to|" . $toName . "]]\n";
 			}
 			foreach ($sources as $from => $fromName) {
-				$sources[$from] = "[[$from|$fromName]]";			
+				$sources[$from] = "[[$from|$fromName]]";
 				foreach ($targets as $to => $toName) {
-					if (array_key_exists($to,$m[$from])) {
+					if (array_key_exists($to, $m[$from])) {
 						$sources[$from] .= "\n|$yes";
-					}
-					else {
+					} else {
 						$sources[$from] .= "\n|$no";
 					}
 				}
-				$sources[$from].= "\n|--\n";
+				$sources[$from] .= "\n|--\n";
 			}
-			return "{|class=dplmatrix\n|$name"."\n".$header."|--\n!".join("\n!",$sources)."\n|}";
+			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . join("\n!", $sources) . "\n|}";
 		}
-	} 
+	}
 
-	private static function dumpParsedRefs($parser,$label) {
+	private static function dumpParsedRefs($parser, $label) {
 		//if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
 		echo '<pre>parser mLinks: ';
-		ob_start(); var_dump($parser->mOutput->mLinks); $a=ob_get_contents(); ob_end_clean(); echo htmlspecialchars($a,ENT_QUOTES);
+		ob_start();
+		var_dump($parser->mOutput->mLinks);
+		$a = ob_get_contents();
+		ob_end_clean();
+		echo htmlspecialchars($a, ENT_QUOTES);
 		echo '</pre>';
 		echo '<pre>parser mTemplates: ';
-		ob_start(); var_dump($parser->mOutput->mTemplates); $a=ob_get_contents(); ob_end_clean(); echo htmlspecialchars($a,ENT_QUOTES);
+		ob_start();
+		var_dump($parser->mOutput->mTemplates);
+		$a = ob_get_contents();
+		ob_end_clean();
+		echo htmlspecialchars($a, ENT_QUOTES);
 		echo '</pre>';
 	}
 
 	//remove section markers in case the LabeledSectionTransclusion extension is not installed.
-	public static function removeSectionMarkers( $in, $assocArgs=array(), $parser=null ) {
+	public static function removeSectionMarkers($in, $assocArgs = [], $parser = null) {
 		return '';
 	}
 
 	public static function fixCategory($cat) {
-		if ($cat!='') {
+		if ($cat != '') {
 			self::$fixedCategories[$cat] = 1;
 		}
-	} 
+	}
 
 	/**
 	 * Set Debugging Level
@@ -493,11 +513,13 @@ class DynamicPageListHooks {
 	}
 
 	// reset everything; some categories may have been fixed, however via  fixcategory=
-	public static function endReset( &$parser, $text ) {
+	public static function endReset(&$parser, $text) {
 		if (!self::$createdLinks['resetdone']) {
 			self::$createdLinks['resetdone'] = true;
 			foreach ($parser->mOutput->mCategories as $key => $val) {
-				if (array_key_exists($key,self::$fixedCategories)) self::$fixedCategories[$key] = $val;
+				if (array_key_exists($key, self::$fixedCategories)) {
+					self::$fixedCategories[$key] = $val;
+				}
 			}
 			// $text .= self::dumpParsedRefs($parser,"before final reset");
 			if (self::$createdLinks['resetLinks']) {
@@ -518,43 +540,43 @@ class DynamicPageListHooks {
 		return true;
 	}
 
-	public static function endEliminate( &$parser, &$text ) {
+	public static function endEliminate(&$parser, &$text) {
 		// called during the final output phase; removes links created by DPL
 		if (isset(self::$createdLinks)) {
 			// self::dumpParsedRefs($parser,"before final eliminate");
-			if (array_key_exists(0,self::$createdLinks)) {
+			if (array_key_exists(0, self::$createdLinks)) {
 				foreach ($parser->mOutput->getLinks() as $nsp => $link) {
-					if (!array_key_exists($nsp,self::$createdLinks[0])) {
+					if (!array_key_exists($nsp, self::$createdLinks[0])) {
 						continue;
 					}
 					// echo ("<pre> elim: created Links [$nsp] = ". count(DynamicPageListHooks::$createdLinks[0][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Links [$nsp] = ". count($parser->mOutput->mLinks[$nsp])			 ."</pre>\n");
-					$parser->mOutput->mLinks[$nsp] = array_diff_assoc($parser->mOutput->mLinks[$nsp],self::$createdLinks[0][$nsp]);
+					$parser->mOutput->mLinks[$nsp] = array_diff_assoc($parser->mOutput->mLinks[$nsp], self::$createdLinks[0][$nsp]);
 					// echo ("<pre> elim: parser  Links [$nsp] nachher = ". count($parser->mOutput->mLinks[$nsp])	  ."</pre>\n");
-					if (count($parser->mOutput->mLinks[$nsp])==0) {
-						unset ($parser->mOutput->mLinks[$nsp]);
+					if (count($parser->mOutput->mLinks[$nsp]) == 0) {
+						unset($parser->mOutput->mLinks[$nsp]);
 					}
 				}
 			}
-			if (isset(self::$createdLinks) && array_key_exists(1,self::$createdLinks)) {
+			if (isset(self::$createdLinks) && array_key_exists(1, self::$createdLinks)) {
 				foreach ($parser->mOutput->mTemplates as $nsp => $tpl) {
-					if (!array_key_exists($nsp,self::$createdLinks[1])) {
+					if (!array_key_exists($nsp, self::$createdLinks[1])) {
 						continue;
 					}
 					// echo ("<pre> elim: created Tpls [$nsp] = ". count(DynamicPageListHooks::$createdLinks[1][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Tpls [$nsp] = ". count($parser->mOutput->mTemplates[$nsp])			."</pre>\n");
-					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc($parser->mOutput->mTemplates[$nsp],self::$createdLinks[1][$nsp]);
+					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc($parser->mOutput->mTemplates[$nsp], self::$createdLinks[1][$nsp]);
 					// echo ("<pre> elim: parser  Tpls [$nsp] nachher = ". count($parser->mOutput->mTemplates[$nsp])	 ."</pre>\n");
-					if (count($parser->mOutput->mTemplates[$nsp])==0) {
-						unset ($parser->mOutput->mTemplates[$nsp]);
+					if (count($parser->mOutput->mTemplates[$nsp]) == 0) {
+						unset($parser->mOutput->mTemplates[$nsp]);
 					}
 				}
 			}
-			if (isset(self::$createdLinks) && array_key_exists(2,self::$createdLinks)) {
-				$parser->mOutput->mCategories = array_diff_assoc($parser->mOutput->mCategories,self::$createdLinks[2]);
+			if (isset(self::$createdLinks) && array_key_exists(2, self::$createdLinks)) {
+				$parser->mOutput->mCategories = array_diff_assoc($parser->mOutput->mCategories, self::$createdLinks[2]);
 			}
-			if (isset(self::$createdLinks) && array_key_exists(3,self::$createdLinks)) {
-				$parser->mOutput->mImages = array_diff_assoc($parser->mOutput->mImages,self::$createdLinks[3]);
+			if (isset(self::$createdLinks) && array_key_exists(3, self::$createdLinks)) {
+				$parser->mOutput->mImages = array_diff_assoc($parser->mOutput->mImages, self::$createdLinks[3]);
 			}
 			// $text .= self::dumpParsedRefs($parser,"after final eliminate".$parser->mTitle->getText());
 		}
