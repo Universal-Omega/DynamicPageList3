@@ -410,7 +410,7 @@ class Parse {
 			if ($this->parameters->getParameter('goal') == 'categories') {
 				$pageNamespace = NS_CATEGORY;
 				$pageTitle     = $row['cl_to'];
-			} else if ($this->parameters->getParameter('openreferences')) {
+			} elseif ($this->parameters->getParameter('openreferences')) {
 				if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 					$pageNamespace = NS_FILE;
 					$pageTitle     = $row['il_to'];
@@ -924,13 +924,13 @@ class Parse {
 					$suit = substr($token, 1);
 					if ($suit == '♣') {
 						$newKey .= '1';
-					} else if ($suit == '♦') {
+					} elseif ($suit == '♦') {
 						$newKey .= '2';
-					} else if ($suit == '♥') {
+					} elseif ($suit == '♥') {
 						$newKey .= '3';
-					} else if ($suit == '♠') {
+					} elseif ($suit == '♠') {
 						$newKey .= '4';
-					} else if ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
+					} elseif ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
 						$newKey .= '5 ';
 					} else {
 						$newKey .= $suit;

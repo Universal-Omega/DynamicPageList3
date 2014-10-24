@@ -627,7 +627,7 @@ class Parameters extends ParametersData {
 			if ($option == 'none') {
 				$this->setParameter('mode', 'inline');
 				$this->setParameter('inltxt', '<br/>');
-			} else if ($option == 'userformat') {
+			} elseif ($option == 'userformat') {
 				// userformat resets inline text to empty string
 				$this->setParameter('inltxt', '');
 				$this->setParameter('mode', $option);

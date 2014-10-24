@@ -325,7 +325,7 @@ class LST {
 				}
 			}
 			return $cut . $link;
-		} else if ($limit == 0) {
+		} elseif ($limit == 0) {
 			return $link;
 		} else {
 			// otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
@@ -388,7 +388,7 @@ class LST {
 					$begin_off      = $m[$no_parenthesis][1];
 					$head_len       = strlen($m[1][0]);
 					$headLine       = trim($m[0][0], "\n =\t");
-				} else if ($nr == -2) {
+				} elseif ($nr == -2) {
 					$m[1][1] = strlen($text) + 1; // take whole article if no heading found
 				} else {
 					// match failed
@@ -399,9 +399,9 @@ class LST {
 			$link = $cLink;
 			if ($link == 'default') {
 				$link = ' [[' . $page . '#' . $headLine . '|..→]]';
-			} else if (strstr($link, 'img=') != false) {
+			} elseif (strstr($link, 'img=') != false) {
 				$link = str_replace('img=', "<linkedimage>page=" . $page . '#' . $headLine . "\nimg=Image:", $link) . "\n</linkedimage>";
-			} else if (strstr($link, '%SECTION%') == false) {
+			} elseif (strstr($link, '%SECTION%') == false) {
 				$link = ' [[' . $page . '#' . $headLine . '|' . $link . ']]';
 			} else {
 				$link = str_replace('%SECTION%', $page . '#' . $headLine, $link);
@@ -435,7 +435,7 @@ class LST {
 				}
 				if (preg_match("/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off)) {
 					$end_off = $mm[0][1] - 1;
-				} else if ($sec == '') {
+				} elseif ($sec == '') {
 					$end_off = -1;
 				}
 			}
@@ -521,7 +521,7 @@ class LST {
 					$tCalls[$i][$n] = ' ';
 				}
 			}
-		} else if ($template1 != '' && $template1[0] == '~') {
+		} elseif ($template1 != '' && $template1[0] == '~') {
 			// --------------------------------------------- looking for an xml-tag extension call
 			$template1       = substr($template1, 1);
 			$template2       = substr($template2, 1);
@@ -571,8 +571,9 @@ class LST {
 					for ($i = 1; $i < count($extractParm); $i++) {
 						$output[0] .= "\n|" . $dpl->formatTemplateArg('', $dplNr, $i, true, -1, $article);
 					}
-				} else
+				} else {
 					$output[0] = $dpl->formatTemplateArg('', $dplNr, 0, true, -1, $article);
+				}
 			} else {
 				// put a red link into the output
 				$output[0] = $parser->preprocess('{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->mTitle, $parser->mOptions);
@@ -700,8 +701,9 @@ class LST {
 										break;
 									}
 								}
-								if (!$found)
+								if (!$found) {
 									$output[$n] .= $dpl->formatTemplateArg('', $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+								}
 								$second = true;
 							}
 						}

@@ -373,14 +373,27 @@ class DynamicPageListHooks {
 		$targets = array();
 		$from = '';
 		$to = '';
-		if ($flip=='' | $flip=='normal')	$flip=false;
-		else								$flip=true;
-		if ($name=='') $name='&#160;';
-		if ($yes=='') $yes= ' x ';
-		if ($no=='') $no = '&#160;';
-		if ($no[0]=='-') $no = " $no ";
+		if ($flip=='' | $flip=='normal') {
+			$flip=false;
+		} else {
+			$flip=true;
+		}
+		if ($name=='') {
+			$name='&#160;';
+		}
+		if ($yes=='') {
+			$yes= ' x '}
+		}
+		if ($no=='') {
+			$no = '&#160;';
+		}
+		if ($no[0]=='-') {
+			$no = " $no ";
+		}
 		foreach ($lines as $line) {
-			if (strlen($line)<=0) continue;
+			if (strlen($line)<=0) {
+				continue;
+			}
 			if ($line[0]!=' ') {
 				$from = preg_split(' *\~\~ *',trim($line),2);
 				if (!array_key_exists($from[0],$sources)) {
@@ -388,8 +401,7 @@ class DynamicPageListHooks {
 					else								$sources[$from[0]] = $from[1];
 					$m[$from[0]] = array();
 				}
-			}
-			else if (trim($line) != '') {
+			} elseif (trim($line) != '') {
 				$to = preg_split(' *\~\~ *',trim($line),2);
 				if (count($to)<2 || $to[1]=='') $targets[$to[0]] = $to[0];
 				else							$targets[$to[0]] = $to[1];

@@ -192,7 +192,7 @@ class DynamicPageList {
 				}
 				$this->mOutput .= $hlistmode->sListEnd;
 			}
-		} else if ($iColumns != 1 || $iRows != 1) {
+		} elseif ($iColumns != 1 || $iRows != 1) {
 			// repeat outer tags for each of the specified columns / rows in the output
 			$nstart = 0;
 			$count  = count($articles);
@@ -221,7 +221,7 @@ class DynamicPageList {
 				}
 			}
 			$this->mOutput .= "\n|}\n";
-		} else if ($iRowSize > 0) {
+		} elseif ($iRowSize > 0) {
 			// repeat row header after n lines of output
 			$nstart = 0;
 			$nsize  = $iRowSize;
@@ -397,7 +397,7 @@ class DynamicPageList {
 							$message = $this->updateArticleByRule($title, $text, $updateRules);
 							// append update message to output
 							$incwiki .= $message;
-						} else if ($deleteRules != '') {
+						} elseif ($deleteRules != '') {
 							$message = $this->deleteArticleByRule($title, $text, $deleteRules);
 							// append delete message to output
 							$incwiki .= $message;
@@ -410,8 +410,9 @@ class DynamicPageList {
 								);
 								$this->formatSingleItems($pieces, 0, $article);
 								$incwiki .= $pieces[0];
-							} else
+							} else {
 								$incwiki .= $text;
+							}
 						}
 					} else {
 						continue;
@@ -443,8 +444,7 @@ class DynamicPageList {
 								''
 							);
 							$this->formatSingleItems($secPieces, $s, $article);
-							
-						} else if ($sSecLabel[0] != '{') {
+						} elseif ($sSecLabel[0] != '{') {
 							$limpos      = strpos($sSecLabel, '[');
 							$cutLink     = 'default';
 							$skipPattern = array();
@@ -485,8 +485,7 @@ class DynamicPageList {
 						$sectionHeading[0] = '';
 						if ($sSecLabel == '-') {
 							$secPiece[$s] = $secPieces[0];
-							
-						} else if ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
+						} elseif ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 							$sectionHeading[0] = substr($sSecLabel, 1);
 							// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
 							$secPieces         = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
@@ -531,7 +530,7 @@ class DynamicPageList {
 								break;
 							}
 							
-						} else if ($sSecLabel[0] == '{') {
+						} elseif ($sSecLabel[0] == '{') {
 							// Uses LST::includeTemplate() from LabeledSectionTransclusion extension to include templates from the page
 							// primary syntax {template}suffix
 							$template1 = trim(substr($sSecLabel, 1, strpos($sSecLabel, '}') - 1));
@@ -567,14 +566,16 @@ class DynamicPageList {
 						if (count($mode->sSectionTags) == 1) {
 							// If there is only one separator tag use it always
 							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else if (isset($mode->sSectionTags[$s * 2])) {
+						} elseif (isset($mode->sSectionTags[$s * 2])) {
 							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else
+						} else {
 							$septag[$s * 2] = '';
+						}
 						if (isset($mode->sSectionTags[$s * 2 + 1])) {
 							$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2 + 1], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} else
+						} else {
 							$septag[$s * 2 + 1] = '';
+						}
 						
 					}
 					
@@ -698,8 +699,9 @@ class DynamicPageList {
 				asort($rowsKey);
 			}
 			$rBody = "";
-			foreach ($rowsKey as $index => $val)
+			foreach ($rowsKey as $index => $val) {
 				$rBody .= "\n|-" . $rows[$index];
+			}
 		}
 		// increase start value of ordered lists at multi-column output
 		$actStart = $mode->sListStart;
@@ -978,7 +980,7 @@ class DynamicPageList {
 				}
 				$form .= "</form></html>\n";
 				return $form;
-			} else if ($exec == 'set' || $exec == 'preview') {
+			} elseif ($exec == 'set' || $exec == 'preview') {
 				// loop over all invocations and parameters, this could be improved to enhance performance
 				$matchCount = 10;
 				for ($call = 0; $call < 10; $call++) {
@@ -1009,7 +1011,7 @@ class DynamicPageList {
 		
 		if ($exec == 'set') {
 			return $this->updateArticle($title, $text, $summary);
-		} else if ($exec == 'preview') {
+		} elseif ($exec == 'preview') {
 			global $wgScriptPath, $wgRequest;
 			$titleX   = \Title::newFromText($title);
 			$articleX = new \Article($titleX);
@@ -1303,15 +1305,16 @@ class DynamicPageList {
 			if (count($permission_errors) > 0) {
 				$wgOut->showPermissionsErrorPage($permission_errors);
 				return 'permission error';
-			} else if (wfReadOnly()) {
+			} elseif (wfReadOnly()) {
 				$wgOut->readOnlyPage();
 				return 'DPL: read only mode';
 			} else {
 				$articleX = new \Article($titleX);
 				$articleX->doDelete($reason);
 			}
-		} else
+		} else {
 			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
+		}
 		$message .= "<pre><nowiki>" . "\n" . $text . "</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
 		return $message;
 	}
