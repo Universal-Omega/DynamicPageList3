@@ -80,7 +80,7 @@ class Variables {
 			$delimiter = '/\s*' . $delimiter . '\s*/';
 		}
 		self::$memoryArray[$var] = preg_split($delimiter, $value);
-		return "value=$value, delimiter=$delimiter," . count(self::$memoryArray[$var]);
+		return "value={$value}, delimiter={$delimiter}," . count(self::$memoryArray[$var]);
 	}
 
 	static public function dumpArray($arg) {
@@ -89,14 +89,14 @@ class Variables {
 			return '';
 		}
 		$var  = trim($arg[2]);
-		$text = " array $var = {";
+		$text = " array {$var} = {";
 		$n    = 0;
 		if (array_key_exists($var, self::$memoryArray)) {
 			foreach (self::$memoryArray[$var] as $value) {
 				if ($n++ > 0) {
 					$text .= ', ';
 				}
-				$text .= "$value";
+				$text .= "{$value}";
 			}
 		}
 		return $text . "}\n";
