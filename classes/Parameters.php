@@ -1061,7 +1061,7 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'allowcachedresults' parameter.
-	 * This function is necessary for the custom 'yes+warn' opton that sets 'warncachedresults'.
+	 * This function is necessary for the custom 'yes+warn' option that sets 'warncachedresults'.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
