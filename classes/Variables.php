@@ -11,7 +11,7 @@
 namespace DPL;
 
 class Variables {
-	static public $memoryVar = array();
+	static public $memoryVar   = array();
 	static public $memoryArray = array();
 
 	// expects pairs of 'variable name' and 'value'
@@ -119,7 +119,7 @@ class Variables {
 		return array(
 			implode($delimiter, $rendered_values),
 			'noparse' => false,
-			'isHTML' => false
+			'isHTML'  => false
 		);
 	}
 }
