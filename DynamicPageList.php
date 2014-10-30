@@ -24,7 +24,7 @@ $credits = [
 	'author' 			=> '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz], Alexia E. Smith',
 	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
 	'descriptionmsg' 	=> 'dpl-desc',
-  	'version' 			=> $DPLVersion
+  	'version' 			=> DPL_VERSION
 ];
 $wgExtensionCredits['parserhook'][] = $credits;
 
