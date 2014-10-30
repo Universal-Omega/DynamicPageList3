@@ -930,14 +930,14 @@ class Parse {
 						$newKey .= '3';
 					} elseif ($suit == '♠') {
 						$newKey .= '4';
-					} elseif ($suit == 'sa' || $suit == 'SA' || $suit == 'nt' || $suit == 'NT') {
+					} elseif (strtolower($suit) == 'sa' || strtolower($suit == 'nt')) {
 						$newKey .= '5 ';
 					} else {
 						$newKey .= $suit;
 					}
-				} elseif ($initial == 'P' || $initial == 'p') {
+				} elseif (strtolower($initial) == 'p') {
 					$newKey .= '0 ';
-				} elseif ($initial == 'X' || $initial == 'x') {
+				} elseif (strtolower($initial) == 'x') {
 					$newKey .= '8 ';
 				} else {
 					$newKey .= $token;
