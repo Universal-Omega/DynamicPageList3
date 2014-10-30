@@ -122,7 +122,7 @@ if (!isset($dplSettings['maxCategoryCount'])) {
 	$dplSettings['maxCategoryCount'] = 4;
 }
 
-//Maximum number of categories to allow in queries.  I guess this is needed somewhere?
+//Minimum number of categories to allow in queries.
 if (!isset($dplSettings['minCategoryCount'])) {
 	$dplSettings['minCategoryCount'] = 0;
 }
