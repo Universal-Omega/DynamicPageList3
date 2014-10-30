@@ -11,8 +11,19 @@
 namespace DPL;
 
 class Variables {
-	static public $memoryVar   = array();
-	static public $memoryArray = array();
+	/**
+	 * Memory storage for variables.
+	 *
+	 * @var		array
+	 */
+	static public $memoryVar = [];
+
+	/**
+	 * Memory storage for arrays of variables.
+	 *
+	 * @var		array
+	 */
+	static public $memoryArray = [];
 
 	// expects pairs of 'variable name' and 'value'
 	// if the first parameter is empty it will be ignored {{#vardefine:|a|b}} is the same as {{#vardefine:a|b}}
@@ -118,8 +129,8 @@ class Variables {
 		}
 		return array(
 			implode($delimiter, $rendered_values),
-			'noparse' => false,
-			'isHTML'  => false
+			'noparse'	=> false,
+			'isHTML'	=> false
 		);
 	}
 }

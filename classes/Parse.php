@@ -930,7 +930,7 @@ class Parse {
 						$newKey .= '3';
 					} elseif ($suit == '♠') {
 						$newKey .= '4';
-					} elseif (strtolower($suit) == 'sa' || strtolower($suit == 'nt')) {
+					} elseif (strtolower($suit) == 'sa' || strtolower($suit) == 'nt') {
 						$newKey .= '5 ';
 					} else {
 						$newKey .= $suit;
