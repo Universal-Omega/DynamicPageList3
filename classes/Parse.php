@@ -871,14 +871,14 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}
 			//Register a hook to reset links which were produced during parsing DPL output.
-			if (!in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
+			if (!is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
 			}
 		}
 
 		if (array_sum($eliminate)) {
 			//Register a hook to reset links which were produced during parsing DPL output
-			if (!in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
+			if (!is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
 			}
 
