@@ -525,7 +525,7 @@ class Parse {
 		if (count($messages)) {
 			$messageOutput = implode("<br/>\n", $messages);
 		}
-		return $messageOutput.$this->getHeader().$this->output.$this->getFooter();
+		return $messageOutput.$this->header.$this->output.$this->footer;
 	}
 
 	/**
