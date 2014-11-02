@@ -191,7 +191,6 @@ class Parse {
 			$replacementVariables['%TOTALPAGES%'] = 0;
 			$replacementVariables['%PAGES%'] = 0;
 			if ($this->parameters->getParameter('noresultsheader') !== null) {
-				$noResultsHeader = $this->parameters->getParameter('noresultsheader');
 				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsheader'), $replacementVariables));
 			}
 			if ($this->parameters->getParameter('noresultsfooter') !== null) {
