@@ -195,7 +195,7 @@ class Parse {
 				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsheader'), $replacementVariables));
 			}
 			if ($this->parameters->getParameter('noresultsfooter') !== null) {
-				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsfooter'), $replacementVariables));
+				$this->setFooter($this->replaceVariables($this->parameters->getParameter('noresultsfooter'), $replacementVariables));
 			}
 			$this->DB->freeResult($result);
 			return $this->getFullOutput(false);
