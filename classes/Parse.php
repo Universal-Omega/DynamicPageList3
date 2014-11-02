@@ -87,7 +87,7 @@ class Parse {
 	 *
 	 * @access	public
 	 * @param	string	Raw User Input
-	 * @param	object	Mediaiwki Parser object.
+	 * @param	object	MediaWiki Parser object.
 	 * @param	array	End Reset Booleans
 	 * @param	array	End Eliminate Booleans
 	 * @param	boolean	[Optional] Call as a parser tag
