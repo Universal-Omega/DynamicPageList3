@@ -634,6 +634,7 @@ class Parameters extends ParametersData {
 			} else {
 				$this->setParameter('mode', $option);
 			}
+			return true;
 		} else {
 			return false;
 		}
@@ -655,6 +656,7 @@ class Parameters extends ParametersData {
 		} else {
 			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -669,7 +671,10 @@ class Parameters extends ParametersData {
 			$this->setParameter('ordersuitsymbols', true);
 		} elseif (!empty($option)) {
 			$this->setParameter('ordercollation', $option);
+		} else {
+			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -697,6 +702,7 @@ class Parameters extends ParametersData {
 		//Set the 'mode' parameter to userformat automatically.
 		$this->setParameter('mode', 'userformat');
 		$this->setParameter('inltxt', '');
+		return true;
 	}
 
 	/**
@@ -717,7 +723,9 @@ class Parameters extends ParametersData {
 			$this->setParameter('ordermethod', []);
 			$this->setSelectionCriteriaFound(true);
 			$this->setOpenReferencesConflict(true);
+			return true;
 		}
+		return false;
 	}
 
 	/**
