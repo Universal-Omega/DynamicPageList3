@@ -712,10 +712,10 @@ class Parameters extends ParametersData {
 			$data = $this->getParameter('title');
 			$data['='][] = str_replace(' ', '_', $title->getText());
 			$this->setParameter('title', $data);
-			$this->setParameter('namespaces', array_merge($this->getParameter('namespaces'), $title->getNamespace()));
+			$this->setParameter('namespaces', array_merge((is_array($this->getParameter('namespaces')) ? $this->getParameter('namespaces') : []), $title->getNamespace()));
 			$this->setParameter('mode', 'userformat');
 			$this->setParameter('ordermethod', []);
-			$this->setParameter('selectioncriteriafound', true);
+			$this->setSelectionCriteriaFound(true);
 			$this->setOpenReferencesConflict(true);
 		}
 	}
