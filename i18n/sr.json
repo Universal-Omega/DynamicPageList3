@@ -21,7 +21,7 @@
     "dpl_log_10": "ГРЕШКА: Немогуће извршити операцију на некатегоризованим страницама (нпр. са 'category' параметром) зато што $0 преглед не постоји у бази података! Помоћ: нека администратор базе изврши овај упит: <code>$1</code>.",
     "dpl_log_11": "ERROR: Cannot perform logical operations on the Uncategorized pages (f.e. with the 'category' parameter) because the $0 view does not exist on the database! Help: have the database administrator execute this query: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "ПАЖЊА: Непознат параметар '$0' је игнорисан. Помоћ: доступни параметри су: <code>$1</code>.",
+    "dpl_log_13": "ПАЖЊА: Непознат параметар '$1' је игнорисан. Помоћ: доступни параметри су: <code>$2</code>.",
     "dpl_log_14": "ПАЖЊА: Погрешан '$0' параметар: '$1'! Користи се основни: '$2'. Помоћ: <code>$0= $3</code>.",
     "dpl_log_15": "ПАЖЊА: Погрешан '$0' параметар: '$1'! Користи се основни: '$2' (без границе). Помоћ: <code>$0= <i>празан стринг</i> (без границе) | n</code>, с <code>n</code> је позитиван интегер.",
     "dpl_log_16": "ПАЖЊА: Нема резултата!",

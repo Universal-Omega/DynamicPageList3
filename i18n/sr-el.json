@@ -16,7 +16,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "GREŠKA: Nemoguće izvršiti operaciju na nekategorizovanim stranicama (npr. sa 'category' parametrom) zato što $0 pregled ne postoji u bazi podataka! Pomoć: neka administrator baze izvrši ovaj upit: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "PAŽNJA: Nepoznat parametar '$0' je ignorisan. Pomoć: dostupni parametri su: <code>$1</code>.",
+    "dpl_log_13": "PAŽNJA: Nepoznat parametar '$1' je ignorisan. Pomoć: dostupni parametri su: <code>$2</code>.",
     "dpl_log_14": "PAŽNJA: Pogrešan '$0' parametar: '$1'! Koristi se osnovni: '$2'. Pomoć: <code>$0= $3</code>.",
     "dpl_log_15": "PAŽNJA: Pogrešan '$0' parametar: '$1'! Koristi se osnovni: '$2' (bez granice). Pomoć: <code>$0= <i>prazan string</i> (bez granice) | n</code>, s <code>n</code> je pozitivan integer.",
     "dpl_log_16": "PAŽNJA: Nema rezultata!",

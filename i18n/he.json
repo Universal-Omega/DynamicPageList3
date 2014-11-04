@@ -21,7 +21,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "שגיאה: לא ניתן לבצע פעולות לוגיות על דפים ללא קטגוריות (למשל, עם הפרמטר 'קטגוריה') כיוון שתצוגת $0 אינה קיימת במסד הנתונים! עזרה: מנהל מסד הנתונים צריך להריץ את השאילתה: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "אזהרה: בוצעה התעלמות מהפרמטר הלא ידוע '$0'. עזרה: פרמטרים זמינים: <code>$1</code>.",
+    "dpl_log_13": "אזהרה: בוצעה התעלמות מהפרמטר הלא ידוע '$1'. עזרה: פרמטרים זמינים: <code>$2</code>.",
     "dpl_log_14": "אזהרה: פרמטר '$0' שגוי: '$1'! משתמש בברירת המחדל: '$2'. עזרה: <code>$0= $3</code>.",
     "dpl_log_15": "אזהרה: פרמטר '$0' שגוי: '$1'! משתמש בברירת המחדל: '$2' (ללא הגבלה). עזרה: <code>$0= <i>מחרוזת ריקה</i> (ללא הגבלה) | n</code>, עם <code>n</code> כמספר שלם וחיובי.",
     "dpl_log_16": "?????: ??? ??????!",

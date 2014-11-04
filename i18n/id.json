@@ -21,7 +21,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "KESALAHAN: Tidak dapat melakukan operasi logika pada halaman yang tak terkategori (misalnya dengan parameter 'kategori') karena view $0 tidak ada di basis data! Bantuan: mintalah admin basis data untuk menjalankan kueri berikut: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "KESALAHAN: Paramater yang tak dikenal '$0' diabaikan. Bantuan: parameter yang tersedia: <code>$1</code>.",
+    "dpl_log_13": "KESALAHAN: Paramater yang tak dikenal '$1' diabaikan. Bantuan: parameter yang tersedia: <code>$2</code>.",
     "dpl_log_14": "KESALAHAN: Parameter '$0' salah: '$1'! Menggunakan konfigurasi baku: '$2'. Bantuan: <code>$0= $3</code>.",
     "dpl_log_15": "KESALAHAN: Parameter '$0' salah: '$1'! Menggunakan konfigurasi baku: '$2' (tanpa limitasi). Bantuan: <code>$0= <i>string kosong</i> (tanpa limitasi) | n</code>, dengan <code>n</code> suatu bilangan positif.",
     "dpl_log_16": "KESALAHAN: Hasil tak ditemukan!",

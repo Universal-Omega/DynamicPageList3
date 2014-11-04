@@ -21,7 +21,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "CHYBA: Nie je momoné vykonávat logické operácie na nekategorizovaných kategóriách (napr. s parametrom 'Kategória') lebo neexistuje na databázu pohlad $0! Pomocník: nech admin databázy vykoná tento dotaz: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "VAROVANIE: Neznámy parameter '$0' ignorovaný. Pomocník: dostupné parametre: <code>$1</code>.",
+    "dpl_log_13": "VAROVANIE: Neznámy parameter '$1' ignorovaný. Pomocník: dostupné parametre: <code>$2</code>.",
     "dpl_log_14": "VAROVANIE: Nesprávny '$0' parameter: '$1'! Pouívam tandardný '$2'. Pomocník: <code>$0= $3</code>.",
     "dpl_log_15": "VAROVANIE: Nesprávny parameter  '$0': '$1'! Pouívam tandardný: '$2' (bez obmedzenia). Pomocník: <code>$0= <i>prázdny retazec</i> (bez obmedzenia) | n</code>, s kladným celým císlom <code>n</code>.",
     "dpl_log_16": "VAROVANIE: No results!",

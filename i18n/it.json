@@ -22,7 +22,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "ERRORE: Impossibile effettuare operazioni logiche sulle pagine prive di categoria (ad es. con il parametro 'category') in quanto il database non contiene la vista $0. Suggerimento: chiedere all'amministratore del database di eseguire la seguente query: <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "ATTENZIONE: Il parametro non riconosciuto '$0' è stato ignorato. Suggerimento: i parametri disponibili sono: <code>$1</code>.",
+    "dpl_log_13": "ATTENZIONE: Il parametro non riconosciuto '$1' è stato ignorato. Suggerimento: i parametri disponibili sono: <code>$2</code>.",
     "dpl_log_14": "ATTENZIONE: Errore nel parametro '$0': '$1'. È stato usato il valore predefinito '$2'. Suggerimento: <code>$0= $3</code>.",
     "dpl_log_15": "ATTENZIONE: errore nel parametro '$0': '$1'. È stato usato il valore predefinito '$2' (nessun limite). Suggerimento: <code>$0= <i>stringa vuota</i> (nessun limite) | n</code>, con <code>n</code> intero positivo.",
     "dpl_log_16": "ATTENZIONE: Nessun risultato.",

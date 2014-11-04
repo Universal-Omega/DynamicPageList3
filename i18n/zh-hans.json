@@ -20,7 +20,7 @@
     "dpl_log_9": "错误: 你只可以用 'ordermethod=[...,]$1' 在 '$0' 上!",
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "警告: 不明的参数 '$0' 被忽略。 帮助: 可用的参数: <code>$1</code>。",
+    "dpl_log_13": "警告: 不明的参数 '$1' 被忽略。 帮助: 可用的参数: <code>$2</code>。",
     "dpl_log_14": "警告: 错误的 '$0' 参数: '$1'! 正在使用默认值: '$2'。 帮助: <code>$0= $3</code>。",
     "dpl_log_15": "警告: 错误的 '$0' 参数: '$1'! 正在使用默认值: '$2' (没有上限)。 帮助: <code>$0= <i>空白字符串</i> (没有上限) | n</code>, <code>n</code>是一个正整数。",
     "dpl_log_16": "警告: 无结果!",

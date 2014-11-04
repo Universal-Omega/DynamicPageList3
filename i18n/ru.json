@@ -19,7 +19,7 @@
     "dpl_log_9": "ОШИБКА: вы можете использовать «$0» только с «ordermethod=[...,]$1»!",
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "ПРЕДУПРЕЖДЕНИЕ: неизвестный параметр «$0» проигнорирован. Подсказка: доступные параметры: <code>$1</code>.",
+    "dpl_log_13": "ПРЕДУПРЕЖДЕНИЕ: неизвестный параметр «$1» проигнорирован. Подсказка: доступные параметры: <code>$2</code>.",
     "dpl_log_14": "ПРЕДУПРЕЖДЕНИЕ: неправильный параметр «$0»: «$1»! Использование параметра по умолчанию: «$2». Подсказка: <code>$0= $3</code>.",
     "dpl_log_15": "ПРЕДУПРЕЖДЕНИЕ: неправильный параметр «$0»: «$1»! Использование параметра по умолчанию: «$2» (без ограничений). Подсказка: <code>$0= <i>пустая строка</i> (без ограничений) | n</code>, с <code>n</code> равным положительному целому числу.",
     "dpl_log_16": "ПРЕДУПРЕЖДЕНИЕ: не найдено!",

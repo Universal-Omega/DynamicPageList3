@@ -21,7 +21,7 @@
     "dpl_log_10": "Fehler: Die Indexangabe bei 'dominantsection' muss zwischen 1 und  der Anzahl der Argumente von 'includepage' liegen ($0 in diesem Fall).",
     "dpl_log_11": "Fehler: Abfragen auf unkategorisierte Seiten sind nicht möglich, da die Datenbank nicht dafür eingerichtet wurde. Ein Administrator kann dies ändern.",
     "dpl_log_12": "Fehler: Die Angabe von \"openreferences\" ist nicht vereinbar mit bestimmten anderen Optionen, die Sie angegegeben haben. Details dazu stehen im DPL-Manual.",
-    "dpl_log_13": "Warnung: Der unbekannte Parameter '$0' wird ignoriert. Hilfe: Verfügbare Parameter: <code>$1</code>.",
+    "dpl_log_13": "Warnung: Der unbekannte Parameter '$1' wird ignoriert. Hilfe: Verfügbare Parameter: <code>$2</code>.",
     "dpl_log_14": "Warnung: Parameter '$0': Der Wert '$1' ist unzulässig. Es wird der Defaultwert benutzt: '$2'. Hilfe: <code>$0= $3</code>.",
     "dpl_log_15": "Warnung: Parameter '$0': Der Wert '$1' ist unzulässig. Es wird der Defaultwert benutzt: '$2'. Help: <code>$0= <i>(leer)</i> (unbegrenzt) | n</code>, wobei <code>n</code> eine positive Ganzzahl sein muss.",
     "dpl_log_16": "Warnung: Kein passender Eintrag gefunden!",

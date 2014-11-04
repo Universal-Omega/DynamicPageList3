@@ -23,7 +23,7 @@
     "dpl_log_10": "ERROR: the index for the dominant section must be between 1 and the number of arguments of includepage ($0 in this case)",
     "dpl_log_11": "ERREUR : Ne peut pas effectuer d’opérations logiques sur les pages sans catégories (avec la paramètre 'category') car la vue $0 n’existe pas dans la base de données ! Aide : demander à un administrateur de la base de données d'effectuer : <code>$1</code>.",
     "dpl_log_12": "ERROR: specifying \"openreferences\" is incompatible with some other option you specified. See the manual for details.",
-    "dpl_log_13": "AVERTISSEMENT : Le paramètre inconnu '$0' est ignoré. Aide : paramètres disponibles : <code>$1</code>.",
+    "dpl_log_13": "AVERTISSEMENT : Le paramètre inconnu '$1' est ignoré. Aide : paramètres disponibles : <code>$2</code>.",
     "dpl_log_14": "AVERTISSEMENT : Mauvais paramètre '$0' : '$1'! Utilisation de la valeur par défaut : '$2'. Aide : <code>$0= $3</code>.",
     "dpl_log_15": "AVERTISSEMENT : Mauvais paramètre '$0' : '$1'! Utilisattion de la valeur par défaut : '$2' (aucune limite). Aide : <code>$0= <i>chaîne vide</i> (aucune limite) | n</code>, avec <code>n</code> un entier positif.",
     "dpl_log_16": "AVERTISSEMENT : Aucun résultat !",
