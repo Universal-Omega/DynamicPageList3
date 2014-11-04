@@ -299,7 +299,7 @@ class Parse {
 			$replacementVariables['%PAGES%'] = 1;
 			//Only override header and footers if specified.
 			if ($this->parameters->getParameter('oneresultheader') !== null) {
-				$footer = $this->parameters->getParameter('oneresultheader');
+				$header = $this->parameters->getParameter('oneresultheader');
 			}
 			if ($this->parameters->getParameter('oneresultfooter') !== null) {
 				$footer = $this->parameters->getParameter('oneresultfooter');
@@ -308,7 +308,7 @@ class Parse {
 			$replacementVariables['%PAGES%'] = $dpl->getRowCount();
 			//Only override header and footers if specified.
 			if ($this->parameters->getParameter('noresultsheader') !== null) {
-				$footer = $this->parameters->getParameter('noresultsheader');
+				$header = $this->parameters->getParameter('noresultsheader');
 			}
 			if ($this->parameters->getParameter('noresultsfooter') !== null) {
 				$footer = $this->parameters->getParameter('noresultsfooter');

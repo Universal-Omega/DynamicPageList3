@@ -884,11 +884,13 @@ class ParametersData {
 		 */
 		'noresultsheader' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		'noresultsfooter' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * oneresultsheader / footer is some wiki text which will be output
@@ -896,11 +898,13 @@ class ParametersData {
 		 */
 		'oneresultheader' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		'oneresultfooter' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * openreferences =...
@@ -948,11 +952,13 @@ class ParametersData {
 		 */
 		'resultsheader' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		'resultsfooter' => [
 			'default'		=> null,
-			'strip_html'	=> true
+			'strip_html'	=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * reset=..

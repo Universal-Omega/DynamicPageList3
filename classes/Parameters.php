@@ -86,7 +86,9 @@ class Parameters extends ParametersData {
 			if (is_array($parameterData['values']) === true && !in_array(strtolower($option), $parameterData['values'])) {
 				$success = false;
 			} else {
-				$option = strtolower($option);
+				if (!$parameterData['preserve_case']) {
+					$option = strtolower($option);
+				}
 			}
 
 			//Strip <html> tag.

@@ -23,7 +23,7 @@
     "dpl_log_11": "Error: Cannot perform logical operations on the Uncategorized pages (f.e. with the 'category' parameter) because the $0 view does not exist on the database! Help: have the database administrator execute this query: <code>$1</code>.",
     "dpl_log_12": "Error: specifying \"openreferences\" is incompatible with another option specified.  Please remove that other option or \"openreferences\".  See the manual for details.",
     "dpl_log_13": "Warning: Unknown parameter '$1' was ignored. Help: available parameters: <code>$2</code>.",
-    "dpl_log_14": "Warning: Wrong '$1' parameter: '$2'! Using default: '$3'. Help: <code>$1= $4</code>.",
+    "dpl_log_14": "Warning: Skipping bad option '$2' for parameter '$1'.",
     "dpl_log_15": "Warning: Wrong '$1' parameter: '$2'! Using default: '$3' (no limit). Help: <code>$1= <i>empty string</i> (no limit) | n</code>, with <code>n</code> a positive integer.",
     "dpl_log_16": "Warning: No results.",
     "dpl_log_17": "Warning: Add* parameters ('adduser', 'addeditdate', etc.)' and 'includepage' have no effect with 'mode=category'. Only the page namespace/title can be viewed in this mode.",
