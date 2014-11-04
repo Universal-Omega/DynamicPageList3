@@ -464,7 +464,7 @@ class Parse {
 
 		foreach ($rawParameters as $key => $parameterOption) {
 			if (strpos($parameterOption, '=') === false) {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter." [missing '=']");
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_PARAMNOOPTION, $parameterOption);
 				continue;
 			}
 
@@ -483,7 +483,7 @@ class Parse {
 			}
 
 			if (!$this->parameters->exists($parameter)) {
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter);
+				$this->logger->addMessage(\DynamicPageListHooks::WARN_UNKNOWNPARAM, $parameter, implode(', ', $this->parameters->getParametersForRichness()));
 				continue;
 			}
 

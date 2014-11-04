@@ -15,16 +15,16 @@
 
 class DynamicPageListHooks {
 	// FATAL
-	const FATAL_WRONGNS								= 1001;	// $0: 'namespace' or 'notnamespace'
-															// $1: wrong parameter given by user
+	const FATAL_WRONGNS								= 1001;	// $1: 'namespace' or 'notnamespace'
+															// $2: wrong parameter given by user
 															// $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
 
-	const FATAL_WRONGLINKSTO						= 1002;	// $0: linksto' (left as $0 just in case the parameter is renamed in the future)
-															// $1: the wrong parameter given by user
+	const FATAL_WRONGLINKSTO						= 1002;	// $1: linksto' (left as $0 just in case the parameter is renamed in the future)
+															// $2: the wrong parameter given by user
 
-	const FATAL_TOOMANYCATS							= 1003;	// $0: max number of categories that can be included
+	const FATAL_TOOMANYCATS							= 1003;	// $1: max number of categories that can be included
 
-	const FATAL_TOOFEWCATS							= 1004;	// $0: min number of categories that have to be included
+	const FATAL_TOOFEWCATS							= 1004;	// $1: min number of categories that have to be included
 
 	const FATAL_NOSELECTION							= 1005;
 
@@ -34,13 +34,13 @@ class DynamicPageListHooks {
 
 	const FATAL_MORETHAN1TYPEOFDATE					= 1008;
 
-	const FATAL_WRONGORDERMETHOD					= 1009;	// $0: param=val that is possible only with $1 as last 'ordermethod' parameter
-															// $1: last 'ordermethod' parameter required for $0
+	const FATAL_WRONGORDERMETHOD					= 1009;	// $1: param=val that is possible only with $1 as last 'ordermethod' parameter
+															// $2: last 'ordermethod' parameter required for $0
 
-	const FATAL_DOMINANTSECTIONRANGE				= 1010;	// $0: the number of arguments in includepage
+	const FATAL_DOMINANTSECTIONRANGE				= 1010;	// $1: the number of arguments in includepage
 
-	const FATAL_NOCLVIEW							= 1011;	// $0: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
-															// $1: SQL query to create the prefix_dpl_clview on your mediawiki DB
+	const FATAL_NOCLVIEW							= 1011;	// $1: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
+															// $2: SQL query to create the prefix_dpl_clview on your mediawiki DB
 
 	const FATAL_OPENREFERENCES						= 1012;
 
@@ -54,31 +54,33 @@ class DynamicPageListHooks {
 
 	// WARN
 
-	const WARN_UNKNOWNPARAM							= 2013;	// $0: unknown parameter given by user
-															// $1: list of DPL available parameters separated by ', '
+	const WARN_UNKNOWNPARAM							= 2013;	// $1: unknown parameter given by user
+															// $2: list of DPL available parameters separated by ', '
+
+	const WARN_PARAMNOOPTION						= 2022;	// $1: Parameter given by user
 
 	const WARN_WRONGPARAM							= 2014;	// $3: list of valid param values separated by ' | '
 
-	const WARN_WRONGPARAM_INT						= 2015;	// $0: param name
-															// $1: wrong param value given by user
-															// $2: default param value used instead by program
+	const WARN_WRONGPARAM_INT						= 2015;	// $1: param name
+															// $2: wrong param value given by user
+															// $3: default param value used instead by program
 
 	const WARN_NORESULTS							= 2016;
 
 	const WARN_CATOUTPUTBUTWRONGPARAMS				= 2017;
 
-	const WARN_HEADINGBUTSIMPLEORDERMETHOD			= 2018;	// $0: 'headingmode' value given by user
-															// $1: value used instead by program (which means no heading)
+	const WARN_HEADINGBUTSIMPLEORDERMETHOD			= 2018;	// $1: 'headingmode' value given by user
+															// $2: value used instead by program (which means no heading)
 
-	const WARN_DEBUGPARAMNOTFIRST					= 2019;	// $0: 'log' value
+	const WARN_DEBUGPARAMNOTFIRST					= 2019;	// $1: 'log' value
 
-	const WARN_TRANSCLUSIONLOOP						= 2020;	// $0: title of page that creates an infinite transclusion loop
+	const WARN_TRANSCLUSIONLOOP						= 2020;	// $1: title of page that creates an infinite transclusion loop
 
 	// INFO
 
 	// DEBUG
 
-	const DEBUG_QUERY								= 3021;	// $0: SQL query executed to generate the dynamic page list
+	const DEBUG_QUERY								= 3021;	// $1: SQL query executed to generate the dynamic page list
 
 	// TRACE
 															// Output formatting

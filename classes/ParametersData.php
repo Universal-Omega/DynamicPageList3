@@ -68,8 +68,8 @@ class ParametersData {
 			'rowsize',
 			'scroll',
 			'title',
-			'title<',
-			'title>',
+			'titlelt',
+			'titlegt',
 			'titlemaxlength',
 			'userdateformat'
 		],
@@ -1199,6 +1199,8 @@ class ParametersData {
 		for ($i = 0; $i <= $level; $i++) {
 			$parameters = array_merge($parameters, self::$parametersForRichnessLevel[$i]);
 		}
+		sort($parameters);
+
 		return $parameters;
 	}
 }
