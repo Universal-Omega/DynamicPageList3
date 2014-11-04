@@ -19,7 +19,7 @@ class DynamicPageListHooks {
 															// $2: wrong parameter given by user
 															// $3: list of possible titles of namespaces (except pseudo-namespaces: Media, Special)
 
-	const FATAL_WRONGLINKSTO						= 1002;	// $1: linksto' (left as $0 just in case the parameter is renamed in the future)
+	const FATAL_WRONGLINKSTO						= 1002;	// $1: linksto'
 															// $2: the wrong parameter given by user
 
 	const FATAL_TOOMANYCATS							= 1003;	// $1: max number of categories that can be included
