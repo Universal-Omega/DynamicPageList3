@@ -1021,7 +1021,7 @@ class Parameters extends ParametersData {
 		}
 		$listSeparators[3] = "\n|}";
 		//Overwrite 'listseparators'.
-		$this->parameters->setParameter('listseparators', $listSeparators);
+		$this->setParameter('listseparators', $listSeparators);
 
 		$sectionLabels = $this->getParameter('seclabels');
 		$sectionSeparators = $this->getParameter('secseparators');
