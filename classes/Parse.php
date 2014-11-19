@@ -286,12 +286,13 @@ class Parse {
 		$replacementVariables = [];
 		$replacementVariables['%TOTALPAGES%'] = $foundRows;
 		$replacementVariables['%VERSION%'] = DPL_VERSION;
-		$replacementVariables['%PAGES%'] = $foundRows;
 
 		$_headerType = 'results';
 		if ($foundRows === 1) {
+			$replacementVariables['%PAGES%'] = 1;
 			$_headerType = 'oneresult';
 		} elseif ($foundRows === 0) {
+			$replacementVariables['%PAGES%'] = intval($dpl->getRowCount());
 			$_headerType = 'noresults';
 		}
 		//Only override header and footers if specified.
