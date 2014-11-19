@@ -288,18 +288,18 @@ class Parse {
 		$replacementVariables['%VERSION%'] = DPL_VERSION;
 		$replacementVariables['%PAGES%'] = $foundRows;
 
-		$_headerType = '';
+		$_headerType = 'results';
 		if ($foundRows === 1) {
-			$_headerType = 'one';
+			$_headerType = 'oneresult';
 		} elseif ($foundRows === 0) {
-			$_headerType = 'no';
+			$_headerType = 'noresults';
 		}
 		//Only override header and footers if specified.
-		if ($this->parameters->getParameter($_headerType.'resultsheader') !== null) {
-			$header = $this->parameters->getParameter($_headerType.'resultsheader');
+		if ($this->parameters->getParameter($_headerType.'header') !== null) {
+			$header = $this->parameters->getParameter($_headerType.'header');
 		}
-		if ($this->parameters->getParameter($_headerType.'resultsfooter') !== null) {
-			$footer = $this->parameters->getParameter($_headerType.'resultsfooter');
+		if ($this->parameters->getParameter($_headerType.'footer') !== null) {
+			$footer = $this->parameters->getParameter($_headerType.'footer');
 		}
 
 		// replace %DPLTIME% by execution time and timestamp in header and footer
