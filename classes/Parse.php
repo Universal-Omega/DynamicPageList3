@@ -283,36 +283,23 @@ class Parse {
 		/*******************************/
 		/* Start Headers/Footers       */
 		/*******************************/
-		$this->setHeader($this->parameters->getParameter('resultsheader'));
-		$this->setFooter($this->parameters->getParameter('resultsfooter'));
-		if (\DynamicPageListHooks::getDebugLevel() == 5) {
-			$this->setHeader('<pre><nowiki>'.$this->getHeader());
-			$this->setFooter($this->setFooter().'</nowiki></pre>');
-		}
-
 		$replacementVariables = [];
 		$replacementVariables['%TOTALPAGES%'] = $foundRows;
 		$replacementVariables['%VERSION%'] = DPL_VERSION;
-		$header = $this->parameters->getParameter('resultsheader');
-		$footer = $this->parameters->getParameter('resultsfooter');
+		$replacementVariables['%PAGES%'] = $foundRows;
+
+		$_headerType = '';
 		if ($foundRows === 1) {
-			$replacementVariables['%PAGES%'] = 1;
-			//Only override header and footers if specified.
-			if ($this->parameters->getParameter('oneresultheader') !== null) {
-				$header = $this->parameters->getParameter('oneresultheader');
-			}
-			if ($this->parameters->getParameter('oneresultfooter') !== null) {
-				$footer = $this->parameters->getParameter('oneresultfooter');
-			}
+			$_headerType = 'one';
 		} elseif ($foundRows === 0) {
-			$replacementVariables['%PAGES%'] = $dpl->getRowCount();
-			//Only override header and footers if specified.
-			if ($this->parameters->getParameter('noresultsheader') !== null) {
-				$header = $this->parameters->getParameter('noresultsheader');
-			}
-			if ($this->parameters->getParameter('noresultsfooter') !== null) {
-				$footer = $this->parameters->getParameter('noresultsfooter');
-			}
+			$_headerType = 'no';
+		}
+		//Only override header and footers if specified.
+		if ($this->parameters->getParameter($_headerType.'resultsheader') !== null) {
+			$header = $this->parameters->getParameter($_headerType.'resultsheader');
+		}
+		if ($this->parameters->getParameter($_headerType.'resultsfooter') !== null) {
+			$footer = $this->parameters->getParameter($_headerType.'resultsfooter');
 		}
 
 		// replace %DPLTIME% by execution time and timestamp in header and footer
@@ -333,8 +320,14 @@ class Parse {
 		$replacementVariables['%LASTTITLE%'] = $lastTitleFound;
 		$replacementVariables['%SCROLLDIR%'] = $scrollDir;
 
+
 		$this->setHeader($this->replaceVariables($header, $replacementVariables));
 		$this->setFooter($this->replaceVariables($footer, $replacementVariables));
+
+		if (\DynamicPageListHooks::getDebugLevel() == 5) {
+			$this->setHeader('<pre><nowiki>'.$this->getHeader());
+			$this->setFooter($this->setFooter().'</nowiki></pre>');
+		}
 
 		$scrollVariables = [
 			'DPL_firstNamespace'	=> $firstNamespaceFound,
