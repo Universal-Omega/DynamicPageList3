@@ -127,9 +127,16 @@ class Parameters extends ParametersData {
 
 			//List of Pages
 			if ($parameterData['page_name_list'] === true) {
-				$option = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
-				if ($option === false) {
+				$pageGroups = $this->getParameter($parameter);
+				if (!is_array($pageGroups)) {
+					$pageGroups = [];
+				}
+				$pages = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
+				if ($pages === false) {
 					$success = false;
+				} else {
+					$pageGroups[] = $pages;
+					$option = $pageGroups;
 				}
 			}
 
