@@ -727,7 +727,12 @@ class Parameters extends ParametersData {
 			$data = $this->getParameter('title');
 			$data['='][] = str_replace(' ', '_', $title->getText());
 			$this->setParameter('title', $data);
-			$this->setParameter('namespaces', array_merge((is_array($this->getParameter('namespaces')) ? $this->getParameter('namespaces') : []), $title->getNamespace()));
+
+			$data = $this->getParameter('namespace');
+			$data[] = $title->getNamespace();
+			$data = array_unique($data);
+			$this->setParameter('namespace', $data);
+
 			$this->setParameter('mode', 'userformat');
 			$this->setParameter('ordermethod', []);
 			$this->setSelectionCriteriaFound(true);
