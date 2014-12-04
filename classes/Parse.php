@@ -132,10 +132,12 @@ class Parse {
 		$this->parameters->setParameter('includeuncat', false); // to check if pseudo-category of Uncategorized pages is included
 
 		foreach ($cleanParameters as $parameter => $option) {
-			//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
-			if ($this->parameters->$parameter($option) === false) {
-				//Do not build this into the output just yet.  It will be collected at the end.
-				$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $option);
+			foreach ($option as $_option) {
+				//Parameter functions return true or false.  The full parameter data will be passed into the Query object later.
+				if ($this->parameters->$parameter($_option) === false) {
+					//Do not build this into the output just yet.  It will be collected at the end.
+					$this->logger->addMessage(\DynamicPageListHooks::WARN_WRONGPARAM, $parameter, $_option);
+				}
 			}
 		}
 
@@ -487,7 +489,7 @@ class Parse {
 					continue;
 				}
 			}
-			$parameters[$parameter] = $option;
+			$parameters[$parameter][] = $option;
 		}
 		return $parameters;
 	}
