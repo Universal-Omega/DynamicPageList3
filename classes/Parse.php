@@ -433,7 +433,7 @@ class Parse {
 				continue;
 			}
 
-			$articles[] = Article::newFromRow($row, $this->parameters, $title, $pageNamespace);
+			$articles[] = Article::newFromRow($row, $this->parameters, $title, $pageNamespace, $pageTitle);
 		}
 		$this->DB->freeResult($result);
 

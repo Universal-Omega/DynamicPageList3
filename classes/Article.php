@@ -56,9 +56,10 @@ class Article {
 	 * @param	object	\DPL\Parameters Object
 	 * @param	object	Mediawiki Title Object
 	 * @param	integer	Page Namespace ID
+	 * @param	string	Page Title as Selected from Query
 	 * @return	object	\DPL\Article Object
 	 */
-	static public function newFromRow($row, Parameters $parameters, \Title $title, $pageNamespace) {
+	static public function newFromRow($row, Parameters $parameters, \Title $title, $pageNamespace, $pageTitle) {
 		global $wgLang, $wgContLang;
 
 		$article = new Article($title, $pageNamespace);
@@ -87,9 +88,6 @@ class Article {
 		$article->mLink = $articleLink;
 
 		//get first char used for category-style output
-		if (isset($row['sortkey'])) {
-			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
-		}
 		if (isset($row['sortkey'])) {
 			$article->mStartChar = $wgContLang->convert($wgContLang->firstChar($row['sortkey']));
 		} else {
