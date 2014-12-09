@@ -484,7 +484,7 @@ class Query {
 	 * @access	public
 	 * @return	string	SQL Collation
 	 */
-	public function getCollationSQL() {
+	public function getCollateSQL() {
 		return ($this->collation !== false ? 'COLLATE '.$this->collation : null);
 	}
 
@@ -1317,7 +1317,7 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy('sortkey');
-					$this->addSelect(['sortkey' => 'CONCAT(pl.pl_namespace, pl.pl_title) '.$this->getCollationSQL()]);
+					$this->addSelect(['sortkey' => 'CONCAT(pl.pl_namespace, pl.pl_title) '.$this->getCollateSQL()]);
 					break;
 				case 'pagetouched':
 					$this->addOrderBy('page_touched');
@@ -1339,9 +1339,9 @@ class Query {
 
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
-							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) ".$this->getCollationSQL()]);
+							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
 						} else {
-							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, {$replaceConcat}) ".$this->getCollationSQL()]);
+							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
 						}
 					} else {
 						$this->addSelect(['sortkey' => $replaceConcat.$collation]);
@@ -1353,7 +1353,7 @@ class Query {
 					} else {
 						$this->addOrderBy("page_title");
 					}
-					$this->addSelect(['sortkey' => "{$this->tableNames['page']}.page_title ".$this->getCollationSQL()]);
+					$this->addSelect(['sortkey' => "{$this->tableNames['page']}.page_title ".$this->getCollateSQL()]);
 					break;
 				case 'title':
 					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
@@ -1365,10 +1365,10 @@ class Query {
 					//Map namespace index to name
 
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollationSQL()]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollateSQL()]);
 					} else {
 						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollationSQL()]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollateSQL()]);
 					}
 					break;
 				case 'user':
