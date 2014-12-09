@@ -1317,15 +1317,14 @@ class Query {
 					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
-					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
-					$_namespaceIdToText = 'CASE pl_namespace';
+					$aStrictNs = array_slice((array) Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
+					$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
 					foreach ($aStrictNs as $iNs => $sNs) {
 						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
 					}
 					$_namespaceIdToText .= ' END';
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					//see line 2011 (order method sortkey requires category
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
 							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
@@ -1346,7 +1345,7 @@ class Query {
 					break;
 				case 'title':
 					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
-					$_namespaceIdToText = 'CASE pl_namespace';
+					$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
 					foreach ($aStrictNs as $iNs => $sNs) {
 						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
 					}
