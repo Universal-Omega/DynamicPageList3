@@ -1325,14 +1325,17 @@ class Query {
 					$_namespaceIdToText .= ' END';
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
+					$replaceConcat = "REPLACE(CONCAT(IF(".$this->tableNames['page'].".page_namespace = 0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')";
+					$collate = ($this->collation !== false ? ' COLLATE '.$this->collation : null);
+
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
-							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
+							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat})".$collation]);
 						} else {
-							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')) ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
+							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, {$replaceConcat})".$collation]);
 						}
 					} else {
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
+						$this->addSelect(['sortkey' => $replaceConcat.$collation]);
 					}
 					break;
 				case 'titlewithoutnamespace':
@@ -1351,11 +1354,14 @@ class Query {
 					}
 					$_namespaceIdToText .= ' END';
 					//Map namespace index to name
+
+					$collation = ($this->collation !== false ? ' COLLATE '.$this->collation : null);
+
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ')".$collation]);
 					} else {
 						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".($this->collation !== false ? 'COLLATE '.$this->collation : null)]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')".$collation]);
 					}
 					break;
 				case 'user':

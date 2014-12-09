@@ -212,3 +212,4 @@ class Article {
 		return $article;
 	}
 }
+?>
