@@ -390,20 +390,20 @@ class Parameters extends ParametersData {
 			$option = ltrim($option, '-');
 		}
 
-		$operator = 'OR';
 		//We expand html entities because they contain an '& 'which would be interpreted as an AND condition
 		$option = html_entity_decode($option, ENT_QUOTES);
-		if (strpos($option, '&') !== false) {
+		if (strpos($option, '|') !== false) {
+			$parameters = explode('|', $option);
+			$operator = 'OR';
+		} else {
 			$parameters = explode('&', $option);
 			$operator = 'AND';
-		} else {
-			$parameters = explode('|', $option);
 		}
 		foreach ($parameters as $parameter) {
 			$parameter = trim($parameter);
 			if ($parameter == '_none_' || $parameter === '') {
 				$parameters[$parameter] = '';
-				$this->getParameter('includeuncat', true);
+				$this->setParameter('includeuncat', true);
 				$categories[]    = '';
 			} elseif (!empty($parameter)) {
 				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
@@ -428,10 +428,10 @@ class Parameters extends ParametersData {
 		}
 		if (!empty($categories)) {
 			$data = $this->getParameter('category');
-			if (!is_array($data[$operator])) {
-				$data[$operator] = [];
+			if (!is_array($data['='][$operator])) {
+				$data['='][$operator] = [];
 			}
-			$data[$operator] = array_merge($data[$operator], $categories);
+			$data['='][$operator] = array_merge($data['='][$operator], $categories);
 			$this->setParameter('category', $data);
 			if ($heading) {
 				$this->setParameter('catheadings', array_unique(array_merge($this->getParameter('catheadings'), $categories)));
@@ -454,7 +454,8 @@ class Parameters extends ParametersData {
 	 */
 	public function _categoryregexp($option) {
 		$data = $this->getParameter('category');
-		$data['regexp'][] = $option;
+		//REGEXP input only supports AND operator.
+		$data['REGEXP']['AND'][] = $option;
 		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
@@ -468,12 +469,20 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categorymatch($option) {
-		$data = $this->getParameter('category');
-		if (!is_array($data['like'])) {
-			$data['like'] = [];
+		if (strpos($option, '|') !== false) {
+			$newMatches = explode('|', $option);
+			$operator = 'OR';
+		} else {
+			$newMatches = explode('&', $option);
+			$operator = 'AND';
 		}
-		$newMatches = explode('|', $option);
-		$data['like'] = array_merge($data['like'], $newMatches);
+
+		$data = $this->getParameter('category');
+		if (!is_array($data['LIKE'][$operator])) {
+			$data['LIKE'][$operator] = [];
+		}
+
+		$data['LIKE'][$operator] = array_merge($data['LIKE'][$operator], $newMatches);
 		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;

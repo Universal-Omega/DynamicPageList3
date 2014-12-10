@@ -603,9 +603,20 @@ class Parse {
 		/* Parameter Error Checks */
 		/**************************/
 
-		$totalCategory = count($this->parameters->getParameter('category'), COUNT_RECURSIVE) - count($this->parameters->getParameter('category'));
-		$totalNotCategory = count($this->parameters->getParameter('notcategory'), COUNT_RECURSIVE) - count($this->parameters->getParameter('notcategory'));
-		$totalCategories = $totalCategory + $totalNotCategory;
+		if (is_array($this->parameters->getParameter('category'))) {
+			foreach ($this->parameters->getParameter('category') as $comparisonType => $operatorTypes) {
+				foreach ($operatorTypes as $operatorType => $categories) {
+					$totalCategories += count($categories);
+				}
+			}
+		}
+		if (is_array($this->parameters->getParameter('notcategory'))) {
+			foreach ($this->parameters->getParameter('notcategory') as $comparisonType => $operatorTypes) {
+				foreach ($operatorTypes as $operatorType => $categories) {
+					$totalCategories += count($categories);
+				}
+			}
+		}
 
 		//Too many categories.
 		if ($totalCategories > Config::getSetting('maxCategoryCount') && !Config::getSetting('allowUnlimitedCategories')) {

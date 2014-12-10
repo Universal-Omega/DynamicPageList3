@@ -251,7 +251,7 @@ class Query {
 		wfProfileOut(__METHOD__.": Query Build");
 
 		wfProfileIn(__METHOD__.": Database Query");
-
+		var_dump($sql);
 		$queryError = false;
 		try {
 			$result = $this->DB->query($sql);
@@ -708,20 +708,19 @@ class Query {
 	 * @return	void
 	 */
 	private function _category($option) {
-		if (array_key_exists('AND', $option)) {
-			$ands = $options['AND'];
-			unset($options['AND']);
-			$options = array_merge($options, $ands);
-		}
-		foreach ($option as $comparisonType => $categories) {
-			$i++;
-			$addJoin = "INNER JOIN ".(in_array('', $categories) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
-			foreach ($categories as $category) {
-				$ors[] = 'cl'.$i.'.cl_to '.(empty($comparisonType) || $comparisonType == 'OR' ? '=' : $comparisonType).' '.$this->DB->addQuotes(str_replace(' ', '_', $category));
+		var_dump($option);
+		foreach ($option as $comparisonType => $operatorTypes) {
+			foreach ($operatorTypes as $operatorType => $categories) {
+				$i++;
+				$ors = [];
+				$addJoin = "INNER JOIN ".(in_array('', $categories) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
+				foreach ($categories as $category) {
+					$ors[] = "cl{$i}.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category));
+				}
+				$addJoin .= implode(" {$operatorType} ", $ors);
+				$addJoin .= ')';
+				$this->addJoin($addJoin);
 			}
-			$addJoin .= implode(' OR ', $ors);
-			$addJoin .= ')';
-			$this->addJoin($addJoin);
 		}
 	}
 
@@ -733,10 +732,10 @@ class Query {
 	 * @return	void
 	 */
 	private function _notcategory($option) {
-		foreach ($option as $comparisonType => $categories) {
+		foreach ($option as $operatorType => $categories) {
 			foreach ($categories as $category) {
 				$i++;
-				$this->addJoin("LEFT OUTER JOIN {$this->tableNames['categorylinks']} AS ecl{$i} ON {$this->tableNames['page']}.page_id=ecl{$i}.cl_from AND ecl{$i}.cl_to {$comparisonType}".$this->DB->addQuotes(str_replace(' ', '_', $category)));
+				$this->addJoin("LEFT OUTER JOIN {$this->tableNames['categorylinks']} AS ecl{$i} ON {$this->tableNames['page']}.page_id=ecl{$i}.cl_from AND ecl{$i}.cl_to {$operatorType}".$this->DB->addQuotes(str_replace(' ', '_', $category)));
 				$this->addWhere("ecl{$i}.cl_to IS NULL");
 			}
 		}
@@ -1393,10 +1392,10 @@ class Query {
 		if (!$this->parameters->getParameter('openreferences')) {
 			switch ($option) {
 				case 'only':
-					$this->addWhere($this->tableNames['page'].".page_is_redirect=1");
+					$this->addWhere($this->tableNames['page'].".`page_is_redirect` = 1");
 					break;
 				case 'exclude':
-					$this->addWhere($this->tableNames['page'].".page_is_redirect=0");
+					$this->addWhere($this->tableNames['page'].".`page_is_redirect` = 0");
 					break;
 			}
 		}
