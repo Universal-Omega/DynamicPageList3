@@ -251,7 +251,7 @@ class Query {
 		wfProfileOut(__METHOD__.": Query Build");
 
 		wfProfileIn(__METHOD__.": Database Query");
-		var_dump($sql);
+
 		$queryError = false;
 		try {
 			$result = $this->DB->query($sql);
@@ -708,7 +708,6 @@ class Query {
 	 * @return	void
 	 */
 	private function _category($option) {
-		var_dump($option);
 		foreach ($option as $comparisonType => $operatorTypes) {
 			foreach ($operatorTypes as $operatorType => $categories) {
 				$i++;
