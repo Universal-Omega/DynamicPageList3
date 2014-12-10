@@ -251,7 +251,7 @@ class Query {
 		wfProfileOut(__METHOD__.": Query Build");
 
 		wfProfileIn(__METHOD__.": Database Query");
-
+		var_dump($sql);
 		$queryError = false;
 		try {
 			$result = $this->DB->query($sql);
@@ -580,7 +580,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _addfirstcategorydate($option) {
-		$this->addSelect(["DATE_FORMAT(cl0.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp"]);
+		$this->addSelect(["DATE_FORMAT(`categorylinks`.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp"]);
 	}
 
 	/**
@@ -1267,10 +1267,22 @@ class Query {
 	 * @return	void
 	 */
 	private function _ordermethod($option) {
+		global $wgContLang;
+
 		if ($this->parameters->getParameter('goal') == 'categories') {
 			//No order methods for returning categories.
 			return true;
 		}
+
+		$namespaces = $wgContLang->getNamespaces();
+		//$aStrictNs = array_slice((array) Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
+		$namespaces = array_slice($namespaces, 3, count($namespaces), true);
+		$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
+		foreach ($namespaces as $id => $name) {
+			$_namespaceIdToText .= ' WHEN '.intval($id)." THEN ".$this->DB->addQuotes($name.':');
+		}
+		$_namespaceIdToText .= ' END';
+
 		$revisionAuxWhereAdded = false;
 		foreach ($option as $orderMethod) {
 			switch ($orderMethod) {
@@ -1278,6 +1290,7 @@ class Query {
 					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
 					$_clTable = ((in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']).' AS cl_head'; //Use dpl_clview if Uncategorized in headings
+					$this->addTable('revision', 'rev');
 					$this->addJoin("LEFT OUTER JOIN {$_clTable} ON page_id = cl_head.cl_from");
 					if (is_array($this->parameters->getParameter('catheadings')) && count($this->parameters->getParameter('catheadings'))) {
 						$this->addWhere("cl_head.cl_to IN (".$this->DB->makeList($this->parameters->getParameter('catheadings')).")");
@@ -1287,7 +1300,7 @@ class Query {
 					}
 					break;
 				case 'categoryadd':
-					$this->addOrderBy('cl0.cl_timestamp');
+					$this->addOrderBy('`cl1`.cl_timestamp');
 					break;
 				case 'counter':
 					$this->addOrderBy('page_counter');
@@ -1327,21 +1340,16 @@ class Query {
 					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
-					$aStrictNs = array_slice((array) Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
-					$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
-					foreach ($aStrictNs as $iNs => $sNs) {
-						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
-					}
-					$_namespaceIdToText .= ' END';
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					$replaceConcat = "REPLACE(CONCAT(IF(".$this->tableNames['page'].".page_namespace = 0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ')";
+					$replaceConcat = "REPLACE(CONCAT({$_namespaceIdToText}, ".$this->tableNames['page'].".page_title), '_', ' ')";
 
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
 							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
 						} else {
-							$this->addSelect(['sortkey' => "IFNULL(cl0.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
+							//This runs on the assumption that at least one category parameter was used and that numbering starts at 1.
+							$this->addSelect(['sortkey' => "IFNULL(`cl1`.`cl_sortkey`, {$replaceConcat}) ".$this->getCollateSQL()]);
 						}
 					} else {
 						$this->addSelect(['sortkey' => $replaceConcat.$collation]);
@@ -1356,19 +1364,11 @@ class Query {
 					$this->addSelect(['sortkey' => "{$this->tableNames['page']}.page_title ".$this->getCollateSQL()]);
 					break;
 				case 'title':
-					$aStrictNs = array_slice(Config::getSetting('allowedNamespaces'), 1, count(Config::getSetting('allowedNamespaces')), true);
-					$_namespaceIdToText = "CASE {$this->tableNames['page']}.page_namespace";
-					foreach ($aStrictNs as $iNs => $sNs) {
-						$_namespaceIdToText .= ' WHEN '.intval($iNs)." THEN ".$this->DB->addQuotes($sNs);
-					}
-					$_namespaceIdToText .= ' END';
-					//Map namespace index to name
-
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(pl_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollateSQL()]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT(IF(pl_namespace  =0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollateSQL()]);
 					} else {
 						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT( IF(".$this->tableNames['page'].".page_namespace=0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollateSQL()]);
+						$this->addSelect(['sortkey' => "REPLACE(CONCAT(IF(".$this->tableNames['page'].".page_namespace = 0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollateSQL()]);
 					}
 					break;
 				case 'user':
