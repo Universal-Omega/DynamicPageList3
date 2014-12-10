@@ -251,7 +251,7 @@ class Query {
 		wfProfileOut(__METHOD__.": Query Build");
 
 		wfProfileIn(__METHOD__.": Database Query");
-		var_dump($sql);
+
 		$queryError = false;
 		try {
 			$result = $this->DB->query($sql);
