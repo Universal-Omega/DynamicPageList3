@@ -693,10 +693,10 @@ class Query {
 	 */
 	private function _categoriesminmax($option) {
 		if (is_numeric($option[0])) {
-			$this->addWhere($option[0].' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)');
+			$this->addWhere(intval($option[0]).' <= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)');
 		}
 		if (is_numeric($option[1])) {
-			$this->addWhere($option[1].' >= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)');
+			$this->addWhere(intval($option[1]).' >= (SELECT count(*) FROM '.$this->tableNames['categorylinks'].' WHERE '.$this->tableNames['categorylinks'].'.cl_from=page_id)');
 		}
 	}
 
