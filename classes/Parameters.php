@@ -61,6 +61,10 @@ class Parameters extends ParametersData {
 	public function __call($parameter, $arguments) {
 		$parameterData = $this->getData($parameter);
 
+		if ($parameterData === false) {
+			return false;
+		}
+
 		//Check permission to use this parameter.
 		if (array_key_exists('permission', $parameterData)) {
 			global $wgUser;
@@ -408,9 +412,9 @@ class Parameters extends ParametersData {
 			} elseif (!empty($parameter)) {
 				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
 					if (substr($parameter, 1, 2) == '*') {
-						$subCategories = explode('|', self::getSubcategories(substr($parameter, 2), 2));
+						$subCategories = explode('|', Query::getSubcategories(substr($parameter, 2), 2));
 					} else {
-						$subCategories = explode('|', self::getSubcategories(substr($parameter, 1), 1));
+						$subCategories = explode('|', Query::getSubcategories(substr($parameter, 1), 1));
 					}
 					foreach ($subCategories as $subCategory) {
 						$title = \Title::newFromText($subCategory);

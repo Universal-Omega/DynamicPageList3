@@ -496,13 +496,15 @@ class Query {
 	 * @param	integer	[Optional] Maximum Depth
 	 * @return	array	Subcategories
 	 */
-	static private function getSubcategories($categoryName, $depth = 1) {
+	static public function getSubcategories($categoryName, $depth = 1) {
+		$DB = wfGetDB(DB_SLAVE);
+
 		if ($depth > 2) {
 			//Hard constrain depth because lots of recursion is bad.
 			$depth = 2;
 		}
 		$categories = [];
-		$result = $this->DB->select(
+		$result = $DB->select(
 			['page', 'categorylinks'],
 			['page_title'],
 			[
@@ -525,7 +527,7 @@ class Query {
 			}
 		}
 		$categories = array_unique($categories);
-		$this->DB->freeResult($result);
+		$DB->freeResult($result);
 		return $categories;
 	}
 
