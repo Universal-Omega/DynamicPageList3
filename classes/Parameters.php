@@ -405,17 +405,19 @@ class Parameters extends ParametersData {
 		}
 		foreach ($parameters as $parameter) {
 			$parameter = trim($parameter);
-			if ($parameter == '_none_' || $parameter === '') {
-				$parameters[$parameter] = '';
+			if ($parameter === '_none_' || $parameter === '') {
 				$this->setParameter('includeuncat', true);
-				$categories[]    = '';
+				$categories[] = '';
 			} elseif (!empty($parameter)) {
 				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
 					if (substr($parameter, 1, 2) == '*') {
-						$subCategories = explode('|', Query::getSubcategories(substr($parameter, 2), 2));
+						$parameter = substr($parameter, 2);
+						$subCategories = Query::getSubcategories($parameter, 2);
 					} else {
-						$subCategories = explode('|', Query::getSubcategories(substr($parameter, 1), 1));
+						$parameter = substr($parameter, 1);
+						$subCategories = Query::getSubcategories($parameter, 1);
 					}
+					$subCategories[] = $parameter;
 					foreach ($subCategories as $subCategory) {
 						$title = \Title::newFromText($subCategory);
 						if (!is_null($title)) {
