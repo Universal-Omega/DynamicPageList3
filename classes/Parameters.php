@@ -421,23 +421,26 @@ class Parameters extends ParametersData {
 					foreach ($subCategories as $subCategory) {
 						$title = \Title::newFromText($subCategory);
 						if (!is_null($title)) {
-							$categories[] = $title->getDbKey();
+							//The * helper is just like listing "Category1|SubCategory1".  This gets hard coded here for this purpose.
+							$categories['OR'][] = $title->getDbKey();
 						}
 					}
 				} else {
 					$title = \Title::newFromText($parameter);
 					if (!is_null($title)) {
-						$categories[] = $title->getDbKey();
+						$categories[$operator][] = $title->getDbKey();
 					}
 				}
 			}
 		}
 		if (!empty($categories)) {
 			$data = $this->getParameter('category');
-			if (!is_array($data['='][$operator])) {
-				$data['='][$operator] = [];
+			foreach ($categories as $_operator => $_categories) {
+				if (!is_array($data['='][$_operator])) {
+					$data['='][$_operator] = [];
+				}
+				$data['='][$_operator] = array_merge($data['='][$_operator], $_categories);
 			}
-			$data['='][$operator] = array_merge($data['='][$operator], $categories);
 			$this->setParameter('category', $data);
 			if ($heading) {
 				$this->setParameter('catheadings', array_unique(array_merge($this->getParameter('catheadings'), $categories)));
