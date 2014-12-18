@@ -713,14 +713,22 @@ class Query {
 		foreach ($option as $comparisonType => $operatorTypes) {
 			foreach ($operatorTypes as $operatorType => $categories) {
 				$i++;
-				$ors = [];
-				$addJoin = "INNER JOIN ".(in_array('', $categories) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
-				foreach ($categories as $category) {
-					$ors[] = "cl{$i}.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category));
+				if ($operatorType == 'AND') {
+					foreach ($categories as $category) {
+						$addJoin = "INNER JOIN ".(in_array('', $categories) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND cl{$i}.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category));
+						$this->addJoin($addJoin);
+						$i++;
+					}
+				} else {
+					$addJoin = "INNER JOIN ".(in_array('', $categories) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks'])." AS cl{$i} ON {$this->tableNames['page']}.page_id=cl{$i}.cl_from AND (";
+					$ors = [];
+					foreach ($categories as $category) {
+						$ors[] = "cl{$i}.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category));
+					}
+					$addJoin .= implode(" {$operatorType} ", $ors);
+					$addJoin .= ')';
+					$this->addJoin($addJoin);
 				}
-				$addJoin .= implode(" {$operatorType} ", $ors);
-				$addJoin .= ')';
-				$this->addJoin($addJoin);
 			}
 		}
 	}
