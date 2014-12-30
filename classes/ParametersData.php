@@ -621,7 +621,8 @@ class ParametersData {
 		'createdby'	=> [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * allows to specify a username who must not be the first editor of the pages we select
@@ -629,7 +630,8 @@ class ParametersData {
 		'notcreatedby'	=> [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * allows to specify a username who must be among the editors of the pages we select
@@ -637,7 +639,8 @@ class ParametersData {
 		'modifiedby'	=> [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * allows to specify a username who must not be among the editors of the pages we select
@@ -645,7 +648,8 @@ class ParametersData {
 		'notmodifiedby'	=> [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * allows to specify a username who must be the last editor of the pages we select
@@ -653,7 +657,8 @@ class ParametersData {
 		'lastmodifiedby' => [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * allows to specify a username who must not be the last editor of the pages we select
@@ -661,7 +666,8 @@ class ParametersData {
 		'notlastmodifiedby'	=> [
 			'default'				=> null,
 			'set_criteria_found'	=> true,
-			'open_ref_conflict'		=> true
+			'open_ref_conflict'		=> true,
+			'preserve_case'	=> true
 		],
 		/**
 		 * Mode for list of pages (possibly within a heading, see 'headingmode' param).
