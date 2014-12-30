@@ -230,8 +230,8 @@ class ParametersData {
 		 * search for a page with the same title in another namespace (this is normally the article to a talk page)
 		 */
 		'articlecategory' => [
-			'default'				=> null,
-			'db_format'				=> true
+			'default'			=> null,
+			'db_format'			=> true
 		],
 
 		/**
@@ -622,7 +622,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * allows to specify a username who must not be the first editor of the pages we select
@@ -631,7 +631,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * allows to specify a username who must be among the editors of the pages we select
@@ -640,7 +640,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * allows to specify a username who must not be among the editors of the pages we select
@@ -649,7 +649,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * allows to specify a username who must be the last editor of the pages we select
@@ -658,7 +658,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * allows to specify a username who must not be the last editor of the pages we select
@@ -667,7 +667,7 @@ class ParametersData {
 			'default'				=> null,
 			'set_criteria_found'	=> true,
 			'open_ref_conflict'		=> true,
-			'preserve_case'	=> true
+			'preserve_case'			=> true
 		],
 		/**
 		 * Mode for list of pages (possibly within a heading, see 'headingmode' param).
