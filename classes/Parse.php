@@ -226,7 +226,7 @@ class Parse {
 			$this->parameters->getParameter('mode'),
 			$this->parameters->getParameter('secseparators'),
 			$this->parameters->getParameter('multisecseparators'),
-			$this->parameters->getParameter('inltxt'),
+			$this->parameters->getParameter('inlinetext'),
 			$this->parameters->getParameter('listattr'),
 			$this->parameters->getParameter('itemattr'),
 			$this->parameters->getParameter('listseparators'),
