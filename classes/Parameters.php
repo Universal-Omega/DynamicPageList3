@@ -653,10 +653,10 @@ class Parameters extends ParametersData {
 			//'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
 			if ($option == 'none') {
 				$this->setParameter('mode', 'inline');
-				$this->setParameter('inltxt', '<br/>');
+				$this->setParameter('inlinetext', '<br/>');
 			} elseif ($option == 'userformat') {
 				// userformat resets inline text to empty string
-				$this->setParameter('inltxt', '');
+				$this->setParameter('inlinetext', '');
 				$this->setParameter('mode', $option);
 			} else {
 				$this->setParameter('mode', $option);
@@ -728,7 +728,7 @@ class Parameters extends ParametersData {
 		$this->setParameter('listseparators', explode(',', $option, 4));
 		//Set the 'mode' parameter to userformat automatically.
 		$this->setParameter('mode', 'userformat');
-		$this->setParameter('inltxt', '');
+		$this->setParameter('inlinetext', '');
 		return true;
 	}
 
@@ -1024,7 +1024,7 @@ class Parameters extends ParametersData {
 	public function _table($option) {
 		$this->setParameter('defaulttemplatesuffix', '');
 		$this->setParameter('mode', 'userformat');
-		$this->setParameter('inltxt', '');
+		$this->setParameter('inlinetext', '');
 		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
 
 		foreach (explode(',', $option) as $tabnr => $tab) {
