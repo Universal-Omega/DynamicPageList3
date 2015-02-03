@@ -128,6 +128,11 @@ class Parse {
 		/* User Input preparation and parsing. */
 		/***************************************/
 		$cleanParameters = $this->prepareUserInput($input);
+		if (!is_array($cleanParameters)) {
+			//Short circuit for dumb things.
+			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
+			return $this->getFullOutput();
+		}
 		$cleanParameters = $this->parameters->sortByPriority($cleanParameters);
 		$this->parameters->setParameter('includeuncat', false); // to check if pseudo-category of Uncategorized pages is included
 
@@ -459,6 +464,11 @@ class Parse {
 		$rawParameters = explode("\n", $input);
 
 		foreach ($rawParameters as $key => $parameterOption) {
+			if (empty($parameterOption)) {
+				//Softly ignore blank lines.
+				continue;
+			}
+
 			if (strpos($parameterOption, '=') === false) {
 				$this->logger->addMessage(\DynamicPageListHooks::WARN_PARAMNOOPTION, $parameterOption);
 				continue;
