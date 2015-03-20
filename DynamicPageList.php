@@ -1,11 +1,11 @@
 <?php
 /**
- * DynamicPageList
- * DynamicPageList Master File
+ * DynamicPageList3
+ * DynamicPageList3 Master File
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL
- * @package		DynamicPageList
+ * @package		DynamicPageList3
  *
 **/
 
@@ -16,13 +16,13 @@ if (!defined('MEDIAWIKI')) {
 /******************************************/
 /* Credits								  */
 /******************************************/
-define('DPL_VERSION', '3.0');
+define('DPL_VERSION', '3.0.0');
 
 $credits = [
 	'path' 				=> __FILE__,
-	'name' 				=> 'DynamicPageList (third party)',
+	'name' 				=> 'DynamicPageList3',
 	'author' 			=> '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz], Alexia E. Smith',
-	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)',
+	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList3',
 	'descriptionmsg' 	=> 'dpl-desc',
 	'version' 			=> DPL_VERSION
 ];

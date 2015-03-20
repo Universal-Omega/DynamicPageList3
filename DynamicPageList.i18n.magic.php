@@ -1,11 +1,11 @@
 <?php
 /**
- * DynamicPageList
+ * DynamicPageList3
  * Magic Words
  *
  * @author		Alexia E. Smith
  * @license		GPL
- * @package		DynamicPageList
+ * @package		DynamicPageList3
  *
 **/
 

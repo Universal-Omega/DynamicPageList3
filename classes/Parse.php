@@ -1,11 +1,11 @@
 <?php
 /**
- * DynamicPageList
+ * DynamicPageList3
  * DPL Parse Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL
- * @package		DynamicPageList
+ * @package		DynamicPageList3
  *
  **/
 namespace DPL;
