@@ -93,7 +93,7 @@ if (!isset($dplSettings['allowUnlimitedResults'])) {
 	$dplSettings['allowUnlimitedResults'] = false;
 }
 
-//Set DPL to always behave like intersection.
+//Set DPL to always behave like Extension:Intersection.
 if (!isset($dplSettings['behavingLikeIntersection'])) {
 	$dplSettings['behavingLikeIntersection'] = false;
 }
@@ -132,7 +132,7 @@ if (!isset($dplSettings['maxResultCount'])) {
 	$dplSettings['maxResultCount'] = 500;
 }
 
-//Set this to true to allow DPL to run from protected pages only.
+//Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.
 if (!isset($dplSettings['runFromProtectedPagesOnly'])) {
 	$dplSettings['runFromProtectedPagesOnly'] = false;
 }
