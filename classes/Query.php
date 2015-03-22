@@ -345,7 +345,14 @@ class Query {
 		if (empty($where)) {
 			throw new \MWException(__METHOD__.': An empty where clause was passed.');
 		}
-		$this->where[] = $where;
+		if (is_string($where)) {
+			$this->where[] = $where;
+		} elseif (is_array($where)) {
+			$this->where = array_merge($this->where, $where);
+		} else {
+			throw new \MWException(__METHOD__.': An invalid where clause was passed.');
+			return false;
+		}
 		return true;
 	}
 
@@ -542,7 +549,12 @@ class Query {
 		//Addauthor can not be used with addlasteditor.
 		if (!$this->parametersProcessed['addlasteditor']) {
 			$this->addTable('revision', 'rev');
-			$this->addWhere($this->tableNames['page'].'.page_id = rev.rev_page AND rev.rev_timestamp = (SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page = rev.rev_page)');
+			$this->addWhere(
+				[
+					$this->tableNames['page'].'.`page_id`' => '`rev`.`rev_page`',
+					'`rev`.`rev_timestamp` = (SELECT MIN(`rev_aux_min`.`rev_timestamp`) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE `rev_aux_min`.`rev_page` = `rev`.`rev_page`)'
+				]
+			);
 			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
 		}
 	}
@@ -569,8 +581,17 @@ class Query {
 	 */
 	private function _addcontribution($option) {
 		$this->addTable('recentchanges', 'rc');
-		$this->addSelect(['SUM( ABS( rc.rc_new_len - rc.rc_old_len ) ) AS contribution, rc.rc_user_text AS contributor']);
-		$this->addWhere("page.page_id=rc.rc_cur_id");
+		$this->addSelect(
+			[
+				'SUM(ABS(`rc`.`rc_new_len` - `rc`.`rc_old_len`)) AS contribution',
+				'`rc`.`rc_user_text` AS contributor'
+			]
+		);
+		$this->addWhere(
+			[
+				$this->tableNames['page'].'`page_id`'	=> '`rc`.`rc_cur_id`'
+			]
+		);
 		$this->addGroupBy('rc.rc_cur_id');
 	}
 
@@ -582,7 +603,11 @@ class Query {
 	 * @return	void
 	 */
 	private function _addfirstcategorydate($option) {
-		$this->addSelect(["DATE_FORMAT(`categorylinks`.cl_timestamp, '%Y%m%d%H%i%s') AS cl_timestamp"]);
+		$this->addSelect(
+			[
+				"DATE_FORMAT({$this->tableNames['categorylinks']}.`cl_timestamp`, '%Y%m%d%H%i%s') AS cl_timestamp"
+			]
+		);
 	}
 
 	/**
@@ -596,8 +621,13 @@ class Query {
 		//Addlasteditor can not be used with addauthor.
 		if (!$this->parametersProcessed['addauthor']) {
 			$this->addTable('revision', 'rev');
-			$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux_max.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE rev_aux_max.rev_page=rev.rev_page )');
-			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
+			$this->addWhere(
+				[
+					$this->tableNames['page'].'.`page_id`'	=> '`rev`.`rev_page`',
+					'`rev`.`rev_timestamp` = (SELECT MAX(`rev_aux_max`.`rev_timestamp`) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE `rev_aux_max`.`rev_page` = `rev`.`rev_page`)'
+				]
+			);
+			$this->_adduser(null);
 		}
 	}
 
@@ -609,7 +639,11 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagecounter($option) {
-		$this->addSelect(["page_counter" => "{$this->tableNames['page']}.page_counter"]);
+		$this->addSelect(
+			[
+				"page_counter"	=> "{$this->tableNames['page']}.page_counter"
+			]
+		);
 	}
 
 	/**
@@ -620,7 +654,11 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagesize($option) {
-		$this->addSelect(["page_len" => "{$this->tableNames['page']}.page_len"]);
+		$this->addSelect(
+			[
+				"page_len"	=> "{$this->tableNames['page']}.page_len"
+			]
+		);
 	}
 
 	/**
@@ -631,7 +669,11 @@ class Query {
 	 * @return	void
 	 */
 	private function _addpagetoucheddate($option) {
-		$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
+		$this->addSelect(
+			[
+				"page_touched"	=> "{$this->tableNames['page']}.page_touched"
+			]
+		);
 	}
 
 	/**
@@ -642,7 +684,13 @@ class Query {
 	 * @return	void
 	 */
 	private function _adduser($option) {
-		$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
+		$this->addSelect(
+			[
+				'rev_user',
+				'rev_user_text',
+				'rev_comment'
+			]
+		);
 	}
 
 	/**
@@ -654,10 +702,20 @@ class Query {
 	 */
 	private function _allrevisionsbefore($option) {
 		$this->addTable('revision', 'rev');
-		$this->addSelect(['rev_id', 'rev_timestamp']);
+		$this->addSelect(
+			[
+				'rev_id',
+				'rev_timestamp'
+			]
+		);
 		$this->addOrderBy('rev_id');
 		$this->setOrderDir('DESC');
-		$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp < '.$this->DB->addQuotes($option));
+		$this->addWhere(
+			[
+				$this->tableNames['page'].'.`page_id` = `rev`.`rev_page`',
+				'`rev`.`rev_timestamp` < '.$this->DB->addQuotes($option)
+			]
+		);
 	}
 
 	/**
@@ -669,10 +727,20 @@ class Query {
 	 */
 	private function _allrevisionssince($option) {
 		$this->addTable('revision', 'rev');
-		$this->addSelect(['rev_id', 'rev_timestamp']);
+		$this->addSelect(
+			[
+				'rev_id',
+				'rev_timestamp'
+			]
+		);
 		$this->addOrderBy('rev_id');
 		$this->setOrderDir('DESC');
-		$this->addWhere($this->tableNames['page'].'.page_id=rev.rev_page AND rev.rev_timestamp >= '.$this->DB->addQuotes($option));
+		$this->addWhere(
+			[
+				$this->tableNames['page'].'.`page_id` = `rev`.`rev_page`',
+				'`rev`.`rev_timestamp` >= '.$this->DB->addQuotes($option)
+			]
+		);
 	}
 
 	/**
@@ -813,7 +881,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _hiddencategories($option) {
-		//@TODO: Unfinished functionality!  Never implemented by original by original author.
+		//@TODO: Unfinished functionality!  Never implemented by original author.
 	}
 
 	/**
