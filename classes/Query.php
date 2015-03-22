@@ -378,6 +378,7 @@ class Query {
 				$this->select[$alias] = $field;
 			}
 
+			//@TODO Speed up by not using in_array().
 			if (is_numeric($alias) && !in_array($field, $this->select)) {
 				$this->select[] = $field;
 			}
@@ -555,7 +556,7 @@ class Query {
 					'`rev`.`rev_timestamp` = (SELECT MIN(`rev_aux_min`.`rev_timestamp`) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE `rev_aux_min`.`rev_page` = `rev`.`rev_page`)'
 				]
 			);
-			$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
+			$this->_adduser(null);
 		}
 	}
 
@@ -827,7 +828,7 @@ class Query {
 	 */
 	private function _createdby($option) {
 		$this->addTable('revision', 'creation_rev');
-		$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
+		$this->_adduser(null);
 		$this->addWhere($this->DB->addQuotes($option).' = creation_rev.rev_user_text'.' AND creation_rev.rev_page = page_id'.' AND creation_rev.rev_parent_id = 0');
 	}
 
@@ -1450,7 +1451,7 @@ class Query {
 				case 'user':
 					$this->addOrderBy('rev_user_text');
 					$this->addTable('revision', 'rev');
-					$this->addSelect(['rev_user', 'rev_user_text', 'rev_comment']);
+					$this->_adduser(null);
 					break;
 				case 'none':
 					break;
