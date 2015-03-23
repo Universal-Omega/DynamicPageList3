@@ -210,22 +210,6 @@ class Query {
 			$options['LIMIT'] = $this->parameters->getData('count')['default'];
 		}
 
-		if ($this->parameters->getParameter('goal') == 'categories') {
-			$categoriesGoal = true;
-			$select = [
-				$this->tableNames['page'].'.page_id'
-			];
-			$options[] = 'DISTINCT';
-		} else {
-			if ($calcRows) {
-				$options[] = 'SQL_CALC_FOUND_ROWS';
-			}
-			if ($this->distinct) {
-				$options[] = 'DISTINCT';
-			}
-			$categoriesGoal = false;
-			$select = $this->select;
-		}
 		if ($this->parameters->getParameter('openreferences')) {
 			if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 				//$sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
@@ -234,6 +218,12 @@ class Query {
 				];
 			} else {
 				//$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
+				$this->addSelect(
+					[
+						'pl_namespace',
+						'pl_title'
+					]
+				);
 				$tables = [
 					'pagelinks'
 				];
@@ -249,6 +239,22 @@ class Query {
 				$_lastOrder .= " ".$this->direction;
 				$options['ORDER BY'][] = $_lastOrder;
 			}
+		}
+		if ($this->parameters->getParameter('goal') == 'categories') {
+			$categoriesGoal = true;
+			$select = [
+				$this->tableNames['page'].'.page_id'
+			];
+			$options[] = 'DISTINCT';
+		} else {
+			if ($calcRows) {
+				$options[] = 'SQL_CALC_FOUND_ROWS';
+			}
+			if ($this->distinct) {
+				$options[] = 'DISTINCT';
+			}
+			$categoriesGoal = false;
+			$select = $this->select;
 		}
 
 		wfProfileOut(__METHOD__.": Query Build");
@@ -997,7 +1003,7 @@ class Query {
 		$this->addTable('imagelinks', 'ic');
 		$this->addSelect(
 			[
-				'sortkey'	=> 'il.il_to'
+				'sortkey'	=> 'ic.il_to'
 			]
 		);
 		if (!$this->parameters->getParameter('openreferences')) {

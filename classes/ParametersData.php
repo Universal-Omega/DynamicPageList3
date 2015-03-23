@@ -578,7 +578,7 @@ class ParametersData {
 		 */
 		'imagecontainer' => [
 			'default'				=> null,
-			'open_ref_conflict'		=> true,
+			'open_ref_conflict'		=> false,
 			'page_name_list'		=> true,
 			'page_name_must_exist'	=> true,
 			'set_criteria_found'	=> true
@@ -809,7 +809,7 @@ class ParametersData {
 		 * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
 		 */
 		'ordermethod' => [
-			'default'	=> ['titlewithoutnamespace'],
+			'default'	=> ['none'],
 			'values'	=> [
 				'counter',
 				'size',

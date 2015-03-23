@@ -618,7 +618,27 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'ordermethod' parameter.(NOTE THE PLURAL 'S')
+	 * Clean and test 'openreferences' parameter.
+	 *
+	 * @access	public
+	 * @param	string	Options passed to parameter.
+	 * @return	boolean	Success
+	 */
+	public function _openreferences($option) {
+		$option = $this->filterBoolean($option);
+		if ($option === null) {
+			return false;
+		}
+
+		//Force 'ordermethod' back to none.
+		$this->setParameter('ordermethod', ['none']);
+		$this->setParameter('openreferences', $option);
+
+		return true;
+	}
+
+	/**
+	 * Clean and test 'ordermethod' parameter.
 	 *
 	 * @access	public
 	 * @param	string	Options passed to parameter.
