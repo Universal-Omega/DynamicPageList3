@@ -226,28 +226,19 @@ class Query {
 			$categoriesGoal = false;
 			$select = $this->select;
 		}
-		/*if ($this->parameters->getParameter('openreferences')) {
-			//@TODO: Something '$sSqlCl_to' or something.
+		if ($this->parameters->getParameter('openreferences')) {
 			if (count($this->parameters->getParameter('imagecontainer')) > 0) {
-				$sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
-				if ($addSelect) {
-					$sql .= "$sSqlCl_to ic.il_to, $sSqlSelPage ic.il_to AS sortkey FROM ";
-				}
-				//$sql .= "{$this->tableNames['imagelinks']} AS ic";
+				//$sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
 				$tables = [
 					'ic'	=> 'imagelinks'
 				];
 			} else {
 				//$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
-				if ($addSelect) {
-					$sql .= "{$query['select']} FROM ";
-				}
-				//$sql .= "{$this->tableNames['pagelinks']}";
 				$tables = [
 					'pagelinks'
 				];
 			}
-		} else {*/
+		} else {
 			$tables = $this->tables;
 			if (count($this->groupBy)) {
 				$options['GROUP BY'] = $this->groupBy;
@@ -258,7 +249,7 @@ class Query {
 				$_lastOrder .= " ".$this->direction;
 				$options['ORDER BY'][] = $_lastOrder;
 			}
-		//}
+		}
 
 		wfProfileOut(__METHOD__.": Query Build");
 
