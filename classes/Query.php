@@ -858,7 +858,7 @@ class Query {
 				$this->addJoin(
 					$tableAlias,
 					[
-						'LEFT OUTER JOIN'	=> "{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}".$this->DB->addQuotes(str_replace(' ', '_', $category)))
+						'LEFT OUTER JOIN'	=> "{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}".$this->DB->addQuotes(str_replace(' ', '_', $category))
 					]
 				);
 				$this->addWhere(
@@ -1458,14 +1458,34 @@ class Query {
 				case 'category':
 					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
-					$_clTable = ((in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) ? $this->tableNames['dpl_clview'] : $this->tableNames['categorylinks']).' AS cl_head'; //Use dpl_clview if Uncategorized in headings
+					if (in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) {
+						$_clTableName = 'dpl_clview';
+						$_clTableAlias = $_clTableName;
+					} else {
+						$_clTableName = 'categorylinks';
+						$_clTableAlias = 'cl_head';
+					}
+					$this->addTable($_clTableName, $_clTableAlias);
 					$this->addTable('revision', 'rev');
-					$this->addJoin("LEFT OUTER JOIN {$_clTable} ON page_id = cl_head.cl_from");
+					$this->addJoin(
+						$_clTableAlias,
+						[
+							"LEFT OUTER JOIN"	=> "page_id = cl_head.cl_from"
+						]
+					);
 					if (is_array($this->parameters->getParameter('catheadings')) && count($this->parameters->getParameter('catheadings'))) {
-						$this->addWhere("cl_head.cl_to IN (".$this->DB->makeList($this->parameters->getParameter('catheadings')).")");
+						$this->addWhere(
+							[
+								"cl_head.cl_to"	=> $this->parameters->getParameter('catheadings')
+							]
+						);
 					}
 					if (is_array($this->parameters->getParameter('catnotheadings')) && count($this->parameters->getParameter('catnotheadings'))) {
-						$this->addWhere("NOT (cl_head.cl_to IN (".$this->DB->makeList($this->parameters->getParameter('catnotheadings'))."))");
+						$this->addWhere(
+							[
+								"cl_head.cl_to NOT "	=> $this->parameters->getParameter('catnotheadings')
+							]
+						);
 					}
 					break;
 				case 'categoryadd':
@@ -1477,33 +1497,59 @@ class Query {
 				case 'firstedit':
 					$this->addOrderBy('rev_timestamp');
 					$this->addTable('revision', 'rev');
-					$this->addSelect(['rev_timestamp']);
+					$this->addSelect(
+						[
+							'rev_timestamp'
+						]
+					);
 					if (!$revisionAuxWhereAdded) {
-						$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+						$this->addWhere(
+							[
+								"{$this->tableNames['page']}.page_id = rev.rev_page",
+								"rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page)"
+							]
+						);
 					}
 					$revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
 						$this->addOrderBy('page_touched');
-						$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
+						$this->addSelect(
+							[
+								"page_touched" => "{$this->tableNames['page']}.page_touched"
+							]
+						);
 					} else {
 						$this->addOrderBy('rev_timestamp');
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev_timestamp']);
 						if (!$revisionAuxWhereAdded) {
-							$this->addWhere("{$this->tableNames['page']}.page_id=rev.rev_page AND rev.rev_timestamp=( SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page=rev.rev_page )");
+							$this->addWhere(
+								[
+									"{$this->tableNames['page']}.page_id = rev.rev_page",
+									"rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)"
+								]
+							);
 						}
 						$revisionAuxWhereAdded = true;
 					}
 					break;
 				case 'pagesel':
 					$this->addOrderBy('sortkey');
-					$this->addSelect(['sortkey' => 'CONCAT(pl.pl_namespace, pl.pl_title) '.$this->getCollateSQL()]);
+					$this->addSelect(
+						[
+							'sortkey' => 'CONCAT(pl.pl_namespace, pl.pl_title) '.$this->getCollateSQL()
+						]
+					);
 					break;
 				case 'pagetouched':
 					$this->addOrderBy('page_touched');
-					$this->addSelect(["page_touched" => "{$this->tableNames['page']}.page_touched"]);
+					$this->addSelect(
+						[
+							"page_touched" => "{$this->tableNames['page']}.page_touched"
+						]
+					);
 					break;
 				case 'size':
 					$this->addOrderBy('page_len');
@@ -1515,13 +1561,25 @@ class Query {
 
 					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
-							$this->addSelect(['sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
+							$this->addSelect(
+								[
+									'sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()
+								]
+							);
 						} else {
 							//This runs on the assumption that at least one category parameter was used and that numbering starts at 1.
-							$this->addSelect(['sortkey' => "IFNULL(cl1.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()]);
+							$this->addSelect(
+								[
+									'sortkey' => "IFNULL(cl1.cl_sortkey, {$replaceConcat}) ".$this->getCollateSQL()
+								]
+							);
 						}
 					} else {
-						$this->addSelect(['sortkey' => $replaceConcat.$collation]);
+						$this->addSelect(
+							[
+								'sortkey' => $replaceConcat.$collation
+							]
+						);
 					}
 					break;
 				case 'titlewithoutnamespace':
@@ -1530,14 +1588,26 @@ class Query {
 					} else {
 						$this->addOrderBy("page_title");
 					}
-					$this->addSelect(['sortkey' => "{$this->tableNames['page']}.page_title ".$this->getCollateSQL()]);
+					$this->addSelect(
+						[
+							'sortkey' => "{$this->tableNames['page']}.page_title ".$this->getCollateSQL()
+						]
+					);
 					break;
 				case 'title':
 					if ($this->parameters->getParameter('openreferences')) {
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT(IF(pl_namespace  =0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollateSQL()]);
+						$this->addSelect(
+							[
+								'sortkey' => "REPLACE(CONCAT(IF(pl_namespace  =0, '', CONCAT(".$_namespaceIdToText.", ':')), pl_title), '_', ' ') ".$this->getCollateSQL()
+							]
+						);
 					} else {
 						//Generate sortkey like for category links. UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addSelect(['sortkey' => "REPLACE(CONCAT(IF(".$this->tableNames['page'].".page_namespace = 0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollateSQL()]);
+						$this->addSelect(
+							[
+								'sortkey' => "REPLACE(CONCAT(IF(".$this->tableNames['page'].".page_namespace = 0, '', CONCAT(".$_namespaceIdToText.", ':')), ".$this->tableNames['page'].".page_title), '_', ' ') ".$this->getCollateSQL()
+							]
+						);
 					}
 					break;
 				case 'user':
@@ -1562,10 +1632,18 @@ class Query {
 		if (!$this->parameters->getParameter('openreferences')) {
 			switch ($option) {
 				case 'only':
-					$this->addWhere($this->tableNames['page'].".page_is_redirect = 1");
+					$this->addWhere(
+						[
+							$this->tableNames['page'].".page_is_redirect"	=> 1
+						]
+					);
 					break;
 				case 'exclude':
-					$this->addWhere($this->tableNames['page'].".page_is_redirect = 0");
+					$this->addWhere(
+						[
+							$this->tableNames['page'].".page_is_redirect"	=> 0
+						]
+					);
 					break;
 			}
 		}
@@ -1582,14 +1660,27 @@ class Query {
 		if (function_exists('efLoadFlaggedRevs')) {
 			//Do not add this again if 'qualitypages' has already added it.
 			if (!$this->parametersProcessed['qualitypages']) {
-				$this->addJoin("LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id");
+				$this->addJoin(
+					'flaggedpages',
+					[
+						"LEFT JOIN"	=> "page_id = fp_page_id"
+					]
+				);
 			}
 			switch ($option) {
 				case 'only':
-					$this->addWhere('fp_stable IS NOT NULL');
+					$this->addWhere(
+						[
+							'fp_stable IS NOT NULL'
+						]
+					);
 					break;
 				case 'exclude':
-					$this->addWhere('fp_stable IS NULL');
+					$this->addWhere(
+						[
+							'fp_stable'	=> null
+						]
+					);
 					break;
 			}
 		}
@@ -1606,7 +1697,12 @@ class Query {
 		if (function_exists('efLoadFlaggedRevs')) {
 			//Do not add this again if 'stablepages' has already added it.
 			if (!$this->parametersProcessed['stablepages']) {
-				$this->addJoin("LEFT JOIN {$this->tableNames['flaggedpages']} ON page_id = fp_page_id");
+				$this->addJoin(
+					'flaggedpages',
+					[
+						"LEFT JOIN"	=> "page_id = fp_page_id"
+					]
+				);
 			}
 			switch ($option) {
 				case 'only':
