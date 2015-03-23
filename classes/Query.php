@@ -210,7 +210,6 @@ class Query {
 			$options['LIMIT'] = $this->parameters->getData('count')['default'];
 		}
 
-		//I wanted to avoid building raw SQL again with this extension, but sometimes you have to start with small changes.
 		if ($this->parameters->getParameter('goal') == 'categories') {
 			$categoriesGoal = true;
 			$select = [
@@ -280,7 +279,6 @@ class Query {
 				while ($row = $result->fetchRow()) {
 					$pageIds[] = $row['page_id'];
 				}
-				var_dump($pageIds);
 				$sql = $this->DB->selectSQLText(
 					[
 						'clgoal'	=> 'categorylinks'
@@ -306,7 +304,6 @@ class Query {
 					$this->join
 				);
 			}
-			var_dump($sql);
 			$result = $this->DB->query($sql);
 
 			if ($calcRows) {
