@@ -157,6 +157,8 @@ class Query {
 
 		wfProfileIn(__METHOD__.": Query Build");
 
+		$options = [];
+
 		$parameters = $this->parameters->getAllParameters();
 		foreach ($parameters as $parameter => $option) {
 			$function = "_".$parameter;
@@ -174,86 +176,90 @@ class Query {
 		if (!$this->parameters->getParameter('openreferences')) {
 			//Add things that are always part of the query.
 			$this->addTable('page', 'page');
-			$this->addSelect(['page_namespace' => $this->tableNames['page'].'.page_namespace']);
-			$this->addSelect(['page_title' => $this->tableNames['page'].'.page_title']);
-			$this->addSelect(['page_id' => $this->tableNames['page'].'.page_id']);
+			$this->addSelect(
+				[
+					'page_namespace' => $this->tableNames['page'].'.page_namespace'
+				]
+			);
+			$this->addSelect(
+				[
+					'page_title' => $this->tableNames['page'].'.page_title'
+				]
+			);
+			$this->addSelect(
+				[
+					'page_id' => $this->tableNames['page'].'.page_id'
+				]
+			);
 		}
-		//Always ddd nonincludeable namespaces.
+		//Always add nonincludeable namespaces.
 		if (is_array($wgNonincludableNamespaces) && count($wgNonincludableNamespaces)) {
-			$this->addWhere($this->tableNames['page'].'.page_namespace NOT IN ('.implode(',', $wgNonincludableNamespaces).')');
+			$this->addWhere(
+				[
+					$this->tableNames['page'].'.page_namespace NOT'	=> $wgNonincludableNamespaces
+				]
+			);
 		}
 
-		$query['select'] = null;
-		if (count($this->select)) {
-			foreach ($this->select as $alias => $select) {
-				if (!is_numeric($alias)) {
-					$_select[] = "{$select} AS {$alias}";
-				} else {
-					$_select[] = "{$select}";
-				}
-			}
-			$query['select'] = implode(', ', $_select);
+		if ($this->offset !== false) {
+			$options['OFFSET'] = $this->offset;
 		}
-
-		$query['tables'] = null;
-		if (count($this->tables)) {
-			foreach ($this->tables as $alias => $table) {
-				$_tables[] = "{$table} AS {$alias}";
-			}
-			$query['tables'] = implode(', ', $_tables);
-		}
-
-		$query['join'] = null;
-		if (count($this->join)) {
-			$query['join'] = implode(' ', $this->join);
-		}
-
-		$query['where'] = null;
-		if (count($this->where)) {
-			$query['where'] = implode(' AND ', $this->where);
-		}
-
-		$limit = null;
-		if (!$this->offset && $this->limit > 0) {
-			$limit = "LIMIT {$this->limit}";
-		} elseif ($this->offset > 0 && $this->limit > 0) {
-			$limit = "LIMIT {$this->offset}, {$this->limit}";
-		} elseif ($this->offset > 0 && !$this->limit) {
-			$limit = "LIMIT {$this->offset}, ".$this->parameters->getData('count')['default'];
+		if ($this->limit !== false) {
+			$options['LIMIT'] = $this->limit;
+		} elseif ($this->offset !== false && $this->limit === false) {
+			$options['LIMIT'] = $this->parameters->getData('count')['default'];
 		}
 
 		//I wanted to avoid building raw SQL again with this extension, but sometimes you have to start with small changes.
 		if ($this->parameters->getParameter('goal') == 'categories') {
-			$sql = 'SELECT DISTINCT cl3.cl_to FROM '.$this->tableNames['categorylinks'].' AS cl3 WHERE cl3.cl_from IN ( SELECT DISTINCT '.$this->tableNames['page'].'.page_id FROM ';
-			$addSelect = false;
+			$categoriesGoal = true;
+			$select = [
+				$this->tableNames['page'].'.page_id'
+			];
+			$options[] = 'DISTINCT';
 		} else {
-			$sql = "SELECT ".($calcRows ? "SQL_CALC_FOUND_ROWS " : null).($this->distinct ? "DISTINCT " : null);
-			$addSelect = true;
+			if ($calcRows) {
+				$options[] = 'SQL_CALC_FOUND_ROWS';
+			}
+			if ($this->distinct) {
+				$options[] = 'DISTINCT';
+			}
+			$categoriesGoal = false;
+			$select = $this->select;
 		}
-		if ($this->parameters->getParameter('openreferences')) {
+		/*if ($this->parameters->getParameter('openreferences')) {
 			//@TODO: Something '$sSqlCl_to' or something.
 			if (count($this->parameters->getParameter('imagecontainer')) > 0) {
 				$sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
 				if ($addSelect) {
 					$sql .= "$sSqlCl_to ic.il_to, $sSqlSelPage ic.il_to AS sortkey FROM ";
 				}
-				$sql .= "{$this->tableNames['imagelinks']} AS ic";
+				//$sql .= "{$this->tableNames['imagelinks']} AS ic";
+				$tables = [
+					'ic'	=> 'imagelinks'
+				];
 			} else {
 				//$sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
 				if ($addSelect) {
 					$sql .= "{$query['select']} FROM ";
 				}
-				$sql .= "{$this->tableNames['pagelinks']}";
+				//$sql .= "{$this->tableNames['pagelinks']}";
+				$tables = [
+					'pagelinks'
+				];
 			}
-		} else {
-			if ($addSelect) {
-				$sql .= "{$query['select']} FROM ";
+		} else {*/
+			$tables = $this->tables;
+			if (count($this->groupBy)) {
+				$options['GROUP BY'] = $this->groupBy;
 			}
-			$sql .= "{$query['tables']} {$query['join']} WHERE {$query['where']}".(count($this->groupBy) ? " GROUP BY ".implode(', ', $this->groupBy) : null).(count($this->orderBy) ? " ORDER BY ".implode(', ', $this->orderBy)." ".$this->direction : null).($limit ? " ".$limit : null);
-		}
-		if ($this->parameters->getParameter('goal') == 'categories') {
-			$sql .= ') ORDER BY cl3.cl_to '.$this->direction;
-		}
+			if (count($this->groupBy)) {
+				$options['ORDER BY'] = $this->orderBy;
+				$_lastOrder = array_pop($options['ORDER BY']);
+				$_lastOrder .= " ".$this->direction;
+				$options['ORDER BY'][] = $_lastOrder;
+			}
+		//}
 
 		wfProfileOut(__METHOD__.": Query Build");
 
@@ -261,6 +267,46 @@ class Query {
 
 		$queryError = false;
 		try {
+			if ($categoriesGoal) {
+				$result = $this->DB->select(
+					$tables,
+					$select,
+					$this->where,
+					__METHOD__,
+					$options,
+					$this->join
+				);
+
+				while ($row = $result->fetchRow()) {
+					$pageIds[] = $row['page_id'];
+				}
+				var_dump($pageIds);
+				$sql = $this->DB->selectSQLText(
+					[
+						'clgoal'	=> 'categorylinks'
+					],
+					[
+						'clgoal.cl_to'
+					],
+					[
+						'clgoal.cl_from'	=> $pageIds
+					],
+					__METHOD__,
+					[
+						'ORDER BY'	=> 'clgoal.cl_to '.$this->direction
+					]
+				);
+			} else {
+				$sql = $this->DB->selectSQLText(
+					$tables,
+					$select,
+					$this->where,
+					__METHOD__,
+					$options,
+					$this->join
+				);
+			}
+			var_dump($sql);
 			$result = $this->DB->query($sql);
 
 			if ($calcRows) {
@@ -1414,7 +1460,7 @@ class Query {
 	private function _ordercollation($option) {
 		$option = mb_strtolower($option);
 
-		$results = $this->DB->query('SHOW CHARACTER SETS');
+		$results = $this->DB->query('SHOW CHARACTER SET');
 		if (!$results) {
 			return false;
 		}
