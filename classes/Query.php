@@ -253,7 +253,7 @@ class Query {
 			if (count($this->groupBy)) {
 				$options['GROUP BY'] = $this->groupBy;
 			}
-			if (count($this->groupBy)) {
+			if (count($this->orderBy)) {
 				$options['ORDER BY'] = $this->orderBy;
 				$_lastOrder = array_pop($options['ORDER BY']);
 				$_lastOrder .= " ".$this->direction;
@@ -610,7 +610,7 @@ class Query {
 			$this->addTable('revision', 'rev');
 			$this->addWhere(
 				[
-					$this->tableNames['page'].'.page_id' => 'rev.rev_page',
+					$this->tableNames['page'].'.page_id = rev.rev_page',
 					'rev.rev_timestamp = (SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page = rev.rev_page)'
 				]
 			);
@@ -658,7 +658,7 @@ class Query {
 		);
 		$this->addWhere(
 			[
-				$this->tableNames['page'].'page_id'	=> 'rc.rc_cur_id'
+				$this->tableNames['page'].'.page_id = rc.rc_cur_id'
 			]
 		);
 		$this->addGroupBy('rc.rc_cur_id');
@@ -692,7 +692,7 @@ class Query {
 			$this->addTable('revision', 'rev');
 			$this->addWhere(
 				[
-					$this->tableNames['page'].'.page_id'	=> 'rev.rev_page',
+					$this->tableNames['page'].'.page_id = rev.rev_page',
 					'rev.rev_timestamp = (SELECT MAX(rev_aux_max.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE rev_aux_max.rev_page = rev.rev_page)'
 				]
 			);
@@ -1087,7 +1087,7 @@ class Query {
 		$this->addSelect(['rev_id', 'rev_timestamp']);
 		$this->addWhere(
 			[
-				$this->tableNames['page'].'.page_id=rev.rev_page',
+				$this->tableNames['page'].'.page_id = rev.rev_page',
 				'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$this->DB->addQuotes($option).')'
 			]
 		);
@@ -1320,7 +1320,7 @@ class Query {
 	 */
 	private function _minoredits($option) {
 		if (isset($option) && $option == 'exclude') {
-			$this->addWhere("rev_minor_edit=0");
+			$this->addWhere("rev_minor_edit = 0");
 		}
 	}
 
@@ -1355,10 +1355,20 @@ class Query {
 	 * @return	void
 	 */
 	private function _namespace($option) {
-		if ($this->parameters->getParameter('openreferences')) {
-			$this->addWhere("{$this->tableNames['pagelinks']}.pl_namespace IN (".$this->DB->makeList($option).")");
-		} else {
-			$this->addWhere("{$this->tableNames['page']}.page_namespace IN (".$this->DB->makeList($option).")");
+		if (is_array($option) && count($option)) {
+			if ($this->parameters->getParameter('openreferences')) {
+				$this->addWhere(
+					[
+						"{$this->tableNames['pagelinks']}.pl_namespace"	=> $option
+					]
+				);
+			} else {
+				$this->addWhere(
+					[
+						"{$this->tableNames['page']}.page_namespace"	=> $option
+					]
+				);
+			}
 		}
 	}
 
@@ -1404,10 +1414,20 @@ class Query {
 	 * @return	void
 	 */
 	private function _notnamespace($option) {
-		if ($this->parameters->getParameter('openreferences')) {
-			$this->addWhere($this->tableNames['pagelinks'].".pl_namespace NOT IN (".$this->DB->makeList($option).")");
-		} else {
-			$this->addWhere($this->tableNames['page'].".page_namespace NOT IN (".$this->DB->makeList($option).")");
+		if (is_array($option) && count($option)) {
+			if ($this->parameters->getParameter('openreferences')) {
+				$this->addWhere(
+					[
+						"{$this->tableNames['pagelinks']}.pl_namespace NOT"	=> $option
+					]
+				);
+			} else {
+				$this->addWhere(
+					[
+						"{$this->tableNames['page']}.page_namespace NOT"	=> $option
+					]
+				);
+			}
 		}
 	}
 
