@@ -473,10 +473,10 @@ class Query {
 	 * @return	boolean Success
 	 */
 	public function addJoin($tableAlias, $joinConditions) {
-		if (empty($join)) {
-			throw new \MWException(__METHOD__.': An join clause was passed.');
+		if (empty($tableAlias) || empty($joinConditions)) {
+			throw new \MWException(__METHOD__.': An empty join clause was passed.');
 		}
-		if (isset($this->selectedFields[$field])) {
+		if (isset($this->join[$tableAlias])) {
 			throw new \MWException(__METHOD__.': Attempted to overwrite existing join clause.');
 		}
 		$this->join[$tableAlias] = $joinConditions;
