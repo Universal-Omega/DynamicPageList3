@@ -270,7 +270,7 @@ class Query {
 					$this->where,
 					__METHOD__,
 					$options,
-					$this->join
+					array_values($this->join)
 				);
 
 				while ($row = $result->fetchRow()) {
@@ -298,7 +298,7 @@ class Query {
 					$this->where,
 					__METHOD__,
 					$options,
-					$this->join
+					array_values($this->join)
 				);
 			}
 			$result = $this->DB->query($sql);
@@ -479,7 +479,7 @@ class Query {
 		if (isset($this->join[$tableAlias])) {
 			throw new \MWException(__METHOD__.': Attempted to overwrite existing join clause.');
 		}
-		$this->join[$tableAlias] = $joinConditions;
+		$this->join[$tableAlias] = [$tableAlias => $joinConditions];
 		return true;
 	}
 
