@@ -270,7 +270,7 @@ class Query {
 					$this->where,
 					__METHOD__,
 					$options,
-					array_values($this->join)
+					$this->join
 				);
 
 				while ($row = $result->fetchRow()) {
@@ -298,7 +298,7 @@ class Query {
 					$this->where,
 					__METHOD__,
 					$options,
-					array_values($this->join)
+					$this->join
 				);
 			}
 			$result = $this->DB->query($sql);
@@ -479,7 +479,7 @@ class Query {
 		if (isset($this->join[$tableAlias])) {
 			throw new \MWException(__METHOD__.': Attempted to overwrite existing join clause.');
 		}
-		$this->join[$tableAlias] = [$tableAlias => $joinConditions];
+		$this->join[$tableAlias] = $joinConditions;
 		return true;
 	}
 
@@ -575,7 +575,8 @@ class Query {
 			['DISTINCT'],
 			[
 				'categorylinks' => [
-					'INNER JOIN', 'page.page_id = categorylinks.cl_from'
+					'INNER JOIN',
+					'page.page_id = categorylinks.cl_from'
 				]
 			]
 		);
@@ -629,7 +630,8 @@ class Query {
 		$this->addJoin(
 			'cl_gc',
 			[
-				'LEFT OUTER JOIN'	=> 'page_id = cl_gc.cl_from'
+				'LEFT OUTER JOIN',
+				'page_id = cl_gc.cl_from'
 			]
 		);
 		$this->addGroupBy($this->tableNames['page'].'.page_id');
@@ -852,7 +854,8 @@ class Query {
 						$this->addJoin(
 							$tableAlias,
 							[
-								'INNER JOIN'	=> "{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category))
+								'INNER JOIN',
+								"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category))
 							]
 						);
 						$i++;
@@ -872,7 +875,8 @@ class Query {
 					$this->addJoin(
 						$tableAlias,
 						[
-							'INNER JOIN'	=> $joinOn
+							'INNER JOIN',
+							$joinOn
 						]
 					);
 				}
@@ -898,7 +902,8 @@ class Query {
 				$this->addJoin(
 					$tableAlias,
 					[
-						'LEFT OUTER JOIN'	=> "{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}".$this->DB->addQuotes(str_replace(' ', '_', $category))
+						'LEFT OUTER JOIN',
+						"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}".$this->DB->addQuotes(str_replace(' ', '_', $category))
 					]
 				);
 				$this->addWhere(
@@ -1530,7 +1535,8 @@ class Query {
 					$this->addJoin(
 						$_clTableAlias,
 						[
-							"LEFT OUTER JOIN"	=> "page_id = cl_head.cl_from"
+							"LEFT OUTER JOIN",
+							"page_id = cl_head.cl_from"
 						]
 					);
 					if (is_array($this->parameters->getParameter('catheadings')) && count($this->parameters->getParameter('catheadings'))) {
@@ -1723,7 +1729,8 @@ class Query {
 				$this->addJoin(
 					'flaggedpages',
 					[
-						"LEFT JOIN"	=> "page_id = fp_page_id"
+						"LEFT JOIN",
+						"page_id = fp_page_id"
 					]
 				);
 			}
@@ -1760,7 +1767,8 @@ class Query {
 				$this->addJoin(
 					'flaggedpages',
 					[
-						"LEFT JOIN"	=> "page_id = fp_page_id"
+						"LEFT JOIN",
+						"page_id = fp_page_id"
 					]
 				);
 			}
