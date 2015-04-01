@@ -1,3 +1,21 @@
+{{extension
+|name        = DynamicPageList3
+|status      = beta
+|type1       = tag
+|type2       = parser function
+|author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
+|image       =
+|version     = 3.0.0RC3
+|update      = 2015-03-24
+|mediawiki   = 1.23+
+|php         = 5.4+
+|download    = {{ {{TNTN|GithubDownload}} |Alexia|DynamicPageList}}
+|hook1       = ParserFirstCallInit
+|description = '''Create lists''' of other articles based on their ''category, namespace, title, references'' or ''template usage'' and '''include contents''' or arguments of template calls of those articles into your page.  
+|license     = {{EL|GNUGPL3}}
+|example     = [http://help.gamepedia.com/DPL:Manual DPL:Manual - Gamepedia Help Wiki]
+}}
+
 :{{note}} ''This is a continuation and fork of [[Extension:DynamicPageList (third-party)|DynamicPageList (third-party)]].  It is a fully reworked object oriented code base, significant code and database speed improvements, and is fully backwards compatible with previous versions.''
 
 The '''DynamicPageList3''' extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [http://help.gamepedia.com/DPL:Manual manual].
@@ -14,11 +32,11 @@ Complex look ups can result in computationally expensive database queries.  Howe
 ;Licensing: DynamicPageList3 is released under [http://opensource.org/licenses/gpl-3.0.html GNU General Public License, version 3].
 
 
-##Installation
+== Installation ==
 {{Note}} DynamicPageList3 can not be enabled with [[Extension:Intersection]] or [[Extension:DynamicPageList (third-party)]].
 {{ {{TNTN|ExtensionInstall}} |download-link=[https://github.com/Alexia/DynamicPageList/archive/3.0.0RC3.zip Download]}}
 
-##Configuration
+== Configuration ==
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the '''[http://help.gamepedia.com/DPL:Source_and_Installation#Configuration Source and Installation]''' manual page.
 
 {|class = "wikitable"
@@ -54,7 +72,7 @@ The global variable {{manual|$wgNonincludableNamespaces}} is automatically respe
 
 '''Note: <code>$dplSettings['maxResultCount']</code> is a LIMIT ''on the SQL query itself''.  Some DPL query parameters like <code>includematch</code> are applied ''after'' the SQL query, however, so results here may easily be misleading.'''
 
-###Functional Richness
+=== Functional Richness ===
 
 DynamicPageList has many features which are unlocked based on the maximum functional richness level.  There are some that can cause high CPU or database load and should be used sparingly.
 
@@ -65,22 +83,22 @@ DynamicPageList has many features which are unlocked based on the maximum functi
 * <code>$dplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites.  Includes debugging parameters for testing and development.
 
 
-##Usage
-###Extended DPL Functionality
+== Usage ==
+===Extended DPL Functionality===
 Extended DPL is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code><DPL> .... </DPL></code>.
 
 :''See: [http://help.gamepedia.com/DPL:General_Usage_and_Invocation_Syntax Manual - '''General Usage and Invocation Syntax'''] and [http://help.gamepedia.com/DPL:Parameters:_Criteria_for_Page_Selection DPL:Parameters: '''Criteria for Page Selection''']''
 
-###Backwards Compatibility
+=== Backwards Compatibility ===
 Functionality compatible with Wikimedia's DPL extension can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>.  Further information can be found on the [http://help.gamepedia.com/DPL:Compatibility Compatibility manual page].
 
-##Usage Philosophy and Overview
+==Usage Philosophy and Overview==
 With the assumption there are some articles writtne about ''countries'' those articles will typically have three things in common:
 * They will belong to a common category
 * They will have a similar chapter structure, i.e. they will contain paragraphs named 'Religion' or 'History'
 * They will use a template which is used to present highly structured short data items ('Capital', 'Inhabitants', ..) in a nice way (e.g. as a wikitable)
 
-###Generate a Report Based on '''countries'''
+===Generate a Report Based on '''countries'''===
 If there was a need to assemble a report of what countries practice a certain religion this could be easily done with the '''category''' and '''linksto''' parameters.
 <pre><nowiki>
 {{#dpl:
@@ -98,7 +116,7 @@ With DPL one could:
 * Present the result in a sortable table (e.g.)
 * Generate multiple column output
 
-###Which steps are necessary?
+===Which steps are necessary?===
 '''Find the articles you want to list:'''
 * Select by a logical combination (AND,OR,NOT) of categories
 * Specify a range for the number of categories the article must be assigned to
@@ -142,12 +160,12 @@ With DPL one could:
 * Truncate title or contents to a certain maximum length
 * Add a link to the article or to one or more of its sections
 
-##Considerations
-###Performance
+==Considerations==
+===Performance===
 DPL's code execution and database access is typically fast for typical category and article look ups.  However, using loose LIKE and REGEXP match parameters and/or requesting large data sets can result in long database access times.  Parser time should also be kept in consideration.  For example, having the query of image results go into a template that displays them will result in a parser media transform for each one.  This can quickly eat up 2MBs of RAM per media transform.
 
-##See Also
-###Further Reading
+==See Also==
+===Further Reading===
 DPL can do much more than we can explain here. A complete '''[http://help.gamepedia.com/DPL:Manual manual]''' is available with full parameter documentation.
 
 {{Languages}}
