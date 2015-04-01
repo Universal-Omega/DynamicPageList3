@@ -15,14 +15,13 @@ Complex look ups can result in computationally expensive database queries.  Howe
 
 
 ##Installation
-{{Note}} DynamicPageList3 can not be enabled with [[Extension:Intersection]] or [[Extension:DynamicPageList (third-party)]].
-{{ {{TNTN|ExtensionInstall}} |download-link=[Download](https://github.com/Alexia/DynamicPageList/archive/3.0.0RC3.zip)}}
+Please see the [releases page](https://github.com/Alexia/DynamicPageList/releases) for the latest releases.
 
 ##Configuration
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the **[Source and Installation](http://help.gamepedia.com/DPL:Source_and_Installation#Configuration)** manual page.
 
 |          Setting                          | Default | Description                                                                                                                                                                                 |
-|:-----------------------------------------:|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|:------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | $dplSettings['allowedNamespaces']         | null    | By default all existing namespaces are used when DPL initializes. Customize this setting with an array of namespace constants to restrict DPL to work only in those namespaces.             |
 | $dplSettings['allowUnlimitedCategories']  | false   | Set this to true to ignore 'maxCategoryCount' and allow unlimited categories. Please note that large amounts of categories in a query can slow down or crash servers.                       |
 | $dplSettings['allowUnlimitedResults']     | false   | Set this to true to ignore 'maxResultCount' and allow unlimited results. Please note that large result sets may result in slow or failed page loads.                                        |
@@ -54,7 +53,7 @@ DynamicPageList has many features which are unlocked based on the maximum functi
 ###Extended DPL Functionality
 Extended DPL is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code><DPL> .... </DPL></code>.
 
-:*See: [Manual - **General Usage and Invocation Syntax**](http://help.gamepedia.com/DPL:General_Usage_and_Invocation_Syntax) and [DPL:Parameters: **Criteria for Page Selection**](http://help.gamepedia.com/DPL:Parameters:_Criteria_for_Page_Selection)*
+*See [Manual - **General Usage and Invocation Syntax**](http://help.gamepedia.com/DPL:General_Usage_and_Invocation_Syntax) and [DPL:Parameters: **Criteria for Page Selection**](http://help.gamepedia.com/DPL:Parameters:_Criteria_for_Page_Selection)*
 
 ###Backwards Compatibility
 Functionality compatible with Wikimedia's DPL extension can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>.  Further information can be found on the [Compatibility manual page](http://help.gamepedia.com/DPL:Compatibility).
