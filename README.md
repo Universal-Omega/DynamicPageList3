@@ -4,7 +4,7 @@ The **DynamicPageList3** extension is a reporting tool for MediaWiki, listing ca
 
 When invoked with a basic set of selection parameters DPL displays a list of pages in one or more categories.  Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles.  Output takes a variety of forms, some of which incorporate elements of selected articles.
 
-This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code><DPL></code>.  A [[Extension:DynamicPageList (Wikimedia)|Wikimedia]]-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
+This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code><DPL></code>.  A [Wikimedia](https://www.mediawiki.org/wiki/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [DPL:Parameters: Other Parameters](http://help.gamepedia.com/DPL:Parameters:_Other_Parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
@@ -21,34 +21,19 @@ Complex look ups can result in computationally expensive database queries.  Howe
 ##Configuration
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the **[Source and Installation](http://help.gamepedia.com/DPL:Source_and_Installation#Configuration)** manual page.
 
-{|class = "wikitable"
-!Setting
-!Default
-!Description
-|-
-|<code>$dplSettings['allowedNamespaces'] || <code>null</code> || By default all existing namespaces are used when DPL initializes.  Customize this setting with an array of namespace constants to restrict DPL to work only in those namespaces.
-|-
-|<code>$dplSettings['allowUnlimitedCategories']</code> || <code>false</code> || Set this to true to ignore 'maxCategoryCount' and allow unlimited categories.  Please note that large amounts of categories in a query can slow down or crash servers.
-|-
-|<code>$dplSettings['allowUnlimitedResults']</code> || <code>false</code> || Set this to true to ignore 'maxResultCount' and allow unlimited results.  Please note that large result sets may result in slow or failed page loads.
-|-
-|<code>$dplSettings['behavingLikeIntersection']</code> || <code>false</code> || Set DPL to always behave like Extension:Intersection.
-|-
-|<code>$dplSettings['categoryStyleListCutoff']</code> || 6 || Maximum number of items in a category list before being cut off.
-|-
-|<code>$dplSettings['fixedCategories']</code> || empty array || This does something with preventing DPL from "looking" at these categories.  @TODO: I will figure this out later.
-|-
-|<code>$dplSettings['functionalRichness']</code> || 3, 0 if $dplMigrationTesting is set to true || Set the level of parameters available to end users.
-|-
-|<code>$dplSettings['maxCategoryCount']</code> || 4 || Maximum number of categories to allow in queries.
-|-
-|<code>$dplSettings['minCategoryCount']</code> || 0 || Minimum number of categories to allow in queries.
-|-
-|<code>$dplSettings['maxResultCount']</code> || 500 || Maximum number of results to return from a query.
-|-
-|<code>$dplSettings['runFromProtectedPagesOnly']</code> || <code>false</code> || Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.</code>
-|-
-|}
+|          Setting                          | Default | Description                                                                                                                                                                                 |
+|:-----------------------------------------:|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| $dplSettings['allowedNamespaces']         | null    | By default all existing namespaces are used when DPL initializes. Customize this setting with an array of namespace constants to restrict DPL to work only in those namespaces.             |
+| $dplSettings['allowUnlimitedCategories']  | false   | Set this to true to ignore 'maxCategoryCount' and allow unlimited categories. Please note that large amounts of categories in a query can slow down or crash servers.                       |
+| $dplSettings['allowUnlimitedResults']     | false   | Set this to true to ignore 'maxResultCount' and allow unlimited results. Please note that large result sets may result in slow or failed page loads.                                        |
+| $dplSettings['behavingLikeIntersection']  | false   | Set DPL to always behave like Extension:Intersection.                                                                                                                                       |
+| $dplSettings['categoryStyleListCutoff']   | 6       | Maximum number of items in a category list before being cut off.                                                                                                                            |
+| $dplSettings['fixedCategories']           | []      | This does something with preventing DPL from "looking" at these categories. @TODO: I will figure this out later.                                                                            |
+| $dplSettings['functionalRichness']        | 3       | Set the level of parameters available to end users.                                                                                                                                         |
+| $dplSettings['maxCategoryCount']          | 4       | Maximum number of categories to allow in queries.                                                                                                                                           |
+| $dplSettings['minCategoryCount']          | 0       | Minimum number of categories to allow in queries.                                                                                                                                           |
+| $dplSettings['maxResultCount']            | 500     | Maximum number of results to return from a query.                                                                                                                                           |
+| $dplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL to run from protected pages only. This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries. |
 
 The global variable {{manual|$wgNonincludableNamespaces}} is automatically respected by DPL.  It will prevent the contents of the listed namespaces from appearing in DPL's output.
 
@@ -149,14 +134,3 @@ DPL's code execution and database access is typically fast for typical category 
 ##See Also
 ###Further Reading
 DPL can do much more than we can explain here. A complete **[manual](http://help.gamepedia.com/DPL:Manual)** is available with full parameter documentation.
-
-{{Languages}}
-
-[[Category:Category extensions]]
-[[Category:List extensions]]
-[[Category:Namespace extensions]]
-[[Category:Special page extensions]]
-[[Category:Table extensions]]
-[[Category:Page content extensions]]
-[[Category:Tag cloud extensions]] <!-- has tag cloud display option -->
-[[Category:Category intersection extensions]]
