@@ -175,20 +175,12 @@ class Query {
 
 		if (!$this->parameters->getParameter('openreferences')) {
 			//Add things that are always part of the query.
-			$this->addTable('page', 'page');
+			$this->addTable('page', $this->tableNames['page']);
 			$this->addSelect(
 				[
-					'page_namespace' => $this->tableNames['page'].'.page_namespace'
-				]
-			);
-			$this->addSelect(
-				[
-					'page_title' => $this->tableNames['page'].'.page_title'
-				]
-			);
-			$this->addSelect(
-				[
-					'page_id' => $this->tableNames['page'].'.page_id'
+					'page_namespace'	=> $this->tableNames['page'].'.page_namespace',
+					'page_id'			=> $this->tableNames['page'].'.page_id',
+					'page_title'		=> $this->tableNames['page'].'.page_title'
 				]
 			);
 		}
@@ -1307,7 +1299,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _maxrevisions($option) {
-		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page=page.page_id) <= {$iMaxRevisions})");
+		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page = {$this->tableNames['page']}.page_id) <= {$iMaxRevisions})");
 	}
 
 	/**
@@ -1331,7 +1323,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _minrevisions($option) {
-		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page=page.page_id) >= {$iMinRevisions})");
+		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page = {$this->tableNames['page']}.page_id) >= {$iMinRevisions})");
 	}
 
 	/**
