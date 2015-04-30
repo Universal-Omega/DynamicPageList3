@@ -188,12 +188,14 @@ class Parse {
 			return $this->getFullOutput(false);
 		}
 
+		$articles = $this->processQueryResults($result);
+
 		/*********************/
 		/* Handle No Results */
 		/*********************/
 		$this->addOutput('{{Extension DPL}}');
 
-		if ($this->DB->numRows($result) <= 0) {
+		if ($this->DB->numRows($result) <= 0 || empty($articles)) {
 			$replacementVariables = [];
 			$replacementVariables['%TOTALPAGES%'] = 0;
 			$replacementVariables['%PAGES%'] = 0;
@@ -206,8 +208,6 @@ class Parse {
 			$this->DB->freeResult($result);
 			return $this->getFullOutput(false);
 		}
-
-		$articles = $this->processQueryResults($result);
 
 		$foundRows = null;
 		if ($calcRows) {
