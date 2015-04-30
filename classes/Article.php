@@ -77,12 +77,9 @@ class Article {
 			$titleText = substr($titleText, 0, $parameters->getParameter('titlemaxlen')).'...';
 		}
 		if ($parameters->getParameter('showcurid') === true && isset($row['page_id'])) {
-			$articleLink = '[{{fullurl:'.$title->getText().'|curid='.$row['page_id'].'}} '.htmlspecialchars($titleText).']';
-		} elseif (!$parameters->getParameter('escapelinks') || ($pageNamespace != NS_CATEGORY && $pageNamespace != NS_FILE)) {
-			//Links to categories or images need an additional ":"
-			$articleLink = '[['.$title->getPrefixedText().'|'.$wgContLang->convert($titleText).']]';
+			$articleLink = '['.$title->getLinkURL(['curid' => $row['page_id']]).' '.htmlspecialchars($titleText).']';
 		} else {
-			$articleLink = '[{{fullurl:'.$title->getText().'}} '.htmlspecialchars($titleText).']';
+			$articleLink = '[['.($parameters->getParameter('escapelinks') && ($pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE) ? ':' : '').$title->getFullText().'|'.htmlspecialchars($titleText).']]';
 		}
 
 		$article->mLink = $articleLink;

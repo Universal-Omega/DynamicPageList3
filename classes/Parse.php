@@ -188,6 +188,7 @@ class Parse {
 			return $this->getFullOutput(false);
 		}
 
+		$numRows = $this->DB->numRows($result);
 		$articles = $this->processQueryResults($result);
 
 		/*********************/
@@ -195,7 +196,7 @@ class Parse {
 		/*********************/
 		$this->addOutput('{{Extension DPL}}');
 
-		if ($this->DB->numRows($result) <= 0 || empty($articles)) {
+		if ($numRows <= 0 || empty($articles)) {
 			$replacementVariables = [];
 			$replacementVariables['%TOTALPAGES%'] = 0;
 			$replacementVariables['%PAGES%'] = 0;
