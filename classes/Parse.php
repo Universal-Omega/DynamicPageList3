@@ -880,26 +880,26 @@ class Parse {
 		$eliminate = array_merge($eliminate, $this->parameters->getParameter('eliminate'));
 		if ($isParserTag === false) {
 			//In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if (isset($eliminate['templates'])) {
+			if (isset($eliminate['templates']) && $eliminate['templates']) {
 				$reset['templates'] = true;
 				$eliminate['templates'] = false;
 			}
-			if (isset($eliminate['categories'])) {
+			if (isset($eliminate['categories']) && $eliminate['categories']) {
 				$reset['categories'] = true;
 				$eliminate['categories'] = false;
 			}
-			if (isset($eliminate['images'])) {
+			if (isset($eliminate['images']) && $eliminate['images']) {
 				$reset['images'] = true;
 				$eliminate['images'] = false;
 			}
 		} else {
-			if (isset($reset['templates'])) {
+			if (isset($reset['templates']) && $reset['templates']) {
 				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
 			}
-			if (isset($reset['categories'])) {
+			if (isset($reset['categories']) && $reset['categories']) {
 				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
 			}
-			if (isset($reset['images'])) {
+			if (isset($reset['images']) && $reset['images']) {
 				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
 			}
 		}
@@ -908,34 +908,34 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}
 			//Register a hook to reset links which were produced during parsing DPL output.
-			if (!is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
+			if (!isset($wgHooks['ParserAfterTidy']) || !is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'])) {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
 			}
 		}
 
 		if (array_sum($eliminate)) {
 			//Register a hook to reset links which were produced during parsing DPL output
-			if (!is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
+			if (!isset($wgHooks['ParserAfterTidy']) || !is_array($wgHooks['ParserAfterTidy']) || !in_array('DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'])) {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
 			}
 
-			if (isset($eliminate['links'])) {
+			if (isset($eliminate['links']) && $eliminate['links']) {
 				//Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output.  This allows us to remove these links from the link list later.  If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				\DynamicPageListHooks::$createdLinks[0] = array();
 				foreach ($parserOutput->getLinks() as $nsp => $link) {
 					\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
-			if (isset($eliminate['templates'])) {
+			if (isset($eliminate['templates']) && $eliminate['templates']) {
 				\DynamicPageListHooks::$createdLinks[1] = array();
 				foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
 					\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
-			if (isset($eliminate['categories'])) {
+			if (isset($eliminate['categories']) && $eliminate['categories']) {
 				\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
 			}
-			if (isset($eliminate['images'])) {
+			if (isset($eliminate['images']) && $eliminate['images']) {
 				\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}

@@ -886,6 +886,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notcategory($option) {
+		$i = 0;
 		foreach ($option as $operatorType => $categories) {
 			foreach ($categories as $category) {
 				$i++;

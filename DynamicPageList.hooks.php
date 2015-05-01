@@ -245,23 +245,23 @@ class DynamicPageListHooks {
 		$parse = new \DPL\Parse();
 		$text = $parse->parse($input, $parser, $reset, $eliminate, false);
 		// $dump2	= self::dumpParsedRefs($parser,"after DPL tag");
-		if ($reset['templates']) {	// we can remove the templates by save/restore
+		if (isset($reset['templates']) && $reset['templates']) {	// we can remove the templates by save/restore
 			$saveTemplates = $parser->mOutput->mTemplates;
 		}
-		if ($reset['categories']) {	// we can remove the categories by save/restore
+		if (isset($reset['categories']) && $reset['categories']) {	// we can remove the categories by save/restore
 			$saveCategories = $parser->mOutput->mCategories;
 		}
-		if ($reset['images']) {	// we can remove the images by save/restore
+		if (isset($reset['images']) && $reset['images']) {	// we can remove the images by save/restore
 			$saveImages = $parser->mOutput->mImages;
 		}
 		$parsedDPL = $parser->recursiveTagParse($text);
-		if ($reset['templates']) {
+		if (isset($reset['templates']) && $reset['templates']) {
 			$parser->mOutput->mTemplates = $saveTemplates;
 		}
-		if ($reset['categories']) {
+		if (isset($reset['categories']) && $reset['categories']) {
 			$parser->mOutput->mCategories = $saveCategories;
 		}
-		if ($reset['images']) {
+		if (isset($reset['images']) && $reset['images']) {
 			$parser->mOutput->mImages = $saveImages;
 		}
 		// $dump3	= self::dumpParsedRefs($parser,"after tag parse");
