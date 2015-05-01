@@ -87,21 +87,21 @@ class Parameters extends ParametersData {
 		$success = true;
 		if ($parameterData !== false) {
 			//If a parameter specifies options then enforce them.
-			if (is_array($parameterData['values']) === true && !in_array(strtolower($option), $parameterData['values'])) {
+			if (array_key_exists('values', $parameterData) && is_array($parameterData['values']) === true && !in_array(strtolower($option), $parameterData['values'])) {
 				$success = false;
 			} else {
-				if (!$parameterData['preserve_case'] && $parameterData['page_name_list'] !== true) {
+				if ((array_key_exists('preserve_case', $parameterData) && !$parameterData['preserve_case']) && (array_key_exists('page_name_list', $parameterData) && $parameterData['page_name_list'] !== true)) {
 					$option = strtolower($option);
 				}
 			}
 
 			//Strip <html> tag.
-			if ($parameterData['strip_html'] === true) {
+			if (array_key_exists('strip_html', $parameterData) && $parameterData['strip_html'] === true) {
 				$option = $this->stripHtmlTags($option);
 			}
 
 			//Simple integer intval().
-			if ($parameterData['integer'] === true) {
+			if (array_key_exists('integer', $parameterData) && $parameterData['integer'] === true) {
 				if (!is_numeric($option)) {
 					if ($parameterData['default'] !== null) {
 						$option = intval($parameterData['default']);
@@ -114,7 +114,7 @@ class Parameters extends ParametersData {
 			}
 
 			//Booleans
-			if ($parameterData['boolean'] === true) {
+			if (array_key_exists('boolean', $parameterData) && $parameterData['boolean'] === true) {
 				$option = $this->filterBoolean($option);
 				if ($option === null) {
 					$success = false;
@@ -122,7 +122,7 @@ class Parameters extends ParametersData {
 			}
 
 			//Timestamps
-			if ($parameterData['timestamp'] === true) {
+			if (array_key_exists('timestamp', $parameterData) && $parameterData['timestamp'] === true) {
 				$option = wfTimestamp(TS_MW, $option);
 				if ($option === false) {
 					$success = false;
@@ -130,7 +130,7 @@ class Parameters extends ParametersData {
 			}
 
 			//List of Pages
-			if ($parameterData['page_name_list'] === true) {
+			if (array_key_exists('page_name_list', $parameterData) && $parameterData['page_name_list'] === true) {
 				$pageGroups = $this->getParameter($parameter);
 				if (!is_array($pageGroups)) {
 					$pageGroups = [];
@@ -156,7 +156,7 @@ class Parameters extends ParametersData {
 			}
 
 			//Database Key Formatting
-			if ($parameterData['db_format'] === true) {
+			if (array_key_exists('db_format', $parameterData) && $parameterData['db_format'] === true) {
 				$option = str_replace(' ', '_', $option);
 			}
 
@@ -165,12 +165,12 @@ class Parameters extends ParametersData {
 				$this->setParameter($parameter, $option);
 
 				//Set that criteria was found for a selection.
-				if ($parameterData['set_criteria_found'] === true) {
+				if (array_key_exists('set_criteria_found', $parameterData) && $parameterData['set_criteria_found'] === true) {
 					$this->setSelectionCriteriaFound(true);
 				}
 
 				//Set open references conflict possibility.
-				if ($parameterData['open_ref_conflict'] === true) {
+				if (array_key_exists('open_ref_conflict', $parameterData) && $parameterData['open_ref_conflict'] === true) {
 					$this->setOpenReferencesConflict(true);
 				}
 			}

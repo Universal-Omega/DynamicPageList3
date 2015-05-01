@@ -1517,7 +1517,7 @@ class Query {
 				case 'category':
 					$this->addOrderBy('cl_head.cl_to');
 					$this->addSelect(['cl_head.cl_to']); //Gives category headings in the result.
-					if (in_array('', $this->parameters->getParameter('catheadings')) || in_array('', $this->parameters->getParameter('catnotheadings'))) {
+					if ((is_array($this->parameters->getParameter('catheadings')) && in_array('', $this->parameters->getParameter('catheadings'))) || (is_array($this->parameters->getParameter('catnotheadings')) && in_array('', $this->parameters->getParameter('catnotheadings')))) {
 						$_clTableName = 'dpl_clview';
 						$_clTableAlias = $_clTableName;
 					} else {

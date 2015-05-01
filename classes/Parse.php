@@ -116,6 +116,7 @@ class Parse {
 	 */
 	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = true) {
 		wfProfileIn(__METHOD__);
+		$dplStartTime = microtime(true);
 		$this->parser = $parser;
 
 		//Check that we are not in an infinite transclusion loop
@@ -879,31 +880,31 @@ class Parse {
 		$eliminate = array_merge($eliminate, $this->parameters->getParameter('eliminate'));
 		if ($isParserTag === false) {
 			//In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if ($eliminate['templates']) {
+			if (isset($eliminate['templates'])) {
 				$reset['templates'] = true;
 				$eliminate['templates'] = false;
 			}
-			if ($eliminate['categories']) {
+			if (isset($eliminate['categories'])) {
 				$reset['categories'] = true;
 				$eliminate['categories'] = false;
 			}
-			if ($eliminate['images']) {
+			if (isset($eliminate['images'])) {
 				$reset['images'] = true;
 				$eliminate['images'] = false;
 			}
 		} else {
-			if ($reset['templates']) {
+			if (isset($reset['templates'])) {
 				\DynamicPageListHooks::$createdLinks['resetTemplates'] = true;
 			}
-			if ($reset['categories']) {
+			if (isset($reset['categories'])) {
 				\DynamicPageListHooks::$createdLinks['resetCategories'] = true;
 			}
-			if ($reset['images']) {
+			if (isset($reset['images'])) {
 				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
 			}
 		}
-		if (($isParserTag === false && $reset['links']) || $isParserTag === true) {
-			if ($reset['links']) {
+		if (($isParserTag === false && isset($reset['links'])) || $isParserTag === true) {
+			if (isset($reset['links'])) {
 				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}
 			//Register a hook to reset links which were produced during parsing DPL output.
@@ -918,23 +919,23 @@ class Parse {
 				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
 			}
 
-			if ($eliminate['links']) {
+			if (isset($eliminate['links'])) {
 				//Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output.  This allows us to remove these links from the link list later.  If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				\DynamicPageListHooks::$createdLinks[0] = array();
 				foreach ($parserOutput->getLinks() as $nsp => $link) {
 					\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
-			if ($eliminate['templates']) {
+			if (isset($eliminate['templates'])) {
 				\DynamicPageListHooks::$createdLinks[1] = array();
 				foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
 					\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
-			if ($eliminate['categories']) {
+			if (isset($eliminate['categories'])) {
 				\DynamicPageListHooks::$createdLinks[2] = $parserOutput->mCategories;
 			}
-			if ($eliminate['images']) {
+			if (isset($eliminate['images'])) {
 				\DynamicPageListHooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}

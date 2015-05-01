@@ -102,7 +102,7 @@ class DynamicPageList {
 		
 		$this->mParserOptions = $parser->mOptions;
 		$this->mParserTitle   = $parser->mTitle;
-		
+
 		if (!empty($headings)) {
 			if ($iColumns != 1 || $iRows != 1) {
 				$hspace = 2; // the extra space for headings

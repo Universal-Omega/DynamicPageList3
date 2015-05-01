@@ -1215,5 +1215,141 @@ class ParametersData {
 
 		return $parameters;
 	}
+
+	/**
+	 * Return the default value for the parameter.
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	mixed
+	 */
+	public function getDefault($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('default', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['default'];
+			}
+			return null;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Return the acceptable values for the parameter.
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	mixed	Array of allowed values or false that the parameter allows any.
+	 */
+	public function getValues($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('values', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['values'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Does the parameter set that criteria for selection was found?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function setsCriteriaFound($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('set_criteria_found', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['set_criteria_found'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Does the parameter cause an open reference conflict?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function isOpenReferenceConflict($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('open_ref_conflict', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['open_ref_conflict'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Should this parameter preserve the case of the user supplied input?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function shouldPreserveCase($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('preserve_case', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['preserve_case'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Does this parameter take a list of page names?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function isPageNameList($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('page_name_list', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['page_name_list'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Is the parameter supposed to be parsed as a boolean?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function isBoolean($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('boolean', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['boolean'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
+
+	/**
+	 * Is the parameter supposed to be parsed as a Mediawiki timestamp?
+	 *
+	 * @access	public
+	 * @param	string	Parameter Name
+	 * @return	boolean
+	 */
+	public function isTimestamp($parameter) {
+		if (array_key_exists($parameter, $this->data)) {
+			if (array_key_exists('timestamp', $this->data[$parameter])) {
+				return (bool) $this->data[$parameter]['timestamp'];
+			}
+			return false;
+		}
+		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+	}
 }
 ?>
