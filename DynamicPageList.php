@@ -103,7 +103,7 @@ if (!isset($dplSettings['categoryStyleListCutoff'])) {
 	$dplSettings['categoryStyleListCutoff'] = 6;
 }
 
-//This does something with preventing DPL from "looking" at these categories.  @TODO: I will figure this out later.
+//This does something with preventing DPL from "looking" at these categories.
 if (!isset($dplSettings['fixedCategories'])) {
 	$dplSettings['fixedCategories'] = [];
 }

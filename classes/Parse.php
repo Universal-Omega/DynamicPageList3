@@ -54,6 +54,27 @@ class Parse {
 	private $cacheKey = null;
 
 	/**
+	 * Header Output
+	 *
+	 * @var		string
+	 */
+	private $header = '';
+
+	/**
+	 * Footer Output
+	 *
+	 * @var		string
+	 */
+	private $footer = '';
+
+	/**
+	 * Body Output
+	 *
+	 * @var		string
+	 */
+	private $output = '';
+
+	/**
 	 * Array of possible URL arguments.
 	 *
 	 * @var		array
@@ -253,7 +274,7 @@ class Parse {
 		);
 
 		$dpl = new DynamicPageList(
-			$headings,
+			Article::getHeadings(),
 			$this->parameters->getParameter('headingcount'),
 			$this->parameters->getParameter('columns'),
 			$this->parameters->getParameter('rows'),
@@ -272,7 +293,6 @@ class Parse {
 			$this->parameters->getParameter('seclabelsnotmatch'),
 			$this->parameters->getParameter('incparsed'),
 			$this->parser,
-			$logger,
 			$this->parameters->getParameter('replaceintitle'),
 			$this->parameters->getParameter('titlemaxlen'),
 			$this->parameters->getParameter('defaulttemplatesuffix'),
@@ -291,6 +311,8 @@ class Parse {
 		/*******************************/
 		/* Start Headers/Footers       */
 		/*******************************/
+		$header = '';
+		$footer = '';
 		$replacementVariables = [];
 		$replacementVariables['%TOTALPAGES%'] = $foundRows;
 		$replacementVariables['%VERSION%'] = DPL_VERSION;
@@ -327,7 +349,7 @@ class Parse {
 		$replacementVariables['%FIRSTTITLE%'] = $firstTitleFound;
 		$replacementVariables['%LASTNAMESPACE%'] = $lastNamespaceFound;
 		$replacementVariables['%LASTTITLE%'] = $lastTitleFound;
-		$replacementVariables['%SCROLLDIR%'] = $scrollDir;
+		$replacementVariables['%SCROLLDIR%'] = $this->parameters->getParameter('scrolldir');
 
 
 		$this->setHeader($this->replaceVariables($header, $replacementVariables));
@@ -343,7 +365,7 @@ class Parse {
 			'DPL_firstTitle'		=> $firstTitleFound,
 			'DPL_lastNamespace'		=> $lastNamespaceFound,
 			'DPL_lastTitle'			=> $lastTitleFound,
-			'DPL_scrollDir'			=> $scrollDir,
+			'DPL_scrollDir'			=> $this->parameters->getParameter('scrolldir'),
 			'DPL_time'				=> $replacementVariables['%DPLTIME%'],
 			'DPL_count'				=> $this->parameters->getParameter('count'),
 			'DPL_totalPages'		=> $foundRows,
@@ -393,13 +415,12 @@ class Parse {
 			$pick = array_slice($pick, 0, $randomCount);
 		}
 
-		//@TODO: Broken headings due to class context.
-		$headings = []; //Maps heading to count (# of pages under each heading)
 		$articles = [];
 
 		/**********************/
 		/* Article Processing */
 		/**********************/
+		$i = 0;
 		while ($row = $result->fetchRow()) {
 			$i++;
 
@@ -528,10 +549,8 @@ class Parse {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
 		$messages = $this->logger->getMessages();
-		if (count($messages)) {
-			$messageOutput = implode("<br/>\n", $messages);
-		}
-		return $messageOutput.$this->header.$this->output.$this->footer;
+
+		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->header.$this->output.$this->footer;
 	}
 
 	/**
@@ -614,6 +633,7 @@ class Parse {
 		/* Parameter Error Checks */
 		/**************************/
 
+		$totalCategories = 0;
 		if (is_array($this->parameters->getParameter('category'))) {
 			foreach ($this->parameters->getParameter('category') as $comparisonType => $operatorTypes) {
 				foreach ($operatorTypes as $operatorType => $categories) {
@@ -846,7 +866,7 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = new \Parser();
-		$parserOutput = $localParser->parse($this->getFullOutput, $this->parser->mTitle, $this->parser->mOptions);
+		$parserOutput = $localParser->parse($this->getFullOutput(), $this->parser->mTitle, $this->parser->mOptions);
 
 		if (!is_array($reset)) {
 			$reset = [];

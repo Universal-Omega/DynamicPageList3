@@ -26,14 +26,13 @@ class DynamicPageList {
 	public $mParser;
 	public $mParserOptions;
 	public $mParserTitle;
-	public $mLogger; // DPLLogger
 	public $mOutput;
 	public $mReplaceInTitle;
 	public $filteredCount = 0; // number of (filtered) row count
 	public $nameSpaces;
 	public $mTableRow; // formatting rules for table fields
 
-	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $logger, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
+	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
 		global $wgContLang;
 
 		wfProfileIn(__METHOD__);
@@ -56,7 +55,7 @@ class DynamicPageList {
 		} else {
 			$this->mIncMaxLen = 0;
 		}
-		$this->mLogger         = $logger;
+
 		$this->mReplaceInTitle = $replaceInTitle;
 		$this->mTableRow       = $aTableRow;
 		

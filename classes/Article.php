@@ -11,29 +11,173 @@
 namespace DPL;
 
 class Article {
-	public $mTitle = ''; 		// title
-	public $mNamespace = -1;	// namespace (number)
-	public $mID = 0;			// page_id
-	public $mSelTitle = '';    // selected title of initial page
-	public $mSelNamespace = -1;// selected namespace (number) of initial page
-	public $mImageSelTitle = ''; // selected title of image
-	public $mLink = ''; 		// html link to page
-	public $mExternalLink = '';// external link on the page
-	public $mStartChar = ''; 	// page title first char
+	/**
+	 * Title
+	 *
+	 * @var		object
+	 */
+	public $mTitle = null;
+
+	/**
+	 * Namespace ID
+	 *
+	 * @var		string
+	 */
+	public $mNamespace = -1;
+
+	/**
+	 * Page ID
+	 *
+	 * @var		integer
+	 */
+	public $mID = 0;
+
+	/**
+	 * Selected title of initial page.
+	 *
+	 * @var		string
+	 */
+	public $mSelTitle = '';
+
+	/**
+	 * Selected namespace ID of initial page.
+	 *
+	 * @var		string
+	 */
+	public $mSelNamespace = -1;
+
+	/**
+	 * Selected title of image.
+	 *
+	 * @var		string
+	 */
+	public $mImageSelTitle = '';
+
+	/**
+	 * HTML link to page.
+	 *
+	 * @var		string
+	 */
+	public $mLink = '';
+
+	/**
+	 * External link on the page.
+	 *
+	 * @var		string
+	 */
+	public $mExternalLink = '';
+
+	/**
+	 * First character of the page title.
+	 *
+	 * @var		string
+	 */
+	public $mStartChar = null;
+
+	/**
+	 * Heading (link to the associated page) that page belongs to in the list (default '' means no heading)
+	 *
+	 * @var		string
+	 */
 	public $mParentHLink = ''; // heading (link to the associated page) that page belongs to in the list (default '' means no heading)
-	public $mCategoryLinks = array(); // category links in the page
-	public $mCategoryTexts = array(); // category names (without link) in the page
-	public $mCounter = ''; 	// Number of times this page has been viewed
-	public $mSize = ''; 		// Article length in bytes of wiki text
-	public $mDate = ''; 		// timestamp depending on the user's request (can be first/last edit, page_touched, ...)
-	public $myDate = ''; 		// the same, based on user format definition
-	public $mRevision = '';    // the revision number if specified
-	public $mUserLink = ''; 	// link to editor (first/last, depending on user's request) 's page or contributions if not registered
-	public $mUser = ''; 		// name of editor (first/last, depending on user's request) or contributions if not registered
-	public $mComment = ''; 	// revision comment / edit summary
-	public $mContribution= ''; // number of bytes changed
-	public $mContrib= '';      // short string indicating the size of a contribution
-	public $mContributor= '';  // user who made the changes
+
+	/**
+	 * Category links on the page.
+	 *
+	 * @var		array
+	 */
+	public $mCategoryLinks = [];
+
+	/**
+	 * Category names (without link) in the page.
+	 *
+	 * @var		array
+	 */
+	public $mCategoryTexts = [];
+
+	/**
+	 * Number of times this page has been viewed.
+	 *
+	 * @var		integer
+	 */
+	public $mCounter = 0;
+
+	/**
+	 * Article length in bytes of wiki text
+	 *
+	 * @var		string
+	 */
+	public $mSize = '';
+
+	/**
+	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
+	 *
+	 * @var		string
+	 */
+	public $mDate = null;
+
+	/**
+	 * Timestamp depending on the user's request, based on user format definition.
+	 *
+	 * @var		string
+	 */
+	public $myDate = null;
+
+	/**
+	 * Revision ID
+	 *
+	 * @var		integer
+	 */
+	public $mRevision = null;
+
+	/**
+	 * Link to editor (first/last, depending on user's request) 's page or contributions if not registered.
+	 *
+	 * @var		string
+	 */
+	public $mUserLink = null;
+
+	/**
+	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
+	 *
+	 * @var		string
+	 */
+	public $mUser = null;
+
+	/**
+	 * Edit Summary(Revision Comment)
+	 *
+	 * @var		string
+	 */
+	public $mComment = null;
+
+	/**
+	 * Number of bytes changed.
+	 *
+	 * @var		integer
+	 */
+	public $mContribution = 0;
+
+	/**
+	 * Short string indicating the size of a contribution.
+	 *
+	 * @var		string
+	 */
+	public $mContrib = '';
+
+	/**
+	 * User text of who made the changes.
+	 *
+	 * @var		string
+	 */
+	public $mContributor = null;
+
+	/**
+	 * Article Headings - Maps heading to count (# of pages under each heading).
+	 *
+	 * @var		array
+	 */
+	static private $headings = [];
 
 	/**
 	 * Main Constructor
@@ -185,7 +329,7 @@ class Article {
 				switch ($parameters->getParameter('ordermethod')[0]) {
 					case 'category':
 						//Count one more page in this heading
-						$headings[$row['cl_to']] = isset($headings[$row['cl_to']]) ? $headings[$row['cl_to']] + 1 : 1;
+						self::$headings[$row['cl_to']] = (isset(self::$headings[$row['cl_to']]) ? self::$headings[$row['cl_to']] + 1 : 1);
 						if ($row['cl_to'] == '') {
 							//uncategorized page (used if ordermethod=category,...)
 							$article->mParentHLink = '[[:Special:Uncategorizedpages|'.wfMsg('uncategorizedpages').']]';
@@ -194,10 +338,9 @@ class Article {
 						}
 						break;
 					case 'user':
-						$headings[$row['rev_user_text']] = isset($headings[$row['rev_user_text']]) ? $headings[$row['rev_user_text']] + 1 : 1;
+						self::$headings[$row['rev_user_text']] = (isset(self::$headings[$row['rev_user_text']]) ? self::$headings[$row['rev_user_text']] + 1 : 1);
 						if ($row['rev_user'] == 0) { //anonymous user
 							$article->mParentHLink = '[[User:'.$row['rev_user_text'].'|'.$row['rev_user_text'].']]';
-
 						} else {
 							$article->mParentHLink = '[[User:'.$row['rev_user_text'].'|'.$row['rev_user_text'].']]';
 						}
@@ -207,6 +350,16 @@ class Article {
 		}
 
 		return $article;
+	}
+
+	/**
+	 * Returns all heading information processed from all newly instantiated article objects.
+	 *
+	 * @access	public
+	 * @return	array	Headings
+	 */
+	static public function getHeadings() {
+		return self::$headings;
 	}
 }
 ?>

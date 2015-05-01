@@ -163,6 +163,7 @@ class Query {
 		foreach ($parameters as $parameter => $option) {
 			$function = "_".$parameter;
 			//Some parameters do not modifiy the query so we check if the function to modify the query exists first.
+			$success = true;
 			if (method_exists($this, $function)) {
 				$success = $this->$function($option);
 			}
@@ -836,6 +837,7 @@ class Query {
 	 */
 	private function _category($option) {
 		foreach ($option as $comparisonType => $operatorTypes) {
+			$i = 0;
 			foreach ($operatorTypes as $operatorType => $categories) {
 				$tableName = (in_array('', $categories) ? 'dpl_clview' : 'categorylinks');
 				$i++;

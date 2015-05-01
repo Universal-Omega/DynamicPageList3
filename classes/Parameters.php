@@ -301,7 +301,7 @@ class Parameters extends ParametersData {
 	 * @return	mixed	Option for specified parameter.
 	 */
 	public function getParameter($parameter) {
-		return $this->parameterOptions[$parameter];
+		return array_key_exists($parameter, $this->parameterOptions) ? $this->parameterOptions[$parameter] : null;
 	}
 
 	/**
@@ -889,7 +889,7 @@ class Parameters extends ParametersData {
 			$this->setParameter('scrolldir', $wgRequest->getVal('DPL_scrollDir', ''));
 
 			//Also set count limit from URL if not otherwise set.
-			$this->setParameter('scroll', $wgRequest->getVal('DPL_count', ''));
+			$this->_count($wgRequest->getInt('DPL_count'));
 		}
 		//We do not return false since they could have just left it out.  Who knows why they put the parameter in the list in the first place.
 		return true;

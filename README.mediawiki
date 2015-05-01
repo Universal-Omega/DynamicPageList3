@@ -54,7 +54,7 @@ These are DPL's configuration settings and along with their default values.  To 
 |-
 |<code>$dplSettings['categoryStyleListCutoff']</code> || 6 || Maximum number of items in a category list before being cut off.
 |-
-|<code>$dplSettings['fixedCategories']</code> || empty array || This does something with preventing DPL from "looking" at these categories.  @TODO: I will figure this out later.
+|<code>$dplSettings['fixedCategories']</code> || empty array || This does something with preventing DPL from "looking" at these categories.
 |-
 |<code>$dplSettings['functionalRichness']</code> || 3, 0 if $dplMigrationTesting is set to true || Set the level of parameters available to end users.
 |-
