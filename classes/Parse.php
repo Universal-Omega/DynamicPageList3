@@ -549,7 +549,7 @@ class Parse {
 		if ($results === false && !$this->getHeader() && !$this->getFooter()) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
-		$messages = $this->logger->getMessages();
+		$messages = $this->logger->getMessages(false);
 
 		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->header.$this->output.$this->footer;
 	}
