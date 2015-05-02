@@ -418,8 +418,8 @@ class Parameters extends ParametersData {
 				$this->setParameter('includeuncat', true);
 				$categories[] = '';
 			} elseif (!empty($parameter)) {
-				if (substr($parameter, 0, 1) == '*' && strlen($parameter) >= 2) {
-					if (substr($parameter, 1, 2) == '*') {
+				if (strpos($parameter, '*') === 0 && strlen($parameter) >= 2) {
+					if (strpos($parameter, '*', 1) === 1) {
 						$parameter = substr($parameter, 2);
 						$subCategories = Query::getSubcategories($parameter, 2);
 					} else {
