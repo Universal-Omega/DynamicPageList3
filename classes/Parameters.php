@@ -437,8 +437,15 @@ class Parameters extends ParametersData {
 		}
 		if (!empty($categories)) {
 			$data = $this->getParameter('category');
+			//Do a bunch of data integrity checks to avoid E_NOTICE.
+			if (!is_array($data)) {
+				$data = [];
+			}
+			if (!array_key_exists('=', $data) || !is_array($data['='])) {
+				$data['='] = [];
+			}
 			foreach ($categories as $_operator => $_categories) {
-				if (!is_array($data['='][$_operator])) {
+				if (!array_key_exists($_operator, $data['=']) || !is_array($data['='][$_operator])) {
 					$data['='][$_operator] = [];
 				}
 				$data['='][$_operator] = array_merge($data['='][$_operator], $_categories);
