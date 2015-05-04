@@ -123,18 +123,11 @@ class Parameters extends ParametersData {
 
 			//Timestamps
 			if (array_key_exists('timestamp', $parameterData) && $parameterData['timestamp'] === true) {
-				$timestamp = wfTimestamp(TS_MW, $option);
-				if ($timestamp === false) {
-					//New way failed, lets try the old way to see if it gives a result.
-					$option = str_pad(preg_replace('#[^0-9]#', '', $option), 14, '0');
-					$timestamp = wfTimestamp(TS_MW, $option);
+				$option = str_pad(preg_replace('#[^0-9]#', '', $option), 14, '0');
+				$option = wfTimestamp(TS_MW, $option);
 
-					if ($timestamp === false) {
-						$success = false;
-					}
-				}
-				if ($success !== false) {
-					$option = $timestamp;
+				if ($option === false) {
+					$success = false;
 				}
 			}
 
