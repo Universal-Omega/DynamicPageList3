@@ -574,10 +574,9 @@ class Query {
 			]
 		);
 		while ($row = $result->fetchRow()) {
+			$categories[] = $row['page_title'];
 			if ($depth > 1) {
-				$categories[] = array_merge($categories, self::getSubcategories($row['page_title'], $depth - 1));
-			} else {
-				$categories[] = $row['page_title'];
+				$categories = array_merge($categories, self::getSubcategories($row['page_title'], $depth - 1));
 			}
 		}
 		$categories = array_unique($categories);
