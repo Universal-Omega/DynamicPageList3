@@ -33,8 +33,14 @@ Complex look ups can result in computationally expensive database queries.  Howe
 
 
 == Installation ==
-{{Note}} DynamicPageList3 can not be enabled with [[Extension:Intersection]] or [[Extension:DynamicPageList (third-party)]].
-{{ {{TNTN|ExtensionInstall}} |download-link=[https://github.com/Alexia/DynamicPageList/archive/3.0.1.zip Download]}}
+* [https://github.com/Alexia/DynamicPageList/archive/3.0.1.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
+* Add the following code at the bottom of your LocalSettings.php:
+{{#tag:source|require_once "$IP/extensions/DynamicPageList/DynamicPageList.php";
+|lang="php"
+|style="overflow:auto;"
+}}<!-- whitespace fix
+-->
+* {{ {{TNTN|Done}} }} Navigate to "Special:Version" on your wiki to verify that the extension is successfully installed.<noinclude>
 
 == Configuration ==
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the '''[http://help.gamepedia.com/DPL:Source_and_Installation#Configuration Source and Installation]''' manual page.
