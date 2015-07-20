@@ -1899,8 +1899,10 @@ class Query {
 	private function _usedby($option) {
 		if ($this->parameters->getParameter('openreferences')) {
 			$ors = [];
-			foreach ($option as $link) {
-				$ors[] = '(tpl_from='.intval($link->getArticleID()).')';
+			foreach ($option as $linkGroup) {
+				foreach ($linkGroup as $link) {
+					$ors[] = '(tpl_from='.intval($link->getArticleID()).')';
+				}
 			}
 			$where = '('.implode(' OR ', $ors).')';
 		} else {
@@ -1909,8 +1911,10 @@ class Query {
 			$this->addSelect(['tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace']);
 			$where = $this->tableNames['page'].'.page_title = tpl.tl_title AND tplsrc.page_id=tpl.tl_from AND (';
 			$ors = [];
-			foreach ($option as $link) {
-				$ors[] = '(tpl.tl_from='.intval($link->getArticleID()).')';
+			foreach ($option as $linkGroup) {
+				foreach ($linkGroup as $link) {
+					$ors[] = '(tpl.tl_from='.intval($link->getArticleID()).')';
+				}
 			}
 			$where .= '('.implode(' OR ', $ors).')';
 		}
