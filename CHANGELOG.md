@@ -520,4 +520,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 #Version 3.0.2
 * Fixed issues with usedby parameter causing fatal errors.
-* Issue where the allrevisionssince would display a blank [[User:|]] link despite not being specified to show user information.
+* Fixed issue where the allrevisionssince would display a blank [[User:|]] link despite not being specified to show user information.
