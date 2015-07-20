@@ -277,6 +277,7 @@ class Article {
 				$article->mRevision = $row['rev_id'];
 				$article->mUser     = $row['rev_user_text'];
 				$article->mDate     = $row['rev_timestamp'];
+				$article->mComment  = $row['rev_comment'];
 			}
 
 			//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
@@ -310,10 +311,9 @@ class Article {
 			//USER/AUTHOR(S)
 			// because we are going to do a recursive parse at the end of the output phase
 			// we have to generate wiki syntax for linking to a user´s homepage
-			if ($parameters->getParameter('adduser') || $parameters->getParameter('addauthor') || $parameters->getParameter('addlasteditor') || $parameters->getParameter('lastrevisionbefore') || $parameters->getParameter('allrevisionsbefore') || $parameters->getParameter('firstrevisionsince') || $parameters->getParameter('allrevisionssince')) {
+			if ($parameters->getParameter('adduser') || $parameters->getParameter('addauthor') || $parameters->getParameter('addlasteditor')) {
 				$article->mUserLink = '[[User:'.$row['rev_user_text'].'|'.$row['rev_user_text'].']]';
 				$article->mUser     = $row['rev_user_text'];
-				$article->mComment  = $row['rev_comment'];
 			}
 
 			//CATEGORY LINKS FROM CURRENT PAGE

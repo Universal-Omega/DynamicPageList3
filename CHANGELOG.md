@@ -478,7 +478,7 @@
 * Bug fix in namespace= , invalid values now lead to an error message (had been silently translated to the main namespace before)
 * Category mode: first char bugfix
 
-#Version 2.0
+#Version 2.0.0
 * Added %ARGS% to template surrogate call
 * Replaced "makeKnownLinkObjects" by "fullurl:" to get rid of the need to change $rawHtml
 * Eliminated rawHTML usage 
@@ -490,7 +490,7 @@
 * #Version 2.01
 * Re-merged all changes from SVN since DPL 1.8.6
 
-#Version 3.0
+#Version 3.0.0
 * THE MOTHER OF ALL OVERHAULS! - Seriously, the entire code base was ripped to shreds and redone to be easily worked on in the future.
 * Configuration is now standardized instead of calling into static class functions or modifying objects directly.
 * Fixed several SQL injection exploits with 'ordercollation' and 'category'.
@@ -502,3 +502,22 @@
 * URL argument 'DPL_refresh' was removed.  To purge the Parser cache perform a null edit on the page or place 'action=purge' as part of the URL.
 * Configuration value 'respectParserCache' was removed.
 * The card suit sort function no longer has a massive memory leak.
+
+#Version 3.0.1
+Many thanks to GreenReaper on GitHub for reporting and finding issues with core functionality that previously went unreported.
+
+* Code quality improvements.  Various changes to squash E_NOTICE errors helped find unnoticed issues.
+* The "headingmode" functionality was not previously repaired from the code rework.  It is now fixed.
+* Removed an unused $logger in the DynamicPageList class.
+* Category depth recursion was broken.  #41
+* New timestamp handling functionality caused unexpected behavior.  It has been reverted to work the same as the previous implementation.  #40
+* Parse time profiling was broken.
+* Scroll direction parameter was broken.
+* Early parsing was accidentally clearing minor warnings and errors preventing them from being seen.
+* Category links relied on Mediawiki functionality that ended up causing double parsing and potentially broken links on some wiki setups.  This is now handled all in the extension to reduce the number of parses and ensure links are valid.  #38
+* Article processing would clear the number of query results causing an issue in which blank output would be produced when all articles were excluded from the output.  This has been fixed to display a warning for no results.
+* Databases that use table prefixes were broken due to a few bugged selects.  #37  Thanks to @nsradke for reporting this issue.
+
+#Version 3.0.2
+* Fixed issues with usedby parameter causing fatal errors.
+* Issue where the allrevisionssince would display a blank [[User:|]] link despite not being specified to show user information.
