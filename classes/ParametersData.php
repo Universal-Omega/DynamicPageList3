@@ -80,7 +80,6 @@ class ParametersData {
 			'addeditdate',
 			'addexternallink',
 			'addlasteditor',
-			'addpagecounter',
 			'addpagesize',
 			'addpagetoucheddate',
 			'adduser',
@@ -196,11 +195,6 @@ class ParametersData {
 			'open_ref_conflict'	=> true
 		],
 		'addlasteditor' => [
-			'default'			=> false,
-			'boolean'			=> true,
-			'open_ref_conflict'	=> true
-		],
-		'addpagecounter' => [
 			'default'			=> false,
 			'boolean'			=> true,
 			'open_ref_conflict'	=> true
