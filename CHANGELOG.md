@@ -522,3 +522,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed issues with usedby parameter causing fatal errors.
 * Fixed issue where the allrevisionssince would display a blank [[User:|]] link despite not being specified to show user information.
 * The addpagecounter parameter now requires Extension:HitCounter which itself requires MediaWiki 1.25.  All other features and parameters will continue to work on MediaWiki 1.23+.
+* Preliminary support for Mediawiki 1.25+ wfLoadExtension() style extension loading.  Current implementation is broken due to extension design issues that need fixed.
