@@ -681,8 +681,9 @@ class DynamicPageList {
 		}
 		// if requested we sort the table by the contents of a given column
 		if ($iTableSortCol != 0) {
-			$sortcol = abs($iTableSortCol);
-			$rows    = explode("\n|-", $rBody);
+			$sortcol	= abs($iTableSortCol);
+			$rows		= explode("\n|-", $rBody);
+			$rowsKey	= [];
 			foreach ($rows as $index => $row) {
 				if (strlen($row) > 0) {
 					if ((($word = explode("\n|", $row, $sortcol + 2)) !== false) && (count($word) > $sortcol)) {
