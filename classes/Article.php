@@ -242,11 +242,6 @@ class Article {
 			$article->mExternalLink = $row['el_to'];
 		}
 
-		//SHOW PAGE_COUNTER
-		if (isset($row['page_counter'])) {
-			$article->mCounter = $row['page_counter'];
-		}
-
 		//SHOW PAGE_SIZE
 		if (isset($row['page_len'])) {
 			$article->mSize = $row['page_len'];

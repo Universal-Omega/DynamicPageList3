@@ -689,21 +689,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'addpagecounter' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _addpagecounter($option) {
-		$this->addSelect(
-			[
-				"page_counter"	=> "{$this->tableNames['page']}.page_counter"
-			]
-		);
-	}
-
-	/**
 	 * Set SQL for 'addpagesize' parameter.
 	 *
 	 * @access	private
@@ -1550,10 +1535,7 @@ class Query {
 					break;
 				case 'categoryadd':
 					$this->addOrderBy('cl1.cl_timestamp');
-					break;
-				case 'counter':
-					$this->addOrderBy('page_counter');
-					break;
+					break
 				case 'firstedit':
 					$this->addOrderBy('rev_timestamp');
 					$this->addTable('revision', 'rev');
