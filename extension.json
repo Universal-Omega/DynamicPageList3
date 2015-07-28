@@ -1,0 +1,50 @@
+{
+	"name": "DynamicPageList3",
+	"version": "3.0.2",
+	"author": [
+		"[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]",
+		"Alexia E. Smith"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
+	"descriptionmsg": "dpl-desc",
+	"type": "parserhook",
+	"license-name": "GPL-3.0",
+	"GroupPermissions": {
+		"sysop": {
+			"dpl_param_update_rules": true,
+			"dpl_param_delete_rules": true
+		}
+	},
+	"AvailableRights": [
+		"dpl_param_update_rules",
+		"dpl_param_delete_rules"
+	],
+	"MessagesDirs": {
+		"DynamicPageList": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"DynamicPageList": "DynamicPageList.i18n.php",
+		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
+	},
+	"AutoloadClasses": {
+		"DynamicPageListHooks": "DynamicPageList.hooks.php",
+		"DPL\\Article": "classes/Article.php",
+		"DPL\\Config": "classes/Config.php",
+		"DPL\\DynamicPageList": "classes/DynamicPageList.php",
+		"DPL\\Logger": "classes/Logger.php",
+		"DPL\\ListMode": "classes/ListMode.php",
+		"DPL\\LST": "classes/LST.php",
+		"DPL\\Parameters": "classes/Parameters.php",
+		"DPL\\ParametersData": "classes/ParametersData.php",
+		"DPL\\Parse": "classes/Parse.php",
+		"DPL\\Query": "classes/Query.php",
+		"DPL\\Variables": "classes/Variables.php"
+	},
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"DynamicPageListHooks::onParserFirstCallInit"
+		]
+	}
+}

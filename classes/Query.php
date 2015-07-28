@@ -689,6 +689,31 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'addpagecounter' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _addpagecounter($option) {
+		if (class_exists("\\HitCounters\\Hooks")) {
+			$this->addTable('hit_counter', 'hit_counter');
+			$this->addSelect(
+				[
+					"page_counter"	=> "hit_counter.page_counter"
+				]
+			);
+			$this->addJoin(
+				'hit_counter',
+				[
+					"LEFT JOIN",
+					"hit_counter.page_id = ".$this->tableNames['page'].'.page_id'
+				]
+			);
+		}
+	}
+
+	/**
 	 * Set SQL for 'addpagesize' parameter.
 	 *
 	 * @access	private
@@ -1535,7 +1560,10 @@ class Query {
 					break;
 				case 'categoryadd':
 					$this->addOrderBy('cl1.cl_timestamp');
-					break
+					break;
+				case 'counter':
+					$this->addOrderBy('hit_counter.page_counter');
+					break;
 				case 'firstedit':
 					$this->addOrderBy('rev_timestamp');
 					$this->addTable('revision', 'rev');

@@ -21,7 +21,7 @@ define('DPL_VERSION', '3.0.2');
 $credits = [
 	'path' 				=> __FILE__,
 	'name' 				=> 'DynamicPageList3',
-	'author' 			=> '[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz], Alexia E. Smith',
+	'author' 			=> ['[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]', 'Alexia E. Smith'],
 	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList3',
 	'descriptionmsg' 	=> 'dpl-desc',
 	'version' 			=> DPL_VERSION
