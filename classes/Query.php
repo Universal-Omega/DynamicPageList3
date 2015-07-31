@@ -1218,7 +1218,7 @@ class Query {
 					$ands[] = 'pl_from <> '.intval($link->getArticleID()).' ';
 				}
 			}
-			$where .= '('.implode(' AND ', $ands).')';
+			$where = '('.implode(' AND ', $ands).')';
 		} else {
 			$where = 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT('.$this->tableNames['pagelinks'].'.pl_namespace,'.$this->tableNames['pagelinks'].'.pl_title) FROM '.$this->tableNames['pagelinks'].' WHERE ';
 			$ors = [];
@@ -1813,7 +1813,7 @@ class Query {
 				$ors[] = $_or;
 			}
 		}
-		$where .= '('.implode(' OR ', $ors).')';
+		$where = '('.implode(' OR ', $ors).')';
 		$this->addWhere($where);
 	}
 
@@ -1843,7 +1843,7 @@ class Query {
 				$ors[] = $_or;
 			}
 		}
-		$where .= 'NOT ('.implode(' OR ', $ors).')';
+		$where = 'NOT ('.implode(' OR ', $ors).')';
 		$this->addWhere($where);
 	}
 
