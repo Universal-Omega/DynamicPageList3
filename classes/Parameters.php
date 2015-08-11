@@ -448,7 +448,7 @@ class Parameters extends ParametersData {
 				if (!array_key_exists($_operator, $data['=']) || !is_array($data['='][$_operator])) {
 					$data['='][$_operator] = [];
 				}
-				$data['='][$_operator] = array_merge($data['='][$_operator], $_categories);
+				$data['='][$_operator][] = $_categories;
 			}
 			$this->setParameter('category', $data);
 			if ($heading) {
