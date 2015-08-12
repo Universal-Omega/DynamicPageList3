@@ -473,7 +473,7 @@ class Parameters extends ParametersData {
 	public function _categoryregexp($option) {
 		$data = $this->getParameter('category');
 		//REGEXP input only supports AND operator.
-		$data['REGEXP']['AND'][] = $option;
+		$data['REGEXP']['AND'][] = [$option]; //Wrapped in an array since the category Query handler expects an array.
 		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;
@@ -500,7 +500,7 @@ class Parameters extends ParametersData {
 			$data['LIKE'][$operator] = [];
 		}
 
-		$data['LIKE'][$operator] = array_merge($data['LIKE'][$operator], $newMatches);
+		$data['LIKE'][$operator][] = $newMatches;
 		$this->setParameter('category', $data);
 		$this->setOpenReferencesConflict(true);
 		return true;

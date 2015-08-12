@@ -845,14 +845,14 @@ class Query {
 	 * @return	void
 	 */
 	private function _category($option) {
+		$i = 0;
 		foreach ($option as $comparisonType => $operatorTypes) {
-			$i = 0;
 			foreach ($operatorTypes as $operatorType => $categoryGroups) {
 				foreach ($categoryGroups as $categories) {
 					$tableName = (in_array('', $categories) ? 'dpl_clview' : 'categorylinks');
-					$i++;
 					if ($operatorType == 'AND') {
 						foreach ($categories as $category) {
+							$i++;
 							$tableAlias = "cl{$i}";
 							$this->addTable($tableName, $tableAlias);
 							$this->addJoin(
@@ -862,9 +862,9 @@ class Query {
 									"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} ".$this->DB->addQuotes(str_replace(' ', '_', $category))
 								]
 							);
-							$i++;
 						}
 					} elseif ($operatorType == 'OR') {
+						$i++;
 						$tableAlias = "cl{$i}";
 						$this->addTable($tableName, $tableAlias);
 
