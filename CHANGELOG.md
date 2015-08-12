@@ -526,3 +526,10 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Preliminary support for Mediawiki 1.25+ wfLoadExtension() style extension loading.  Current implementation is broken due to extension design issues that need fixed.
 * Fix an issue with an array not being initialized in DPL's list formatter.
   * https://github.com/Alexia/DynamicPageList/issues/43
+
+#Version 3.0.3
+* Fixed default sorting and title sort for ordermethod parameter.
+* Fixed logical AND and OR issues with category, categorymatch, and categoryregexp parameters.
+ * https://github.com/Alexia/DynamicPageList/issues/47
+* Fixed an additional issue with the new Extension:HitCounter support.  Using ordermethod=counter without specifying the addpagecounter parameter would cause a database error.
+ * https://github.com/Alexia/DynamicPageList/issues/44#issuecomment-129951800
