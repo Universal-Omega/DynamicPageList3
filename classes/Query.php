@@ -1566,7 +1566,7 @@ class Query {
 				case 'counter':
 					if (class_exists("\\HitCounters\\Hooks")) {
 						//If the "addpagecounter" parameter was not used the table and join need to be added now.
-						if (array_key_exists('hit_counter', $this->tables)) {
+						if (!array_key_exists('hit_counter', $this->tables)) {
 							$this->addTable('hit_counter', 'hit_counter');
 
 							$this->addJoin(
