@@ -1641,6 +1641,7 @@ class Query {
 					$this->addOrderBy('page_len');
 					break;
 				case 'sortkey':
+					$this->addOrderBy('sortkey');
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
 					$replaceConcat = "REPLACE(CONCAT({$_namespaceIdToText}, ".$this->tableNames['page'].".page_title), '_', ' ')";
@@ -1681,6 +1682,7 @@ class Query {
 					);
 					break;
 				case 'title':
+					$this->addOrderBy('sortkey');
 					if ($this->parameters->getParameter('openreferences')) {
 						$this->addSelect(
 							[
