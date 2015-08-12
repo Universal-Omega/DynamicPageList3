@@ -1564,7 +1564,9 @@ class Query {
 					$this->addOrderBy('cl1.cl_timestamp');
 					break;
 				case 'counter':
-					$this->addOrderBy('hit_counter.page_counter');
+					if (class_exists("\\HitCounters\\Hooks")) {
+						$this->addOrderBy('hit_counter.page_counter');
+					}
 					break;
 				case 'firstedit':
 					$this->addOrderBy('rev_timestamp');
