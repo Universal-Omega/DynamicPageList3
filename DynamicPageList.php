@@ -118,6 +118,4 @@ $wgDplSettings['maxResultCount'] = 500;
 $wgDplSettings['runFromProtectedPagesOnly'] = false;
 
 $wgDplSettings['recursiveTagParse'] = false;
-
-\DPL\Config::init($wgDplSettings);
 ?>

@@ -47,7 +47,6 @@
 			"DynamicPageListHooks::onParserFirstCallInit"
 		]
 	},
-	"callback": "\\DPL\\Config::init",
 	"config": {
 		"DplSettings": {
 			"allowedNamespaces": null,

@@ -157,6 +157,8 @@ class DynamicPageListHooks {
 	static private function init() {
 		global $wgUser;
 
+		\DPL\Config::init();
+
 		if (!isset(self::$createdLinks)) {
 			self::$createdLinks=array( 
 				'resetLinks'=> false, 'resetTemplates' => false, 
