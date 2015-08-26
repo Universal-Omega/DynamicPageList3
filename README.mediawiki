@@ -72,7 +72,7 @@ These are DPL's configuration settings and along with their default values.  To 
 |-
 |<code>$wgDplSettings['maxResultCount']</code> || 500 || Maximum number of results to return from a query.
 |-
-|<code>$wgDplSettings['recursiveTagParse']</code> || <code>false</code> || Do recursive tag parsing on <dpl> parser tags converting tags and functions such magic words like {{PAGENAME}}.  This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases.</code>
+|<code>$wgDplSettings['recursiveTagParse']</code> || <code>false</code> || Do recursive tag parsing on <dpl> parser tags converting tags and functions such as magic words like {{PAGENAME}}.  This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases.</code>
 |-
 |<code>$wgDplSettings['runFromProtectedPagesOnly']</code> || <code>false</code> || Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.</code>
 |-
