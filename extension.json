@@ -60,7 +60,8 @@
 			"maxCategoryCount": 4,
 			"minCategoryCount": 0,
 			"maxResultCount": 500,
-			"runFromProtectedPagesOnly": false
+			"runFromProtectedPagesOnly": false,
+			"recursiveTagParse": false
 		}
 	}
 }
