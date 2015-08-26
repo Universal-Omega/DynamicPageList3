@@ -533,3 +533,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
  * https://github.com/Alexia/DynamicPageList/issues/47
 * Fixed an additional issue with the new Extension:HitCounter support.  Using ordermethod=counter without specifying the addpagecounter parameter would cause a database error.
  * https://github.com/Alexia/DynamicPageList/issues/44#issuecomment-129951800
+
+#Version 3.0.4
+* Added functionality to enable recursive tag parsing when using the <dpl> parser tag.
+ * https://github.com/Alexia/DynamicPageList/issues/49
