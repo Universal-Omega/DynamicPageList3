@@ -24,6 +24,7 @@ $credits = [
 	'author' 			=> ['[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]', 'Alexia E. Smith'],
 	'url' 				=> 'https://www.mediawiki.org/wiki/Extension:DynamicPageList3',
 	'descriptionmsg' 	=> 'dpl-desc',
+	'license-name'		=> 'GPL-3.0',
 	'version' 			=> DPL_VERSION
 ];
 $wgExtensionCredits['parserhook'][] = $credits;
@@ -74,68 +75,47 @@ if (!isset($wgGroupPermissions['sysop']['dpl_param_delete_rules'])) {
 
 //By default all setup namespaces are used when DPL initializes.  Customize this setting with an array of namespace constants to restrict DPL to work only in those namespaces.
 /* Example, restrict DPL to look only in the Main and Project namespaces.
-	$dplSettings['allowedNamespaces'] = [
+	$wgDplSettings['allowedNamespaces'] = [
 		NS_MAIN,
 		NS_PROJECT
 	];
 */
-if (!isset($dplSettings['allowedNamespaces'])) {
-	$dplSettings['allowedNamespaces'] = null;
-}
+$wgDplSettings['allowedNamespaces'] = null;
 
 //Set this to true to ignore 'maxCategoryCount' and allow unlimited categories.  Please note that large amounts of categories in a query can slow down or crash servers.
-if (!isset($dplSettings['allowUnlimitedCategories'])) {
-	$dplSettings['allowUnlimitedCategories'] = false;
-}
+$wgDplSettings['allowUnlimitedCategories'] = false;
 
 //Set this to true to ignore 'maxResultCount' and allow unlimited results.  Please note that large result sets may result in slow or failed page loads.
-if (!isset($dplSettings['allowUnlimitedResults'])) {
-	$dplSettings['allowUnlimitedResults'] = false;
-}
+$wgDplSettings['allowUnlimitedResults'] = false;
 
 //Set DPL to always behave like Extension:Intersection.
-if (!isset($dplSettings['behavingLikeIntersection'])) {
-	$dplSettings['behavingLikeIntersection'] = false;
-}
+$wgDplSettings['behavingLikeIntersection'] = false;
 
 //Maximum number of items in a category list before being cut off.
-if (!isset($dplSettings['categoryStyleListCutoff'])) {
-	$dplSettings['categoryStyleListCutoff'] = 6;
-}
+$wgDplSettings['categoryStyleListCutoff'] = 6;
 
 //This does something with preventing DPL from "looking" at these categories.
-if (!isset($dplSettings['fixedCategories'])) {
-	$dplSettings['fixedCategories'] = [];
-}
+$wgDplSettings['fixedCategories'] = [];
 
 //Set the level of parameters available to end users.
-if (!isset($dplSettings['functionalRichness'])) {
-	if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
-		$dplSettings['functionalRichness'] = 0;
-	} else {
-		$dplSettings['functionalRichness'] = 3;
-	}
+if (isset($dplMigrationTesting) && $dplMigrationTesting === true) {
+	$wgDplSettings['functionalRichness'] = 0;
+} else {
+	$wgDplSettings['functionalRichness'] = 3;
 }
+
 
 //Maximum number of categories to allow in queries.
-if (!isset($dplSettings['maxCategoryCount'])) {
-	$dplSettings['maxCategoryCount'] = 4;
-}
+$wgDplSettings['maxCategoryCount'] = 4;
 
 //Minimum number of categories to allow in queries.
-if (!isset($dplSettings['minCategoryCount'])) {
-	$dplSettings['minCategoryCount'] = 0;
-}
+$wgDplSettings['minCategoryCount'] = 0;
 
 //Maximum number of results to return from a query.
-if (!isset($dplSettings['maxResultCount'])) {
-	$dplSettings['maxResultCount'] = 500;
-}
+$wgDplSettings['maxResultCount'] = 500;
 
 //Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.
-if (!isset($dplSettings['runFromProtectedPagesOnly'])) {
-	$dplSettings['runFromProtectedPagesOnly'] = false;
-}
+$wgDplSettings['runFromProtectedPagesOnly'] = false;
 
-\DPL\Config::init($dplSettings);
+\DPL\Config::init($wgDplSettings);
 ?>

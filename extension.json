@@ -7,8 +7,8 @@
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
 	"descriptionmsg": "dpl-desc",
-	"type": "parserhook",
 	"license-name": "GPL-3.0",
+	"type": "parserhook",
 	"GroupPermissions": {
 		"sysop": {
 			"dpl_param_update_rules": true,
@@ -47,5 +47,20 @@
 			"DynamicPageListHooks::onParserFirstCallInit"
 		]
 	},
-	"callback": "\\DPL\\Config::init($dplSettings)"
+	"callback": "\\DPL\\Config::init",
+	"config": {
+		"DplSettings": {
+			"allowedNamespaces": null,
+			"allowUnlimitedCategories": false,
+			"allowUnlimitedResults": false,
+			"behavingLikeIntersection": false,
+			"categoryStyleListCutoff": 6,
+			"fixedCategories": [],
+			"functionalRichness": 3,
+			"maxCategoryCount": 4,
+			"minCategoryCount": 0,
+			"maxResultCount": 500,
+			"runFromProtectedPagesOnly": false
+		}
+	}
 }

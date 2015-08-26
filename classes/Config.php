@@ -22,12 +22,20 @@ class Config {
 	 * Initialize the static object with settings.
 	 *
 	 * @access	public
+	 * @param	array	Settings to initialize for DPL.
 	 * @return	void
 	 */
-	static public function init($settings) {
+	static public function init($settings = false) {
+		if ($settings === false) {
+			global $wgDplSettings;
+
+			$settings = $wgDplSettings;
+		}
+
 		if (!is_array($settings)) {
 			throw new MWException(__METHOD__.": Invalid settings passed.");
 		}
+
 		self::$settings = array_merge(self::$settings, $settings);
 	}
 
