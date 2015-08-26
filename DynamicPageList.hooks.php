@@ -242,6 +242,9 @@ class DynamicPageListHooks {
 		// create list and do a recursive parse of the output
 
 		$parse = new \DPL\Parse();
+		if (\DPL\Config::getSetting('recursiveTagParse')) {
+			$input = $parser->recursiveTagParse($input, $frame);
+		}
 		$text = $parse->parse($input, $parser, $reset, $eliminate, false);
 
 		if (isset($reset['templates']) && $reset['templates']) {	// we can remove the templates by save/restore

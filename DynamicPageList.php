@@ -117,5 +117,7 @@ $wgDplSettings['maxResultCount'] = 500;
 //Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.
 $wgDplSettings['runFromProtectedPagesOnly'] = false;
 
+$wgDplSettings['recursiveTagParse'] = false;
+
 \DPL\Config::init($wgDplSettings);
 ?>
