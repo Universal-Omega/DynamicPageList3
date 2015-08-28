@@ -221,28 +221,26 @@ class Parse {
 			$result = $this->query->buildAndSelect($calcRows);
 		} catch (MWException $e) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage());
-			return $this->getFullOutput(false);
+			return $this->getFullOutput();
 		}
 
 		$numRows = $this->DB->numRows($result);
 		$articles = $this->processQueryResults($result);
 
+		$this->addOutput('{{Extension DPL}}');
+
+		//Preset these to defaults.
+		$this->setVariable('TOTALPAGES', 0);
+		$this->setVariable('PAGES', 0);
+		$this->setVariable('VERSION', DPL_VERSION);
+
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		$this->addOutput('{{Extension DPL}}');
-
 		if ($numRows <= 0 || empty($articles)) {
-			$this->setVariable('TOTALPAGES', 0);
-			$this->setVariable('PAGES', 0);
-			if ($this->parameters->getParameter('noresultsheader') !== null) {
-				$this->setHeader($this->parameters->getParameter('noresultsheader')));
-			}
-			if ($this->parameters->getParameter('noresultsfooter') !== null) {
-				$this->setFooter($this->parameters->getParameter('noresultsfooter')));
-			}
+			//Shortcut out since there is no processing to do.
 			$this->DB->freeResult($result);
-			return $this->getFullOutput(false);
+			return $this->getFullOutput();
 		}
 
 		$foundRows = null;
@@ -325,9 +323,8 @@ class Parse {
 		/*******************************/
 		/* Replacement Variables       */
 		/*******************************/
-		$this->setVariable('TOTALPAGES', $foundRows);
-		$this->setVariable('VERSION', DPL_VERSION);
-		$this->setVariable('PAGES', $this->dpl->getRowCount());
+		$this->setVariable('TOTALPAGES', $foundRows); //Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used.  Otherwise only accurate if results are less than the SQL LIMIT.
+		$this->setVariable('PAGES', $this->dpl->getRowCount()); //This could be different than TOTALPAGES.  PAGES represents the total results within the constraints of SQL LIMIT.
 
 		//Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp   = date('Y/m/d H:i:s');
@@ -347,24 +344,6 @@ class Parse {
 		$this->setVariable('LASTNAMESPACE', $lastNamespaceFound);
 		$this->setVariable('LASTTITLE', $lastTitleFound);
 		$this->setVariable('SCROLLDIR', $this->parameters->getParameter('scrolldir'));
-
-		/*******************************/
-		/* Headers/Footers             */
-		/*******************************/
-		$header = '';
-		$footer = '';
-		//Only override header and footers if specified.
-		$_headerType = $this->getHeaderFooterType('header', $foundRows);
-		if ($_headerType !== false) {
-			$header = $this->parameters->getParameter($_headerType.'header');
-		}
-		$_footerType = $this->getHeaderFooterType('footer', $foundRows);
-		if ($_footerType !== false) {
-			$footer = $this->parameters->getParameter($_footerType.'footer');
-		}
-
-		$this->setHeader($this->replaceVariables($header, $replacementVariables));
-		$this->setFooter($this->replaceVariables($footer, $replacementVariables));
 
 		/*******************************/
 		/* Scroll Variables            */
@@ -392,7 +371,7 @@ class Parse {
 
 		wfProfileOut(__METHOD__);
 
-		return $this->getFullOutput();
+		return $this->getFullOutput($foundRows, false);
 	}
 
 	/**
@@ -547,19 +526,37 @@ class Parse {
 	}
 
 	/**
-	 * Return output including header and footer.
+	 * Return output optionally including header and footer.
 	 *
-	 * @access	public
-	 * @param	boolean	[Optional] Are there results in this output?
+	 * @access	private
+	 * @param	boolean	[Optional] Total results.
+	 * @param	boolean	[Optional] Skip adding the header and footer.
 	 * @return	string	Output
 	 */
-	private function getFullOutput($results = true) {
-		if ($results === false && !$this->getHeader() && !$this->getFooter()) {
+	private function getFullOutput($results = false, $skipHeaderFooter = true) {
+		if (!$skipHeaderFooter) {
+			$header = '';
+			$footer = '';
+			//Only override header and footers if specified.
+			$_headerType = $this->getHeaderFooterType('header', $results);
+			if ($_headerType !== false) {
+				$header = $this->parameters->getParameter($_headerType.'header');
+			}
+			$_footerType = $this->getHeaderFooterType('footer', $results);
+			if ($_footerType !== false) {
+				$footer = $this->parameters->getParameter($_footerType.'footer');
+			}
+
+			$this->setHeader($header);
+			$this->setFooter($footer);
+		}
+
+		if (!$results && !$this->getHeader() && !$this->getFooter()) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
 		$messages = $this->logger->getMessages(false);
 
-		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->header.$this->output.$this->footer;
+		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->getHeader().$this->output.$this->getFooter();
 	}
 
 	/**

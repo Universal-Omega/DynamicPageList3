@@ -537,3 +537,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 #Version 3.0.4
 * Added functionality to enable recursive tag parsing when using the <dpl> parser tag.
  * https://github.com/Alexia/DynamicPageList/issues/49
+* The %VERSION% variable was not available to noresultsheader and noresultsfooter parameters.
