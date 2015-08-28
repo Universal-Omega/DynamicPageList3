@@ -75,6 +75,20 @@ class Parse {
 	private $output = '';
 
 	/**
+	 * DynamicPageList Object Holder
+	 *
+	 * @var		object
+	 */
+	private $dpl = null;
+
+	/**
+	 * Replacement Variables
+	 *
+	 * @var		array
+	 */
+	private $replacementVariables = [];
+
+	/**
 	 * Array of possible URL arguments.
 	 *
 	 * @var		array
@@ -219,14 +233,13 @@ class Parse {
 		$this->addOutput('{{Extension DPL}}');
 
 		if ($numRows <= 0 || empty($articles)) {
-			$replacementVariables = [];
-			$replacementVariables['%TOTALPAGES%'] = 0;
-			$replacementVariables['%PAGES%'] = 0;
+			$this->setVariable('TOTALPAGES', 0);
+			$this->setVariable('PAGES', 0);
 			if ($this->parameters->getParameter('noresultsheader') !== null) {
-				$this->setHeader($this->replaceVariables($this->parameters->getParameter('noresultsheader'), $replacementVariables));
+				$this->setHeader($this->parameters->getParameter('noresultsheader')));
 			}
 			if ($this->parameters->getParameter('noresultsfooter') !== null) {
-				$this->setFooter($this->replaceVariables($this->parameters->getParameter('noresultsfooter'), $replacementVariables));
+				$this->setFooter($this->parameters->getParameter('noresultsfooter')));
 			}
 			$this->DB->freeResult($result);
 			return $this->getFullOutput(false);
@@ -274,7 +287,7 @@ class Parse {
 			$this->parameters->getParameter('dominantsection')
 		);
 
-		$dpl = new DynamicPageList(
+		$this->dpl = new DynamicPageList(
 			Article::getHeadings(),
 			$this->parameters->getParameter('headingcount'),
 			$this->parameters->getParameter('columns'),
@@ -305,72 +318,67 @@ class Parse {
 		);
 
 		if ($foundRows === null) {
-			$foundRows = intval($dpl->getRowCount());
+			$foundRows = $this->dpl->getRowCount();
 		}
-		$this->addOutput($dpl->getText());
+		$this->addOutput($this->dpl->getText());
 
 		/*******************************/
-		/* Start Headers/Footers       */
+		/* Replacement Variables       */
 		/*******************************/
-		$header = '';
-		$footer = '';
-		$replacementVariables = [];
-		$replacementVariables['%TOTALPAGES%'] = $foundRows;
-		$replacementVariables['%VERSION%'] = DPL_VERSION;
+		$this->setVariable('TOTALPAGES', $foundRows);
+		$this->setVariable('VERSION', DPL_VERSION);
+		$this->setVariable('PAGES', $this->dpl->getRowCount());
 
-		$_headerType = 'results';
-		if ($foundRows === 1) {
-			$replacementVariables['%PAGES%'] = 1;
-			$_headerType = 'oneresult';
-		} elseif ($foundRows === 0) {
-			$replacementVariables['%PAGES%'] = intval($dpl->getRowCount());
-			$_headerType = 'noresults';
-		}
-		//Only override header and footers if specified.
-		if ($this->parameters->getParameter($_headerType.'header') !== null) {
-			$header = $this->parameters->getParameter($_headerType.'header');
-		}
-		if ($this->parameters->getParameter($_headerType.'footer') !== null) {
-			$footer = $this->parameters->getParameter($_headerType.'footer');
-		}
-
-		// replace %DPLTIME% by execution time and timestamp in header and footer
+		//Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp   = date('Y/m/d H:i:s');
 		$dplElapsedTime = sprintf('%.3f sec.', microtime(true) - $dplStartTime);
-		$replacementVariables['%DPLTIME%'] = "{$dplElapsedTime} ({$nowTimeStamp})";
+		$dplTime = "{$dplElapsedTime} ({$nowTimeStamp})";
+		$this->setVariable('DPLTIME', $dplTime);
 
-		// replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
+		//Replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
 		if (($n = count($articles)) > 0) {
 			$firstNamespaceFound = str_replace(' ', '_', $articles[0]->mTitle->getNamespace());
 			$firstTitleFound     = str_replace(' ', '_', $articles[0]->mTitle->getText());
 			$lastNamespaceFound  = str_replace(' ', '_', $articles[$n - 1]->mTitle->getNamespace());
 			$lastTitleFound      = str_replace(' ', '_', $articles[$n - 1]->mTitle->getText());
 		}
-		$replacementVariables['%FIRSTNAMESPACE%'] = $firstNamespaceFound;
-		$replacementVariables['%FIRSTTITLE%'] = $firstTitleFound;
-		$replacementVariables['%LASTNAMESPACE%'] = $lastNamespaceFound;
-		$replacementVariables['%LASTTITLE%'] = $lastTitleFound;
-		$replacementVariables['%SCROLLDIR%'] = $this->parameters->getParameter('scrolldir');
+		$this->setVariable('FIRSTNAMESPACE', $firstNamespaceFound);
+		$this->setVariable('FIRSTTITLE', $firstTitleFound);
+		$this->setVariable('LASTNAMESPACE', $lastNamespaceFound);
+		$this->setVariable('LASTTITLE', $lastTitleFound);
+		$this->setVariable('SCROLLDIR', $this->parameters->getParameter('scrolldir'));
 
+		/*******************************/
+		/* Headers/Footers             */
+		/*******************************/
+		$header = '';
+		$footer = '';
+		//Only override header and footers if specified.
+		$_headerType = $this->getHeaderFooterType('header', $foundRows);
+		if ($_headerType !== false) {
+			$header = $this->parameters->getParameter($_headerType.'header');
+		}
+		$_footerType = $this->getHeaderFooterType('footer', $foundRows);
+		if ($_footerType !== false) {
+			$footer = $this->parameters->getParameter($_footerType.'footer');
+		}
 
 		$this->setHeader($this->replaceVariables($header, $replacementVariables));
 		$this->setFooter($this->replaceVariables($footer, $replacementVariables));
 
-		if (\DynamicPageListHooks::getDebugLevel() == 5) {
-			$this->setHeader('<pre><nowiki>'.$this->getHeader());
-			$this->setFooter($this->setFooter().'</nowiki></pre>');
-		}
-
+		/*******************************/
+		/* Scroll Variables            */
+		/*******************************/
 		$scrollVariables = [
 			'DPL_firstNamespace'	=> $firstNamespaceFound,
 			'DPL_firstTitle'		=> $firstTitleFound,
 			'DPL_lastNamespace'		=> $lastNamespaceFound,
 			'DPL_lastTitle'			=> $lastTitleFound,
 			'DPL_scrollDir'			=> $this->parameters->getParameter('scrolldir'),
-			'DPL_time'				=> $replacementVariables['%DPLTIME%'],
+			'DPL_time'				=> $dplTime,
 			'DPL_count'				=> $this->parameters->getParameter('count'),
 			'DPL_totalPages'		=> $foundRows,
-			'DPL_pages'				=> $dpl->getRowCount()
+			'DPL_pages'				=> $this->dpl->getRowCount()
 		];
 		$this->defineScrollVariables($scrollVariables);
 
@@ -562,7 +570,10 @@ class Parse {
 	 * @return	void
 	 */
 	private function setHeader($header) {
-		$this->header = $header;
+		if (\DynamicPageListHooks::getDebugLevel() == 5) {
+			$header = '<pre><nowiki>'.$header;
+		}
+		$this->header = $this->replaceVariables($header);
 	}
 
 	/**
@@ -583,7 +594,10 @@ class Parse {
 	 * @return	void
 	 */
 	private function setFooter($footer) {
-		$this->footer = $footer;
+		if (\DynamicPageListHooks::getDebugLevel() == 5) {
+			$footer .= '</nowiki></pre>';
+		}
+		$this->footer = $this->replaceVariables($footer);
 	}
 
 	/**
@@ -597,6 +611,60 @@ class Parse {
 	}
 
 	/**
+	 * Determine the header/footer type to use based on what output format parameters were chosen and the number of results.
+	 *
+	 * @access	private
+	 * @param	string	Page position to check: 'header' or 'footer'.
+	 * @param	integer	Count of pages.
+	 * @return	mixed	Type to use: 'results', 'oneresult', or 'noresults'.  False if invalid or none should be used.
+	 */
+	private function getHeaderFooterType($position, $count) {
+		$count = intval($count);
+		if ($position != 'header' || $position != 'footer') {
+			return false;
+		}
+
+		if ($this->parameters->getParameter('results'.$position) !== null && ($count >= 2 || ($this->parameters->getParameter('oneresult'.$position) === null && $count >= 1))) {
+			$_headerType = 'results';
+		} elseif ($count === 1 && $this->parameters->getParameter('oneresult'.$position) !== null) {
+			$_headerType = 'oneresult';
+		} elseif ($count === 0 && $this->parameters->getParameter('noresults'.$position) !== null) {
+			$_headerType = 'noresults';
+		} else {
+			$_headerType = false;
+		}
+		return $_headerType;
+	}
+
+	/**
+	 * Set a variable to be replaced with the provided text later at the end of the output.
+	 *
+	 * @access	private
+	 * @param	string	Variable name, will be transformed to uppercase and have leading and trailing percent signs added.
+	 * @param	string	Text to replace the variable with.
+	 * @return	void
+	 */
+	private function setVariable($variable, $replacement) {
+		$variable = "%".mb_strtoupper($variable, "UTF-8")."%";
+		$this->replacementVariables["%{$variable}%"] = $replacement;
+	}
+
+	/**
+	 * Return text with variables replaced.
+	 *
+	 * @access	private
+	 * @param	string	Text to perform replacements on.
+	 * @return	string	Replaced Text
+	 */
+	private function replaceVariables($text) {
+		$text = self::replaceNewLines($text);
+		foreach ($this->replacementVariables as $variable => $replacement) {
+			$text = str_replace($variable, $replacement, $text);
+		}
+		return $text;
+	}
+
+	/**
 	 * Return text with custom new line characters replaced.
 	 *
 	 * @access	private
@@ -605,22 +673,6 @@ class Parse {
 	 */
 	static public function replaceNewLines($text) {
 		return str_replace(['\n', "¶"], "\n", $text);
-	}
-
-	/**
-	 * Return text with variables replaced.
-	 *
-	 * @access	private
-	 * @param	string	Text
-	 * @param	array	Array of '%VARIABLE' => 'Replacement' replacements.
-	 * @return	string	Replaced Text
-	 */
-	private function replaceVariables($text, $replacements) {
-		$text = self::replaceNewLines($text);
-		foreach ($replacements as $variable => $replacement) {
-			$text = str_replace($variable, $replacement, $text);
-		}
-		return $text;
 	}
 
 	/**

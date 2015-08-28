@@ -1403,7 +1403,7 @@ class DynamicPageList {
 	
 	//return the total number of rows (filtered)
 	public function getRowCount() {
-		return $this->filteredCount;
+		return intval($this->filteredCount);
 	}
 	
 	/**
