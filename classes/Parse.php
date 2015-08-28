@@ -240,7 +240,7 @@ class Parse {
 		if ($numRows <= 0 || empty($articles)) {
 			//Shortcut out since there is no processing to do.
 			$this->DB->freeResult($result);
-			return $this->getFullOutput();
+			return $this->getFullOutput(0, false);
 		}
 
 		$foundRows = null;
@@ -367,11 +367,13 @@ class Parse {
 			$this->parser->disableCache();
 		}
 
-		$this->triggerEndResets($reset, $eliminate, $isParserTag);
+		$finalOutput = $this->getFullOutput($foundRows, false);
+
+		$this->triggerEndResets($finalOutput, $reset, $eliminate, $isParserTag);
 
 		wfProfileOut(__METHOD__);
 
-		return $this->getFullOutput($foundRows, false);
+		return $finalOutput;
 	}
 
 	/**
@@ -526,6 +528,17 @@ class Parse {
 	}
 
 	/**
+	 * Set the output text.
+	 *
+	 * @access	private
+	 * @return	string	Output Text
+	 */
+	private function getOutput() {
+		//@TODO: 2015-08-28 Consider calling $this->replaceVariables() here.  Might cause issues with text returned in the results.
+		return $this->output;
+	}
+
+	/**
 	 * Return output optionally including header and footer.
 	 *
 	 * @access	private
@@ -533,30 +546,30 @@ class Parse {
 	 * @param	boolean	[Optional] Skip adding the header and footer.
 	 * @return	string	Output
 	 */
-	private function getFullOutput($results = false, $skipHeaderFooter = true) {
+	private function getFullOutput($totalResults = false, $skipHeaderFooter = true) {
 		if (!$skipHeaderFooter) {
 			$header = '';
 			$footer = '';
 			//Only override header and footers if specified.
-			$_headerType = $this->getHeaderFooterType('header', $results);
+			$_headerType = $this->getHeaderFooterType('header', $totalResults);
 			if ($_headerType !== false) {
-				$header = $this->parameters->getParameter($_headerType.'header');
+				$header = $this->parameters->getParameter($_headerType);
 			}
-			$_footerType = $this->getHeaderFooterType('footer', $results);
+			$_footerType = $this->getHeaderFooterType('footer', $totalResults);
 			if ($_footerType !== false) {
-				$footer = $this->parameters->getParameter($_footerType.'footer');
+				$footer = $this->parameters->getParameter($_footerType);
 			}
 
 			$this->setHeader($header);
 			$this->setFooter($footer);
 		}
 
-		if (!$results && !$this->getHeader() && !$this->getFooter()) {
+		if (!$totalResults && !$this->getHeader() && !$this->getFooter()) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
 		$messages = $this->logger->getMessages(false);
 
-		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->getHeader().$this->output.$this->getFooter();
+		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->getHeader().$this->getOutput().$this->getFooter();
 	}
 
 	/**
@@ -617,20 +630,20 @@ class Parse {
 	 */
 	private function getHeaderFooterType($position, $count) {
 		$count = intval($count);
-		if ($position != 'header' || $position != 'footer') {
+		if ($position != 'header' && $position != 'footer') {
 			return false;
 		}
 
 		if ($this->parameters->getParameter('results'.$position) !== null && ($count >= 2 || ($this->parameters->getParameter('oneresult'.$position) === null && $count >= 1))) {
-			$_headerType = 'results';
+			$_type = 'results'.$position;
 		} elseif ($count === 1 && $this->parameters->getParameter('oneresult'.$position) !== null) {
-			$_headerType = 'oneresult';
+			$_type = 'oneresult'.$position;
 		} elseif ($count === 0 && $this->parameters->getParameter('noresults'.$position) !== null) {
-			$_headerType = 'noresults';
+			$_type = 'noresults'.$position;
 		} else {
-			$_headerType = false;
+			$_type = false;
 		}
-		return $_headerType;
+		return $_type;
 	}
 
 	/**
@@ -643,7 +656,7 @@ class Parse {
 	 */
 	private function setVariable($variable, $replacement) {
 		$variable = "%".mb_strtoupper($variable, "UTF-8")."%";
-		$this->replacementVariables["%{$variable}%"] = $replacement;
+		$this->replacementVariables[$variable] = $replacement;
 	}
 
 	/**
@@ -907,16 +920,17 @@ class Parse {
 	 * Trigger Resets and Eliminates that run at the end of parsing.
 	 *
 	 * @access	private
+	 * @param	string	Full output including header, footer, and any warnings.
 	 * @param	array	End Reset Booleans
 	 * @param	array	End Eliminate Booleans
 	 * @param	boolean	Call as a parser tag
 	 * @return	void
 	 */
-	private function triggerEndResets(&$reset, &$eliminate, $isParserTag) {
+	private function triggerEndResets($output, &$reset, &$eliminate, $isParserTag) {
 		global $wgHooks;
 
 		$localParser = new \Parser();
-		$parserOutput = $localParser->parse($this->getFullOutput(), $this->parser->mTitle, $this->parser->mOptions);
+		$parserOutput = $localParser->parse($output, $this->parser->mTitle, $this->parser->mOptions);
 
 		if (!is_array($reset)) {
 			$reset = [];
