@@ -506,7 +506,7 @@ class Parse {
 			}
 
 			//Ignore parameter settings without argument (except namespace and category).
-			if (empty($option)) {
+			if (!strlen($option)) {
 				if ($parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && $this->parameters->exists($parameter)) {
 					continue;
 				}
@@ -564,7 +564,7 @@ class Parse {
 			$this->setFooter($footer);
 		}
 
-		if (!$totalResults && !$this->getHeader() && !$this->getFooter()) {
+		if (!$totalResults && !strlen($this->getHeader()) && !strlen($this->getFooter())) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_NORESULTS);
 		}
 		$messages = $this->logger->getMessages(false);
