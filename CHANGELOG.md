@@ -544,3 +544,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
  * https://github.com/Alexia/DynamicPageList/issues/48
 * Fixed how headers/footers are checked for being empty.
  * https://github.com/Alexia/DynamicPageList/issues/48
+* Mediawiki 1.24+ compatibility changes for extension registration and loading.
+ * https://github.com/Alexia/DynamicPageList/issues/46
+ * $dplSettings configuration variable has been renamed to $wgDplSettings to facilitate this change.  Existing configurations will need to be updated.
