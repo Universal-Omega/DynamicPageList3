@@ -6,7 +6,7 @@
 |author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
 |image       =
 |version     = 3.0.4
-|update      = 2015-08-27
+|update      = 2015-09-02
 |mediawiki   = 1.23+
 |php         = 5.4+
 |download    = {{ {{TNTN|GithubDownload}} |Alexia|DynamicPageList}}
