@@ -34,8 +34,16 @@ Complex look ups can result in computationally expensive database queries.  Howe
 
 == Installation ==
 * [https://github.com/Alexia/DynamicPageList/archive/3.0.4.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
-* Add the following code at the bottom of your LocalSettings.php:
+
+* For Mediawiki 1.19 through 1.23 add the following line to your LocalSettings.php:
 {{#tag:source|require_once "$IP/extensions/DynamicPageList/DynamicPageList.php";
+|lang="php"
+|style="overflow:auto;"
+}}<!-- whitespace fix
+-->
+
+* For Mediawiki 1.24 and up add the following line to your LocalSettings.php:
+{{#tag:source|wfLoadExtension("DynamicPageList");
 |lang="php"
 |style="overflow:auto;"
 }}<!-- whitespace fix
