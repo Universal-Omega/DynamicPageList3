@@ -660,9 +660,10 @@ class Query {
 	 * @return	void
 	 */
 	private function _addfirstcategorydate($option) {
+		//@TODO: This should be programmatically determining which categorylink table to use instead of assuming the first one.
 		$this->addSelect(
 			[
-				'cl_timestamp'	=> "DATE_FORMAT({$this->tableNames['categorylinks']}.cl_timestamp, '%Y%m%d%H%i%s')"
+				'cl_timestamp'	=> "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
 			]
 		);
 	}
@@ -1561,6 +1562,7 @@ class Query {
 					}
 					break;
 				case 'categoryadd':
+					//@TODO: See TODO in __addfirstcategorydate().
 					$this->addOrderBy('cl1.cl_timestamp');
 					break;
 				case 'counter':
