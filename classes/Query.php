@@ -187,9 +187,9 @@ class Query {
 		}
 		//Always add nonincludeable namespaces.
 		if (is_array($wgNonincludableNamespaces) && count($wgNonincludableNamespaces)) {
-			$this->addWhere(
+			$this->addNotWhere(
 				[
-					$this->tableNames['page'].'.page_namespace NOT'	=> $wgNonincludableNamespaces
+					$this->tableNames['page'].'.page_namespace' => $wgNonincludableNamespaces
 				]
 			);
 		}
@@ -391,6 +391,29 @@ class Query {
 			$this->where = array_merge($this->where, $where);
 		} else {
 			throw new \MWException(__METHOD__.': An invalid where clause was passed.');
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Add a where clause to the output that uses NOT IN or !=.
+	 *
+	 * @access	public
+	 * @param	array	Field => Value(s)
+	 * @return	boolean Success
+	 */
+	public function addNotWhere($where) {
+		if (empty($where)) {
+			throw new \MWException(__METHOD__.': An empty not where clause was passed.');
+			return false;
+		}
+		if (is_array($where)) {
+			foreach ($where as $field => $values) {
+				$this->where[] = $field.(count($values) > 1 ? ' NOT IN('.$this->DB->makeList($values).')' : ' != '.$this->DB->addQuotes(current($values)));
+			}
+		} else {
+			throw new \MWException(__METHOD__.': An invalid not where clause was passed.');
 			return false;
 		}
 		return true;
@@ -1421,15 +1444,15 @@ class Query {
 	private function _notnamespace($option) {
 		if (is_array($option) && count($option)) {
 			if ($this->parameters->getParameter('openreferences')) {
-				$this->addWhere(
+				$this->addNotWhere(
 					[
-						"{$this->tableNames['pagelinks']}.pl_namespace NOT"	=> $option
+						"{$this->tableNames['pagelinks']}.pl_namespace" => $option
 					]
 				);
 			} else {
-				$this->addWhere(
+				$this->addNotWhere(
 					[
-						"{$this->tableNames['page']}.page_namespace NOT"	=> $option
+						"{$this->tableNames['page']}.page_namespace" => $option
 					]
 				);
 			}
@@ -1553,9 +1576,9 @@ class Query {
 						);
 					}
 					if (is_array($this->parameters->getParameter('catnotheadings')) && count($this->parameters->getParameter('catnotheadings'))) {
-						$this->addWhere(
+						$this->addNotWhere(
 							[
-								"cl_head.cl_to NOT "	=> $this->parameters->getParameter('catnotheadings')
+								'cl_head.cl_to' => $this->parameters->getParameter('catnotheadings')
 							]
 						);
 					}
