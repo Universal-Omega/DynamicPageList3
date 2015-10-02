@@ -1185,7 +1185,7 @@ class Parameters extends ParametersData {
 			}
 
 			$values = $this->getData('reset')['values'];
-			if (!in_array($argument, $value)) {
+			if (!in_array($argument, $values)) {
 				return false;
 			} else {
 				if ($argument == 'all' || $argument == 'none') {
