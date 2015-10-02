@@ -699,15 +699,19 @@ class Parse {
 		$totalCategories = 0;
 		if (is_array($this->parameters->getParameter('category'))) {
 			foreach ($this->parameters->getParameter('category') as $comparisonType => $operatorTypes) {
-				foreach ($operatorTypes as $operatorType => $categories) {
-					$totalCategories += count($categories);
+				foreach ($operatorTypes as $operatorType => $categoryGroups) {
+					foreach ($categoryGroups as $categories) {
+						$totalCategories += count($categories);
+					}
 				}
 			}
 		}
 		if (is_array($this->parameters->getParameter('notcategory'))) {
 			foreach ($this->parameters->getParameter('notcategory') as $comparisonType => $operatorTypes) {
-				foreach ($operatorTypes as $operatorType => $categories) {
-					$totalCategories += count($categories);
+				foreach ($operatorTypes as $operatorType => $categoryGroups) {
+					foreach ($categoryGroups as $categories) {
+						$totalCategories += count($categories);
+					}
 				}
 			}
 		}
@@ -736,7 +740,7 @@ class Parse {
 
 		$orderMethods = (array) $this->parameters->getParameter('ordermethod');
 		//Throw an error in no categories were selected when using category sorting modes or requesting category information.
-		if (!$totalCategories == 0 && (in_array('categoryadd', $orderMethods) || $this->parameters->getParameter('addfirstcategorydate') === true)) {
+		if ($totalCategories == 0 && (in_array('categoryadd', $orderMethods) || $this->parameters->getParameter('addfirstcategorydate') === true)) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
 			return false;
 		}
