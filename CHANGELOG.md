@@ -547,3 +547,13 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Mediawiki 1.24+ compatibility changes for extension registration and loading.
  * https://github.com/Alexia/DynamicPageList/issues/46
  * $dplSettings configuration variable has been renamed to $wgDplSettings to facilitate this change.  Existing configurations will need to be updated.
+
+#Version 3.0.5
+* Fixed an issue with detecting how many categories were added to a query.
+ * https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
+* Reverted to the old hard coded method of which categorylinks table to use for the addfirstcategorydate parameter.  This resolves issues variable parameters used in conjunction with it.
+ * https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
+* Fixed and improved the functionality of statements that created "NOT IN" or "!=" SQL where conditions.
+ * https://github.com/Alexia/DynamicPageList/commit/df82d75bf9fd81968ef77729b1542ff32f4852b5
+* Fixed the reset parameter being broken due to a typographical error.
+ * https://github.com/Alexia/DynamicPageList/issues/52
