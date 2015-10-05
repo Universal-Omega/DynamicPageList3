@@ -557,3 +557,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
  * https://github.com/Alexia/DynamicPageList/commit/df82d75bf9fd81968ef77729b1542ff32f4852b5
 * Fixed the reset parameter being broken due to a typographical error.
  * https://github.com/Alexia/DynamicPageList/issues/52
+
+#Version 3.0.6
+* Fixed a regression with a previous fix related to category counting.
+ * https://github.com/Alexia/DynamicPageList/issues/53
