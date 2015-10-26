@@ -561,3 +561,13 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 #Version 3.0.6
 * Fixed a regression with a previous fix related to category counting.
  * https://github.com/Alexia/DynamicPageList/issues/53
+
+#Version 3.0.7
+* Using ordermethod=firstedit with certain other parameters would cause SQL generation errors.
+ * https://github.com/Alexia/DynamicPageList/issues/57
+* Fixed implementation of CategoryViewer.
+ * https://github.com/Alexia/DynamicPageList/issues/55
+* Fixed an issue that was causing Article class taint across separate tag parses.
+ * https://github.com/Alexia/DynamicPageList/commit/74f99a3c2bbdeb5a076705369fc6d3df17e40810
+* In relation to the taint issue an error check was put in place to prevent invalid articles from passing through.
+ * https://github.com/Alexia/DynamicPageList/commit/5fc841f6bdae4ea8c63bbb3334125120889970bf
