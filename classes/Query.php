@@ -795,11 +795,11 @@ class Query {
 		$this->addTable('revision', 'rev');
 		$this->addSelect(
 			[
-				'rev_id',
-				'rev_timestamp'
+				'rev.rev_id',
+				'rev.rev_timestamp'
 			]
 		);
-		$this->addOrderBy('rev_id');
+		$this->addOrderBy('rev.rev_id');
 		$this->setOrderDir('DESC');
 		$this->addWhere(
 			[
@@ -820,11 +820,11 @@ class Query {
 		$this->addTable('revision', 'rev');
 		$this->addSelect(
 			[
-				'rev_id',
-				'rev_timestamp'
+				'rev.rev_id',
+				'rev.rev_timestamp'
 			]
 		);
-		$this->addOrderBy('rev_id');
+		$this->addOrderBy('rev.rev_id');
 		$this->setOrderDir('DESC');
 		$this->addWhere(
 			[
@@ -990,8 +990,8 @@ class Query {
 		$this->addTable('revision', 'rev');
 		$this->addSelect(
 			[
-				'rev_id',
-				'rev_timestamp'
+				'rev.rev_id',
+				'rev.rev_timestamp'
 			]
 		);
 		$this->addWhere(
@@ -1113,7 +1113,7 @@ class Query {
 	 */
 	private function _lastrevisionbefore($option) {
 		$this->addTable('revision', 'rev');
-		$this->addSelect(['rev_id', 'rev_timestamp']);
+		$this->addSelect(['rev.rev_id', 'rev.rev_timestamp']);
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
@@ -1606,11 +1606,11 @@ class Query {
 					}
 					break;
 				case 'firstedit':
-					$this->addOrderBy('rev_timestamp');
+					$this->addOrderBy('rev.rev_timestamp');
 					$this->addTable('revision', 'rev');
 					$this->addSelect(
 						[
-							'rev_timestamp'
+							'rev.rev_timestamp'
 						]
 					);
 					if (!$revisionAuxWhereAdded) {
@@ -1632,9 +1632,9 @@ class Query {
 							]
 						);
 					} else {
-						$this->addOrderBy('rev_timestamp');
+						$this->addOrderBy('rev.rev_timestamp');
 						$this->addTable('revision', 'rev');
-						$this->addSelect(['rev_timestamp']);
+						$this->addSelect(['rev.rev_timestamp']);
 						if (!$revisionAuxWhereAdded) {
 							$this->addWhere(
 								[
@@ -1724,7 +1724,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					$this->addOrderBy('rev_user_text');
+					$this->addOrderBy('rev.rev_user_text');
 					$this->addTable('revision', 'rev');
 					$this->_adduser(null);
 					break;
