@@ -1431,12 +1431,11 @@ class DynamicPageList {
 			$aArticles_start_char[] = $this->mArticles[$i]->mStartChar;
 			$this->filteredCount    = $this->filteredCount + 1;
 		}
-		require_once('CategoryPage.php');
-		if (count($aArticles) > DynamicPageListHooks::$categoryStyleListCutoff) {
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::columnList($aArticles, $aArticles_start_char);
+		if (count($aArticles) > \DynamicPageListHooks::$categoryStyleListCutoff) {
+			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::columnList($aArticles, $aArticles_start_char);
 		} elseif (count($aArticles) > 0) {
 			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::shortList($aArticles, $aArticles_start_char);
+			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::shortList($aArticles, $aArticles_start_char);
 		}
 		return '';
 	}
