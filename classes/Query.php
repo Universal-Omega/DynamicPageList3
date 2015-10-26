@@ -624,7 +624,7 @@ class Query {
 					'rev.rev_timestamp = (SELECT MIN(rev_aux_min.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_min WHERE rev_aux_min.rev_page = rev.rev_page)'
 				]
 			);
-			$this->_adduser(null);
+			$this->_adduser(null, 'rev');
 		}
 	}
 
@@ -708,7 +708,7 @@ class Query {
 					'rev.rev_timestamp = (SELECT MAX(rev_aux_max.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_max WHERE rev_aux_max.rev_page = rev.rev_page)'
 				]
 			);
-			$this->_adduser(null);
+			$this->_adduser(null, 'rev');
 		}
 	}
 
@@ -772,14 +772,16 @@ class Query {
 	 *
 	 * @access	private
 	 * @param	mixed	Parameter Option
+	 * @param	string	[Optional] Table Alias
 	 * @return	void
 	 */
-	private function _adduser($option) {
+	private function _adduser($option, $tableAlias = '') {
+		$tableAlias = (!empty($tableAlias) ? $tableAlias.'.' : '');
 		$this->addSelect(
 			[
-				'rev_user',
-				'rev_user_text',
-				'rev_comment'
+				$tableAlias.'rev_user',
+				$tableAlias.'rev_user_text',
+				$tableAlias.'rev_comment'
 			]
 		);
 	}
@@ -954,7 +956,7 @@ class Query {
 	 */
 	private function _createdby($option) {
 		$this->addTable('revision', 'creation_rev');
-		$this->_adduser(null);
+		$this->_adduser(null, 'creation_rev');
 		$this->addWhere(
 			[
 				$this->DB->addQuotes($option).' = creation_rev.rev_user_text',
@@ -1726,7 +1728,7 @@ class Query {
 				case 'user':
 					$this->addOrderBy('rev.rev_user_text');
 					$this->addTable('revision', 'rev');
-					$this->_adduser(null);
+					$this->_adduser(null, 'rev');
 					break;
 				case 'none':
 					break;
