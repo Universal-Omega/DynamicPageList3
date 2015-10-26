@@ -361,5 +361,17 @@ class Article {
 	static public function getHeadings() {
 		return self::$headings;
 	}
+
+	/**
+	 * Reset the headings to their initial state.
+	 * Ideally this Article class should not exist and be handled by the built in MediaWiki class.
+	 * @Bug https://jira/browse/HYD-913
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	static public function resetHeadings() {
+		self::$headings = [];
+	}
 }
 ?>

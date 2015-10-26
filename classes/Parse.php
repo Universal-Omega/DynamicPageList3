@@ -133,6 +133,9 @@ class Parse {
 		$dplStartTime = microtime(true);
 		$this->parser = $parser;
 
+		//Reset headings when being ran more than once in the same page load.
+		Article::resetHeadings();
+
 		//Check that we are not in an infinite transclusion loop
 		if (isset($this->parser->mTemplatePath[$this->parser->mTitle->getPrefixedText()])) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $this->parser->mTitle->getPrefixedText());
