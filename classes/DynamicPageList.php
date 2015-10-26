@@ -354,6 +354,9 @@ class DynamicPageList {
 		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
 			
 			$article  = $this->mArticles[$i];
+			if (empty($article) || empty($article->mTitle)) {
+				continue;
+			}
 			$pagename = $article->mTitle->getPrefixedText();
 			$imageUrl = '';
 			if ($article->mNamespace == NS_FILE) {
