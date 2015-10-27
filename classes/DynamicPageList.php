@@ -1434,7 +1434,7 @@ class DynamicPageList {
 			$aArticles_start_char[] = $this->mArticles[$i]->mStartChar;
 			$this->filteredCount    = $this->filteredCount + 1;
 		}
-		if (count($aArticles) > \DynamicPageListHooks::$categoryStyleListCutoff) {
+		if (count($aArticles) > Config::getSetting('categoryStyleListCutoff')) {
 			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::columnList($aArticles, $aArticles_start_char);
 		} elseif (count($aArticles) > 0) {
 			// for short lists of articles in categories.

@@ -91,7 +91,7 @@ $wgDplSettings['allowUnlimitedResults'] = false;
 //Set DPL to always behave like Extension:Intersection.
 $wgDplSettings['behavingLikeIntersection'] = false;
 
-//Maximum number of items in a category list before being cut off.
+//Maximum length to format a list of articles chunked by letter as bullet list, if list bigger or columnar format user.(Same as cut off argument for CategoryViewer::formatList()).
 $wgDplSettings['categoryStyleListCutoff'] = 6;
 
 //This does something with preventing DPL from "looking" at these categories.
