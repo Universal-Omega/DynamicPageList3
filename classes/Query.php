@@ -1492,7 +1492,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _order($option) {
-		if (is_array($this->parameters->getParameter('ordermethod')) && $this->parameters->getParameter('ordermethod')[0] !== 'none') {
+		$orderMethod = $this->parameters->getParameter('ordermethod');
+		if (!empty($orderMethod) && is_array($orderMethod) && $orderMethod[0] !== 'none') {
 			if ($option == 'descending') {
 				$this->setOrderDir('DESC');
 			} else {
@@ -1840,6 +1841,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _title($option) {
+		$ors = [];
 		foreach ($option as $comparisonType => $titles) {
 			foreach ($titles as $title) {
 				if ($this->parameters->getParameter('openreferences')) {
@@ -1870,6 +1872,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _nottitle($option) {
+		$ors = [];
 		foreach ($option as $comparisonType => $titles) {
 			foreach ($titles as $title) {
 				if ($this->parameters->getParameter('openreferences')) {
