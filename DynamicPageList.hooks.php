@@ -114,8 +114,7 @@ class DynamicPageListHooks {
 	 * @return	boolean true
 	 */
 	static public function onParserFirstCallInit(Parser &$parser) {
-		// DPL offers the same functionality as Intersection; so we register the <DynamicPageList> tag
-		// in case LabeledSection Extension is not installed we need to remove section markers
+		//DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
 
 		$parser->setHook('section',				[__CLASS__, 'dplTag']);
 		$parser->setHook('DPL',					[__CLASS__, 'dplTag']);

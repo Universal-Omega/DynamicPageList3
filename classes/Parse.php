@@ -125,7 +125,7 @@ class Parse {
 	 * @param	object	Mediawiki Parser object.
 	 * @param	array	End Reset Booleans
 	 * @param	array	End Eliminate Booleans
-	 * @param	boolean	[Optional] Call as a parser tag
+	 * @param	boolean	[Optional] Called as a parser tag
 	 * @return	string	Wiki/HTML Output
 	 */
 	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = true) {
