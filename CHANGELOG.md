@@ -571,3 +571,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
  * https://github.com/Alexia/DynamicPageList/commit/74f99a3c2bbdeb5a076705369fc6d3df17e40810
 * In relation to the taint issue an error check was put in place to prevent invalid articles from passing through.
  * https://github.com/Alexia/DynamicPageList/commit/5fc841f6bdae4ea8c63bbb3334125120889970bf
+
+#Version 3.0.8
+* Changed instances of $dplSettings in language strings to $wgDplSettings.
+* Moved the DPL template installation to the database updater.  Previously this was done on every page load and would also interfere with Special:Import.
