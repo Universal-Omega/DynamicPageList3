@@ -163,18 +163,6 @@ class DynamicPageListHooks {
 				'resetLinks'=> false, 'resetTemplates' => false, 
 				'resetCategories' => false, 'resetImages' => false, 'resetdone' => false , 'elimdone' => false );
 		}
-
-		// make sure page "Template:Extension DPL" exists
-		$title = Title::newFromText('Template:Extension DPL');
-
-		if (!$title->exists() && $wgUser->isAllowed('edit')) {
-			$article = new Article($title);
-			$article->doEdit(
-				"<noinclude>This page was automatically created. It serves as an anchor page for all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>",
-				$title,
-				EDIT_NEW | EDIT_FORCE_BOT
-			);
-		}
 	}
 
 	/**
@@ -589,6 +577,41 @@ class DynamicPageListHooks {
 		//		  'resetLinks'=> false, 'resetTemplates' => false,
 		//		  'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
 		return true;
+	}
+
+	/**
+	 * Setups and Modifies Database Information
+	 *
+	 * @access	public
+	 * @param	object	[Optional] DatabaseUpdater Object
+	 * @return	boolean	true
+	 */
+	static public function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
+		$extDir = __DIR__;
+
+		$updater->addExtensionUpdate([[self, 'createDPLTemplate']]);
+
+		return true;
+	}
+
+	/**
+	 * Creates the DPL template when updating.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	static public function createDPLTemplate() {
+		//Make sure page "Template:Extension DPL" exists
+		$title = Title::newFromText('Template:Extension DPL');
+
+		if (!$title->exists()) {
+			$article = new Article($title);
+			$article->doEdit(
+				"<noinclude>This page was automatically created. It serves as an anchor page for all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>",
+				$title,
+				EDIT_NEW | EDIT_FORCE_BOT
+			);
+		}
 	}
 }
 ?>

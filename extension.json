@@ -25,7 +25,6 @@
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageList": "DynamicPageList.i18n.php",
 		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
 	},
 	"AutoloadClasses": {
@@ -45,6 +44,9 @@
 	"Hooks": {
 		"ParserFirstCallInit": [
 			"DynamicPageListHooks::onParserFirstCallInit"
+		],
+		"LoadExtensionSchemaUpdates": [
+			"DynamicPageListHooks::onLoadExtensionSchemaUpdates"
 		]
 	},
 	"config": {
@@ -59,8 +61,9 @@
 			"maxCategoryCount": 4,
 			"minCategoryCount": 0,
 			"maxResultCount": 500,
-			"runFromProtectedPagesOnly": false,
-			"recursiveTagParse": false
+			"recursiveTagParse": false,
+			"runFromProtectedPagesOnly": false
 		}
-	}
+	},
+	"manifest_version": 1
 }
