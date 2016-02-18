@@ -107,6 +107,18 @@ class DynamicPageListHooks {
 	static private $debugLevel = 0;
 
 	/**
+	 * Handle special on extension registration bits.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	static public function onRegistration() {
+		if (!defined('DPL_VERSION')) {
+			define('DPL_VERSION', '3.0.8');
+		}
+	}
+
+	/**
 	 * Sets up this extension's parser functions.
 	 *
 	 * @access	public
