@@ -575,3 +575,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 #Version 3.0.8
 * Changed instances of $dplSettings in language strings to $wgDplSettings.
 * Moved the DPL template installation to the database updater.  Previously this was done on every page load and would also interfere with Special:Import.
+* Fixed end resets and eliminates being flipped for what context(function or tag) they should run.
+* DPL will no longer handle the raw <section> tag outside of the DPL context by default.  It will still handle <section> tags found inside a DPL context.
+ * New setting: $wgDplSettings['handleSectionTag'], default of false.  Set this to true for the old broken behavior.

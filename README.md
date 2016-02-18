@@ -8,10 +8,10 @@ This extension is invoked with the parser function <code>{{#dpl: .... }}</code> 
 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [DPL:Parameters: Other Parameters](http://help.gamepedia.com/DPL:Parameters:_Other_Parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
-;Manual and Complete Documentation: [Documentation at Gamepedia Help Wiki](http://help.gamepedia.com/DPL:Manual)
-;Source Code: [Source code at Github](https://github.com/Alexia/DynamicPageList)
-;Bugs and Feature Requests: [Issues at Github](https://github.com/Alexia/DynamicPageList/issues)
-;Licensing: DynamicPageList3 is released under [GNU General Public License, version 3](http://opensource.org/licenses/gpl-3.0.html).
+* Manual and Complete Documentation: [Documentation at Gamepedia Help Wiki](http://help.gamepedia.com/DPL:Manual)
+* Source Code: [Source code at Github](https://github.com/Alexia/DynamicPageList)
+* Bugs and Feature Requests: [Issues at Github](https://github.com/Alexia/DynamicPageList/issues)
+* Licensing: DynamicPageList3 is released under [GNU General Public License, version 3](http://opensource.org/licenses/gpl-3.0.html).
 
 
 ##Installation
@@ -36,6 +36,7 @@ These are DPL's configuration settings and along with their default values.  To 
 | $wgDplSettings['maxResultCount']            | 500     | Maximum number of results to return from a query.                                                                                                                                                                         |
 | $wgDplSettings['recursiveTagParse']         | false   | Do recursive tag parsing on <dpl> parser tags converting tags and functions such as magic words like {{PAGENAME}}.  This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases. |
 | $wgDplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL to run from protected pages only. This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.                               |
+| $wgDplSettings['handleSectionTag']          | false   | Set this to true to have DPL handle <section> tags outside of DPL parser tags.                                                                                                                                            |
 
 The global variable {{manual|$wgNonincludableNamespaces}} is automatically respected by DPL.  It will prevent the contents of the listed namespaces from appearing in DPL's output.
 
