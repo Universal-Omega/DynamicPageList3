@@ -696,7 +696,7 @@ class ParametersData {
 			'boolean'	=> true
 		],
 		/**
-		 * by default the oage containingthe query will not be part of the result set.
+		 * By default the page containingthe query will not be part of the result set.
 		 * This can be changed via 'skipthispage=no'. This should be used with care as it may lead to
 		 * problems which are hard to track down, esp. in combination with contents transclusion.
 		 */

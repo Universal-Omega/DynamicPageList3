@@ -246,7 +246,7 @@ class DynamicPageListHooks {
 		if (\DPL\Config::getSetting('recursiveTagParse')) {
 			$input = $parser->recursiveTagParse($input, $frame);
 		}
-		$text = $parse->parse($input, $parser, $reset, $eliminate, false);
+		$text = $parse->parse($input, $parser, $reset, $eliminate, true);
 
 		if (isset($reset['templates']) && $reset['templates']) {	// we can remove the templates by save/restore
 			$saveTemplates = $parser->mOutput->mTemplates;
@@ -298,7 +298,7 @@ class DynamicPageListHooks {
 		}
 
 		$parse = new \DPL\Parse();
-		$dplresult = $parse->parse($input, $parser, $reset, $eliminate, true);
+		$dplresult = $parse->parse($input, $parser, $reset, $eliminate, false);
 		return array( // parser needs to be coaxed to do further recursive processing
 			$parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION ),
 			'isLocalObj' => true,

@@ -128,7 +128,7 @@ class Parse {
 	 * @param	boolean	[Optional] Called as a parser tag
 	 * @return	string	Wiki/HTML Output
 	 */
-	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = true) {
+	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = false) {
 		wfProfileIn(__METHOD__);
 		$dplStartTime = microtime(true);
 		$this->parser = $parser;
@@ -479,7 +479,7 @@ class Parse {
 		$rawParameters = explode("\n", $input);
 
 		$parameters = false;
-		foreach ($rawParameters as $key => $parameterOption) {
+		foreach ($rawParameters as $parameterOption) {
 			if (empty($parameterOption)) {
 				//Softly ignore blank lines.
 				continue;
@@ -947,7 +947,7 @@ class Parse {
 			$eliminate = [];
 		}
 		$eliminate = array_merge($eliminate, $this->parameters->getParameter('eliminate'));
-		if ($isParserTag === false) {
+		if ($isParserTag === true) {
 			//In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
 			if (isset($eliminate['templates']) && $eliminate['templates']) {
 				$reset['templates'] = true;
@@ -972,7 +972,7 @@ class Parse {
 				\DynamicPageListHooks::$createdLinks['resetImages'] = true;
 			}
 		}
-		if (($isParserTag === false && isset($reset['links'])) || $isParserTag === true) {
+		if (($isParserTag === true && isset($reset['links'])) || $isParserTag === false) {
 			if (isset($reset['links'])) {
 				\DynamicPageListHooks::$createdLinks['resetLinks'] = true;
 			}
