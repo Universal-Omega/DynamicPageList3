@@ -62,7 +62,8 @@
 			"minCategoryCount": 0,
 			"maxResultCount": 500,
 			"recursiveTagParse": false,
-			"runFromProtectedPagesOnly": false
+			"runFromProtectedPagesOnly": false,
+			"handleSectionTag": false
 		}
 	},
 	"callback": "DynamicPageListHooks::onRegistration",

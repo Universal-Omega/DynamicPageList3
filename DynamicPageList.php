@@ -120,4 +120,7 @@ $wgDplSettings['recursiveTagParse'] = false;
 
 //Set this to true to allow DPL to run from protected pages only.  This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.
 $wgDplSettings['runFromProtectedPagesOnly'] = false;
+
+//Handle <section> tags in an entirely broken manner.  This is disabled by default as version 3.0.8 because it is unknown what that feature was actually supposed to do.
+$wgDplSettings['handleSectionTag'] = false;
 ?>

@@ -126,9 +126,12 @@ class DynamicPageListHooks {
 	 * @return	boolean true
 	 */
 	static public function onParserFirstCallInit(Parser &$parser) {
-		//DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
+		self::init();
 
-		$parser->setHook('section',				[__CLASS__, 'dplTag']);
+		//DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
+		if (\DPL\Config::getSetting('handleSectionTag')) {
+			$parser->setHook('section',			[__CLASS__, 'dplTag']);
+		}
 		$parser->setHook('DPL',					[__CLASS__, 'dplTag']);
 		$parser->setHook('DynamicPageList',		[__CLASS__, 'intersectionTag']);
 
@@ -138,8 +141,6 @@ class DynamicPageListHooks {
 		$parser->setFunctionHook('dplreplace',	[__CLASS__, 'dplReplaceParserFunction']);
 		$parser->setFunctionHook('dplchapter',	[__CLASS__, 'dplChapterParserFunction']);
 		$parser->setFunctionHook('dplmatrix',	[__CLASS__, 'dplMatrixParserFunction']);
-
-		self::init();
 
 		return true;
 	}
@@ -171,9 +172,14 @@ class DynamicPageListHooks {
 		\DPL\Config::init();
 
 		if (!isset(self::$createdLinks)) {
-			self::$createdLinks=array( 
-				'resetLinks'=> false, 'resetTemplates' => false, 
-				'resetCategories' => false, 'resetImages' => false, 'resetdone' => false , 'elimdone' => false );
+			self::$createdLinks = [
+				'resetLinks'		=> false,
+				'resetTemplates'	=> false,
+				'resetCategories'	=> false,
+				'resetImages'		=> false,
+				'resetdone'			=> false,
+				'elimdone'			=> false
+			];
 		}
 	}
 
