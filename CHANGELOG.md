@@ -578,3 +578,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed end resets and eliminates being flipped for what context(function or tag) they should run.
 * DPL will no longer handle the raw <section> tag outside of the DPL context by default.  It will still handle <section> tags found inside a DPL context.
  * New setting: $wgDplSettings['handleSectionTag'], default of false.  Set this to true for the old broken behavior.
+
+#Version 3.0.9
+* Fixed interaction with Extension:HitCounters that was causing a fatal exception.
