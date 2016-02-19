@@ -643,7 +643,7 @@ class DynamicPageList {
 				if ($article->mCounter != '') {
 					// Adapted from SpecialPopularPages::formatResult()
 					// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
-					$nv = $this->msgExt('nviews', array(
+					$nv = $this->msgExt('hitcounters-nviews', array(
 						'escape'
 					), $wgLang->formatNum($article->mCounter));
 					$rBody .= ' ' . $wgContLang->getDirMark() . '(' . $nv . ')';
