@@ -607,7 +607,7 @@ class DynamicPageListHooks {
 	static public function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
 		$extDir = __DIR__;
 
-		$updater->addExtensionUpdate([[self, 'createDPLTemplate']]);
+		$updater->addExtensionUpdate([[__CLASS__, 'createDPLTemplate']]);
 
 		return true;
 	}
