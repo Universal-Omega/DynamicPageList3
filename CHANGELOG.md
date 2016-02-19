@@ -581,3 +581,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 #Version 3.0.9
 * Fixed interaction with Extension:HitCounters that was causing a fatal exception.
+* Fixed language string used to display numbers from Extension:HitCounters.
