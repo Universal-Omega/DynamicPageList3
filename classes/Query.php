@@ -727,13 +727,15 @@ class Query {
 					"page_counter"	=> "hit_counter.page_counter"
 				]
 			);
-			$this->addJoin(
-				'hit_counter',
-				[
-					"LEFT JOIN",
-					"hit_counter.page_id = ".$this->tableNames['page'].'.page_id'
-				]
-			);
+			if (!isset($this->join['hit_counter'])) {
+				$this->addJoin(
+					'hit_counter',
+					[
+						"LEFT JOIN",
+						"hit_counter.page_id = ".$this->tableNames['page'].'.page_id'
+					]
+				);
+			}
 		}
 	}
 
@@ -1597,13 +1599,15 @@ class Query {
 						if (!array_key_exists('hit_counter', $this->tables)) {
 							$this->addTable('hit_counter', 'hit_counter');
 
-							$this->addJoin(
-								'hit_counter',
-								[
-									"LEFT JOIN",
-									"hit_counter.page_id = ".$this->tableNames['page'].'.page_id'
-								]
-							);
+							if (!isset($this->join['hit_counter'])) {
+								$this->addJoin(
+									'hit_counter',
+									[
+										"LEFT JOIN",
+										"hit_counter.page_id = ".$this->tableNames['page'].'.page_id'
+									]
+								);
+							}
 						}
 						$this->addOrderBy('hit_counter.page_counter');
 					}
