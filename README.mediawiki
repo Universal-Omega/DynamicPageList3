@@ -1,4 +1,4 @@
-{{extension
+{{TNT|Extension
 |name        = DynamicPageList3
 |status      = stable
 |type1       = tag
