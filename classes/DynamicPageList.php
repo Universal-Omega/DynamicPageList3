@@ -49,7 +49,7 @@ class DynamicPageList {
 			$this->mIncSecLabelsNotMatch = $includeseclabelsnotmatch;
 			$this->mIncParsed            = $includematchparsed;
 		}
-		
+
 		if (isset($includemaxlen)) {
 			$this->mIncMaxLen = $includemaxlen + 1;
 		} else {
@@ -58,7 +58,7 @@ class DynamicPageList {
 
 		$this->mReplaceInTitle = $replaceInTitle;
 		$this->mTableRow       = $aTableRow;
-		
+
 		// cloning the parser in the following statement leads in some cases to a php error in MW 1.15
 		// 	You must apply the following patch to avoid this:
 		// add in LinkHoldersArray.php at the beginning of function 'merge' the following code lines:
@@ -72,11 +72,11 @@ class DynamicPageList {
 		// clear state of cloned parser; if the above patch of LinkHoldersArray is not made this
 		// can lead to links not being shown in the original document (probably the UIQ_QINU-tags no longer
 		// get replaced properly; in combination with the patch however, it does not do any harm.
-		
+
 		// The CITE extension registers a hook on parser->clearState
 		// We must UNDO the effect of that call (Cite->clearState) because otherwise all Cititations would be lost
 		// that were made before a DPL call; we borrow a handle to the cite object from the parser´s tag hooks
-		
+
 		$citeObject = null;
 		// store current state of Cite Object
 		if (isset($parser->mTagHooks['references'])) {
@@ -99,7 +99,7 @@ class DynamicPageList {
 			$citeObject->mReferencesErrors = $tmpCiteReferencesErrors;
 			$citeObject->mRefCallStack     = $tmpCiteRefCallStack;
 		}
-		
+
 		$this->mParserOptions = $parser->mOptions;
 		$this->mParserTitle   = $parser->mTitle;
 
@@ -243,7 +243,7 @@ class DynamicPageList {
 		}
 		wfProfileOut(__METHOD__);
 	}
-	
+
 	public function formatCount($numart) {
 		global $wgLang;
 		if ($this->mHeadingType == 'category') {
@@ -253,7 +253,7 @@ class DynamicPageList {
 		}
 		return '<p>' . $this->msgExt($message, array(), $numart) . '</p>';
 	}
-	
+
 	// substitute symbolic names within a user defined format tag
 	public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
 		global $wgLang;
@@ -266,7 +266,7 @@ class DynamicPageList {
 		$sTag = str_replace('%IMAGE%', $imageUrl, $sTag);
 		$sTag = str_replace('%EXTERNALLINK%', $article->mExternalLink, $sTag);
 		$sTag = str_replace('%EDITSUMMARY%', $article->mComment, $sTag);
-		
+
 		$title = $article->mTitle->getText();
 		if (strpos($title, '%TITLE%') >= 0) {
 			if ($this->mReplaceInTitle[0] != '') {
@@ -277,7 +277,7 @@ class DynamicPageList {
 			}
 			$sTag = str_replace('%TITLE%', $title, $sTag);
 		}
-		
+
 		$sTag = str_replace('%NR%', $nr, $sTag);
 		if ($article->mCounter != '') {
 			$sTag = str_replace('%COUNT%', $article->mCounter, $sTag);
@@ -337,22 +337,22 @@ class DynamicPageList {
 		}
 		return $sTag;
 	}
-	
+
 	public function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
 		global $wgUser, $wgLang, $wgContLang;
-		
+
 		$mode = $this->mListMode;
 		//categorypage-style list output mode
 		if ($mode->name == 'category') {
 			return $this->formatCategoryList($iStart, $iCount);
 		}
-		
+
 		//process results of query, outputing equivalent of <li>[[Article]]</li> for each result,
 		//or something similar if the list uses other startlist/endlist;
 		$rBody = '';
 		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
-			
+
 			$article  = $this->mArticles[$i];
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
@@ -375,9 +375,9 @@ class DynamicPageList {
 				// links to categories or images need an additional ":"
 				$pagename = ':' . $pagename;
 			}
-			
+
 			// Page transclusion: get contents and apply selection criteria based on that contents
-			
+
 			if ($this->mIncPage) {
 				$matchFailed = false;
 				if (empty($this->mIncSecLabels) || $this->mIncSecLabels[0] == '*') { // include whole article
@@ -393,7 +393,7 @@ class DynamicPageList {
 							$text = LST::limitTranscludedText($text, $this->mIncMaxLen, ' [[' . $title . '|..→]]');
 						}
 						$this->filteredCount = $this->filteredCount + 1;
-						
+
 						// update article if include=* and updaterules are given
 						if ($updateRules != '') {
 							$message = $this->updateArticleByRule($title, $text, $updateRules);
@@ -419,7 +419,7 @@ class DynamicPageList {
 					} else {
 						continue;
 					}
-					
+
 				} else {
 					// identify section pieces
 					$secPiece       = array();
@@ -427,7 +427,7 @@ class DynamicPageList {
 					// ONE section can be marked as "dominant"; if this section contains multiple entries
 					// we will create a separate output row for each value of the dominant section
 					// the values of all other columns will be repeated
-					
+
 					foreach ($this->mIncSecLabels as $s => $sSecLabel) {
 						$sSecLabel = trim($sSecLabel);
 						if ($sSecLabel == '') {
@@ -437,7 +437,7 @@ class DynamicPageList {
 						if ($sSecLabel[0] == '%') {
 							$sSecLabel = '#' . $sSecLabel;
 						}
-						
+
 						$maxlen = -1;
 						if ($sSecLabel == '-') {
 							// '-' is used as a dummy parameter which will produce no output
@@ -470,7 +470,7 @@ class DynamicPageList {
 								$maxlen = -1; // without valid limit include whole section
 							}
 						}
-						
+
 						// find out if the user specified an includematch / includenotmatch condition
 						if (count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '') {
 							$mustMatch = $this->mIncSecLabelsMatch[$s];
@@ -482,7 +482,7 @@ class DynamicPageList {
 						} else {
 							$mustNotMatch = '';
 						}
-						
+
 						// if chapters are selected by number, text or regexp we get the heading from LST::includeHeading
 						$sectionHeading[0] = '';
 						if ($sSecLabel == '-') {
@@ -507,7 +507,7 @@ class DynamicPageList {
 									''
 								);
 							}
-							
+
 							$this->formatSingleItems($secPieces, $s, $article);
 							if (!array_key_exists(0, $secPieces)) {
 								// avoid matching against a non-existing array element
@@ -531,7 +531,7 @@ class DynamicPageList {
 								$matchFailed = true; // NOTHING MATCHED
 								break;
 							}
-							
+
 						} elseif ($sSecLabel[0] == '{') {
 							// Uses LST::includeTemplate() from LabeledSectionTransclusion extension to include templates from the page
 							// primary syntax {template}suffix
@@ -563,7 +563,7 @@ class DynamicPageList {
 								break;
 							}
 						}
-						
+
 						// separator tags
 						if (count($mode->sSectionTags) == 1) {
 							// If there is only one separator tag use it always
@@ -578,15 +578,15 @@ class DynamicPageList {
 						} else {
 							$septag[$s * 2 + 1] = '';
 						}
-						
+
 					}
-					
+
 					// if there was a match condition on included contents which failed we skip the whole page
 					if ($matchFailed) {
 						continue;
 					}
 					$this->filteredCount = $this->filteredCount + 1;
-					
+
 					// assemble parts with separators
 					$incwiki = '';
 					if ($dominantPieces != false) {
@@ -608,14 +608,17 @@ class DynamicPageList {
 			} else {
 				$this->filteredCount = $this->filteredCount + 1;
 			}
-			
+
 			if ($i > $iStart) {
 				$rBody .= $mode->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
 			}
-			
+
 			// symbolic substitution of %PAGE% by the current article's name
 			if ($mode->name == 'userformat') {
 				$rBody .= $this->substTagParm($mode->sItemStart, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
+
+			} elseif ($mode->name == 'gallery') {
+				$rBody .= $article->mTitle;
 			} else {
 				$rBody .= $mode->sItemStart;
 				if ($article->mDate != '') {
@@ -657,9 +660,9 @@ class DynamicPageList {
 				if ($article->mContributor != '') {
 					$rBody .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
 				}
-				
-				
-				
+
+
+
 				if (!empty($article->mCategoryLinks)) {
 					$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
 				}
@@ -667,15 +670,15 @@ class DynamicPageList {
 					$rBody .= ' → ' . $article->mExternalLink;
 				}
 			}
-			
+
 			// add included contents
-			
+
 			if ($this->mIncPage) {
 				LST::open($this->mParser, $this->mParserTitle->getPrefixedText());
 				$rBody .= $incwiki;
 				LST::close($this->mParser, $this->mParserTitle->getPrefixedText());
 			}
-			
+
 			if ($mode->name == 'userformat') {
 				$rBody .= $this->substTagParm($mode->sItemEnd, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
 			} else {
@@ -713,11 +716,11 @@ class DynamicPageList {
 			$start += $iCount;
 			$mode->sListStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
 		}
-		
+
 		return $actStart . $rBody . $mode->sListEnd;
-		
+
 	}
-	
+
 	/**
 	 * this fucntion hast three tasks (depending on $exec):
 	 * (1) show an edit dialogue for template fields (exec = edit)
@@ -727,7 +730,7 @@ class DynamicPageList {
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
 	 */
-	
+
 	public function updateArticleByRule($title, $text, $rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
@@ -751,7 +754,7 @@ class DynamicPageList {
 		$save            = array();
 		$tooltip         = array();
 		$optional        = array();
-		
+
 		$lastCmd         = '';
 		$message         = '';
 		$summary         = '';
@@ -762,14 +765,14 @@ class DynamicPageList {
 		$instructionPage = '';
 		$table           = '';
 		$fieldFormat     = '';
-		
+
 		// $message .= 'updaterules=<pre><nowiki>';
 		$nr = -1;
 		foreach ($rules as $rule) {
 			if (preg_match('/^\s*#/', $rule) > 0) {
 				continue; // # is comment symbol
 			}
-			
+
 			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
 			$cmd  = preg_split("/ +/", $rule, 2);
 			if (count($cmd) > 1) {
@@ -778,7 +781,7 @@ class DynamicPageList {
 				$arg = '';
 			}
 			$cmd[0] = trim($cmd[0]);
-			
+
 			// after ... insert ...     ,   before ... insert ...
 			if ($cmd[0] == 'before') {
 				$before  = $arg;
@@ -799,7 +802,7 @@ class DynamicPageList {
 			if ($cmd[0] == 'template') {
 				$template = $arg;
 			}
-			
+
 			if ($cmd[0] == 'parameter') {
 				$nr++;
 				$parameter[$nr] = $arg;
@@ -843,14 +846,14 @@ class DynamicPageList {
 			if ($cmd[0] == 'field') {
 				$fieldFormat = $arg;
 			}
-			
+
 			if ($cmd[0] == 'replace') {
 				$replaceThis = $arg;
 			}
 			if ($cmd[0] == 'by') {
 				$replacement = $arg;
 			}
-			
+
 			if ($cmd[0] == 'editform') {
 				$editForm = $arg;
 			}
@@ -866,7 +869,7 @@ class DynamicPageList {
 			if ($cmd[0] == 'save') {
 				$save[] = $arg;
 			}
-			
+
 			if ($cmd[0] == 'summary') {
 				$summary = $arg;
 			}
@@ -874,7 +877,7 @@ class DynamicPageList {
 				$exec = $arg; // desired action (set or edit or preview)
 			}
 		}
-		
+
 		if ($summary == '') {
 			$summary .= "\nbulk update:";
 			if ($replaceThis != '') {
@@ -887,29 +890,29 @@ class DynamicPageList {
 				$summary .= "\n after   $after\n insertionAfter";
 			}
 		}
-		
+
 		// $message.= '</nowiki></pre>';
-		
+
 		// perform changes to the wiki source text =======================================
-		
+
 		if ($replaceThis != '') {
 			$text = preg_replace("$replaceThis", $replacement, $text);
 		}
-		
+
 		if ($insertionBefore != '' && $before != '') {
 			$text = preg_replace("/($before)/", $insertionBefore . '\1', $text);
 		}
-		
+
 		if ($insertionAfter != '' && $after != '') {
 			$text = preg_replace("/($after)/", '\1' . $insertionAfter, $text);
 		}
-		
+
 		// deal with template parameters =================================================
-		
+
 		global $wgRequest, $wgUser;
-		
+
 		if ($template != '') {
-			
+
 			if ($exec == 'edit') {
 				$tpv        = $this->getTemplateParmValues($text, $template);
 				$legendText = '';
@@ -1011,7 +1014,7 @@ class DynamicPageList {
 				}
 			}
 		}
-		
+
 		if ($exec == 'set') {
 			return $this->updateArticle($title, $text, $summary);
 		} elseif ($exec == 'preview') {
@@ -1023,15 +1026,15 @@ class DynamicPageList {
 		}
 		return "exec must be one of the following: edit, preview, set";
 	}
-	
+
 	public function updateArticle($title, $text, $summary) {
 		global $wgUser, $wgRequest, $wgOut;
-		
+
 		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
 			$wgOut->addWikiMsg('sessionfailure');
 			return 'session failure';
 		}
-		
+
 		$titleX            = \Title::newFromText($title);
 		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
 		if (count($permission_errors) == 0) {
@@ -1044,7 +1047,7 @@ class DynamicPageList {
 			return 'permission error';
 		}
 	}
-	
+
 	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
 		$matches = array();
 		$nlCount = preg_match_all('/\n/', $value, $matches);
@@ -1063,7 +1066,7 @@ class DynamicPageList {
 		$textArea = "<textarea name=\"" . urlencode($call . '_' . $parameter) . "\" $format/>" . htmlspecialchars($value) . "</textarea>";
 		return str_replace('%NAME%', htmlspecialchars(str_replace('_', ' ', $parameter)), str_replace('%TYPE%', $type, str_replace('%INPUT%', $textArea, str_replace('%LEGEND%', "</html>" . htmlspecialchars($legend) . "<html>", str_replace('%INSTRUCTION%', "</html>" . htmlspecialchars($instruction) . "<html>", $fieldFormat)))));
 	}
-	
+
 	/**
 	 * return an array of template invocations; each element is an associative array of parameter and value
 	 */
@@ -1076,7 +1079,7 @@ class DynamicPageList {
 		$textLen = strlen($text);
 		$tval    = array(); // the result array of template values
 		$call    = -1; // index for tval
-		
+
 		foreach ($matches as $matchA) {
 			foreach ($matchA as $matchB) {
 				$match         = $matchB[0];
@@ -1086,11 +1089,11 @@ class DynamicPageList {
 				$parmValue     = '';
 				$parmName      = '';
 				$parm          = '';
-				
+
 				if ($match[strlen($match) - 1] == '}') {
 					break; // template was called without parameters, continue with next invocation
 				}
-				
+
 				// search to the end of the template call
 				$cbrackets = 2;
 				for ($i = $start + strlen($match); $i < $textLen; $i++) {
@@ -1130,17 +1133,17 @@ class DynamicPageList {
 		}
 		return $tval;
 	}
-	
+
 	/*
 	 * Changes a single parameter value within a certain call of a tempplate
 	 */
 	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
-		
+
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value == '') {
 			return $text;
 		}
-		
+
 		$matches   = array();
 		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
@@ -1150,7 +1153,7 @@ class DynamicPageList {
 		$endSubst    = -1;
 		$posInsertAt = 0;
 		$apNrLast    = 1000; // last (optional) predecessor
-		
+
 		foreach ($matches as $matchA) {
 			$matchCount = count($matchA);
 			foreach ($matchA as $occurence => $matchB) {
@@ -1159,7 +1162,7 @@ class DynamicPageList {
 				}
 				$match = $matchB[0];
 				$start = $matchB[1];
-				
+
 				if ($match[strlen($match) - 1] == '}') {
 					// template was called without parameters, add new parameter and value
 					// append parameter and value
@@ -1183,7 +1186,7 @@ class DynamicPageList {
 						}
 						if (($cbrackets == 2 && $c == '|') || ($cbrackets == 1 && $c == '}')) {
 							// parameter (name / value) found
-							
+
 							$token = explode('=', $parm, 2);
 							if (count($token) == 2) {
 								// we need a pair of name / value
@@ -1218,7 +1221,7 @@ class DynamicPageList {
 									}
 								}
 							}
-							
+
 							if ($c == '}') {
 								// end of template call reached, insert at stored position or here
 								if ($posInsertAt != 0) {
@@ -1234,7 +1237,7 @@ class DynamicPageList {
 								$endSubst = $beginSubst;
 								break;
 							}
-							
+
 							$pos  = $i;
 							$parm = '';
 						} else {
@@ -1249,22 +1252,22 @@ class DynamicPageList {
 			}
 			break;
 		}
-		
+
 		if ($beginSubst < 0) {
 			return $text;
 		}
-		
+
 		return substr($text, 0, $beginSubst) . $substitution . substr($text, $endSubst);
-		
+
 	}
-	
+
 	public function deleteArticleByRule($title, $text, $rulesText) {
-		
+
 		global $wgUser, $wgOut;
-		
+
 		// return "deletion of articles by DPL is disabled.";
-		
-		
+
+
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText = str_replace(";", '°', $rulesText);
@@ -1274,13 +1277,13 @@ class DynamicPageList {
 		$exec      = false;
 		$message   = '';
 		$reason    = '';
-		
-		
+
+
 		foreach ($rules as $rule) {
 			if (preg_match('/^\s*#/', $rule) > 0) {
 				continue; // # is comment symbol
 			}
-			
+
 			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
 			$cmd  = preg_split("/ +/", $rule, 2);
 			if (count($cmd) > 1) {
@@ -1289,18 +1292,18 @@ class DynamicPageList {
 				$arg = '';
 			}
 			$cmd[0] = trim($cmd[0]);
-			
+
 			if ($cmd[0] == 'reason') {
 				$reason = $arg;
 			}
-			
+
 			// we execute only if "exec" is given, otherwise we merely show what would be done
 			if ($cmd[0] == 'exec') {
 				$exec = true;
 			}
 		}
 		$reason .= "\nbulk delete by DPL query";
-		
+
 		$titleX = \Title::newFromText($title);
 		if ($exec) {
 			# Check permissions
@@ -1321,7 +1324,7 @@ class DynamicPageList {
 		$message .= "<pre><nowiki>" . "\n" . $text . "</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
 		return $message;
 	}
-	
+
 	// generate a hyperlink to the article
 	public function articleLink($tag, $article, $iTitleMaxLen) {
 		$pagename = $article->mTitle->getPrefixedText();
@@ -1331,12 +1334,12 @@ class DynamicPageList {
 		}
 		return $this->substTagParm($tag, $pagename, $article, $this->filteredCount, '', $iTitleMaxLen);
 	}
-	
+
 	//format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)
 	public function formatItem($piece, $tagStart, $tagEnd) {
 		return $tagStart . $piece . $tagEnd;
 	}
-	
+
 	//format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter)
 	public function formatSingleItems(&$pieces, $s, $article) {
 		$firstCall = true;
@@ -1369,13 +1372,13 @@ class DynamicPageList {
 			$firstCall = false;
 		}
 	}
-	
+
 	//format one single template argument of one occurence of one item from the include parameter
 	// is called via a backlink from LST::includeTemplate()
 	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxlen, $article) {
 		// we could try to format fields differently within the first call of a template
 		// currently we do not make such a difference
-		
+
 		// if the result starts with a '-' we add a leading space; thus we avoid a misinterpretation of |- as
 		// a start of a new row (wiki table syntax)
 		if (array_key_exists("$s.$argNr", $this->mTableRow)) {
@@ -1403,12 +1406,12 @@ class DynamicPageList {
 			return $result;
 		}
 	}
-	
+
 	//return the total number of rows (filtered)
 	public function getRowCount() {
 		return intval($this->filteredCount);
 	}
-	
+
 	/**
 	 * Truncate a portion of wikitext so that ..
 	 * ... it is not larger that $lim characters
@@ -1426,7 +1429,7 @@ class DynamicPageList {
 		}
 		return LST::limitTranscludedText($text, $lim);
 	}
-	
+
 	//slightly different from CategoryViewer::formatList() (no need to instantiate a CategoryViewer object)
 	public function formatCategoryList($iStart, $iCount) {
 		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
@@ -1442,7 +1445,7 @@ class DynamicPageList {
 		}
 		return '';
 	}
-	
+
 	/**
 	 * Prepends an image name with its hash path.
 	 *
@@ -1459,7 +1462,7 @@ class DynamicPageList {
 		}
 		return $imageUrl;
 	}
-	
+
 	/**
 	 * Returns message in the requested format after parsing wikitext to html
 	 * This is meant to be equivalent to wfMsgExt() with parse, parsemag and escape as available options but using the DPL local parser instead of the global one (bugfix).
@@ -1468,31 +1471,31 @@ class DynamicPageList {
 		$args = func_get_args();
 		array_shift($args);
 		array_shift($args);
-		
+
 		if (!is_array($options)) {
 			$options = array(
 				$options
 			);
 		}
-		
+
 		$string = wfMsgNoTrans($key);
-		
+
 		$string = wfMsgReplaceArgs($string, $args);
-		
+
 		$this->mParserOptions->setInterfaceMessage(true);
 		$string = $this->mParser->recursiveTagParse($string);
 		$this->mParserOptions->setInterfaceMessage(false);
-		
+
 		if (in_array('escape', $options)) {
 			$string = htmlspecialchars($string);
 		}
-		
+
 		return $string;
 	}
-	
+
 	public function getText() {
 		return $this->mOutput;
 	}
-	
+
 }
 ?>

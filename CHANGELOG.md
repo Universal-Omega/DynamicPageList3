@@ -11,7 +11,7 @@
 * Escapelinks= introduced
 
 #Version 0.9.4
-* Allow "-" with categories = 
+* Allow "-" with categories =
 * Disable UTF8 conversion for sortkey
 * Headingcount= added
 
@@ -195,7 +195,7 @@
 #Version 1.3.6
 * Special page for DPL deleted
 * Allow individual collations for sorting, this makes case insensitive sorting possible
-* Hardwired collation change: for sorting the club suit symbol's sort value is changed 
+* Hardwired collation change: for sorting the club suit symbol's sort value is changed
 * So that the club suit will always appear AFTER the diamond suit
 * Bugfix: %PAGES% did not work in mode=category
 * Added a switch to include/exclude subpages
@@ -273,7 +273,7 @@
 * Added randomseed
 
 #Version 1.6.0
-* Internal changes in the code; (no more globals etc ...) 
+* Internal changes in the code; (no more globals etc ...)
 
 #Version 1.6.1
 * Ordermethod= sortkey & categories decoupled, see line 2011
@@ -304,7 +304,7 @@
 * Bugfix at goal=categories (due to change in 1.6.6)
 
 #Version 1.6.8
-* Allow & at category 
+* Allow & at category
 
 #Version 1.6.9
 * Added check against non-includable namespaces
@@ -338,7 +338,7 @@
 * CATBULLETS variable
 
 #Version 1.7.6
-* Error correction: non existing array index 0 when trying to includematch content in a non-existing chapter (near #3887) 
+* Error correction: non existing array index 0 when trying to includematch content in a non-existing chapter (near #3887)
 
 #Version 1.7.7
 * Configuration switch allows to run DPL from protected pages only (Options::$options['RunFromProtectedPagesOnly'])
@@ -391,7 +391,7 @@
 * Bugfix: title= & allrevisionssince caused SQL error
 * Added ordermethod = none
 * Changed %DPLTIME% to fractions of seconds
-* Titlematch: We now translate a space to an escaped underscore as the native underscore is a special char within SQL LIKE 
+* Titlematch: We now translate a space to an escaped underscore as the native underscore is a special char within SQL LIKE
 * New commands: linkstoexternal and addexternallink
 * Changed default for userdateformat to show also seconds DPL only; Intersection will show only the date for compatibility reasons)
 * Bugfix date/time problem 1977
@@ -405,7 +405,7 @@
 * Changed implementation of userdate transformation to wgLang->userAdjust()
 * Include now understands parserFunctions when used with {#xxx}
 * Include now understands tag functions when used with {~xxx}
-* Title< and title> added, 
+* Title< and title> added,
 * New URL arg: DPL_fromTitle, DPL_toTitle
 * New built-in vars: %FIRSTTITLE%, %LASTTITLE%, %FIRSTNAMESPACE%, %LASTNAMESPACE%, %SCROLLDIR% (only in header and footer)
 * Removed replacement of card suit symbols in SQL query due to collation incompatibilities
@@ -481,7 +481,7 @@
 #Version 2.0.0
 * Added %ARGS% to template surrogate call
 * Replaced "makeKnownLinkObjects" by "fullurl:" to get rid of the need to change $rawHtml
-* Eliminated rawHTML usage 
+* Eliminated rawHTML usage
 * Eliminated calls to parser->clearState and parser->transformMsg, now CITE and DPL work together
 * As a consequence a patch to LinkHolderArray.php is needed.
 * Added proprietory function to sort bidding sequences for the card game of 'Bridge' according to suit rank
@@ -581,3 +581,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 #Version 3.0.9
 * Fixed interaction with Extension:HitCounters that was causing a fatal exception.
+* Fixed language string used to display numbers from Extension:HitCounters.
+* Added support for mode=gallery.
+* Fixed ordermethod=category where it no longer times out.
+* Fixed minrevisions tag causing SQL error.
+* Fixed ordermethod=firstedit. It now sorts in the correct direction.

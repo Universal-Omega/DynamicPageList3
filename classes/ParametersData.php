@@ -163,7 +163,7 @@ class ParametersData {
 	 * For some options (e.g. 'namespace'), possible values are not yet defined, but will be if necessary (for debugging).
 	 *
 	 * @var		array
-	 */ 
+	 */
 	private $data = [
 		'addauthor' => [
 			'default'			=> false,
@@ -220,7 +220,7 @@ class ParametersData {
 			'boolean'			=> true,
 			'open_ref_conflict'	=> true
 		],
-		
+
 		// default of allowcachedresults depends on behaveasIntersetion and on LocalSettings ...
 		'allowcachedresults' => [
 			'default'			=> true,
@@ -274,7 +274,7 @@ class ParametersData {
 		'execandexit' => [
 			'default'	=> null
 		],
-		
+
 		/**
 		 * number of results which shall be skipped before display starts
 		 * default is 0
@@ -301,7 +301,7 @@ class ParametersData {
 		 * shall the result set be distinct (=default) or not?
 		 */
 		'distinct' => [
-			'default'	=> 'true',
+			'default'	=> true,
 			'values'	=> ['strict']
 		],
 		'cacheperiod' => [
@@ -319,7 +319,7 @@ class ParametersData {
 		/**
 		 * debug=...
 		 * - 0: displays no debug message;
-		 * - 1: displays fatal errors only; 
+		 * - 1: displays fatal errors only;
 		 * - 2: fatal errors + warnings only;
 		 * - 3: every debug message.
 		 * - 4: The SQL statement as an echo before execution.
@@ -447,7 +447,7 @@ class ParametersData {
 			'default'	=> false,
 			'boolean'	=> true
 		],
-		/** 
+		/**
 		 * includenotmatch=..,..	allows to specify regular expressions which must NOT match the included contents
 		 */
 		'includenotmatch' => [
@@ -461,7 +461,7 @@ class ParametersData {
 			'default'	=> false,
 			'boolean'	=> true
 		],
-		/** 
+		/**
 		 * Inline text is some wiki text used to separate list items with 'mode=inline'.
 		 */
 		'inlinetext' => [
@@ -491,7 +491,7 @@ class ParametersData {
 		 * if mode = 'userformat' was specified.
 		 *	 '\n' or '¶'  in the input will be interpreted as a newline character.
 		 *	 '%xxx%'	  in the input will be replaced by a corresponding value (xxx= PAGE, NR, COUNT etc.)
-		 * t1 and t4 are the "outer envelope" for the whole result list, 
+		 * t1 and t4 are the "outer envelope" for the whole result list,
 		 * t2,t3 form an inner envelope around the article name of each entry.
 		 * Examples: listseparators={|,,\n#[[%PAGE%]]
 		 * Note: use of html tags was abolished from version 2.0; the first example must be written as:
@@ -502,7 +502,7 @@ class ParametersData {
 		],
 		/**
 		 * sequence of four wiki tags (separated by ",") to be used together with mode = 'userformat'
-		 *				t1 and t4 define an outer frame for the article list 
+		 *				t1 and t4 define an outer frame for the article list
 		 *				t2 and t3 build an inner frame for each article name
 		 *	 example:	listattr=<ul>,<li>,</li>,</ul>
 		 */
@@ -679,6 +679,7 @@ class ParametersData {
 			'values'	=> [
 				'category',
 				'inline',
+				'gallery',
 				'none',
 				'ordered',
 				'unordered',
@@ -933,7 +934,7 @@ class ParametersData {
 		],
 		/**
 		 * stablepages =...
-		 * - exclude: excludes stable pages from lists 
+		 * - exclude: excludes stable pages from lists
 		 * - include: allows stable pages to appear in lists
 		 * - only: lists only stable pages in lists
 		 */
@@ -1016,7 +1017,7 @@ class ParametersData {
 			'strip_html'	=> true
 		],
 		/**
-		 * secseparators  is a sequence of pairs of tags used to separate sections (see "includepage=name1, name2, ..") 
+		 * secseparators  is a sequence of pairs of tags used to separate sections (see "includepage=name1, name2, ..")
 		 * each pair corresponds to one entry in the includepage command
 		 * if only one tag is given it will be used for all sections as a start tag (end tag will be empty then)
 		 */
@@ -1032,7 +1033,7 @@ class ParametersData {
 		],
 		/**
 		 * dominantSection is the number (starting from 1) of an includepage argument which shall be used
-		 * as a dominant value set for the creation of additional output rows (one per value of the 
+		 * as a dominant value set for the creation of additional output rows (one per value of the
 		 * dominant column
 		 */
 		'dominantsection' => [
