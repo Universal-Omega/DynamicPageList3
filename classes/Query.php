@@ -1365,7 +1365,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _minrevisions($option) {
-		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page = {$this->tableNames['page']}.page_id) >= {$iMinRevisions})");
+		$this->addWhere("((SELECT count(rev_aux2.rev_page) FROM {$this->tableNames['revision']} AS rev_aux2 WHERE rev_aux2.rev_page = {$this->tableNames['page']}.page_id) >= {$option})");
 	}
 
 	/**
@@ -1614,6 +1614,7 @@ class Query {
 					break;
 				case 'firstedit':
 					$this->addOrderBy('rev.rev_timestamp');
+					$this->setOrderDir('ASC');
 					$this->addTable('revision', 'rev');
 					$this->addSelect(
 						[

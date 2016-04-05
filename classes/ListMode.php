@@ -46,11 +46,11 @@ class ListMode {
 		$this->name = $listmode;
 		$_listattr  = ($listattr == '') ? '' : ' '.Sanitizer::fixTagAttributes($listattr, 'ul');
 		$_itemattr  = ($itemattr == '') ? '' : ' '.Sanitizer::fixTagAttributes($itemattr, 'li');
-		
+
 		$this->sSectionTags        = $sectionSeparators;
 		$this->aMultiSecSeparators = $multiSectionSeparators;
 		$this->iDominantSection    = $dominantSection - 1; // 0 based index
-		
+
 		switch ($listmode) {
 			case 'inline':
 				if (stristr($inlinetext, '<BR />')) { //one item per line (pseudo-inline)
@@ -60,6 +60,14 @@ class ListMode {
 				$this->sItemStart = '<SPAN'.$_itemattr.'>';
 				$this->sItemEnd   = '</SPAN>';
 				$this->sInline    = $inlinetext;
+				break;
+			case 'gallery':
+				$this->sListStart = "<gallery>\n";
+				$this->sListEnd   = "\n</gallery>";
+
+				$this->sItemStart = '';
+				$this->sItemEnd   = '||';
+				$this->sInline    =  "\n";
 				break;
 			case 'ordered':
 				if ($iOffset == 0) {
@@ -99,5 +107,6 @@ class ListMode {
 				break;
 		}
 	}
+
 }
 ?>
