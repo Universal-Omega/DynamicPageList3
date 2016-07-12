@@ -700,7 +700,8 @@ class Query {
 	 */
 	private function _addlasteditor($option) {
 		//Addlasteditor can not be used with addauthor.
-		if (!$this->parametersProcessed['addauthor']) {
+		if ( !isset($this->parametersProcessed['addauthor'])
+			 || !$this->parametersProcessed['addauthor'] ) {
 			$this->addTable('revision', 'rev');
 			$this->addWhere(
 				[
