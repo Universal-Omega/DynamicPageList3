@@ -11,7 +11,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 * Manual and Complete Documentation: [Documentation at Gamepedia Help Wiki](http://help.gamepedia.com/DPL:Manual)
 * Source Code: [Source code at Github](https://github.com/Alexia/DynamicPageList)
 * Bugs and Feature Requests: [Issues at Github](https://github.com/Alexia/DynamicPageList/issues)
-* Licensing: DynamicPageList3 is released under [GNU General Public License, version 3](http://opensource.org/licenses/gpl-3.0.html).
+* Licensing: DynamicPageList3 is released under [GNU General Public License, version 2](https://opensource.org/licenses/GPL-2.0).
 
 
 ##Installation
