@@ -12,7 +12,7 @@
 |download    = {{ {{TNTN|GithubDownload}} |HydraWiki|DynamicPageList}}
 |hook1       = ParserFirstCallInit
 |description = '''Create lists''' of other articles based on their ''category, namespace, title, references'' or ''template usage'' and '''include contents''' or arguments of template calls of those articles into your page.  
-|license     = {{EL|GNUGPL3}}
+|license     = {{EL|GNUGPL2}}
 |example     = [http://help.gamepedia.com/DPL:Manual DPL:Manual - Gamepedia Help Wiki]
 }}
 
@@ -29,7 +29,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 ;Manual and Complete Documentation: [http://help.gamepedia.com/DPL:Manual Documentation at Gamepedia Help Wiki]
 ;Source Code: [https://github.com/HydraWiki/DynamicPageList Source code at Github]
 ;Bugs and Feature Requests: [https://github.com/HydraWiki/DynamicPageList/issues Issues at Github]
-;Licensing: DynamicPageList3 is released under [http://opensource.org/licenses/gpl-3.0.html GNU General Public License, version 3].
+;Licensing: DynamicPageList3 is released under [https://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2].
 
 
 == Installation ==
@@ -112,7 +112,7 @@ Extended DPL is invoked by using the parser function <code>{{#dpl: .... }}</code
 Functionality compatible with Wikimedia's DPL extension can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>.  Further information can be found on the [http://help.gamepedia.com/DPL:Compatibility Compatibility manual page].
 
 ==Usage Philosophy and Overview==
-With the assumption there are some articles writtne about ''countries'' those articles will typically have three things in common:
+With the assumption there are some articles written about ''countries'' those articles will typically have three things in common:
 * They will belong to a common category
 * They will have a similar chapter structure, i.e. they will contain paragraphs named 'Religion' or 'History'
 * They will use a template which is used to present highly structured short data items ('Capital', 'Inhabitants', ..) in a nice way (e.g. as a wikitable)
