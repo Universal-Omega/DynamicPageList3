@@ -102,7 +102,14 @@ class ListMode {
 				$this->sHeadingEnd   = '</'.$listmode.'>';
 				break;
 			case 'userformat':
-				list($this->sListStart, $this->sItemStart, $this->sItemEnd, $this->sListEnd) = $listseparators;
+				if (count($listseparators) == 4) {
+					list($this->sListStart, $this->sItemStart, $this->sItemEnd, $this->sListEnd) = $listseparators;
+				} else {
+					if (! isset($listseparators[3])) $this->sListEnd = null;
+					if (! isset($listseparators[2])) $this->sItemEnd = null;
+					if (! isset($listseparators[1])) $this->sItemStart = null;
+					if (! isset($listseparators[0])) $this->sListStart = null;
+				}
 				$this->sInline = $inlinetext;
 				break;
 		}
