@@ -27,13 +27,13 @@ This extension is invoked with the parser function <code>{{#dpl: .... }}</code> 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [http://help.gamepedia.com/DPL:Parameters:_Other_Parameters#cacheperiod DPL:Parameters: Other Parameters] manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
 ;Manual and Complete Documentation: [http://help.gamepedia.com/DPL:Manual Documentation at Gamepedia Help Wiki]
-;Source Code: [https://github.com/HydraWiki/DynamicPageList Source code at Github]
-;Bugs and Feature Requests: [https://github.com/HydraWiki/DynamicPageList/issues Issues at Github]
+;Source Code: [https://github.com/Alexia/DynamicPageList Source code at Github]
+;Bugs and Feature Requests: [https://github.com/Alexia/DynamicPageList/issues Issues at Github]
 ;Licensing: DynamicPageList3 is released under [https://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2].
 
 
 == Installation ==
-* [https://github.com/HydraWiki/DynamicPageList/archive/3.0.9.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
+* [https://github.com/Alexia/DynamicPageList/archive/3.0.9.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
 
 * For Mediawiki 1.19 through 1.23 add the following line to your LocalSettings.php:
 {{#tag:source|require_once "$IP/extensions/DynamicPageList/DynamicPageList.php";
