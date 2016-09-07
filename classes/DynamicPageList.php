@@ -664,7 +664,7 @@ class DynamicPageList {
 
 
 				if (!empty($article->mCategoryLinks)) {
-					$rBody .= ' . . <SMALL>' . wfMsg('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</SMALL>';
+					$rBody .= ' . . <small>' . wfMessage('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</small>';
 				}
 				if ($this->mAddExternalLink && $article->mExternalLink != '') {
 					$rBody .= ' → ' . $article->mExternalLink;

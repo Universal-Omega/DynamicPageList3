@@ -332,7 +332,7 @@ class Article {
 						self::$headings[$row['cl_to']] = (isset(self::$headings[$row['cl_to']]) ? self::$headings[$row['cl_to']] + 1 : 1);
 						if ($row['cl_to'] == '') {
 							//uncategorized page (used if ordermethod=category,...)
-							$article->mParentHLink = '[[:Special:Uncategorizedpages|'.wfMsg('uncategorizedpages').']]';
+							$article->mParentHLink = '[[:Special:Uncategorizedpages|'.wfMessage('uncategorizedpages').']]';
 						} else {
 							$article->mParentHLink = '[[:Category:'.$row['cl_to'].'|'.str_replace('_', ' ', $row['cl_to']).']]';
 						}
