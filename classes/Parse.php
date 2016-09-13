@@ -271,7 +271,7 @@ class Parse {
 			$this->parameters->getParameter('inlinetext'),
 			$this->parameters->getParameter('listattr'),
 			$this->parameters->getParameter('itemattr'),
-			$this->parameters->getParameter('listseparators'),
+			(array) $this->parameters->getParameter('listseparators'),
 			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
@@ -283,7 +283,7 @@ class Parse {
 			'',
 			$this->parameters->getParameter('hlistattr'),
 			$this->parameters->getParameter('hitemattr'),
-			$this->parameters->getParameter('listseparators'),
+			(array) $this->parameters->getParameter('listseparators'),
 			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
