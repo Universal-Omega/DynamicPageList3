@@ -1478,9 +1478,7 @@ class DynamicPageList {
 			);
 		}
 
-		$string = wfMsgNoTrans($key);
-
-		$string = wfMsgReplaceArgs($string, $args);
+		$string = wgMessage($key, $args)->text();
 
 		$this->mParserOptions->setInterfaceMessage(true);
 		$string = $this->mParser->recursiveTagParse($string);
