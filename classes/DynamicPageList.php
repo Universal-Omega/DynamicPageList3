@@ -405,7 +405,7 @@ class DynamicPageList {
 							$incwiki .= $message;
 						} else {
 							// append full text to output
-							if (array_key_exists('0', $mode->sSectionTags)) {
+							if (is_array($mode->sSectionTags) && array_key_exists('0', $mode->sSectionTags)) {
 								$incwiki .= $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
 								$pieces = array(
 									0 => $text
