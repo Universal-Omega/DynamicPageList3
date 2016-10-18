@@ -372,6 +372,27 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Check if a regular expression is valid.
+	 *
+	 * @access	private
+	 * @param	mixed	Regular Expression(s) in an array or a single expression in a string.
+	 * @return	boolean
+	 */
+	private function isRegexValid($regexes) {
+		if (!is_array($regexes)) {
+			$regexes = [$regexes];
+		}
+
+		foreach ($regexes as $regex) {
+			if (@preg_match($regex, null) === false) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Clean and test 'category' parameter.
 	 *
 	 * @access	public
@@ -471,6 +492,10 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categoryregexp($option) {
+		if (!$this->isRegexValid($option)) {
+			return false;
+		}
+
 		$data = $this->getParameter('category');
 		//REGEXP input only supports AND operator.
 		$data['REGEXP']['AND'][] = [$option]; //Wrapped in an array since the category Query handler expects an array.
@@ -533,6 +558,10 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _notcategoryregexp($option) {
+		if (!$this->isRegexValid($option)) {
+			return false;
+		}
+
 		$data = $this->getParameter('notcategory');
 		$data['regexp'][] = $option;
 		$this->setParameter('notcategory', $data);
@@ -802,6 +831,11 @@ class Parameters extends ParametersData {
 			$data['regexp'] = [];
 		}
 		$newMatches = explode('|', str_replace(' ', '\_', $option));
+
+		if (!$this->isRegexValid($newMatches)) {
+			return false;
+		}
+
 		$data['regexp'] = array_merge($data['regexp'], $newMatches);
 		$this->setParameter('title', $data);
 		$this->setSelectionCriteriaFound(true);
@@ -841,6 +875,11 @@ class Parameters extends ParametersData {
 		}
 		$newMatches = explode('|', str_replace(' ', '\_', $option));
 		$data['regexp'] = array_merge($data['regexp'], $newMatches);
+
+		if (!$this->isRegexValid($newMatches)) {
+			return false;
+		}
+
 		$this->setParameter('nottitle', $data);
 		$this->setSelectionCriteriaFound(true);
 		return true;
@@ -975,7 +1014,13 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _includematch($option) {
-		$this->setParameter('seclabelsmatch', explode(',', $option));
+		$regexes = explode(',', $option);
+
+		if (!$this->isRegexValid($regexes)) {
+			return false;
+		}
+
+		$this->setParameter('seclabelsmatch', $regexes);
 		return true;
 	}
 
@@ -987,8 +1032,14 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _includematchparsed($option) {
+		$regexes = explode(',', $option);
+
+		if (!$this->isRegexValid($regexes)) {
+			return false;
+		}
+
 		$this->setParameter('incparsed', true);
-		$this->setParameter('seclabelsmatch', explode(',', $option));
+		$this->setParameter('seclabelsmatch', $regexes);
 		return true;
 	}
 
@@ -1000,7 +1051,13 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _includenotmatch($option) {
-		$this->setParameter('seclabelsnotmatch', explode(',', $option));
+		$regexes = explode(',', $option);
+
+		if (!$this->isRegexValid($regexes)) {
+			return false;
+		}
+
+		$this->setParameter('seclabelsnotmatch', $regexes);
 		return true;
 	}
 
@@ -1012,8 +1069,14 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _includenotmatchparsed($option) {
+		$regexes = explode(',', $option);
+
+		if (!$this->isRegexValid($regexes)) {
+			return false;
+		}
+
 		$this->setParameter('incparsed', true);
-		$this->setParameter('seclabelsnotmatch', explode(',', $option));
+		$this->setParameter('seclabelsnotmatch', $regexes);
 		return true;
 	}
 
