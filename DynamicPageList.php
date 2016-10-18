@@ -16,7 +16,7 @@ if (!defined('MEDIAWIKI')) {
 /******************************************/
 /* Credits								  */
 /******************************************/
-define('DPL_VERSION', '3.0.9');
+define('DPL_VERSION', '3.0.10');
 
 $credits = [
 	'path' 				=> __FILE__,

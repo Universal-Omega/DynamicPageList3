@@ -5,11 +5,11 @@
 |type2       = parser function
 |author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
 |image       =
-|version     = 3.0.9
-|update      = 2016-04-05
+|version     = 3.0.10
+|update      = 2016-10-18
 |mediawiki   = 1.23+
 |php         = 5.4+
-|download    = {{ {{TNTN|GithubDownload}} |HydraWiki|DynamicPageList}}
+|download    = {{ {{TNTN|GithubDownload}} |Alexia|DynamicPageList}}
 |hook1       = ParserFirstCallInit
 |description = '''Create lists''' of other articles based on their ''category, namespace, title, references'' or ''template usage'' and '''include contents''' or arguments of template calls of those articles into your page.  
 |license     = {{EL|GNUGPL2}}
@@ -33,7 +33,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 
 
 == Installation ==
-* [https://github.com/Alexia/DynamicPageList/archive/3.0.9.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
+* [https://github.com/Alexia/DynamicPageList/archive/3.0.10.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
 
 * For Mediawiki 1.19 through 1.23 add the following line to your LocalSettings.php:
 {{#tag:source|require_once "$IP/extensions/DynamicPageList/DynamicPageList.php";

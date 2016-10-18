@@ -586,3 +586,12 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed ordermethod=category where it no longer times out.
 * Fixed minrevisions tag causing SQL error.
 * Fixed ordermethod=firstedit. It now sorts in the correct direction.
+
+#Version 3.0.10
+* Really fixed ordermethod=firstedit this time thanks to cillianderoiste.
+ * https://github.com/Alexia/DynamicPageList/pull/13
+* Fixed a warning that could occur in uncommon cases.
+ * https://github.com/Alexia/DynamicPageList/issues/11
+* Fixed and improved parameters that take regular expressions.
+ * Regular expressions are now validated to prevent warnings from being tossed and DPL will now provide a generic error that the parameter was bad.
+* Fixed various uses of deprecated language function calls.

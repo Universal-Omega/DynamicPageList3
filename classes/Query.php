@@ -1615,7 +1615,6 @@ class Query {
 					break;
 				case 'firstedit':
 					$this->addOrderBy('rev.rev_timestamp');
-					$this->setOrderDir('DESC');
 					$this->addTable('revision', 'rev');
 					$this->addSelect(
 						[
