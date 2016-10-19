@@ -384,6 +384,9 @@ class Parameters extends ParametersData {
 		}
 
 		foreach ($regexes as $regex) {
+			if (empty(trim($regex))) {
+				continue;
+			}
 			if (@preg_match($regex, null) === false) {
 				return false;
 			}
