@@ -476,10 +476,10 @@ class Parameters extends ParametersData {
 			}
 			$this->setParameter('category', $data);
 			if ($heading) {
-				$this->setParameter('catheadings', array_unique(array_merge($this->getParameter('catheadings'), $categories)));
+				$this->setParameter('catheadings', array_unique(array_merge((is_array($this->getParameter('catheadings')) ? $this->getParameter('catheadings') : []), $categories)));
 			}
 			if ($notHeading) {
-				$this->setParameter('catnotheadings', array_unique(array_merge($this->getParameter('catnotheadings'), $categories)));
+				$this->setParameter('catnotheadings', array_unique(array_merge((is_array($this->getParameter('catnotheadings')) ? $this->getParameter('catnotheadings') : []), $categories)));
 			}
 			$this->setOpenReferencesConflict(true);
 			return true;

@@ -500,6 +500,7 @@ class Parse {
 				$parameter = str_replace('>', 'gt', $parameter);
 			}
 
+			$parameter = strtolower($parameter); //Force lower case for ease of use.
 			if (empty($parameter) || substr($parameter, 0, 1) == '#' || ($this->parameters->exists($parameter) && !$this->parameters->testRichness($parameter))) {
 				continue;
 			}
