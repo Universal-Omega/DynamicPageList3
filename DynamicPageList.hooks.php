@@ -385,7 +385,7 @@ class DynamicPageListHooks {
 		return $output[0];
 	}
 
-	static public function dplMatrixParserFunction(&$parser, $name, $yes, $no, $flip, $matrix) {
+	static public function dplMatrixParserFunction(&$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '') {
 		$lines   = explode("\n", $matrix);
 		$m       = [];
 		$sources = [];
