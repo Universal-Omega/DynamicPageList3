@@ -376,9 +376,10 @@ class Parameters extends ParametersData {
 	 *
 	 * @access	private
 	 * @param	mixed	Regular Expression(s) in an array or a single expression in a string.
+	 * @param	boolean	Is this a database REGEXP?
 	 * @return	boolean
 	 */
-	private function isRegexValid($regexes) {
+	private function isRegexValid($regexes, $forDb = false) {
 		if (!is_array($regexes)) {
 			$regexes = [$regexes];
 		}
@@ -386,6 +387,9 @@ class Parameters extends ParametersData {
 		foreach ($regexes as $regex) {
 			if (empty(trim($regex))) {
 				continue;
+			}
+			if ($forDb) {
+				$regex = '#'.str_replace('#', '\#', $regex).'#';
 			}
 			if (@preg_match($regex, null) === false) {
 				return false;
@@ -495,7 +499,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _categoryregexp($option) {
-		if (!$this->isRegexValid($option)) {
+		if (!$this->isRegexValid($option, true)) {
 			return false;
 		}
 
@@ -561,7 +565,7 @@ class Parameters extends ParametersData {
 	 * @return	boolean	Success
 	 */
 	public function _notcategoryregexp($option) {
-		if (!$this->isRegexValid($option)) {
+		if (!$this->isRegexValid($option, true)) {
 			return false;
 		}
 
@@ -835,7 +839,7 @@ class Parameters extends ParametersData {
 		}
 		$newMatches = explode('|', str_replace(' ', '\_', $option));
 
-		if (!$this->isRegexValid($newMatches)) {
+		if (!$this->isRegexValid($newMatches, true)) {
 			return false;
 		}
 
@@ -879,7 +883,7 @@ class Parameters extends ParametersData {
 		$newMatches = explode('|', str_replace(' ', '\_', $option));
 		$data['regexp'] = array_merge($data['regexp'], $newMatches);
 
-		if (!$this->isRegexValid($newMatches)) {
+		if (!$this->isRegexValid($newMatches, true)) {
 			return false;
 		}
 
