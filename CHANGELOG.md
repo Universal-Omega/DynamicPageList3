@@ -595,3 +595,9 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed and improved parameters that take regular expressions.
  * Regular expressions are now validated to prevent warnings from being tossed and DPL will now provide a generic error that the parameter was bad.
 * Fixed various uses of deprecated language function calls.
+
+#Version 3.0.11
+* Fixed a bug introduced in 3.0.10 related to database regular expressions.
+ * https://github.com/Alexia/DynamicPageList/issues/15
+* Fixed empty category headings throwing warnings.
+* Fixed the #dplmatrix parser function throwing errors if the sixth parameter was omitted.
