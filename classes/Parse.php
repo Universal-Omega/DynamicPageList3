@@ -230,6 +230,10 @@ class Parse {
 		$numRows = $this->DB->numRows($result);
 		$articles = $this->processQueryResults($result);
 
+		if (\DynamicPageListHooks::getDebugLevel() >= 4) {
+            $this->addOutput($this->query->getSql()."\n");
+        }
+
 		$this->addOutput('{{Extension DPL}}');
 
 		//Preset these to defaults.
