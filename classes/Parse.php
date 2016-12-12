@@ -231,7 +231,7 @@ class Parse {
 		$articles = $this->processQueryResults($result);
 
 		if (\DynamicPageListHooks::getDebugLevel() >= 4) {
-            $this->addOutput($this->query->getSql()."\n");
+            $this->addOutput($this->query->getSqlQuery()."\n");
         }
 
 		$this->addOutput('{{Extension DPL}}');

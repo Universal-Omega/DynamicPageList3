@@ -338,7 +338,7 @@ class Query {
      * @access public
      * @return string   SQL Query
      */
-    public function getSql()
+    public function getSqlQuery()
     {
         return $this->sqlQuery;
     }
