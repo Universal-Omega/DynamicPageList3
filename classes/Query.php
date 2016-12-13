@@ -47,6 +47,13 @@ class Query {
 	private $select = [];
 
 	/**
+	 * The generated SQL Query.
+	 *
+	 * @var     string
+	 */
+	private $sqlQuery = '';
+
+	/**
 	 * Selected Fields - An array to look up keys against for speed optimization.
 	 *
 	 * @var		array
@@ -294,6 +301,8 @@ class Query {
 					$this->join
 				);
 			}
+
+			$this->sqlQuery = $sql;
 			$result = $this->DB->query($sql);
 
 			if ($calcRows) {
@@ -322,6 +331,16 @@ class Query {
 	 */
 	public function getFoundRows() {
 		return $this->foundRows;
+	}
+
+	/**
+	 * Returns the generated SQL Query
+	 *
+	 * @access	public
+	 * @return	string	SQL Query
+	 */
+	public function getSqlQuery() {
+	    return $this->sqlQuery;
 	}
 
 	/**
