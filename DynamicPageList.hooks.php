@@ -366,9 +366,10 @@ class DynamicPageListHooks {
 		return false;
 	}
 
-	static public function dplReplaceParserFunction(&$parser, $text, $pat, $repl = '') {
-		if ($text == '' || $pat == '')
+	static public function dplReplaceParserFunction(&$parser, $text, $pat = '', $repl = '') {
+		if ($text == '' || $pat == '') {
 			return '';
+		}
 		# convert \n to a real newline character
 		$repl = str_replace('\n', "\n", $repl);
 
