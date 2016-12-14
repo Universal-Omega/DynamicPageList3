@@ -601,3 +601,11 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
  * https://github.com/Alexia/DynamicPageList/issues/15
 * Fixed empty category headings throwing warnings.
 * Fixed the #dplmatrix parser function throwing errors if the sixth parameter was omitted.
+
+#Version 3.0.12
+* Fixed SQL debug output being broken.
+ * https://github.com/Alexia/DynamicPageList/issues/19
+ * https://github.com/Alexia/DynamicPageList/pull/21
+* Fixed E_NOTICE attempting to access null as an array.
+ * https://github.com/Alexia/DynamicPageList/pull/20
+* Fixed #dplreplace throwing errors if parameters were not passed.
