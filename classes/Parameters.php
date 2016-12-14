@@ -528,7 +528,7 @@ class Parameters extends ParametersData {
 		}
 
 		$data = $this->getParameter('category');
-		if (!is_array($data['LIKE'][$operator])) {
+		if (isset($data['LIKE']) && !is_array($data['LIKE'][$operator])) {
 			$data['LIKE'][$operator] = [];
 		}
 
