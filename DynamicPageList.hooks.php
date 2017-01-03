@@ -378,7 +378,7 @@ class DynamicPageListHooks {
 			$pat = '`' . str_replace('`', '\`', $pat) . '`';
 		}
 
-		return preg_replace($pat, $repl, $text);
+		return @preg_replace($pat, $repl, $text);
 	}
 
 	static public function dplChapterParserFunction(&$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false) {
