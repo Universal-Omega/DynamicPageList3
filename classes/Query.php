@@ -2064,32 +2064,39 @@ class Query {
 	 * @return	integer
 	 */
 	private function _convertTimestamp($inputDate) {
-		if (is_numeric($inputDate)) {
-			return $this->DB->addQuotes($inputDate);
-		}
+		$timestamp = $inputDate;
 		switch ($inputDate) {
 			case 'today':
-				return date('YmdHis');
+				$timestamp = date('YmdHis');
+				break;
 			case 'last hour':
 				$date = new \DateTime();
 				$date->sub(new \DateInterval('P1H'));
-				return $date->format('YmdHis');
+				$timestamp = $date->format('YmdHis');
+				break;
 			case 'last day':
 				$date = new \DateTime();
 				$date->sub(new \DateInterval('P1D'));
-				return $date->format('YmdHis');
+				$timestamp = $date->format('YmdHis');
+				break;
 			case 'last week':
 				$date = new \DateTime();
 				$date->sub(new \DateInterval('P7D'));
-				return $date->format('YmdHis');
+				$timestamp = $date->format('YmdHis');
+				break;
 			case 'last month':
 				$date = new \DateTime();
 				$date->sub(new \DateInterval('P1M'));
-				return $date->format('YmdHis');
+				$timestamp = $date->format('YmdHis');
+				break;
 			case 'last year':
 				$date = new \DateTime();
 				$date->sub(new \DateInterval('P1Y'));
-				return $date->format('YmdHis');
+				$timestamp = $date->format('YmdHis');
+				break;
+		}
+		if (is_numeric($timestamp)) {
+			return $this->DB->addQuotes($timestamp);
 		}
 	}
 }
