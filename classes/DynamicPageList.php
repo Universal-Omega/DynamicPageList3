@@ -362,7 +362,7 @@ class DynamicPageList {
 			if ($article->mNamespace == NS_FILE) {
 				// calculate URL for existing images
 				// $img = Image::newFromName($article->mTitle->getText());
-				$img = wfFindFile(\Title::makeTitle(NS_IMAGE, $article->mTitle->getText()));
+				$img = wfFindFile(\Title::makeTitle(NS_FILE, $article->mTitle->getText()));
 				if ($img && $img->exists()) {
 					$imageUrl = $img->getURL();
 					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
