@@ -1035,11 +1035,12 @@ class DynamicPageList {
 			return 'session failure';
 		}
 
-		$titleX            = \Title::newFromText($title);
+		$titleX = \Title::newFromText($title);
 		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
 		if (count($permission_errors) == 0) {
-			$articleX = new \Article($titleX);
-			$articleX->doEdit($text, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
+			$articleX = \WikiPage::factory($titleX);
+			$articleXContent = \ContentHandler::makeContent($text, $pageX->getTitle());
+			$articleX->doEditContent($articleXContent, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
 			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
 			return '';
 		} else {
