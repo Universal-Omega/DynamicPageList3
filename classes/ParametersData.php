@@ -797,7 +797,7 @@ class ParametersData {
 		],
 		'order' => [
 			'default'	=> 'ascending',
-			'values'	=> ['ascending', 'descending']
+			'values'	=> ['ascending', 'descending', 'asc', 'desc']
 		],
 		/**
 		 * we can specify something like "latin1_swedish_ci" for case insensitive sorting

@@ -235,9 +235,9 @@ class Query {
 			}
 			if (count($this->orderBy)) {
 				$options['ORDER BY'] = $this->orderBy;
-				$_lastOrder = array_pop($options['ORDER BY']);
-				$_lastOrder .= " ".$this->direction;
-				$options['ORDER BY'][] = $_lastOrder;
+				foreach ($options['ORDER BY'] as $key => $value) {
+					$options['ORDER BY'][$key] .= " ".$this->direction;
+				}
 			}
 		}
 		if ($this->parameters->getParameter('goal') == 'categories') {
@@ -1530,7 +1530,7 @@ class Query {
 	private function _order($option) {
 		$orderMethod = $this->parameters->getParameter('ordermethod');
 		if (!empty($orderMethod) && is_array($orderMethod) && $orderMethod[0] !== 'none') {
-			if ($option == 'descending') {
+			if ($option === 'descending' || $option === 'desc') {
 				$this->setOrderDir('DESC');
 			} else {
 				$this->setOrderDir('ASC');
