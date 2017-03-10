@@ -947,12 +947,12 @@ class Parse {
 		if (!is_array($reset)) {
 			$reset = [];
 		}
-		$reset = array_merge($reset, $this->parameters->getParameter('reset'));
+		$reset = array_merge($reset, (array)$this->parameters->getParameter('reset'));
 
 		if (!is_array($eliminate)) {
 			$eliminate = [];
 		}
-		$eliminate = array_merge($eliminate, $this->parameters->getParameter('eliminate'));
+		$eliminate = array_merge($eliminate, (array)$this->parameters->getParameter('eliminate'));
 		if ($isParserTag === true) {
 			//In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
 			if (isset($eliminate['templates']) && $eliminate['templates']) {
