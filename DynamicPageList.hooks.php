@@ -624,10 +624,10 @@ class DynamicPageListHooks {
 		$title = Title::newFromText('Template:Extension DPL');
 
 		if (!$title->exists()) {
-			$page = new WikiPage::factory($title);
-			$pageContent = ContentHandler::makeContent("<noinclude>This page was automatically created. It serves as an anchor page for all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>");
+			$page = WikiPage::factory($title);
+			$pageContent = ContentHandler::makeContent("<noinclude>This page was automatically created. It serves as an anchor page for all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>", $title);
 			$page->doEditContent(
-				$pageContent
+				$pageContent,
 				$title,
 				EDIT_NEW | EDIT_FORCE_BOT
 			);
