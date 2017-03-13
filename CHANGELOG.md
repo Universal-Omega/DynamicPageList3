@@ -530,54 +530,54 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 #Version 3.0.3
 * Fixed default sorting and title sort for ordermethod parameter.
 * Fixed logical AND and OR issues with category, categorymatch, and categoryregexp parameters.
- * https://github.com/Alexia/DynamicPageList/issues/47
+	* https://github.com/Alexia/DynamicPageList/issues/47
 * Fixed an additional issue with the new Extension:HitCounter support.  Using ordermethod=counter without specifying the addpagecounter parameter would cause a database error.
- * https://github.com/Alexia/DynamicPageList/issues/44#issuecomment-129951800
+	* https://github.com/Alexia/DynamicPageList/issues/44#issuecomment-129951800
 
 #Version 3.0.4
 * Added functionality to enable recursive tag parsing when using the <dpl> parser tag.
- * https://github.com/Alexia/DynamicPageList/issues/49
+	* https://github.com/Alexia/DynamicPageList/issues/49
 * The %VERSION% variable was not available to noresultsheader and noresultsfooter parameters.
 * Fixed and revamp how headers/footers are handled to be more consistent.
- * https://github.com/Alexia/DynamicPageList/issues/48
+	* https://github.com/Alexia/DynamicPageList/issues/48
 * Fixed a fundamental flaw in how parameters are tested.
- * https://github.com/Alexia/DynamicPageList/issues/48
+	* https://github.com/Alexia/DynamicPageList/issues/48
 * Fixed how headers/footers are checked for being empty.
- * https://github.com/Alexia/DynamicPageList/issues/48
+	* https://github.com/Alexia/DynamicPageList/issues/48
 * Mediawiki 1.24+ compatibility changes for extension registration and loading.
- * https://github.com/Alexia/DynamicPageList/issues/46
- * $dplSettings configuration variable has been renamed to $wgDplSettings to facilitate this change.  Existing configurations will need to be updated.
+	* https://github.com/Alexia/DynamicPageList/issues/46
+	* $dplSettings configuration variable has been renamed to $wgDplSettings to facilitate this change.  Existing configurations will need to be updated.
 
 #Version 3.0.5
 * Fixed an issue with detecting how many categories were added to a query.
- * https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
+	* https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
 * Reverted to the old hard coded method of which categorylinks table to use for the addfirstcategorydate parameter.  This resolves issues variable parameters used in conjunction with it.
- * https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
+	* https://github.com/Alexia/DynamicPageList/commit/30c7cbfb7bc1c82f5c53f405bdf269bfe1fd62d3
 * Fixed and improved the functionality of statements that created "NOT IN" or "!=" SQL where conditions.
- * https://github.com/Alexia/DynamicPageList/commit/df82d75bf9fd81968ef77729b1542ff32f4852b5
+	* https://github.com/Alexia/DynamicPageList/commit/df82d75bf9fd81968ef77729b1542ff32f4852b5
 * Fixed the reset parameter being broken due to a typographical error.
- * https://github.com/Alexia/DynamicPageList/issues/52
+	* https://github.com/Alexia/DynamicPageList/issues/52
 
 #Version 3.0.6
 * Fixed a regression with a previous fix related to category counting.
- * https://github.com/Alexia/DynamicPageList/issues/53
+	* https://github.com/Alexia/DynamicPageList/issues/53
 
 #Version 3.0.7
 * Using ordermethod=firstedit with certain other parameters would cause SQL generation errors.
- * https://github.com/Alexia/DynamicPageList/issues/57
+	* https://github.com/Alexia/DynamicPageList/issues/57
 * Fixed implementation of CategoryViewer.
- * https://github.com/Alexia/DynamicPageList/issues/55
+	* https://github.com/Alexia/DynamicPageList/issues/55
 * Fixed an issue that was causing Article class taint across separate tag parses.
- * https://github.com/Alexia/DynamicPageList/commit/74f99a3c2bbdeb5a076705369fc6d3df17e40810
+	* https://github.com/Alexia/DynamicPageList/commit/74f99a3c2bbdeb5a076705369fc6d3df17e40810
 * In relation to the taint issue an error check was put in place to prevent invalid articles from passing through.
- * https://github.com/Alexia/DynamicPageList/commit/5fc841f6bdae4ea8c63bbb3334125120889970bf
+	* https://github.com/Alexia/DynamicPageList/commit/5fc841f6bdae4ea8c63bbb3334125120889970bf
 
 #Version 3.0.8
 * Changed instances of $dplSettings in language strings to $wgDplSettings.
 * Moved the DPL template installation to the database updater.  Previously this was done on every page load and would also interfere with Special:Import.
 * Fixed end resets and eliminates being flipped for what context(function or tag) they should run.
 * DPL will no longer handle the raw <section> tag outside of the DPL context by default.  It will still handle <section> tags found inside a DPL context.
- * New setting: $wgDplSettings['handleSectionTag'], default of false.  Set this to true for the old broken behavior.
+	* New setting: $wgDplSettings['handleSectionTag'], default of false.  Set this to true for the old broken behavior.
 
 #Version 3.0.9
 * Fixed interaction with Extension:HitCounters that was causing a fatal exception.
@@ -589,38 +589,38 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 #Version 3.0.10
 * Really fixed ordermethod=firstedit this time thanks to cillianderoiste.
- * https://github.com/Alexia/DynamicPageList/pull/13
+	* https://github.com/Alexia/DynamicPageList/pull/13
 * Fixed a warning that could occur in uncommon cases.
- * https://github.com/Alexia/DynamicPageList/issues/11
+	* https://github.com/Alexia/DynamicPageList/issues/11
 * Fixed and improved parameters that take regular expressions.
- * Regular expressions are now validated to prevent warnings from being tossed and DPL will now provide a generic error that the parameter was bad.
+	* Regular expressions are now validated to prevent warnings from being tossed and DPL will now provide a generic error that the parameter was bad.
 * Fixed various uses of deprecated language function calls.
 
 #Version 3.0.11
 * Fixed a bug introduced in 3.0.10 related to database regular expressions.
- * https://github.com/Alexia/DynamicPageList/issues/15
+	* https://github.com/Alexia/DynamicPageList/issues/15
 * Fixed empty category headings throwing warnings.
 * Fixed the #dplmatrix parser function throwing errors if the sixth parameter was omitted.
 
 #Version 3.0.12
 * Fixed SQL debug output being broken.
- * https://github.com/Alexia/DynamicPageList/issues/19
- * https://github.com/Alexia/DynamicPageList/pull/21
+	* https://github.com/Alexia/DynamicPageList/issues/19
+	* https://github.com/Alexia/DynamicPageList/pull/21
 * Fixed E_NOTICE attempting to access null as an array.
- * https://github.com/Alexia/DynamicPageList/pull/20
+	* https://github.com/Alexia/DynamicPageList/pull/20
 * Fixed #dplreplace throwing errors if parameters were not passed.
 
 #Version 3.1.0
 * Update to WikiPage and ContenHandler classes for article modifications.
- * https://github.com/Alexia/DynamicPageList/pull/26
+	* https://github.com/Alexia/DynamicPageList/pull/26
 * Swap out deprecated `NS_IMAGE` define for `NS_FILE`.
- * https://github.com/Alexia/DynamicPageList/pull/27
+	* https://github.com/Alexia/DynamicPageList/pull/27
 * Fix issue with an issue with a parameter not always being an array passed into array merge. - Thanks to plegault3397 and Developaws.
- * https://github.com/Alexia/DynamicPageList/issues/24
- * https://github.com/Alexia/DynamicPageList/pull/28
+	* https://github.com/Alexia/DynamicPageList/issues/24
+	* https://github.com/Alexia/DynamicPageList/pull/28
 * Improved performance of lastrevisionbefore/firstrevisionsince for small result sets. - Thanks to Cotto.
- * https://github.com/Alexia/DynamicPageList/pull/29
+	* https://github.com/Alexia/DynamicPageList/pull/29
 * Fixed issue with ORDER BY sort direction not applying to all columns and only the last column. - Thanks to Cotto.
- * https://github.com/Alexia/DynamicPageList/pull/30
+	* https://github.com/Alexia/DynamicPageList/pull/30
 * Ability to user relative timestamps for limiting query results.  Best used with allowcachedresults=false. - Thanks to Cotto.
- * https://github.com/Alexia/DynamicPageList/pull/31
+	* https://github.com/Alexia/DynamicPageList/pull/31
