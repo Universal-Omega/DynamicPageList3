@@ -123,6 +123,7 @@ class Parameters extends ParametersData {
 
 			//Timestamps
 			if (array_key_exists('timestamp', $parameterData) && $parameterData['timestamp'] === true) {
+				$option = strtolower($option);
 				switch ($option) {
 					case 'today':
 					case 'last hour':
