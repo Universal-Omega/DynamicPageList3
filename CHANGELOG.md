@@ -609,3 +609,18 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed E_NOTICE attempting to access null as an array.
  * https://github.com/Alexia/DynamicPageList/pull/20
 * Fixed #dplreplace throwing errors if parameters were not passed.
+
+#Version 3.1.0
+* Update to WikiPage and ContenHandler classes for article modifications.
+ * https://github.com/Alexia/DynamicPageList/pull/26
+* Swap out deprecated `NS_IMAGE` define for `NS_FILE`.
+ * https://github.com/Alexia/DynamicPageList/pull/27
+* Fix issue with an issue with a parameter not always being an array passed into array merge. - Thanks to plegault3397 and Developaws.
+ * https://github.com/Alexia/DynamicPageList/issues/24
+ * https://github.com/Alexia/DynamicPageList/pull/28
+* Improved performance of lastrevisionbefore/firstrevisionsince for small result sets. - Thanks to Cotto.
+ * https://github.com/Alexia/DynamicPageList/pull/29
+* Fixed issue with ORDER BY sort direction not applying to all columns and only the last column. - Thanks to Cotto.
+ * https://github.com/Alexia/DynamicPageList/pull/30
+* Ability to user relative timestamps for limiting query results.  Best used with allowcachedresults=false. - Thanks to Cotto.
+ * https://github.com/Alexia/DynamicPageList/pull/31

@@ -114,7 +114,7 @@ class DynamicPageListHooks {
 	 */
 	static public function onRegistration() {
 		if (!defined('DPL_VERSION')) {
-			define('DPL_VERSION', '3.0.12');
+			define('DPL_VERSION', '3.1.0');
 		}
 	}
 
