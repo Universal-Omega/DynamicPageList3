@@ -779,6 +779,23 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'addeditdate' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _addeditdate($option) {
+		$this->addTable('revision', 'rev');
+		$this->addSelect(['rev.rev_timestamp']);
+		$this->addWhere(
+			[
+				$this->tableNames['page'].'.page_id = rev.rev_page',
+			]
+		);
+	}
+
+	/**
 	 * Set SQL for 'addpagecounter' parameter.
 	 *
 	 * @access	private
