@@ -828,7 +828,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp < '.$this->_convertTimestamp($option)
+				'rev.rev_timestamp < '.$this->convertTimestamp($option)
 			]
 		);
 	}
@@ -853,7 +853,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp >= '.$this->_convertTimestamp($option)
+				'rev.rev_timestamp >= '.$this->convertTimestamp($option)
 			]
 		);
 	}
@@ -1028,7 +1028,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$this->_convertTimestamp($option).')'
+				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$this->convertTimestamp($option).')'
 			]
 		);
 	}
@@ -1149,13 +1149,13 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp < '.$this->DB->addQuotes($option)
+				'rev.rev_timestamp < '.$this->convertTimestamp($option)
 			]
 		);
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$this->_convertTimestamp($option).')'
+				'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$this->convertTimestamp($option).')'
 			]
 		);
 	}
@@ -2077,7 +2077,7 @@ class Query {
 	 * @param	mixed int or string
 	 * @return	integer
 	 */
-	private function _convertTimestamp($inputDate) {
+	private function convertTimestamp($inputDate) {
 		$timestamp = $inputDate;
 		switch ($inputDate) {
 			case 'today':
