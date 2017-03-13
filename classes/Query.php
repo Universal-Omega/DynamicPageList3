@@ -627,6 +627,52 @@ class Query {
 	}
 
 	/**
+	 * Helper method to handle relative timestamps.
+	 *
+	 * @access	private
+	 * @param	mixed	int or string
+	 * @return	integer
+	 */
+	private function convertTimestamp($inputDate) {
+		$timestamp = $inputDate;
+		switch ($inputDate) {
+			case 'today':
+				$timestamp = date('YmdHis');
+				break;
+			case 'last hour':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1H'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last day':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1D'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last week':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P7D'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last month':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1M'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last year':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1Y'));
+				$timestamp = $date->format('YmdHis');
+				break;
+		}
+
+		if (is_numeric($timestamp)) {
+			return $this->DB->addQuotes($timestamp);
+		}
+		return 0;
+	}
+
+	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
 	 * @access	private
@@ -2068,50 +2114,6 @@ class Query {
 			$where .= implode(' OR ', $ors).'))';
 		}
 		$this->addWhere($where);
-	}
-
-	/**
-	 * Helper method to handle timestamps.
-	 *
-	 * @access	private
-	 * @param	mixed int or string
-	 * @return	integer
-	 */
-	private function convertTimestamp($inputDate) {
-		$timestamp = $inputDate;
-		switch ($inputDate) {
-			case 'today':
-				$timestamp = date('YmdHis');
-				break;
-			case 'last hour':
-				$date = new \DateTime();
-				$date->sub(new \DateInterval('P1H'));
-				$timestamp = $date->format('YmdHis');
-				break;
-			case 'last day':
-				$date = new \DateTime();
-				$date->sub(new \DateInterval('P1D'));
-				$timestamp = $date->format('YmdHis');
-				break;
-			case 'last week':
-				$date = new \DateTime();
-				$date->sub(new \DateInterval('P7D'));
-				$timestamp = $date->format('YmdHis');
-				break;
-			case 'last month':
-				$date = new \DateTime();
-				$date->sub(new \DateInterval('P1M'));
-				$timestamp = $date->format('YmdHis');
-				break;
-			case 'last year':
-				$date = new \DateTime();
-				$date->sub(new \DateInterval('P1Y'));
-				$timestamp = $date->format('YmdHis');
-				break;
-		}
-		if (is_numeric($timestamp)) {
-			return $this->DB->addQuotes($timestamp);
-		}
 	}
 }
 ?>
