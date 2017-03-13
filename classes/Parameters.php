@@ -123,11 +123,22 @@ class Parameters extends ParametersData {
 
 			//Timestamps
 			if (array_key_exists('timestamp', $parameterData) && $parameterData['timestamp'] === true) {
-				$option = str_pad(preg_replace('#[^0-9]#', '', $option), 14, '0');
-				$option = wfTimestamp(TS_MW, $option);
+				switch ($option) {
+					case 'today':
+					case 'last hour':
+					case 'last day':
+					case 'last week':
+					case 'last month':
+					case 'last year':
+						break;
+					default:
+						$option = str_pad(preg_replace('#[^0-9]#', '', $option), 14, '0');
+						$option = wfTimestamp(TS_MW, $option);
 
-				if ($option === false) {
-					$success = false;
+						if ($option === false) {
+							$success = false;
+						}
+						break;
 				}
 			}
 

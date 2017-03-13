@@ -828,7 +828,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp < '.$this->DB->addQuotes($option)
+				'rev.rev_timestamp < '.$this->_convertTimestamp($option)
 			]
 		);
 	}
@@ -853,7 +853,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp >= '.$this->DB->addQuotes($option)
+				'rev.rev_timestamp >= '.$this->_convertTimestamp($option)
 			]
 		);
 	}
@@ -1028,7 +1028,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$this->DB->addQuotes($option).')'
+				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= '.$this->_convertTimestamp($option).')'
 			]
 		);
 	}
@@ -1155,7 +1155,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'].'.page_id = rev.rev_page',
-				'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$this->DB->addQuotes($option).')'
+				'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM '.$this->tableNames['revision'].' AS rev_aux_bef WHERE rev_aux_bef.rev_page=rev.rev_page AND rev_aux_bef.rev_timestamp < '.$this->_convertTimestamp($option).')'
 			]
 		);
 	}
@@ -2068,6 +2068,50 @@ class Query {
 			$where .= implode(' OR ', $ors).'))';
 		}
 		$this->addWhere($where);
+	}
+
+	/**
+	 * Helper method to handle timestamps.
+	 *
+	 * @access	private
+	 * @param	mixed int or string
+	 * @return	integer
+	 */
+	private function _convertTimestamp($inputDate) {
+		$timestamp = $inputDate;
+		switch ($inputDate) {
+			case 'today':
+				$timestamp = date('YmdHis');
+				break;
+			case 'last hour':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1H'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last day':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1D'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last week':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P7D'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last month':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1M'));
+				$timestamp = $date->format('YmdHis');
+				break;
+			case 'last year':
+				$date = new \DateTime();
+				$date->sub(new \DateInterval('P1Y'));
+				$timestamp = $date->format('YmdHis');
+				break;
+		}
+		if (is_numeric($timestamp)) {
+			return $this->DB->addQuotes($timestamp);
+		}
 	}
 }
 ?>
