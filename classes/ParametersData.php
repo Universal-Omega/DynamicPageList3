@@ -778,11 +778,11 @@ class ParametersData {
 		],
 		'updaterules' => [
 			'default'		=> null,
-			'permission'	=> ['dpl_param_update_rules']
+			'permission'	=> 'dpl_param_update_rules'
 		],
 		'deleterules' => [
 			'default'		=> null,
-			'permission'	=> ['dpl_param_delete_rules']
+			'permission'	=> 'dpl_param_delete_rules'
 		],
 
 		/**
