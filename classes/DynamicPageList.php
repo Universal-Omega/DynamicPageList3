@@ -1048,7 +1048,7 @@ class DynamicPageList {
 		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
 		if (count($permission_errors) == 0) {
 			$articleX = \WikiPage::factory($titleX);
-			$articleXContent = \ContentHandler::makeContent($text, $pageX->getTitle());
+			$articleXContent = \ContentHandler::makeContent($text, $titleX);
 			$articleX->doEditContent($articleXContent, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
 			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
 			return '';
