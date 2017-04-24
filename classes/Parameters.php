@@ -69,7 +69,7 @@ class Parameters extends ParametersData {
 		if (array_key_exists('permission', $parameterData)) {
 			global $wgUser;
 			if (!$wgUser->isAllowed($parameterData['permission'])) {
-				throw new PermissionsError($parameterData['permission']);
+				throw new \PermissionsError($parameterData['permission']);
 				return;
 			}
 		}
