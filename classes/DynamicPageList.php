@@ -1049,7 +1049,7 @@ class DynamicPageList {
 		if (count($permission_errors) == 0) {
 			$articleX = \WikiPage::factory($titleX);
 			$articleXContent = \ContentHandler::makeContent($text, $titleX);
-			$articleX->doEditContent($articleXContent, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
+			$articleX->doQuickEditContent($articleXContent, $wgUser, $summary);
 			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
 			return '';
 		} else {
