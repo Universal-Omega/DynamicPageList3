@@ -1331,7 +1331,7 @@ class DynamicPageList {
 		} else {
 			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
 		}
-		$message .= "<pre><nowiki>"."\n".$text."</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
+		$message .= "<pre><nowiki>\n{$text}</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
 		return $message;
 	}
 
