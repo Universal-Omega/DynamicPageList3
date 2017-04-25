@@ -977,7 +977,7 @@ class DynamicPageList {
 				foreach ($hidden as $hide) {
 					$form .= "<input type='hidden' ".$hide." />";
 				}
-				$form .= "<input type='hidden' name='token' value='{$wgUser->getEditToken()}'/>";
+				$form .= "<input type='hidden' name='wpEditToken' value='{$wgUser->getEditToken()}'/>";
 				foreach ($preview as $prev) {
 					$form .= "<input type='submit' ".$prev." /> ";
 				}
@@ -1039,7 +1039,7 @@ class DynamicPageList {
 	public function updateArticle($title, $text, $summary) {
 		global $wgUser, $wgRequest, $wgOut;
 
-		if (!$wgUser->matchEditToken($wgRequest->getVal('token'))) {
+		if (!$wgUser->matchEditToken($wgRequest->getVal('wpEditToken'))) {
 			$wgOut->addWikiMsg('sessionfailure');
 			return 'session failure';
 		}
