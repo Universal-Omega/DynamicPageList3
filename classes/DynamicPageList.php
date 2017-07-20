@@ -712,6 +712,7 @@ class DynamicPageList {
 		// increase start value of ordered lists at multi-column output
 		$actStart = $mode->sListStart;
 		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actStart);
+		$start    = intval($start);
 		if ($start != '') {
 			$start += $iCount;
 			$mode->sListStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
