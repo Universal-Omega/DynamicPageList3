@@ -73,33 +73,6 @@ class DynamicPageList {
 		// can lead to links not being shown in the original document (probably the UIQ_QINU-tags no longer
 		// get replaced properly; in combination with the patch however, it does not do any harm.
 
-		// The CITE extension registers a hook on parser->clearState
-		// We must UNDO the effect of that call (Cite->clearState) because otherwise all Cititations would be lost
-		// that were made before a DPL call; we borrow a handle to the cite object from the parser´s tag hooks
-
-		$citeObject = null;
-		// store current state of Cite Object
-		if (isset($parser->mTagHooks['references'])) {
-			$citeObject              = $parser->mTagHooks['references'][0];
-			$tmpCiteGroupCnt         = $citeObject->mGroupCnt;
-			$tmpCiteOutCnt           = $citeObject->mOutCnt;
-			$tmpCiteCallCnt          = $citeObject->mCallCnt;
-			$tmpCiteRefs             = $citeObject->mRefs;
-			$tmpCiteReferencesErrors = $citeObject->mReferencesErrors;
-			$tmpCiteRefCallStack     = $citeObject->mRefCallStack;
-		}
-		// now clear the state
-		$this->mParser->clearState(); // eliminated to avoid conflicht with CITE extension
-		// restore Cite Object
-		if ($citeObject != null) {
-			$citeObject->mGroupCnt         = $tmpCiteGroupCnt;
-			$citeObject->mOutCnt           = $tmpCiteOutCnt;
-			$citeObject->mCallCnt          = $tmpCiteCallCnt;
-			$citeObject->mRefs             = $tmpCiteRefs;
-			$citeObject->mReferencesErrors = $tmpCiteReferencesErrors;
-			$citeObject->mRefCallStack     = $tmpCiteRefCallStack;
-		}
-
 		$this->mParserOptions = $parser->mOptions;
 		$this->mParserTitle   = $parser->mTitle;
 
@@ -712,6 +685,7 @@ class DynamicPageList {
 		// increase start value of ordered lists at multi-column output
 		$actStart = $mode->sListStart;
 		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actStart);
+		$start    = intval($start);
 		if ($start != '') {
 			$start += $iCount;
 			$mode->sListStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
