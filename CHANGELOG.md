@@ -487,7 +487,8 @@
 * Added proprietory function to sort bidding sequences for the card game of 'Bridge' according to suit rank
 * Added workaround to eliminate problems with cite extension (DPL calls parser clearState which erases references)
 * Added a CAST to CHAR at all LOWER statemens in SQL (MediaWiki changed to varbinary types since 1.17)
-* # Version 2.01
+
+# Version 2.01
 * Re-merged all changes from SVN since DPL 1.8.6
 
 # Version 3.0.0
