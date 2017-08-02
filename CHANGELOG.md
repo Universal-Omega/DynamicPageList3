@@ -624,3 +624,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 	* https://github.com/Alexia/DynamicPageList/pull/30
 * Ability to user relative timestamps for limiting query results.  Best used with allowcachedresults=false. - Thanks to Cotto.
 	* https://github.com/Alexia/DynamicPageList/pull/31
+
+#Version 3.1.1
+* Issues with legacy Extension:Cite conflicts have been resolved in the Cite extension and this in turn breaks DynamicPageList for MediaWiki 1.29.  FoXFTW removed the now unnecessary code.
+	* https://github.com/Alexia/DynamicPageList/pull/42

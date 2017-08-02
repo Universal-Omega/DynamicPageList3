@@ -37,7 +37,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 |DynamicPageList
 |download-link=[https://github.com/Alexia/DynamicPageList/archive/3.1.1.zip Download, extract]
 |custom-steps=* [[#Configuration|If necessary configure as required.]]
-|registration=yes
+|registration=required
 }}
 
 == Configuration ==
