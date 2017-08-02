@@ -628,3 +628,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 #Version 3.1.1
 * Issues with legacy Extension:Cite conflicts have been resolved in the Cite extension and this in turn breaks DynamicPageList for MediaWiki 1.29.  FoXFTW removed the now unnecessary code.
 	* https://github.com/Alexia/DynamicPageList/pull/42
+* Now requires a wfLoadExtension() entry point.
