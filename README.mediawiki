@@ -5,14 +5,14 @@
 |type2       = parser function
 |author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
 |image       =
-|version     = 3.1.0
-|update      = 2017-03-14
-|mediawiki   = 1.23+
+|version     = 3.1.1
+|update      = 2017-08-02
+|mediawiki   = 1.25+
 |php         = 5.6+
-|download    = {{ {{TNTN|GithubDownload}} |Alexia|DynamicPageList}}
+|download    = {{TNT|GithubDownload|Alexia|DynamicPageList}}
 |hook1       = ParserFirstCallInit
 |description = '''Create lists''' of other articles based on their ''category, namespace, title, references'' or ''template usage'' and '''include contents''' or arguments of template calls of those articles into your page.  
-|license     = {{EL|GNUGPL2}}
+|license     = GPL-2.0+
 |example     = [http://help.gamepedia.com/DPL:Manual DPL:Manual - Gamepedia Help Wiki]
 }}
 
@@ -33,22 +33,12 @@ Complex look ups can result in computationally expensive database queries.  Howe
 
 
 == Installation ==
-* [https://github.com/Alexia/DynamicPageList/archive/3.1.0.zip Download] and place the file(s) in a directory called <samp>DynamicPageList</samp> in your <samp>extensions/</samp> folder.
-
-* For Mediawiki 1.19 through 1.23 add the following line to your LocalSettings.php:
-{{#tag:source|require_once "$IP/extensions/DynamicPageList/DynamicPageList.php";
-|lang="php"
-|style="overflow:auto;"
-}}<!-- whitespace fix
--->
-
-* For Mediawiki 1.24 and up add the following line to your LocalSettings.php:
-{{#tag:source|wfLoadExtension("DynamicPageList");
-|lang="php"
-|style="overflow:auto;"
-}}<!-- whitespace fix
--->
-* {{ {{TNTN|Done}} }} Navigate to "Special:Version" on your wiki to verify that the extension is successfully installed.
+{{TNT|ExtensionInstall
+|DynamicPageList
+|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.1.1.zip Download, extract]
+|custom-steps=* [[#Configuration|If necessary configure as required.]]
+|registration=yes
+}}
 
 == Configuration ==
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the '''[http://help.gamepedia.com/DPL:Source_and_Installation#Configuration Source and Installation]''' manual page.
