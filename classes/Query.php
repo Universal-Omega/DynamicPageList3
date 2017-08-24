@@ -1633,6 +1633,7 @@ class Query {
 		$_namespaceIdToText .= ' END';
 
 		$revisionAuxWhereAdded = false;
+		$option = (array)$option;
 		foreach ($option as $orderMethod) {
 			switch ($orderMethod) {
 				case 'category':
