@@ -5,8 +5,8 @@
 |type2       = parser function
 |author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
 |image       =
-|version     = 3.1.1
-|update      = 2017-08-02
+|version     = 3.1.2
+|update      = 2018-03-05
 |mediawiki   = 1.25+
 |php         = 5.6+
 |download    = {{TNT|GithubDownload|Alexia|DynamicPageList}}
@@ -35,7 +35,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 == Installation ==
 {{TNT|ExtensionInstall
 |DynamicPageList
-|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.1.1.zip Download, extract]
+|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.1.2.zip Download, extract]
 |custom-steps=* [[#Configuration|If necessary configure as required.]]
 |registration=required
 }}
@@ -177,11 +177,11 @@ DPL's code execution and database access is typically fast for typical category 
 ===Further Reading===
 DPL can do much more than we can explain here. A complete '''[http://help.gamepedia.com/DPL:Manual manual]''' is available with full parameter documentation.
 
-[[Category:Category extensions{{translation}}]]
-[[Category:List extensions{{translation}}]]
-[[Category:Namespace extensions{{translation}}]]
-[[Category:Special page extensions{{translation}}]]
-[[Category:Table extensions{{translation}}]]
-[[Category:Page content extensions{{translation}}]]
-[[Category:Tag cloud extensions{{translation}}]] <!-- has tag cloud display option -->
-[[Category:Category intersection extensions{{translation}}]]
+[[Category:Category extensions{{#translation:}}]]
+[[Category:List extensions{{#translation:}}]]
+[[Category:Namespace extensions{{#translation:}}]]
+[[Category:Special page extensions{{#translation:}}]]
+[[Category:Table extensions{{#translation:}}]]
+[[Category:Page content extensions{{#translation:}}]]
+[[Category:Tag cloud extensions{{#translation:}}]] <!-- has tag cloud display option -->
+[[Category:Category intersection extensions{{#translation:}}]]

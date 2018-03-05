@@ -630,3 +630,11 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Issues with legacy Extension:Cite conflicts have been resolved in the Cite extension and this in turn breaks DynamicPageList for MediaWiki 1.29.  FoXFTW removed the now unnecessary code.
 	* https://github.com/Alexia/DynamicPageList/pull/42
 * Now requires a wfLoadExtension() entry point.
+
+# Version 3.1.2
+* Fixed issues with ordermethod conflicting with the title parameter and creating artificially limited output.
+	* https://github.com/Alexia/DynamicPageList/pull/32
+	* https://github.com/Alexia/DynamicPageList/issues/44
+* Fixed an E_NOTICE for the addauthor parameter.
+	* https://github.com/Alexia/DynamicPageList/issues/45
+* Fixed sortByPriority not applying correctly in some cases.
