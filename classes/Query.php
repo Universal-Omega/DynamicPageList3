@@ -138,6 +138,13 @@ class Query {
 	private $foundRows = 0;
 
 	/**
+	 * Was the revision auxiliary table select added for firstedit and lastedit?
+	 *
+	 * @var		boolean
+	 */
+	private $revisionAuxWhereAdded = false;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -741,6 +748,23 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'addeditdate' parameter.
+	 *
+	 * @access	private
+	 * @param	mixed	Parameter Option
+	 * @return	void
+	 */
+	private function _addeditdate($option) {
+		$this->addTable('revision', 'rev');
+		$this->addSelect(['rev.rev_timestamp']);
+		$this->addWhere(
+			[
+				$this->tableNames['page'].'.page_id = rev.rev_page',
+			]
+		);
+	}
+
+	/**
 	 * Set SQL for 'addfirstcategorydate' parameter.
 	 *
 	 * @access	private
@@ -765,8 +789,7 @@ class Query {
 	 */
 	private function _addlasteditor($option) {
 		//Addlasteditor can not be used with addauthor.
-		if ( !isset($this->parametersProcessed['addauthor'])
-			 || !$this->parametersProcessed['addauthor'] ) {
+		if (!isset($this->parametersProcessed['addauthor']) || !$this->parametersProcessed['addauthor']) {
 			$this->addTable('revision', 'rev');
 			$this->addWhere(
 				[
@@ -776,23 +799,6 @@ class Query {
 			);
 			$this->_adduser(null, 'rev');
 		}
-	}
-
-	/**
-	 * Set SQL for 'addeditdate' parameter.
-	 *
-	 * @access	private
-	 * @param	mixed	Parameter Option
-	 * @return	void
-	 */
-	private function _addeditdate($option) {
-		$this->addTable('revision', 'rev');
-		$this->addSelect(['rev.rev_timestamp']);
-		$this->addWhere(
-			[
-				$this->tableNames['page'].'.page_id = rev.rev_page',
-			]
-		);
 	}
 
 	/**
@@ -1649,7 +1655,6 @@ class Query {
 		}
 		$_namespaceIdToText .= ' END';
 
-		$revisionAuxWhereAdded = false;
 		$option = (array)$option;
 		foreach ($option as $orderMethod) {
 			switch ($orderMethod) {
@@ -1718,7 +1723,7 @@ class Query {
 							'rev.rev_timestamp'
 						]
 					);
-					if (!$revisionAuxWhereAdded) {
+					if (!$this->revisionAuxWhereAdded) {
 						$this->addWhere(
 							[
 								"{$this->tableNames['page']}.page_id = rev.rev_page",
@@ -1726,7 +1731,7 @@ class Query {
 							]
 						);
 					}
-					$revisionAuxWhereAdded = true;
+					$this->revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
 					if (\DynamicPageListHooks::isLikeIntersection()) {
@@ -1740,7 +1745,7 @@ class Query {
 						$this->addOrderBy('rev.rev_timestamp');
 						$this->addTable('revision', 'rev');
 						$this->addSelect(['rev.rev_timestamp']);
-						if (!$revisionAuxWhereAdded) {
+						if (!$this->revisionAuxWhereAdded) {
 							$this->addWhere(
 								[
 									"{$this->tableNames['page']}.page_id = rev.rev_page",
@@ -1748,7 +1753,7 @@ class Query {
 								]
 							);
 						}
-						$revisionAuxWhereAdded = true;
+						$this->revisionAuxWhereAdded = true;
 					}
 					break;
 				case 'pagesel':
@@ -1964,6 +1969,7 @@ class Query {
 		}
 		$where = '('.implode(' OR ', $ors).')';
 		$this->addWhere($where);
+		$this->revisionAuxWhereAdded = true;
 	}
 
 	/**

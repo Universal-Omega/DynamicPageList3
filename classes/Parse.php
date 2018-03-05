@@ -172,7 +172,7 @@ class Parse {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_NOSELECTION);
 			return $this->getFullOutput();
 		}
-		$cleanParameters = $this->parameters->sortByPriority($cleanParameters);
+		$cleanParameters = Parameters::sortByPriority($cleanParameters);
 		$this->parameters->setParameter('includeuncat', false); // to check if pseudo-category of Uncategorized pages is included
 
 		foreach ($cleanParameters as $parameter => $option) {
