@@ -39,9 +39,6 @@ class DynamicPageListHooks {
 
 	const FATAL_DOMINANTSECTIONRANGE				= 1010;	// $1: the number of arguments in includepage
 
-	const FATAL_NOCLVIEW							= 1011;	// $1: prefix_dpl_clview where 'prefix' is the prefix of your mediawiki table names
-															// $2: SQL query to create the prefix_dpl_clview on your mediawiki DB
-
 	const FATAL_OPENREFERENCES						= 1012;
 
 	const FATAL_MISSINGPARAMFUNCTION				= 1022;
@@ -114,7 +111,7 @@ class DynamicPageListHooks {
 	 */
 	static public function onRegistration() {
 		if (!defined('DPL_VERSION')) {
-			define('DPL_VERSION', '3.1.2');
+			define('DPL_VERSION', '3.1.3');
 		}
 	}
 
@@ -609,6 +606,11 @@ class DynamicPageListHooks {
 		$extDir = __DIR__;
 
 		$updater->addExtensionUpdate([[__CLASS__, 'createDPLTemplate']]);
+
+		$db = wfGetDB(DB_MASTER);
+		if (!$db->tableExists('dpl_clview')) {
+			$db->query("CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;");
+		}
 
 		return true;
 	}

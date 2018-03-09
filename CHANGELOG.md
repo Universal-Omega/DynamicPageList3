@@ -638,3 +638,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed an E_NOTICE for the addauthor parameter.
 	* https://github.com/Alexia/DynamicPageList/issues/45
 * Fixed sortByPriority not applying correctly in some cases.
+
+# Version 3.1.3
+* The dpl_clview view will just be created on database update instead of complaining on wiki text parsing that the administrator did not do it manually.
