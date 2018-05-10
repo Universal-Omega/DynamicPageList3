@@ -44,8 +44,8 @@ class ListMode {
 			$inlinetext = '&#160;-&#160;';
 		}
 		$this->name = $listmode;
-		$_listattr  = ($listattr == '') ? '' : ' '.Sanitizer::fixTagAttributes($listattr, 'ul');
-		$_itemattr  = ($itemattr == '') ? '' : ' '.Sanitizer::fixTagAttributes($itemattr, 'li');
+		$_listattr  = ($listattr == '') ? '' : ' '.\Sanitizer::fixTagAttributes($listattr, 'ul');
+		$_itemattr  = ($itemattr == '') ? '' : ' '.\Sanitizer::fixTagAttributes($itemattr, 'li');
 
 		$this->sSectionTags        = $sectionSeparators;
 		$this->aMultiSecSeparators = $multiSectionSeparators;
