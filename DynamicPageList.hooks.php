@@ -605,7 +605,7 @@ class DynamicPageListHooks {
 	static public function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
 		$extDir = __DIR__;
 
-		$updater->addExtensionUpdate([[__CLASS__, 'createDPLTemplate']]);
+		$updater->addPostDatabaseUpdateMaintenance( 'DPL\\CreateTemplateUpdateMaintenance' );
 
 		$db = wfGetDB(DB_MASTER);
 		if (!$db->tableExists('dpl_clview')) {
@@ -613,27 +613,6 @@ class DynamicPageListHooks {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Creates the DPL template when updating.
-	 *
-	 * @access	public
-	 * @return	void
-	 */
-	static public function createDPLTemplate() {
-		//Make sure page "Template:Extension DPL" exists
-		$title = Title::newFromText('Template:Extension DPL');
-
-		if (!$title->exists()) {
-			$page = WikiPage::factory($title);
-			$pageContent = ContentHandler::makeContent("<noinclude>This page was automatically created. It serves as an anchor page for all '''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of [http://mediawiki.org/wiki/Extension:DynamicPageList Extension:DynamicPageList (DPL)].</noinclude>", $title);
-			$page->doEditContent(
-				$pageContent,
-				$title,
-				EDIT_NEW | EDIT_FORCE_BOT
-			);
-		}
 	}
 }
 ?>
