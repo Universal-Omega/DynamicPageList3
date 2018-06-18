@@ -378,8 +378,6 @@ class Parse {
 
 		$this->triggerEndResets($finalOutput, $reset, $eliminate, $isParserTag);
 
-		wfProfileOut(__METHOD__);
-
 		return $finalOutput;
 	}
 
