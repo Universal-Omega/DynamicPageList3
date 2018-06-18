@@ -319,8 +319,6 @@ class Query {
 			throw new \MWException(__METHOD__.": ".wfMessage('dpl_query_error', DPL_VERSION, $this->DB->lastError())->text());
 		}
 
-		wfProfileOut(__METHOD__.": Database Query");
-
 		return $result;
 	}
 
