@@ -129,7 +129,6 @@ class Parse {
 	 * @return	string	Wiki/HTML Output
 	 */
 	public function parse($input, \Parser $parser, &$reset, &$eliminate, $isParserTag = false) {
-		wfProfileIn(__METHOD__);
 		$dplStartTime = microtime(true);
 		$this->parser = $parser;
 
