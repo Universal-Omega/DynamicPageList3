@@ -169,8 +169,6 @@ class Query {
 	public function buildAndSelect($calcRows = false) {
 		global $wgNonincludableNamespaces;
 
-		wfProfileIn(__METHOD__.": Query Build");
-
 		$options = [];
 
 		$parameters = $this->parameters->getAllParameters();
@@ -263,10 +261,6 @@ class Query {
 			$categoriesGoal = false;
 			$select = $this->select;
 		}
-
-		wfProfileOut(__METHOD__.": Query Build");
-
-		wfProfileIn(__METHOD__.": Database Query");
 
 		$queryError = false;
 		try {
