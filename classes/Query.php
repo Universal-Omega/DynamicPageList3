@@ -169,8 +169,6 @@ class Query {
 	public function buildAndSelect($calcRows = false) {
 		global $wgNonincludableNamespaces;
 
-		wfProfileIn(__METHOD__.": Query Build");
-
 		$options = [];
 
 		$parameters = $this->parameters->getAllParameters();
@@ -264,10 +262,6 @@ class Query {
 			$select = $this->select;
 		}
 
-		wfProfileOut(__METHOD__.": Query Build");
-
-		wfProfileIn(__METHOD__.": Database Query");
-
 		$queryError = false;
 		try {
 			if ($categoriesGoal) {
@@ -324,8 +318,6 @@ class Query {
 		if ($queryError == true || $result === false) {
 			throw new \MWException(__METHOD__.": ".wfMessage('dpl_query_error', DPL_VERSION, $this->DB->lastError())->text());
 		}
-
-		wfProfileOut(__METHOD__.": Database Query");
 
 		return $result;
 	}
