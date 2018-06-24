@@ -264,7 +264,7 @@ class Article {
 		}
 
 		//STORE selected image
-		if ( is_array( $parameters->getParameter('imageused') ) count($parameters->getParameter('imageused')) > 0) {
+		if ( is_array( $parameters->getParameter('imageused') ) && count($parameters->getParameter('imageused')) > 0) {
 			if (!isset($row['image_sel_title'])) {
 				$article->mImageSelTitle = 'unknown image';
 			} else {
