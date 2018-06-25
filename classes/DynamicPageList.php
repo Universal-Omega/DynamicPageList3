@@ -535,7 +535,7 @@ class DynamicPageList {
 						}
 
 						// separator tags
-						if (count($mode->sSectionTags) == 1) {
+						if (is_array($mode->sSectionTags) && count($mode->sSectionTags) == 1) {
 							// If there is only one separator tag use it always
 							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
 						} elseif (isset($mode->sSectionTags[$s * 2])) {
