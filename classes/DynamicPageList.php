@@ -440,12 +440,14 @@ class DynamicPageList {
 						}
 
 						// find out if the user specified an includematch / includenotmatch condition
-						if (count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '') {
+						if ( is_array($this->mIncSecLabelsMatch) &&
+						     count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '' ) {
 							$mustMatch = $this->mIncSecLabelsMatch[$s];
 						} else {
 							$mustMatch = '';
 						}
-						if (count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '') {
+						if ( is_array($this->mIncSecLabelsNotMatch) &&
+						     count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '' ) {
 							$mustNotMatch = $this->mIncSecLabelsNotMatch[$s];
 						} else {
 							$mustNotMatch = '';
