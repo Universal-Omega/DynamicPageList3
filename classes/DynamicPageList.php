@@ -440,12 +440,14 @@ class DynamicPageList {
 						}
 
 						// find out if the user specified an includematch / includenotmatch condition
-						if (count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '') {
+						if ( is_array($this->mIncSecLabelsMatch) &&
+						     count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '' ) {
 							$mustMatch = $this->mIncSecLabelsMatch[$s];
 						} else {
 							$mustMatch = '';
 						}
-						if (count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '') {
+						if ( is_array($this->mIncSecLabelsNotMatch) &&
+						     count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '' ) {
 							$mustNotMatch = $this->mIncSecLabelsNotMatch[$s];
 						} else {
 							$mustNotMatch = '';
@@ -533,7 +535,7 @@ class DynamicPageList {
 						}
 
 						// separator tags
-						if (count($mode->sSectionTags) == 1) {
+						if (is_array($mode->sSectionTags) && count($mode->sSectionTags) == 1) {
 							// If there is only one separator tag use it always
 							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
 						} elseif (isset($mode->sSectionTags[$s * 2])) {
