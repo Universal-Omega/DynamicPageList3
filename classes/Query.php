@@ -339,7 +339,7 @@ class Query {
 	 * @return	string	SQL Query
 	 */
 	public function getSqlQuery() {
-	    return $this->sqlQuery;
+		return $this->sqlQuery;
 	}
 
 	/**

@@ -38,10 +38,10 @@ class LST {
 	 * @param $part1
 	 * @return bool
 	 */
-	static public function open( $parser, $part1 ) {
+	static public function open($parser, $part1) {
 		// Infinite loop test
-		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
+		if (isset($parser->mTemplatePath[$part1])) {
+			wfDebug(__METHOD__ . ": template loop broken at '$part1'\n");
 			return false;
 		} else {
 			$parser->mTemplatePath[$part1] = 1;
@@ -56,12 +56,12 @@ class LST {
 	 * @param $part1
 	 * @return bool
 	 */
-	static public function close( $parser, $part1 ) {
+	static public function close($parser, $part1) {
 		// Infinite loop test
-		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			unset( $parser->mTemplatePath[$part1] );
+		if (isset($parser->mTemplatePath[$part1])) {
+			unset($parser->mTemplatePath[$part1]);
 		} else {
-			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
+			wfDebug(__METHOD__ . ": close unopened template loop at '$part1'\n");
 		}
 	}
 
@@ -115,7 +115,7 @@ class LST {
 	 * @param Parser $parser
 	 * @return string HTML output
 	 */
-	static private function noop( $in, $assocArgs = array(), $parser = null ) {
+	static private function noop($in, $assocArgs = array(), $parser = null) {
 		return '';
 	}
 
@@ -163,8 +163,8 @@ class LST {
 		$count = 0;
 		$offset = 0;
 		$m = array();
-		while ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
-			if ( $m[2][1] > $limit ) {
+		while (preg_match("/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset)) {
+			if ($m[2][1] > $limit) {
 				break;
 			}
 
@@ -666,7 +666,7 @@ class LST {
 								}
 								$found = false;
 								// % in parameter name
-								if (strpos($exParm, '%') !== FALSE) {
+								if (strpos($exParm, '%') !== false) {
 									// %% is a short form for inclusion of %PAGE% and %TITLE%
 									$found = true;
 									$output[$n] .= $dpl->formatTemplateArg($dpl->articleLink($exParm, $article, $iTitleMaxLen), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
@@ -687,7 +687,7 @@ class LST {
 									// numeric parameter
 									$np = 0;
 									foreach ($parms as $parm) {
-										if (strstr($parm, '=') === FALSE) {
+										if (strstr($parm, '=') === false) {
 											++$np;
 										}
 										if ($np != $exParm) {
