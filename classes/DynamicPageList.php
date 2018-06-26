@@ -440,14 +440,12 @@ class DynamicPageList {
 						}
 
 						// find out if the user specified an includematch / includenotmatch condition
-						if ( is_array($this->mIncSecLabelsMatch) &&
-						     count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '' ) {
+						if (is_array($this->mIncSecLabelsMatch) && count($this->mIncSecLabelsMatch) > $s && $this->mIncSecLabelsMatch[$s] != '') {
 							$mustMatch = $this->mIncSecLabelsMatch[$s];
 						} else {
 							$mustMatch = '';
 						}
-						if ( is_array($this->mIncSecLabelsNotMatch) &&
-						     count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '' ) {
+						if (is_array($this->mIncSecLabelsNotMatch) && count($this->mIncSecLabelsNotMatch) > $s && $this->mIncSecLabelsNotMatch[$s] != '') {
 							$mustNotMatch = $this->mIncSecLabelsNotMatch[$s];
 						} else {
 							$mustNotMatch = '';
@@ -630,8 +628,6 @@ class DynamicPageList {
 				if ($article->mContributor != '') {
 					$rBody .= ' . . [[User:'.$article->mContributor.'|'.$article->mContributor." $article->mContrib]]";
 				}
-
-
 
 				if (!empty($article->mCategoryLinks)) {
 					$rBody .= ' . . <small>'.wfMessage('categories').': '.implode(' | ', $article->mCategoryLinks).'</small>';
@@ -1250,7 +1246,6 @@ class DynamicPageList {
 
 		// return "deletion of articles by DPL is disabled.";
 
-
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText = str_replace(";", '°', $rulesText);
@@ -1260,7 +1255,6 @@ class DynamicPageList {
 		$exec      = false;
 		$message   = '';
 		$reason    = '';
-
 
 		foreach ($rules as $rule) {
 			if (preg_match('/^\s*#/', $rule) > 0) {

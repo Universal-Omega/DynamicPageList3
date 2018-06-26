@@ -252,8 +252,7 @@ class Article {
 			$article->mSize = $row['page_len'];
 		}
 		//STORE initially selected PAGE
-		if ( is_array( $parameters->getParameter('linksto') ) &&
-		    ( count($parameters->getParameter('linksto')) || count( $parameters->getParameter('linksfrom') ) ) ) {
+		if (is_array($parameters->getParameter('linksto')) && (count($parameters->getParameter('linksto')) || count($parameters->getParameter('linksfrom')))) {
 			if (!isset($row['sel_title'])) {
 				$article->mSelTitle     = 'unknown page';
 				$article->mSelNamespace = 0;
@@ -264,7 +263,7 @@ class Article {
 		}
 
 		//STORE selected image
-		if ( is_array( $parameters->getParameter('imageused') ) && count($parameters->getParameter('imageused')) > 0) {
+		if (is_array($parameters->getParameter('imageused')) && count($parameters->getParameter('imageused')) > 0) {
 			if (!isset($row['image_sel_title'])) {
 				$article->mImageSelTitle = 'unknown image';
 			} else {
@@ -307,7 +306,6 @@ class Article {
 				$article->mContributor  = $row['contributor'];
 				$article->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
 			}
-
 
 			//USER/AUTHOR(S)
 			// because we are going to do a recursive parse at the end of the output phase

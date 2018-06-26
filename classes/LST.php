@@ -217,7 +217,6 @@ class LST {
 		return $output;
 	}
 
-
 	/**
 	 * Truncate a portion of wikitext so that ..
 	 * ... does not contain (open) html comments
@@ -492,8 +491,6 @@ class LST {
 
 		return $output;
 	}
-
-
 
 	// template inclusion - find the place(s) where template1 is called,
 	// replace its name by template2, then expand template2 and return the result
