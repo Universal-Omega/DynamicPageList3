@@ -31,7 +31,7 @@
 		"DynamicPageListHooks": "DynamicPageList.hooks.php",
 		"DPL\\Article": "classes/Article.php",
 		"DPL\\Config": "classes/Config.php",
-		"DPL\\CreateTemplateUpdateMaintenance": "classes/CreateTemplateUpdateMaintenance.php",
+		"DPL\\DB\\CreateTemplateUpdateMaintenance": "classes/db/CreateTemplateUpdateMaintenance.php",
 		"DPL\\DynamicPageList": "classes/DynamicPageList.php",
 		"DPL\\Logger": "classes/Logger.php",
 		"DPL\\ListMode": "classes/ListMode.php",
