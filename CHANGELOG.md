@@ -641,3 +641,16 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.1.3
 * The dpl_clview view will just be created on database update instead of complaining on wiki text parsing that the administrator did not do it manually.
+
+# Version 3.2.0
+* Various fixes and updates for PHP 7.2 support.
+	* https://github.com/Alexia/DynamicPageList/issues/55
+	* https://github.com/Alexia/DynamicPageList/pull/59
+	* https://github.com/Alexia/DynamicPageList/pull/60
+	* https://github.com/Alexia/DynamicPageList/pull/61
+* Remove wfProfileIn() and wfProfileOut() that were removed from MediaWiki 1.31.
+	* https://github.com/Alexia/DynamicPageList/issues/57
+	* https://github.com/Alexia/DynamicPageList/pull/58
+* Use LoggedUpdateMaintenance to create Template
+	* https://github.com/Alexia/DynamicPageList/pull/56
+* Remove deprecated legacy extension entry point.

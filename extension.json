@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.1.3",
+	"version": "3.2.0",
 	"author": [
 		"[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]",
 		"Alexia E. Smith"
@@ -9,6 +9,9 @@
 	"descriptionmsg": "dpl-desc",
 	"license-name": "GPL-2.0",
 	"type": "parserhook",
+	"requires": {
+		"MediaWiki": ">= 1.27.4"
+	},
 	"GroupPermissions": {
 		"sysop": {
 			"dpl_param_update_rules": true,

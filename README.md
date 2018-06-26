@@ -1,4 +1,4 @@
-#DynamicPageList3
+# DynamicPageList3
 
 The **DynamicPageList3** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](http://help.gamepedia.com/DPL:Manual).
 
@@ -14,10 +14,10 @@ Complex look ups can result in computationally expensive database queries.  Howe
 * Licensing: DynamicPageList3 is released under [GNU General Public License, version 2](https://opensource.org/licenses/GPL-2.0).
 
 
-##Installation
+## Installation
 Please see the [releases page](https://github.com/Alexia/DynamicPageList/releases) for the latest releases.
 
-##Configuration
+## Configuration
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the **[Source and Installation](http://help.gamepedia.com/DPL:Source_and_Installation#Configuration)** manual page.
 
 **Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>.  This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
@@ -42,7 +42,7 @@ The global variable {{manual|$wgNonincludableNamespaces}} is automatically respe
 
 **Note: <code>$wgDplSettings['maxResultCount']</code> is a LIMIT *on the SQL query itself*.  Some DPL query parameters like <code>includematch</code> are applied *after* the SQL query, however, so results here may easily be misleading.**
 
-###Functional Richness
+### Functional Richness
 
 DynamicPageList has many features which are unlocked based on the maximum functional richness level.  There are some that can cause high CPU or database load and should be used sparingly.
 
@@ -53,22 +53,22 @@ DynamicPageList has many features which are unlocked based on the maximum functi
 * <code>$wgDplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites.  Includes debugging parameters for testing and development.
 
 
-##Usage
-###Extended DPL Functionality
+## Usage
+### Extended DPL Functionality
 Extended DPL is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code><DPL> .... </DPL></code>.
 
 *See [Manual - **General Usage and Invocation Syntax**](http://help.gamepedia.com/DPL:General_Usage_and_Invocation_Syntax) and [DPL:Parameters: **Criteria for Page Selection**](http://help.gamepedia.com/DPL:Parameters:_Criteria_for_Page_Selection)*
 
-###Backwards Compatibility
+### Backwards Compatibility
 Functionality compatible with Wikimedia's DPL extension can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>.  Further information can be found on the [Compatibility manual page](http://help.gamepedia.com/DPL:Compatibility).
 
-##Usage Philosophy and Overview
+## Usage Philosophy and Overview
 With the assumption there are some articles writtne about *countries* those articles will typically have three things in common:
 * They will belong to a common category
 * They will have a similar chapter structure, i.e. they will contain paragraphs named 'Religion' or 'History'
 * They will use a template which is used to present highly structured short data items ('Capital', 'Inhabitants', ..) in a nice way (e.g. as a wikitable)
 
-###Generate a Report Based on **countries**
+### Generate a Report Based on **countries**
 If there was a need to assemble a report of what countries practice a certain religion this could be easily done with the **category** and **linksto** parameters.
 <pre><nowiki>
 {{#dpl:
@@ -86,7 +86,7 @@ With DPL one could:
 * Present the result in a sortable table (e.g.)
 * Generate multiple column output
 
-###Which steps are necessary?
+### Which steps are necessary?
 **Find the articles you want to list:**
 * Select by a logical combination (AND,OR,NOT) of categories
 * Specify a range for the number of categories the article must be assigned to
@@ -130,10 +130,10 @@ With DPL one could:
 * Truncate title or contents to a certain maximum length
 * Add a link to the article or to one or more of its sections
 
-##Considerations
-###Performance
+## Considerations
+### Performance
 DPL's code execution and database access is typically fast for typical category and article look ups.  However, using loose LIKE and REGEXP match parameters and/or requesting large data sets can result in long database access times.  Parser time should also be kept in consideration.  For example, having the query of image results go into a template that displays them will result in a parser media transform for each one.  This can quickly eat up 2MBs of RAM per media transform.
 
-##See Also
-###Further Reading
+## See Also
+### Further Reading
 DPL can do much more than we can explain here. A complete **[manual](http://help.gamepedia.com/DPL:Manual)** is available with full parameter documentation.
