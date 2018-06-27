@@ -716,7 +716,9 @@ class Parse {
 		if (is_array($this->parameters->getParameter('notcategory'))) {
 			foreach ($this->parameters->getParameter('notcategory') as $comparisonType => $operatorTypes) {
 				foreach ($operatorTypes as $operatorType => $categories) {
-					$totalCategories += count($categories);
+					if ( is_array( $categories ) {
+						$totalCategories += count($categories);
+					}
 				}
 			}
 		}
