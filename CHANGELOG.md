@@ -654,3 +654,11 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Use LoggedUpdateMaintenance to create Template
 	* https://github.com/Alexia/DynamicPageList/pull/56
 * Remove deprecated legacy extension entry point.
+
+# Version 3.2.1
+* Eliminate parameter was broken.
+	* https://github.com/Alexia/DynamicPageList/issues/64
+	* https://github.com/Alexia/DynamicPageList/issues/65
+	* https://github.com/Alexia/DynamicPageList/pull/66
+* Fix for PHP 7.2 support and a non-countable variable.
+	* https://github.com/Alexia/DynamicPageList/pull/62
