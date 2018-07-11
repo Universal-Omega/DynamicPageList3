@@ -708,7 +708,9 @@ class Parse {
 			foreach ($this->parameters->getParameter('category') as $comparisonType => $operatorTypes) {
 				foreach ($operatorTypes as $operatorType => $categoryGroups) {
 					foreach ($categoryGroups as $categories) {
-						$totalCategories += count($categories);
+						if (is_array($categories)) {
+							$totalCategories += count($categories);
+						}
 					}
 				}
 			}
@@ -716,7 +718,7 @@ class Parse {
 		if (is_array($this->parameters->getParameter('notcategory'))) {
 			foreach ($this->parameters->getParameter('notcategory') as $comparisonType => $operatorTypes) {
 				foreach ($operatorTypes as $operatorType => $categories) {
-					if ( is_array( $categories ) ) {
+					if (is_array($categories)) {
 						$totalCategories += count($categories);
 					}
 				}
