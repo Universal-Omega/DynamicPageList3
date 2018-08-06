@@ -662,3 +662,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 	* https://github.com/Alexia/DynamicPageList/pull/66
 * Fix for PHP 7.2 support and a non-countable variable.
 	* https://github.com/Alexia/DynamicPageList/pull/62
+
+# Version 3.2.2
+* Minor bug fix for the category parameter to stop producing a warning.
