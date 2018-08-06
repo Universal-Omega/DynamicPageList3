@@ -958,6 +958,9 @@ class Query {
 		foreach ($option as $comparisonType => $operatorTypes) {
 			foreach ($operatorTypes as $operatorType => $categoryGroups) {
 				foreach ($categoryGroups as $categories) {
+					if (!is_array($categories)) {
+						continue;
+					}
 					$tableName = (in_array('', $categories) ? 'dpl_clview' : 'categorylinks');
 					if ($operatorType == 'AND') {
 						foreach ($categories as $category) {
