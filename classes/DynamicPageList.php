@@ -1466,6 +1466,5 @@ class DynamicPageList {
 	public function getText() {
 		return $this->mOutput;
 	}
-
 }
 ?>

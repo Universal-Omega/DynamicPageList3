@@ -268,6 +268,9 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
+		$listMode = List\List::newFromStyle($this->parameters->getParameter('mode'));
+		var_dump($listMode);
+		exit;
 		$listMode = new ListMode(
 			$this->parameters->getParameter('mode'),
 			$this->parameters->getParameter('secseparators'),

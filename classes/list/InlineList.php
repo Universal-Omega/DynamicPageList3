@@ -1,27 +1,63 @@
 <?php
 /**
  * DynamicPageList3
- * DPL ListMode Class
+ * DPL InlineList Class
  *
- * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
-namespace DPL;
 
-class ListMode {
-	public $name;
-	public $sListStart = '';
-	public $sListEnd = '';
-	public $sHeadingStart = '';
-	public $sHeadingEnd = '';
-	public $sItemStart = '';
-	public $sItemEnd = '';
-	public $sInline = '';
-	public $sSectionTags = [];
-	public $aMultiSecSeparators = [];
-	public $iDominantSection = -1;
+namespace DPL\List;
+
+class InlineList {
+	/**
+	 * Listing style for this class.
+	 *
+	 * @var		constant
+	 */
+	public $style = LIST_INLINE;
+
+	/**
+	 * Heading Start
+	 *
+	 * @var		string
+	 */
+	public $headingStart = '';
+
+	/**
+	 * Heading End
+	 *
+	 * @var		string
+	 */
+	public $headingEnd = '';
+
+	/**
+	 * List(Section) Start
+	 *
+	 * @var		string
+	 */
+	public $listStart = '';
+
+	/**
+	 * List(Section) End
+	 *
+	 * @var		string
+	 */
+	public $listEnd = '';
+	/**
+	 * Item Start
+	 *
+	 * @var		string
+	 */
+	public $itemStart = '';
+
+	/**
+	 * Item End
+	 *
+	 * @var		string
+	 */
+	public $itemEnd = '';
 
 	/**
 	 * Main Constructor
@@ -47,9 +83,9 @@ class ListMode {
 		$_listattr  = ($listattr == '') ? '' : ' '.\Sanitizer::fixTagAttributes($listattr, 'ul');
 		$_itemattr  = ($itemattr == '') ? '' : ' '.\Sanitizer::fixTagAttributes($itemattr, 'li');
 
-		$this->sSectionTags        = $sectionSeparators;
-		$this->aMultiSecSeparators = $multiSectionSeparators;
-		$this->iDominantSection    = $dominantSection - 1; // 0 based index
+		$this->sectionSeparators = $sectionSeparators;
+		$this->multiSectionSeparators = $multiSectionSeparators;
+		$this->dominantSectionCount = $dominantSection - 1; // 0 based index
 
 		switch ($listmode) {
 			case 'inline':
