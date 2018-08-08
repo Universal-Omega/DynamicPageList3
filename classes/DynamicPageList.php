@@ -10,12 +10,14 @@
  **/
 namespace DPL;
 
+use \DPL\Lister\Lister;
+use \DPL\Lister\UserFormatLister;
+
 class DynamicPageList {
 	public $mArticles;
 	public $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
 	public $mHListMode; // html list mode for headings
 	public $mListMode; // html list mode for pages
-	public $mEscapeLinks; // whether to escape img/cat or not
 	public $mAddExternalLink; // whether to add the text of an external link or not
 	public $mIncPage; // true only if page transclusion is enabled
 	public $mIncMaxLen; // limit for text to include
@@ -32,13 +34,12 @@ class DynamicPageList {
 	public $nameSpaces;
 	public $mTableRow; // formatting rules for table fields
 
-	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $bescapelinks, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $replaceInTitle, $iTitleMaxLen, $defaultTemplateSuffix, $aTableRow, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
+	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $baddexternallink, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $replaceInTitle, $aTableRow) {
 		global $wgContLang;
 
 		$this->nameSpaces       = $wgContLang->getNamespaces();
 		$this->mArticles        = $articles;
 		$this->mListMode        = $listmode;
-		$this->mEscapeLinks     = $bescapelinks;
 		$this->mAddExternalLink = $baddexternallink;
 		$this->mIncPage         = $includepage;
 		if ($includepage) {
@@ -116,12 +117,12 @@ class DynamicPageList {
 						$greml -= $portion;
 						// $this->mOutput .= "nsize=$nsize, portion=$portion, greml=$greml";
 						if ($greml > 0) {
-							$this->mOutput .= $this->formatList($nstart - $offset, $portion, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+							$this->mOutput .= $this->formatList($nstart - $offset, $portion);
 							$nstart += $portion;
 							$portion = 0;
 							break;
 						} else {
-							$this->mOutput .= $this->formatList($nstart - $offset, $portion + $greml, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+							$this->mOutput .= $this->formatList($nstart - $offset, $portion + $greml);
 							$nstart += ($portion + $greml);
 							$portion = (-$greml);
 							if ($iColumns != 1) {
@@ -156,7 +157,7 @@ class DynamicPageList {
 					if ($bHeadingCount) {
 						$this->mOutput .= $this->formatCount($headingCount);
 					}
-					$this->mOutput .= $this->formatList($headingStart, $headingCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+					$this->mOutput .= $this->formatList($headingStart, $headingCount);
 					$this->mOutput .= $hlistmode->sItemEnd;
 					$headingStart += $headingCount;
 				}
@@ -178,7 +179,7 @@ class DynamicPageList {
 			}
 			$this->mOutput .= "{|".$sRowColFormat."\n|\n";
 			for ($g = 0; $g < $iGroup; $g++) {
-				$this->mOutput .= $this->formatList($nstart, $nsize, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+				$this->mOutput .= $this->formatList($nstart, $nsize);
 				if ($iColumns != 1) {
 					$this->mOutput .= "\n|valign=top|\n";
 				} else {
@@ -201,7 +202,7 @@ class DynamicPageList {
 				if ($nstart + $nsize > $count) {
 					$nsize = $count - $nstart;
 				}
-				$this->mOutput .= $this->formatList($nstart, $nsize, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+				$this->mOutput .= $this->formatList($nstart, $nsize);
 				$this->mOutput .= "\n|-\n|\n";
 				$nstart = $nstart + $nsize;
 				if ($nstart >= $count) {
@@ -210,7 +211,7 @@ class DynamicPageList {
 			} while (true);
 			$this->mOutput .= "\n|}\n";
 		} else {
-			$this->mOutput .= $this->formatList(0, count($articles), $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules);
+			$this->mOutput .= $this->formatList(0, count($articles));
 		}
 	}
 
@@ -224,7 +225,7 @@ class DynamicPageList {
 	}
 
 	// substitute symbolic names within a user defined format tag
-	public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
+	/*public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
 		global $wgLang;
 		if (strchr($tag, '%') < 0) {
 			return $tag;
@@ -281,14 +282,14 @@ class DynamicPageList {
 		if ($article->mUserLink != '') {
 			$sTag = str_replace('%USER%', $article->mUser, $sTag);
 		}
-		if ($article->mSelTitle != '') {
+		if ($article->mSelTitle != null) {
 			if ($article->mSelNamespace == 0) {
 				$sTag = str_replace('%PAGESEL%', str_replace('_', ' ', $article->mSelTitle), $sTag);
 			} else {
 				$sTag = str_replace('%PAGESEL%', $this->nameSpaces[$article->mSelNamespace].':'.str_replace('_', ' ', $article->mSelTitle), $sTag);
 			}
 		}
-		if ($article->mImageSelTitle != '') {
+		if ($article->mImageSelTitle != null) {
 			$sTag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $sTag);
 		}
 		if (strpos($sTag, "%CAT") >= 0) {
@@ -303,14 +304,22 @@ class DynamicPageList {
 			}
 		}
 		return $sTag;
-	}
+	}*/
 
-	public function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
+	/**
+	 * Format the list of items.
+	 *
+	 * @access	public
+	 * @param	integer	Start position for the slice of articles.
+	 * @param	integer	Total articles to grab.
+	 * @return	void
+	 */
+	public function formatList($iStart, $iCount) {
 		global $wgLang, $wgContLang;
 
-		$mode = $this->mListMode;
+		$lister = $this->mListMode;
 		//categorypage-style list output mode
-		if ($mode->name == 'category') {
+		if ($lister->getStyle() == Lister::LIST_CATEGORY) {
 			return $this->formatCategoryList($iStart, $iCount);
 		}
 
@@ -324,7 +333,7 @@ class DynamicPageList {
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
 			}
-			$pagename = $article->mTitle->getPrefixedText();
+
 			$imageUrl = '';
 			if ($article->mNamespace == NS_FILE) {
 				// calculate URL for existing images
@@ -338,18 +347,15 @@ class DynamicPageList {
 					$imageUrl = preg_replace('~^.*images/(.*)~', '\1', \RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
 				}
 			}
-			if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
-				// links to categories or images need an additional ":"
-				$pagename = ':'.$pagename;
-			}
 
 			// Page transclusion: get contents and apply selection criteria based on that contents
 
+			$incwiki = null;
 			if ($this->mIncPage) {
 				$matchFailed = false;
 				if (empty($this->mIncSecLabels) || $this->mIncSecLabels[0] == '*') { // include whole article
 					$title = $article->mTitle->getPrefixedText();
-					if ($mode->name == 'userformat') {
+					if ($lister->getStyle() == Lister::LIST_USERFORMAT) {
 						$incwiki = '';
 					} else {
 						$incwiki = '<br/>';
@@ -361,27 +367,16 @@ class DynamicPageList {
 						}
 						$this->filteredCount = $this->filteredCount + 1;
 
-						// update article if include=* and updaterules are given
-						if ($updateRules != '') {
-							$message = $this->updateArticleByRule($title, $text, $updateRules);
-							// append update message to output
-							$incwiki .= $message;
-						} elseif ($deleteRules != '') {
-							$message = $this->deleteArticleByRule($title, $text, $deleteRules);
-							// append delete message to output
-							$incwiki .= $message;
+						// append full text to output
+						if (is_array($lister->sSectionTags) && array_key_exists('0', $lister->sSectionTags)) {
+							$incwiki .= $lister->replaceTagParameters($lister->sSectionTags[0], $article, $imageUrl, $this->filteredCount);
+							$pieces = [
+								0 => $text
+							];
+							$this->formatSingleItems($pieces, 0, $article);
+							$incwiki .= $pieces[0];
 						} else {
-							// append full text to output
-							if (is_array($mode->sSectionTags) && array_key_exists('0', $mode->sSectionTags)) {
-								$incwiki .= $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-								$pieces = [
-									0 => $text
-								];
-								$this->formatSingleItems($pieces, 0, $article);
-								$incwiki .= $pieces[0];
-							} else {
-								$incwiki .= $text;
-							}
+							$incwiki .= $text;
 						}
 					} else {
 						continue;
@@ -457,7 +452,7 @@ class DynamicPageList {
 						} elseif ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 							$sectionHeading[0] = substr($sSecLabel, 1);
 							// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-							$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
+							$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $lister->getTrimIncluded(), $skipPattern);
 							if ($mustMatch != '' || $mustNotMatch != '') {
 								$secPiecesTmp = $secPieces;
 								$offset       = 0;
@@ -486,12 +481,12 @@ class DynamicPageList {
 							}
 							$secPiece[$s] = $secPieces[0];
 							for ($sp = 1; $sp < count($secPieces); $sp++) {
-								if (isset($mode->aMultiSecSeparators[$s])) {
-									$secPiece[$s] .= str_replace('%SECTION%', $sectionHeading[$sp], $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
+								if (isset($lister->aMultiSecSeparators[$s])) {
+									$secPiece[$s] .= str_replace('%SECTION%', $sectionHeading[$sp], $lister->replaceTagParameters($lister->aMultiSecSeparators[$s], $article, $imageUrl, $this->filteredCount));
 								}
 								$secPiece[$s] .= $secPieces[$sp];
 							}
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
+							if ($lister->iDominantSection >= 0 && $s == $lister->iDominantSection && count($secPieces) > 1) {
 								$dominantPieces = $secPieces;
 							}
 							if (($mustMatch != '' || $mustNotMatch != '') && count($secPieces) <= 0) {
@@ -509,9 +504,10 @@ class DynamicPageList {
 								$template1 = preg_replace('/\|.*/', '', $template1);
 								$template2 = preg_replace('/^.+\|/', '', $template2);
 							}
-							$secPieces    = LST::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2.$defaultTemplateSuffix, $mustMatch, $mustNotMatch, $this->mIncParsed, $iTitleMaxLen, implode(', ', $article->mCategoryLinks));
-							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
+							//Why the hell was defaultTemplateSuffix be passed all over the place for just fucking here?  --Alexia
+							$secPieces    = LST::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2.$lister->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->mIncParsed, implode(', ', $article->mCategoryLinks));
+							$secPiece[$s] = implode(isset($lister->aMultiSecSeparators[$s]) ? $lister->replaceTagParameters($lister->aMultiSecSeparators[$s], $article, $imageUrl, $this->filteredCount) : '', $secPieces);
+							if ($lister->iDominantSection >= 0 && $s == $lister->iDominantSection && count($secPieces) > 1) {
 								$dominantPieces = $secPieces;
 							}
 							if (($mustMatch != '' || $mustNotMatch != '') && count($secPieces) <= 1 && $secPieces[0] == '') {
@@ -520,9 +516,9 @@ class DynamicPageList {
 							}
 						} else {
 							// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-							$secPieces    = LST::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $bIncludeTrim, $skipPattern);
-							$secPiece[$s] = implode(isset($mode->aMultiSecSeparators[$s]) ? $this->substTagParm($mode->aMultiSecSeparators[$s], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen) : '', $secPieces);
-							if ($mode->iDominantSection >= 0 && $s == $mode->iDominantSection && count($secPieces) > 1) {
+							$secPieces    = LST::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $lister->getTrimIncluded(), $skipPattern);
+							$secPiece[$s] = implode(isset($lister->aMultiSecSeparators[$s]) ? $lister->replaceTagParameters($lister->aMultiSecSeparators[$s], $article, $imageUrl, $this->filteredCount) : '', $secPieces);
+							if ($lister->iDominantSection >= 0 && $s == $lister->iDominantSection && count($secPieces) > 1) {
 								$dominantPieces = $secPieces;
 							}
 							if (($mustMatch != '' && preg_match($mustMatch, $secPiece[$s]) == false) || ($mustNotMatch != '' && preg_match($mustNotMatch, $secPiece[$s]) != false)) {
@@ -532,16 +528,16 @@ class DynamicPageList {
 						}
 
 						// separator tags
-						if (is_array($mode->sSectionTags) && count($mode->sSectionTags) == 1) {
+						if (is_array($lister->sSectionTags) && count($lister->sSectionTags) == 1) {
 							// If there is only one separator tag use it always
-							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
-						} elseif (isset($mode->sSectionTags[$s * 2])) {
-							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
+							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $lister->replaceTagParameters($lister->sSectionTags[0], $article, $imageUrl, $this->filteredCount));
+						} elseif (isset($lister->sSectionTags[$s * 2])) {
+							$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $lister->replaceTagParameters($lister->sSectionTags[$s * 2], $article, $imageUrl, $this->filteredCount));
 						} else {
 							$septag[$s * 2] = '';
 						}
-						if (isset($mode->sSectionTags[$s * 2 + 1])) {
-							$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $this->substTagParm($mode->sSectionTags[$s * 2 + 1], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen));
+						if (isset($lister->sSectionTags[$s * 2 + 1])) {
+							$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $lister->replaceTagParameters($lister->sSectionTags[$s * 2 + 1], $article, $imageUrl, $this->filteredCount));
 						} else {
 							$septag[$s * 2 + 1] = '';
 						}
@@ -559,7 +555,7 @@ class DynamicPageList {
 					if ($dominantPieces != false) {
 						foreach ($dominantPieces as $dominantPiece) {
 							foreach ($secPiece as $s => $piece) {
-								if ($s == $mode->iDominantSection) {
+								if ($s == $lister->iDominantSection) {
 									$incwiki .= $this->formatItem($dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]);
 								} else {
 									$incwiki .= $this->formatItem($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
@@ -577,94 +573,35 @@ class DynamicPageList {
 			}
 
 			if ($i > $iStart) {
-				$rBody .= $mode->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
+				$rBody .= $lister->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
 			}
 
 			// symbolic substitution of %PAGE% by the current article's name
-			if ($mode->name == 'userformat') {
-				$rBody .= $this->substTagParm($mode->sItemStart, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-
-			} elseif ($mode->name == 'gallery') {
-				$rBody .= $article->mTitle;
-			} else {
-				$rBody .= $mode->sItemStart;
-				if ($article->mDate != '') {
-					if ($article->myDate != '') {
-						$rBody .= $article->myDate.' ';
-					} else {
-						$rBody .= $wgLang->timeanddate($article->mDate, true).' ';
-					}
-					if ($article->mRevision != '') {
-						$rBody .= '[{{fullurl:'.$article->mTitle.'|oldid='.$article->mRevision.'}} '.htmlspecialchars($article->mTitle).']';
-					} else {
-						$rBody .= $article->mLink;
-					}
-				} else {
-					// output the link to the article
-					$rBody .= $article->mLink;
-				}
-				if ($article->mSize != '') {
-					if (strlen($article->mSize) > 3) {
-						$rBody .= ' ['.substr($article->mSize, 0, strlen($article->mSize) - 3).' kB]';
-					} else {
-						$rBody .= ' ['.$article->mSize.' B]';
-					}
-				}
-				if ($article->mCounter != '') {
-					// Adapted from SpecialPopularPages::formatResult()
-					// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
-					$nv = $this->msgExt('hitcounters-nviews', [
-						'escape'
-					], $wgLang->formatNum($article->mCounter));
-					$rBody .= ' '.$wgContLang->getDirMark().'('.$nv.')';
-				}
-				if ($article->mUserLink != '') {
-					$rBody .= ' . . [[User:'.$article->mUser.'|'.$article->mUser.']]';
-					if ($article->mComment != '') {
-						$rBody .= ' { '.$article->mComment.' }';
-					}
-				}
-				if ($article->mContributor != '') {
-					$rBody .= ' . . [[User:'.$article->mContributor.'|'.$article->mContributor." $article->mContrib]]";
-				}
-
-				if (!empty($article->mCategoryLinks)) {
-					$rBody .= ' . . <small>'.wfMessage('categories').': '.implode(' | ', $article->mCategoryLinks).'</small>';
-				}
-				if ($this->mAddExternalLink && $article->mExternalLink != '') {
-					$rBody .= ' → '.$article->mExternalLink;
-				}
+			if ($lister->getStyle() == Lister::LIST_USERFORMAT) {
+				$rBody .= $lister->replaceTagParameters($lister->itemStart, $article, $imageUrl, $this->filteredCount);
 			}
 
-			// add included contents
+			$rBody .= $lister->formatItem($article, $incwiki);
 
-			if ($this->mIncPage) {
-				LST::open($this->mParser, $this->mParserTitle->getPrefixedText());
-				$rBody .= $incwiki;
-				LST::close($this->mParser, $this->mParserTitle->getPrefixedText());
-			}
-
-			if ($mode->name == 'userformat') {
-				$rBody .= $this->substTagParm($mode->sItemEnd, $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-			} else {
-				$rBody .= $mode->sItemEnd;
+			if ($lister->getStyle() == Lister::LIST_USERFORMAT) {
+				$rBody .= $lister->replaceTagParameters($lister->itemEnd, $article, $imageUrl, $this->filteredCount);
 			}
 		}
 		// if requested we sort the table by the contents of a given column
-		if ($iTableSortCol != 0) {
-			$sortcol	= abs($iTableSortCol);
+		if ($lister->getTableSortColumn() !== null) {
+			$sortColumn	= $lister->getTableSortColumn();
 			$rows		= explode("\n|-", $rBody);
 			$rowsKey	= [];
 			foreach ($rows as $index => $row) {
 				if (strlen($row) > 0) {
-					if ((($word = explode("\n|", $row, $sortcol + 2)) !== false) && (count($word) > $sortcol)) {
-						$rowsKey[$index] = $word[$sortcol];
+					if ((($word = explode("\n|", $row, $sortColumn + 2)) !== false) && (count($word) > $sortColumn)) {
+						$rowsKey[$index] = $word[$sortColumn];
 					} else {
 						$rowsKey[$index] = $row;
 					}
 				}
 			}
-			if ($iTableSortCol < 0) {
+			if ($sortColumn < 0) {
 				arsort($rowsKey);
 			} else {
 				asort($rowsKey);
@@ -675,636 +612,20 @@ class DynamicPageList {
 			}
 		}
 		// increase start value of ordered lists at multi-column output
-		$actStart = $mode->sListStart;
+		$actStart = $lister->listStart;
 		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actStart);
 		$start    = intval($start);
 		if ($start != '') {
 			$start += $iCount;
-			$mode->sListStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
+			$lister->listStart = preg_replace('/start=[0-9]+/', "start=$start", $actStart);
 		}
 
-		return $actStart.$rBody.$mode->sListEnd;
-	}
-
-	/**
-	 * this fucntion hast three tasks (depending on $exec):
-	 * (1) show an edit dialogue for template fields (exec = edit)
-	 * (2) set template parameters to  values specified in the query (exec=set)v
-	 * (2) preview the source code including any changes of these parameters made in the edit form or with other changes (exec=preview)
-	 * (3) save the article with the changed value set or with other changes (exec=save)
-	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
-	 * inserted before or after a pattern occuring in the text
-	 */
-
-	public function updateArticleByRule($title, $text, $rulesText) {
-		// we use ; as command delimiter; \; stands for a semicolon
-		// \n is translated to a real linefeed
-		$rulesText       = str_replace(";", '°', $rulesText);
-		$rulesText       = str_replace('\°', ';', $rulesText);
-		$rulesText       = str_replace("\\n", "\n", $rulesText);
-		$rules           = explode('°', $rulesText);
-		$exec            = 'edit';
-		$replaceThis     = '';
-		$replacement     = '';
-		$after           = '';
-		$insertionAfter  = '';
-		$before          = '';
-		$insertionBefore = '';
-		$template        = '';
-		$parameter       = [];
-		$value           = [];
-		$afterparm       = [];
-		$format          = [];
-		$preview         = [];
-		$save            = [];
-		$tooltip         = [];
-		$optional        = [];
-
-		$lastCmd         = '';
-		$message         = '';
-		$summary         = '';
-		$editForm        = false;
-		$action          = '';
-		$hidden          = [];
-		$legendPage      = '';
-		$instructionPage = '';
-		$table           = '';
-		$fieldFormat     = '';
-
-		// $message .= 'updaterules=<pre><nowiki>';
-		$nr = -1;
-		foreach ($rules as $rule) {
-			if (preg_match('/^\s*#/', $rule) > 0) {
-				continue; // # is comment symbol
-			}
-
-			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
-			$cmd  = preg_split("/ +/", $rule, 2);
-			if (count($cmd) > 1) {
-				$arg = $cmd[1];
-			} else {
-				$arg = '';
-			}
-			$cmd[0] = trim($cmd[0]);
-
-			// after ... insert ...     ,   before ... insert ...
-			if ($cmd[0] == 'before') {
-				$before  = $arg;
-				$lastCmd = 'B';
-			}
-			if ($cmd[0] == 'after') {
-				$after   = $arg;
-				$lastCmd = 'A';
-			}
-			if ($cmd[0] == 'insert' && $lastCmd != '') {
-				if ($lastCmd == 'A') {
-					$insertionAfter = $arg;
-				}
-				if ($lastCmd == 'B') {
-					$insertionBefore = $arg;
-				}
-			}
-			if ($cmd[0] == 'template') {
-				$template = $arg;
-			}
-
-			if ($cmd[0] == 'parameter') {
-				$nr++;
-				$parameter[$nr] = $arg;
-				if ($nr > 0) {
-					$afterparm[$nr] = [
-						$parameter[$nr - 1]
-					];
-					$n              = $nr - 1;
-					while ($n > 0 && array_key_exists($n, $optional)) {
-						$n--;
-						$afterparm[$nr][] = $parameter[$n];
-					}
-				}
-			}
-			if ($cmd[0] == 'value') {
-				$value[$nr] = $arg;
-			}
-			if ($cmd[0] == 'format') {
-				$format[$nr] = $arg;
-			}
-			if ($cmd[0] == 'tooltip') {
-				$tooltip[$nr] = $arg;
-			}
-			if ($cmd[0] == 'optional') {
-				$optional[$nr] = true;
-			}
-			if ($cmd[0] == 'afterparm') {
-				$afterparm[$nr] = [
-					$arg
-				];
-			}
-			if ($cmd[0] == 'legend') {
-				$legendPage = $arg;
-			}
-			if ($cmd[0] == 'instruction') {
-				$instructionPage = $arg;
-			}
-			if ($cmd[0] == 'table') {
-				$table = $arg;
-			}
-			if ($cmd[0] == 'field') {
-				$fieldFormat = $arg;
-			}
-
-			if ($cmd[0] == 'replace') {
-				$replaceThis = $arg;
-			}
-			if ($cmd[0] == 'by') {
-				$replacement = $arg;
-			}
-
-			if ($cmd[0] == 'editform') {
-				$editForm = $arg;
-			}
-			if ($cmd[0] == 'action') {
-				$action = $arg;
-			}
-			if ($cmd[0] == 'hidden') {
-				$hidden[] = $arg;
-			}
-			if ($cmd[0] == 'preview') {
-				$preview[] = $arg;
-			}
-			if ($cmd[0] == 'save') {
-				$save[] = $arg;
-			}
-
-			if ($cmd[0] == 'summary') {
-				$summary = $arg;
-			}
-			if ($cmd[0] == 'exec') {
-				$exec = $arg; // desired action (set or edit or preview)
-			}
-		}
-
-		if ($summary == '') {
-			$summary .= "\nbulk update:";
-			if ($replaceThis != '') {
-				$summary .= "\n replace $replaceThis\n by $replacement";
-			}
-			if ($before != '') {
-				$summary .= "\n before  $before\n insertionBefore";
-			}
-			if ($after != '') {
-				$summary .= "\n after   $after\n insertionAfter";
-			}
-		}
-
-		// $message.= '</nowiki></pre>';
-
-		// perform changes to the wiki source text =======================================
-
-		if ($replaceThis != '') {
-			$text = preg_replace("$replaceThis", $replacement, $text);
-		}
-
-		if ($insertionBefore != '' && $before != '') {
-			$text = preg_replace("/($before)/", $insertionBefore.'\1', $text);
-		}
-
-		if ($insertionAfter != '' && $after != '') {
-			$text = preg_replace("/($after)/", '\1'.$insertionAfter, $text);
-		}
-
-		// deal with template parameters =================================================
-
-		global $wgRequest, $wgUser;
-
-		if ($template != '') {
-
-			if ($exec == 'edit') {
-				$tpv        = $this->getTemplateParmValues($text, $template);
-				$legendText = '';
-				if ($legendPage != '') {
-					$legendTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
-					LST::text($parser, $legendPage, $legendTitle, $legendText);
-					$legendText = preg_replace('/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s', '', $legendText);
-					$legendText = preg_replace('/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText);
-				}
-				$instructionText = '';
-				$instructions    = [];
-				if ($instructionPage != '') {
-					$instructionTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
-					LST::text($parser, $instructionPage, $instructionTitle, $instructionText);
-					$instructions = $this->getTemplateParmValues($instructionText, 'Template field');
-				}
-				// construct an edit form containing all template invocations
-				$form = "<html><form method=post action=\"$action\" $editForm>\n";
-				foreach ($tpv as $call => $tplValues) {
-					$form .= "<table $table>\n";
-					foreach ($parameter as $nr => $parm) {
-						// try to extract legend from the docs of the template
-						$myToolTip = '';
-						if (array_key_exists($nr, $tooltip)) {
-							$myToolTip = $tooltip[$nr];
-						}
-						$myInstruction = '';
-						$myType        = '';
-						foreach ($instructions as $instruct) {
-							if (array_key_exists('field', $instruct) && $instruct['field'] == $parm) {
-								if (array_key_exists('doc', $instruct)) {
-									$myInstruction = $instruct['doc'];
-								}
-								if (array_key_exists('type', $instruct)) {
-									$myType = $instruct['type'];
-								}
-								break;
-							}
-						}
-						$myFormat = '';
-						if (array_key_exists($nr, $format)) {
-							$myFormat = $format[$nr];
-						}
-						$myOptional = array_key_exists($nr, $optional);
-						if ($legendText != '' && $myToolTip == '') {
-							$myToolTip = preg_replace('/^.*\<section\s+begin\s*=\s*'.preg_quote($parm, '/').'\s*\/\>/s', '', $legendText);
-							if (strlen($myToolTip) == strlen($legendText)) {
-								$myToolTip = '';
-							} else {
-								$myToolTip = preg_replace('/\<section\s+end\s*=\s*'.preg_quote($parm, '/').'\s*\/\>.*/s', '', $myToolTip);
-							}
-						}
-						$myValue = '';
-						if (array_key_exists($parm, $tpv[$call])) {
-							$myValue = $tpv[$call][$parm];
-						}
-						$form .= $this->editTemplateCall($text, $template, $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat);
-					}
-					$form .= "</table>\n<br/><br/>";
-				}
-				foreach ($hidden as $hide) {
-					$form .= "<input type='hidden' ".$hide." />";
-				}
-				$form .= "<input type='hidden' name='wpEditToken' value='{$wgUser->getEditToken()}'/>";
-				foreach ($preview as $prev) {
-					$form .= "<input type='submit' ".$prev." /> ";
-				}
-				$form .= "</form></html>\n";
-				return $form;
-			} elseif ($exec == 'set' || $exec == 'preview') {
-				// loop over all invocations and parameters, this could be improved to enhance performance
-				$matchCount = 10;
-				for ($call = 0; $call < 10; $call++) {
-					foreach ($parameter as $nr => $parm) {
-						// set parameters to values specified in the dpl source or get them from the http request
-						if ($exec == 'set') {
-							$myvalue = $value[$nr];
-						} else {
-							if ($call >= $matchCount) {
-								break;
-							}
-							$myValue = $wgRequest->getVal(urlencode($call.'_'.$parm), '');
-						}
-						$myOptional  = array_key_exists($nr, $optional);
-						$myAfterParm = [];
-						if (array_key_exists($nr, $afterparm)) {
-							$myAfterParm = $afterparm[$nr];
-						}
-						$text = $this->updateTemplateCall($matchCount, $text, $template, $call, $parm, $myValue, $myAfterParm, $myOptional);
-					}
-					if ($exec == 'set') {
-						break; // values taken from dpl text only populate the first invocation
-					}
-				}
-			}
-		}
-
-		if ($exec == 'set') {
-			return $this->updateArticle($title, $text, $summary);
-		} elseif ($exec == 'preview') {
-			global $wgScriptPath, $wgRequest;
-			$titleX   = \Title::newFromText($title);
-			$articleX = new \Article($titleX);
-			$form     = '<html>
-	<form id="editform" name="editform" method="post" action="'.$wgScriptPath.'/index.php?title='.urlencode($title).'&action=submit" enctype="multipart/form-data">
-		<input type="hidden" value="" name="wpSection" />
-		<input type="hidden" value="'.wfTimestampNow().'" name="wpStarttime" />
-		<input type="hidden" value="'.$articleX->getTimestamp().'" name="wpEdittime" />
-		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="'.$wgUser->getIntOption('rows').'" cols="'.$wgUser->getIntOption('cols').'" >'.htmlspecialchars($text).'</textarea>
-		<input type="hidden" name="wpSummary value="'.$summary.'" id="wpSummary" />
-		<input name="wpAutoSummary" type="hidden" value="" />
-		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
-		<input type="hidden" value="'.$wgRequest->getVal('token').'" name="wpEditToken" />
-	</form>
-</html>';
-			return $form;
-		}
-		return "exec must be one of the following: edit, preview, set";
-	}
-
-	public function updateArticle($title, $text, $summary) {
-		global $wgUser, $wgRequest, $wgOut;
-
-		if (!$wgUser->matchEditToken($wgRequest->getVal('wpEditToken'))) {
-			$wgOut->addWikiMsg('sessionfailure');
-			return 'session failure';
-		}
-
-		$titleX = \Title::newFromText($title);
-		$permission_errors = $titleX->getUserPermissionsErrors('edit', $wgUser);
-		if (count($permission_errors) == 0) {
-			$articleX = \WikiPage::factory($titleX);
-			$articleXContent = \ContentHandler::makeContent($text, $titleX);
-			$articleX->doEditContent($articleXContent, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY);
-			$wgOut->redirect($titleX->getFullUrl($articleX->isRedirect() ? 'redirect=no' : ''));
-			return '';
-		} else {
-			$wgOut->showPermissionsErrorPage($permission_errors);
-			return 'permission error';
-		}
-	}
-
-	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
-		$matches = [];
-		$nlCount = preg_match_all('/\n/', $value, $matches);
-		if ($nlCount > 0) {
-			$rows = $nlCount + 1;
-		} else {
-			$rows = floor(strlen($value) / 50) + 1;
-		}
-		if (preg_match('/rows\s*=/', $format) <= 0) {
-			$format .= " rows=$rows";
-		}
-		$cols = 50;
-		if (preg_match('/cols\s*=/', $format) <= 0) {
-			$format .= " cols=$cols";
-		}
-		$textArea = "<textarea name=\"".urlencode($call.'_'.$parameter)."\" $format/>".htmlspecialchars($value)."</textarea>";
-		return str_replace('%NAME%', htmlspecialchars(str_replace('_', ' ', $parameter)), str_replace('%TYPE%', $type, str_replace('%INPUT%', $textArea, str_replace('%LEGEND%', "</html>".htmlspecialchars($legend)."<html>", str_replace('%INSTRUCTION%', "</html>".htmlspecialchars($instruction)."<html>", $fieldFormat)))));
-	}
-
-	/**
-	 * return an array of template invocations; each element is an associative array of parameter and value
-	 */
-	public function getTemplateParmValues($text, $template) {
-		$matches   = [];
-		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
-		if ($noMatches <= 0) {
-			return '';
-		}
-		$textLen = strlen($text);
-		$tval    = []; // the result array of template values
-		$call    = -1; // index for tval
-
-		foreach ($matches as $matchA) {
-			foreach ($matchA as $matchB) {
-				$match         = $matchB[0];
-				$start         = $matchB[1];
-				$tval[++$call] = [];
-				$nr            = 0; // number of parameter if no name given
-				$parmValue     = '';
-				$parmName      = '';
-				$parm          = '';
-
-				if ($match[strlen($match) - 1] == '}') {
-					break; // template was called without parameters, continue with next invocation
-				}
-
-				// search to the end of the template call
-				$cbrackets = 2;
-				for ($i = $start + strlen($match); $i < $textLen; $i++) {
-					$c = $text[$i];
-					if ($c == '{' || $c == '[') {
-						$cbrackets++; // we count both types of brackets
-					}
-					if ($c == '}' || $c == ']') {
-						$cbrackets--;
-					}
-					if (($cbrackets == 2 && $c == '|') || ($cbrackets == 1 && $c == '}')) {
-						// parameter (name or value) found
-						if ($parmName == '') {
-							$tval[$call][++$nr] = trim($parm);
-						} else {
-							$tval[$call][$parmName] = trim($parmValue);
-						}
-						$parmName  = '';
-						$parmValue = '';
-						$parm      = '';
-						continue;
-					} else {
-						if ($parmName == '') {
-							if ($c == '=') {
-								$parmName = trim($parm);
-							}
-						} else {
-							$parmValue .= $c;
-						}
-					}
-					$parm .= $c;
-					if ($cbrackets == 0) {
-						break; // end of parameter list
-					}
-				}
-			}
-		}
-		return $tval;
-	}
-
-	/*
-	 * Changes a single parameter value within a certain call of a tempplate
-	 */
-	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
-		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
-		if ($optional && $value == '') {
-			return $text;
-		}
-
-		$matches   = [];
-		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
-		if ($noMatches <= 0) {
-			return $text;
-		}
-		$beginSubst  = -1;
-		$endSubst    = -1;
-		$posInsertAt = 0;
-		$apNrLast    = 1000; // last (optional) predecessor
-
-		foreach ($matches as $matchA) {
-			$matchCount = count($matchA);
-			foreach ($matchA as $occurence => $matchB) {
-				if ($occurence < $call) {
-					continue;
-				}
-				$match = $matchB[0];
-				$start = $matchB[1];
-
-				if ($match[strlen($match) - 1] == '}') {
-					// template was called without parameters, add new parameter and value
-					// append parameter and value
-					$beginSubst   = $i;
-					$endSubst     = $i;
-					$substitution = "|$parameter = $value";
-					break;
-				} else {
-					// there is already a list of parameters; we search to the end of the template call
-					$cbrackets = 2;
-					$parm      = '';
-					$pos       = $start + strlen($match) - 1;
-					$textLen   = strlen($text);
-					for ($i = $pos + 1; $i < $textLen; $i++) {
-						$c = $text[$i];
-						if ($c == '{' || $c == '[') {
-							$cbrackets++; // we count both types of brackets
-						}
-						if ($c == '}' || $c == ']') {
-							$cbrackets--;
-						}
-						if (($cbrackets == 2 && $c == '|') || ($cbrackets == 1 && $c == '}')) {
-							// parameter (name / value) found
-
-							$token = explode('=', $parm, 2);
-							if (count($token) == 2) {
-								// we need a pair of name / value
-								$parmName = trim($token[0]);
-								if ($parmName == $parameter) {
-									// we found the parameter, now replace the current value
-									$parmValue = trim($token[1]);
-									if ($parmValue == $value) {
-										break; // no need to change when values are identical
-									}
-									// keep spaces;
-									if ($parmValue == '') {
-										if (strlen($token[1]) > 0 && $token[1][strlen($token[1]) - 1] == "\n") {
-											$substitution = str_replace("\n", $value."\n", $token[1]);
-										} else {
-											$substitution = $value.$token[1];
-										}
-									} else {
-										$substitution = str_replace($parmValue, $value, $token[1]);
-									}
-									$beginSubst = $pos + strlen($token[0]) + 2;
-									$endSubst   = $i;
-									break;
-								} else {
-									foreach ($afterParm as $apNr => $ap) {
-										// store position for insertion
-										if ($parmName == $ap && $apNr < $apNrLast) {
-											$posInsertAt = $i;
-											$apNrLast    = $apNr;
-											break;
-										}
-									}
-								}
-							}
-
-							if ($c == '}') {
-								// end of template call reached, insert at stored position or here
-								if ($posInsertAt != 0) {
-									$beginSubst = $posInsertAt;
-								} else {
-									$beginSubst = $i;
-								}
-								$substitution = "|$parameter = $value";
-								if ($text[$beginSubst - 1] == "\n") {
-									--$beginSubst;
-									$substitution = "\n".$substitution;
-								}
-								$endSubst = $beginSubst;
-								break;
-							}
-
-							$pos  = $i;
-							$parm = '';
-						} else {
-							$parm .= $c;
-						}
-						if ($cbrackets == 0) {
-							break;
-						}
-					}
-				}
-				break;
-			}
-			break;
-		}
-
-		if ($beginSubst < 0) {
-			return $text;
-		}
-
-		return substr($text, 0, $beginSubst).$substitution.substr($text, $endSubst);
-	}
-
-	public function deleteArticleByRule($title, $text, $rulesText) {
-		global $wgUser, $wgOut;
-
-		// return "deletion of articles by DPL is disabled.";
-
-		// we use ; as command delimiter; \; stands for a semicolon
-		// \n is translated to a real linefeed
-		$rulesText = str_replace(";", '°', $rulesText);
-		$rulesText = str_replace('\°', ';', $rulesText);
-		$rulesText = str_replace("\\n", "\n", $rulesText);
-		$rules     = explode('°', $rulesText);
-		$exec      = false;
-		$message   = '';
-		$reason    = '';
-
-		foreach ($rules as $rule) {
-			if (preg_match('/^\s*#/', $rule) > 0) {
-				continue; // # is comment symbol
-			}
-
-			$rule = preg_replace('/^[\s]*/', '', $rule); // strip leading white space
-			$cmd  = preg_split("/ +/", $rule, 2);
-			if (count($cmd) > 1) {
-				$arg = $cmd[1];
-			} else {
-				$arg = '';
-			}
-			$cmd[0] = trim($cmd[0]);
-
-			if ($cmd[0] == 'reason') {
-				$reason = $arg;
-			}
-
-			// we execute only if "exec" is given, otherwise we merely show what would be done
-			if ($cmd[0] == 'exec') {
-				$exec = true;
-			}
-		}
-		$reason .= "\nbulk delete by DPL query";
-
-		$titleX = \Title::newFromText($title);
-		if ($exec) {
-			# Check permissions
-			$permission_errors = $titleX->getUserPermissionsErrors('delete', $wgUser);
-			if (count($permission_errors) > 0) {
-				$wgOut->showPermissionsErrorPage($permission_errors);
-				return 'permission error';
-			} elseif (wfReadOnly()) {
-				$wgOut->readOnlyPage();
-				return 'DPL: read only mode';
-			} else {
-				$articleX = new \Article($titleX);
-				$articleX->doDelete($reason);
-			}
-		} else {
-			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
-		}
-		$message .= "<pre><nowiki>\n{$text}</nowiki></pre>"; // <pre><nowiki>\n"; // .$text."\n</nowiki></pre>\n";
-		return $message;
+		return $actStart.$rBody.$lister->listEnd;
 	}
 
 	// generate a hyperlink to the article
-	public function articleLink($tag, $article, $iTitleMaxLen) {
-		$pagename = $article->mTitle->getPrefixedText();
-		if ($this->mEscapeLinks && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
-			// links to categories or images need an additional ":"
-			$pagename = ':'.$pagename;
-		}
-		return $this->substTagParm($tag, $pagename, $article, $this->filteredCount, '', $iTitleMaxLen);
+	public function articleLink($tag, $article) {
+		return $lister->replaceTagParameters($tag, $article, $this->filteredCount, '');
 	}
 
 	//format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)

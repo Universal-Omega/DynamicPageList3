@@ -367,9 +367,12 @@ class ParametersData {
 		'headingmode' => [
 			'default'	=> 'none',
 			'values'	=> [
+				'H1',
 				'H2',
 				'H3',
 				'H4',
+				'H5',
+				'H6',
 				'definition',
 				'none',
 				'ordered',
@@ -678,8 +681,9 @@ class ParametersData {
 			'default'	=> 'unordered',
 			'values'	=> [
 				'category',
-				'inline',
+				'definition',
 				'gallery',
+				'inline',
 				'none',
 				'ordered',
 				'unordered',
@@ -1077,7 +1081,7 @@ class ParametersData {
 		 * The number (starting with 1) of the column to be used for sorting
 		 */
 		'tablesortcol' => [
-			'default'	=> 0,
+			'default'	=> null,
 			'integer'	=> true
 		],
 		/**

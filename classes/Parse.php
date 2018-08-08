@@ -268,9 +268,16 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$listMode = List\List::newFromStyle($this->parameters->getParameter('mode'));
-		var_dump($listMode);
-		exit;
+		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'));
+		$lister->setListAttributes($this->parameters->getParameter('listattr'));
+		$lister->setItemAttributes($this->parameters->getParameter('itemattr'));
+		$lister->setDominantSectionCount($this->parameters->getParameter('dominantsection'));
+		$lister->setTemplateSuffix($this->parameters->getParameter('defaulttemplatesuffix'));
+		$lister->setTrimIncluded($this->parameters->getParameter('includetrim'));
+		$lister->setTableSortColumn($this->parameters->getParameter('tablesortcol'));
+		$lister->setTitleMaxLength($this->parameters->getParameter('titlemaxlen'));
+		$lister->setEscapeLinks($this->parameters->getParameter('escapelinks'));
+
 		$listMode = new ListMode(
 			$this->parameters->getParameter('mode'),
 			$this->parameters->getParameter('secseparators'),
@@ -305,8 +312,7 @@ class Parse {
 			$articles,
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
-			$listMode,
-			$this->parameters->getParameter('escapelinks'),
+			$lister,
 			$this->parameters->getParameter('addexternallink'),
 			$this->parameters->getParameter('incpage'),
 			$this->parameters->getParameter('includemaxlen'),
@@ -317,12 +323,7 @@ class Parse {
 			$this->parser,
 			$this->parameters->getParameter('replaceintitle'),
 			$this->parameters->getParameter('titlemaxlen'),
-			$this->parameters->getParameter('defaulttemplatesuffix'),
-			$this->parameters->getParameter('tablerow'),
-			$this->parameters->getParameter('includetrim'),
-			$this->parameters->getParameter('tablesortcol'),
-			$this->parameters->getParameter('updaterules'),
-			$this->parameters->getParameter('deleterules')
+			$this->parameters->getParameter('tablerow')
 		);
 
 		if ($foundRows === null) {

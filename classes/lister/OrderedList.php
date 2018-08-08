@@ -8,7 +8,7 @@
  *
  **/
 
-namespace DPL\List;
+namespace DPL\Lister;
 
 class OrderedList extends UnorderedList {
 	/**
@@ -16,7 +16,7 @@ class OrderedList extends UnorderedList {
 	 *
 	 * @var		constant
 	 */
-	public $style = LIST_ORDERED;
+	public $style = parent::LIST_ORDERED;
 
 	/**
 	 * List(Section) Start

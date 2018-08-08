@@ -8,15 +8,15 @@
  *
  **/
 
-namespace DPL\List;
+namespace DPL\Lister;
 
-class InlineList {
+class InlineList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
 	 * @var		constant
 	 */
-	public $style = LIST_INLINE;
+	public $style = parent::LIST_INLINE;
 
 	/**
 	 * Heading Start

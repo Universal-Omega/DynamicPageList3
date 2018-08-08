@@ -1,48 +1,48 @@
 <?php
 /**
  * DynamicPageList3
- * DPL GalleryList Class
+ * DPL UnorderedList Class
  *
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
 
-namespace DPL\List;
+namespace DPL\Lister;
 
-class GalleryList {
+class UnorderedList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
 	 * @var		constant
 	 */
-	public $style = LIST_GALLERY;
+	public $style = parent::LIST_UNORDERED;
 
 	/**
 	 * List(Section) Start
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<gallery>';
+	public $listStart = '<ul>';
 
 	/**
 	 * List(Section) End
 	 *
 	 * @var		string
 	 */
-	public $listEnd = '</gallery>';
+	public $listEnd = '</ul>';
 	/**
 	 * Item Start
 	 *
 	 * @var		string
 	 */
-	public $itemStart = "\n";
+	public $itemStart = '<li>';
 
 	/**
 	 * Item End
 	 *
 	 * @var		string
 	 */
-	public $itemEnd = "||";
+	public $itemEnd = '</li>';
 }
 ?>

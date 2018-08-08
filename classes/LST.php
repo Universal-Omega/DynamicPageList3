@@ -492,7 +492,7 @@ class LST {
 	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $dpl->formatTemplateArg()
-	public static function includeTemplate($parser, &$dpl, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $iTitleMaxLen, $catlist) {
+	public static function includeTemplate($parser, &$dpl, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist) {
 		$page  = $article->mTitle->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
@@ -664,7 +664,7 @@ class LST {
 								if (strpos($exParm, '%') !== false) {
 									// %% is a short form for inclusion of %PAGE% and %TITLE%
 									$found = true;
-									$output[$n] .= $dpl->formatTemplateArg($dpl->articleLink($exParm, $article, $iTitleMaxLen), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+									$output[$n] .= $dpl->formatTemplateArg($dpl->articleLink($exParm, $article), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 								}
 								if (!$found) {
 									// named parameter

@@ -8,15 +8,15 @@
  *
  **/
 
-namespace DPL\List;
+namespace DPL\Lister;
 
-class HeadingList {
+class HeadingList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
 	 * @var		constant
 	 */
-	public $style = LIST_HEADING;
+	public $style = parent::LIST_HEADING;
 
 	/**
 	 * Heading Start

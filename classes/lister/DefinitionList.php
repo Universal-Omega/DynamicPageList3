@@ -8,15 +8,15 @@
  *
  **/
 
-namespace DPL\List;
+namespace DPL\Lister;
 
-class DefinitionList {
+class DefinitionList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
 	 * @var		constant
 	 */
-	public $style = LIST_DEFINITION;
+	public $style = parent::LIST_DEFINITION;
 
 	/**
 	 * Heading Start
