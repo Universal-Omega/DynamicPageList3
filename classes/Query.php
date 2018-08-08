@@ -4,7 +4,7 @@
  * DPL Variables Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
@@ -156,7 +156,7 @@ class Query {
 
 		$this->tableNames = self::getTableNames();
 
-		$this->DB = wfGetDB(DB_SLAVE);
+		$this->DB = wfGetDB(DB_REPLICA);
 	}
 
 	/**
@@ -349,7 +349,7 @@ class Query {
 	 * @return	array	Prepared table names.
 	 */
 	static public function getTableNames() {
-		$DB = wfGetDB(DB_SLAVE);
+		$DB = wfGetDB(DB_REPLICA);
 		$tables = [
 			'categorylinks',
 			'dpl_clview',
@@ -591,7 +591,7 @@ class Query {
 	 * @return	array	Subcategories
 	 */
 	static public function getSubcategories($categoryName, $depth = 1) {
-		$DB = wfGetDB(DB_SLAVE);
+		$DB = wfGetDB(DB_REPLICA);
 
 		if ($depth > 2) {
 			//Hard constrain depth because lots of recursion is bad.

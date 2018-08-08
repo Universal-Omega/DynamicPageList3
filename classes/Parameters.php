@@ -4,7 +4,7 @@
  * DPL Variables Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
@@ -407,6 +407,7 @@ class Parameters extends ParametersData {
 			if ($forDb) {
 				$regex = '#'.str_replace('#', '\#', $regex).'#';
 			}
+			//Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
 			if (@preg_match($regex, null) === false) {
 				return false;
 			}
@@ -1139,7 +1140,7 @@ class Parameters extends ParametersData {
 		$this->setParameter('defaulttemplatesuffix', '');
 		$this->setParameter('mode', 'userformat');
 		$this->setParameter('inlinetext', '');
-		$withHLink             = "[[%PAGE%|%TITLE%]]\n|";
+		$withHLink = "[[%PAGE%|%TITLE%]]\n|";
 
 		foreach (explode(',', $option) as $tabnr => $tab) {
 			if ($tabnr == 0) {
@@ -1224,7 +1225,7 @@ class Parameters extends ParametersData {
 	public function _allowcachedresults($option) {
 		//If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
 		if ($this->getParameter('execandexit') === null) {
-			if ($option == 'yes+warn') {
+			if ($option === 'yes+warn') {
 				$this->setParameter('allowcachedresults', true);
 				$this->setParameter('warncachedresults', true);
 				return true;

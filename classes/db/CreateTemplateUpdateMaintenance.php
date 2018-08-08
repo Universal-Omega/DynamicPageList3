@@ -3,7 +3,7 @@
  * DynamicPageList3
  * CreateTemplateUpdateMaintenance
  *
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/

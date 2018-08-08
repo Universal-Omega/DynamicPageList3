@@ -31,7 +31,7 @@
 		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
 	},
 	"AutoloadClasses": {
-		"DynamicPageListHooks": "DynamicPageList.hooks.php",
+		"DynamicPageListHooks": "DynamicPageListHooks.php",
 		"DPL\\Article": "classes/Article.php",
 		"DPL\\Config": "classes/Config.php",
 		"DPL\\DB\\CreateTemplateUpdateMaintenance": "classes/db/CreateTemplateUpdateMaintenance.php",

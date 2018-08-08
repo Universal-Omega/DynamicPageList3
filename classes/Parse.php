@@ -4,7 +4,7 @@
  * DPL Parse Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
@@ -110,7 +110,7 @@ class Parse {
 	public function __construct() {
 		global $wgRequest;
 
-		$this->DB			= wfGetDB(DB_SLAVE);
+		$this->DB			= wfGetDB(DB_REPLICA);
 		$this->parameters	= new Parameters();
 		$this->logger		= new Logger($this->parameters->getData('debug')['default']);
 		$this->tableNames	= Query::getTableNames();
@@ -985,13 +985,13 @@ class Parse {
 
 			if (isset($eliminate['links']) && $eliminate['links']) {
 				//Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output.  This allows us to remove these links from the link list later.  If the article containing the DPL statement itself uses one of these links they will be thrown away!
-				\DynamicPageListHooks::$createdLinks[0] = array();
+				\DynamicPageListHooks::$createdLinks[0] = [];
 				foreach ($parserOutput->getLinks() as $nsp => $link) {
 					\DynamicPageListHooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
 			if (isset($eliminate['templates']) && $eliminate['templates']) {
-				\DynamicPageListHooks::$createdLinks[1] = array();
+				\DynamicPageListHooks::$createdLinks[1] = [];
 				foreach ($parserOutput->getTemplates() as $nsp => $tpl) {
 					\DynamicPageListHooks::$createdLinks[1][$nsp] = $tpl;
 				}

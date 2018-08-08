@@ -4,7 +4,7 @@
  * DPL Config Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/

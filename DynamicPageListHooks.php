@@ -3,13 +3,13 @@
  * 
  * @file
  * @ingroup Extensions
- * @link http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)	Documentation
- * @author n:en:User:IlyaHaykinson 
- * @author n:en:User:Amgine 
- * @author w:de:Benutzer:Unendlich 
- * @author m:User:Dangerman <cyril.dangerville@gmail.com>
- * @author m:User:Algorithmix <gero.scholz@gmx.de>
- * @license http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @link		http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)	Documentation
+ * @author		n:en:User:IlyaHaykinson 
+ * @author		n:en:User:Amgine 
+ * @author		w:de:Benutzer:Unendlich 
+ * @author		m:User:Dangerman <cyril.dangerville@gmail.com>
+ * @author		m:User:Algorithmix <gero.scholz@gmx.de>
+ * @license		GPL-2.0-or-later
  *
  */
 
@@ -164,8 +164,6 @@ class DynamicPageListHooks {
 	 * @return	void
 	 */
 	static private function init() {
-		global $wgUser;
-
 		\DPL\Config::init();
 
 		if (!isset(self::$createdLinks)) {

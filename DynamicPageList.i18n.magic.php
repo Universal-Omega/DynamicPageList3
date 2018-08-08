@@ -4,7 +4,7 @@
  * Magic Words
  *
  * @author		Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
 **/

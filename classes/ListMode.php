@@ -4,7 +4,7 @@
  * DPL ListMode Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
@@ -53,12 +53,12 @@ class ListMode {
 
 		switch ($listmode) {
 			case 'inline':
-				if (stristr($inlinetext, '<BR />')) { //one item per line (pseudo-inline)
-					$this->sListStart = '<DIV'.$_listattr.'>';
-					$this->sListEnd   = '</DIV>';
+				if (stristr($inlinetext, '<br/>')) { //one item per line (pseudo-inline)
+					$this->sListStart = '<div'.$_listattr.'>';
+					$this->sListEnd   = '</div>';
 				}
-				$this->sItemStart = '<SPAN'.$_itemattr.'>';
-				$this->sItemEnd   = '</SPAN>';
+				$this->sItemStart = '<span'.$_itemattr.'>';
+				$this->sItemEnd   = '</span>';
 				$this->sInline    = $inlinetext;
 				break;
 			case 'gallery':
@@ -71,33 +71,33 @@ class ListMode {
 				break;
 			case 'ordered':
 				if ($iOffset == 0) {
-					$this->sListStart = '<OL start=1 '.$_listattr.'>';
+					$this->sListStart = '<ol start=1 '.$_listattr.'>';
 				} else {
-					$this->sListStart = '<OL start='.($iOffset + 1).' '.$_listattr.'>';
+					$this->sListStart = '<ol start='.($iOffset + 1).' '.$_listattr.'>';
 				}
-				$this->sListEnd   = '</OL>';
-				$this->sItemStart = '<LI'.$_itemattr.'>';
-				$this->sItemEnd   = '</LI>';
+				$this->sListEnd   = '</ol>';
+				$this->sItemStart = '<li'.$_itemattr.'>';
+				$this->sItemEnd   = '</li>';
 				break;
 			case 'unordered':
-				$this->sListStart = '<UL'.$_listattr.'>';
-				$this->sListEnd   = '</UL>';
-				$this->sItemStart = '<LI'.$_itemattr.'>';
-				$this->sItemEnd   = '</LI>';
+				$this->sListStart = '<ul'.$_listattr.'>';
+				$this->sListEnd   = '</ul>';
+				$this->sItemStart = '<li'.$_itemattr.'>';
+				$this->sItemEnd   = '</li>';
 				break;
 			case 'definition':
-				$this->sListStart    = '<DL'.$_listattr.'>';
-				$this->sListEnd      = '</DL>';
+				$this->sListStart    = '<dl'.$_listattr.'>';
+				$this->sListEnd      = '</dl>';
 				// item html attributes on dt element or dd element ?
-				$this->sHeadingStart = '<DT>';
-				$this->sHeadingEnd   = '</DT><DD>';
-				$this->sItemEnd      = '</DD>';
+				$this->sHeadingStart = '<dt>';
+				$this->sHeadingEnd   = '</dt><dd>';
+				$this->sItemEnd      = '</dd>';
 				break;
 			case 'H2':
 			case 'H3':
 			case 'H4':
-				$this->sListStart    = '<DIV'.$_listattr.'>';
-				$this->sListEnd      = '</DIV>';
+				$this->sListStart    = '<div'.$_listattr.'>';
+				$this->sListEnd      = '</div>';
 				$this->sHeadingStart = '<'.$listmode.'>';
 				$this->sHeadingEnd   = '</'.$listmode.'>';
 				break;

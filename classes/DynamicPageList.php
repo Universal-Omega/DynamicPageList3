@@ -4,7 +4,7 @@
  * DPL Class
  *
  * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL
+ * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
  **/
@@ -19,9 +19,9 @@ class DynamicPageList {
 	public $mAddExternalLink; // whether to add the text of an external link or not
 	public $mIncPage; // true only if page transclusion is enabled
 	public $mIncMaxLen; // limit for text to include
-	public $mIncSecLabels = array(); // array of labels of sections to transclude
-	public $mIncSecLabelsMatch = array(); // array of match patterns for sections to transclude
-	public $mIncSecLabelsNotMatch = array(); // array of NOT match patterns for sections to transclude
+	public $mIncSecLabels = []; // array of labels of sections to transclude
+	public $mIncSecLabelsMatch = []; // array of match patterns for sections to transclude
+	public $mIncSecLabelsNotMatch = []; // array of NOT match patterns for sections to transclude
 	public $mIncParsed; // whether to match raw parameters or parsed contents
 	public $mParser;
 	public $mParserOptions;
@@ -79,7 +79,7 @@ class DynamicPageList {
 				$hspace = 2; // the extra space for headings
 				// repeat outer tags for each of the specified columns / rows in the output
 				// we assume that a heading roughly takes the space of two articles
-				$count  = count($articles) + $hspace * count($headings);
+				$count = count($articles) + $hspace * count($headings);
 				if ($iColumns != 1) {
 					$iGroup = $iColumns;
 				} else {
@@ -215,13 +215,12 @@ class DynamicPageList {
 	}
 
 	public function formatCount($numart) {
-		global $wgLang;
 		if ($this->mHeadingType == 'category') {
 			$message = 'categoryarticlecount';
 		} else {
 			$message = 'dpl_articlecount';
 		}
-		return '<p>'.$this->msgExt($message, array(), $numart).'</p>';
+		return '<p>'.$this->msgExt($message, [], $numart).'</p>';
 	}
 
 	// substitute symbolic names within a user defined format tag
@@ -307,7 +306,7 @@ class DynamicPageList {
 	}
 
 	public function formatList($iStart, $iCount, $iTitleMaxLen, $defaultTemplateSuffix, $bIncludeTrim, $iTableSortCol, $updateRules, $deleteRules) {
-		global $wgUser, $wgLang, $wgContLang;
+		global $wgLang, $wgContLang;
 
 		$mode = $this->mListMode;
 		//categorypage-style list output mode
@@ -321,7 +320,7 @@ class DynamicPageList {
 		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
 
-			$article  = $this->mArticles[$i];
+			$article = $this->mArticles[$i];
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
 			}
@@ -375,9 +374,9 @@ class DynamicPageList {
 							// append full text to output
 							if (is_array($mode->sSectionTags) && array_key_exists('0', $mode->sSectionTags)) {
 								$incwiki .= $this->substTagParm($mode->sSectionTags[0], $pagename, $article, $imageUrl, $this->filteredCount, $iTitleMaxLen);
-								$pieces = array(
+								$pieces = [
 									0 => $text
-								);
+								];
 								$this->formatSingleItems($pieces, 0, $article);
 								$incwiki .= $pieces[0];
 							} else {
@@ -390,7 +389,7 @@ class DynamicPageList {
 
 				} else {
 					// identify section pieces
-					$secPiece       = array();
+					$secPiece       = [];
 					$dominantPieces = false;
 					// ONE section can be marked as "dominant"; if this section contains multiple entries
 					// we will create a separate output row for each value of the dominant section
@@ -410,14 +409,14 @@ class DynamicPageList {
 						if ($sSecLabel == '-') {
 							// '-' is used as a dummy parameter which will produce no output
 							// if maxlen was 0 we suppress all output; note that for matching we used the full text
-							$secPieces = array(
+							$secPieces = [
 								''
-							);
+							];
 							$this->formatSingleItems($secPieces, $s, $article);
 						} elseif ($sSecLabel[0] != '{') {
 							$limpos      = strpos($sSecLabel, '[');
 							$cutLink     = 'default';
-							$skipPattern = array();
+							$skipPattern = [];
 							if ($limpos > 0 && $sSecLabel[strlen($sSecLabel) - 1] == ']') {
 								// regular expressions which define a skip pattern may precede the text
 								$fmtSec    = explode('~', substr($sSecLabel, $limpos + 1, strlen($sSecLabel) - $limpos - 2));
@@ -458,7 +457,7 @@ class DynamicPageList {
 						} elseif ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 							$sectionHeading[0] = substr($sSecLabel, 1);
 							// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-							$secPieces         = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
+							$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $bIncludeTrim, $skipPattern);
 							if ($mustMatch != '' || $mustNotMatch != '') {
 								$secPiecesTmp = $secPieces;
 								$offset       = 0;
@@ -471,9 +470,9 @@ class DynamicPageList {
 							}
 							// if maxlen was 0 we suppress all output; note that for matching we used the full text
 							if ($maxlen == 0) {
-								$secPieces = array(
+								$secPieces = [
 									''
-								);
+								];
 							}
 
 							$this->formatSingleItems($secPieces, $s, $article);
@@ -614,9 +613,9 @@ class DynamicPageList {
 				if ($article->mCounter != '') {
 					// Adapted from SpecialPopularPages::formatResult()
 					// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
-					$nv = $this->msgExt('hitcounters-nviews', array(
+					$nv = $this->msgExt('hitcounters-nviews', [
 						'escape'
-					), $wgLang->formatNum($article->mCounter));
+					], $wgLang->formatNum($article->mCounter));
 					$rBody .= ' '.$wgContLang->getDirMark().'('.$nv.')';
 				}
 				if ($article->mUserLink != '') {
@@ -712,21 +711,21 @@ class DynamicPageList {
 		$before          = '';
 		$insertionBefore = '';
 		$template        = '';
-		$parameter       = array();
-		$value           = array();
-		$afterparm       = array();
-		$format          = array();
-		$preview         = array();
-		$save            = array();
-		$tooltip         = array();
-		$optional        = array();
+		$parameter       = [];
+		$value           = [];
+		$afterparm       = [];
+		$format          = [];
+		$preview         = [];
+		$save            = [];
+		$tooltip         = [];
+		$optional        = [];
 
 		$lastCmd         = '';
 		$message         = '';
 		$summary         = '';
 		$editForm        = false;
 		$action          = '';
-		$hidden          = array();
+		$hidden          = [];
 		$legendPage      = '';
 		$instructionPage = '';
 		$table           = '';
@@ -773,9 +772,9 @@ class DynamicPageList {
 				$nr++;
 				$parameter[$nr] = $arg;
 				if ($nr > 0) {
-					$afterparm[$nr] = array(
+					$afterparm[$nr] = [
 						$parameter[$nr - 1]
-					);
+					];
 					$n              = $nr - 1;
 					while ($n > 0 && array_key_exists($n, $optional)) {
 						$n--;
@@ -796,9 +795,9 @@ class DynamicPageList {
 				$optional[$nr] = true;
 			}
 			if ($cmd[0] == 'afterparm') {
-				$afterparm[$nr] = array(
+				$afterparm[$nr] = [
 					$arg
-				);
+				];
 			}
 			if ($cmd[0] == 'legend') {
 				$legendPage = $arg;
@@ -891,7 +890,7 @@ class DynamicPageList {
 					$legendText = preg_replace('/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText);
 				}
 				$instructionText = '';
-				$instructions    = array();
+				$instructions    = [];
 				if ($instructionPage != '') {
 					$instructionTitle = '';
 					global $wgParser, $wgUser;
@@ -960,15 +959,14 @@ class DynamicPageList {
 						// set parameters to values specified in the dpl source or get them from the http request
 						if ($exec == 'set') {
 							$myvalue = $value[$nr];
-						}
-						else {
+						} else {
 							if ($call >= $matchCount) {
 								break;
 							}
 							$myValue = $wgRequest->getVal(urlencode($call.'_'.$parm), '');
 						}
 						$myOptional  = array_key_exists($nr, $optional);
-						$myAfterParm = array();
+						$myAfterParm = [];
 						if (array_key_exists($nr, $afterparm)) {
 							$myAfterParm = $afterparm[$nr];
 						}
@@ -1028,7 +1026,7 @@ class DynamicPageList {
 	}
 
 	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
-		$matches = array();
+		$matches = [];
 		$nlCount = preg_match_all('/\n/', $value, $matches);
 		if ($nlCount > 0) {
 			$rows = $nlCount + 1;
@@ -1050,20 +1048,20 @@ class DynamicPageList {
 	 * return an array of template invocations; each element is an associative array of parameter and value
 	 */
 	public function getTemplateParmValues($text, $template) {
-		$matches   = array();
+		$matches   = [];
 		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
 			return '';
 		}
 		$textLen = strlen($text);
-		$tval    = array(); // the result array of template values
+		$tval    = []; // the result array of template values
 		$call    = -1; // index for tval
 
 		foreach ($matches as $matchA) {
 			foreach ($matchA as $matchB) {
 				$match         = $matchB[0];
 				$start         = $matchB[1];
-				$tval[++$call] = array();
+				$tval[++$call] = [];
 				$nr            = 0; // number of parameter if no name given
 				$parmValue     = '';
 				$parmName      = '';
@@ -1117,13 +1115,12 @@ class DynamicPageList {
 	 * Changes a single parameter value within a certain call of a tempplate
 	 */
 	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
-
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value == '') {
 			return $text;
 		}
 
-		$matches   = array();
+		$matches   = [];
 		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
 			return $text;
@@ -1237,11 +1234,9 @@ class DynamicPageList {
 		}
 
 		return substr($text, 0, $beginSubst).$substitution.substr($text, $endSubst);
-
 	}
 
 	public function deleteArticleByRule($title, $text, $rulesText) {
-
 		global $wgUser, $wgOut;
 
 		// return "deletion of articles by DPL is disabled.";
@@ -1450,9 +1445,9 @@ class DynamicPageList {
 		array_shift($args);
 
 		if (!is_array($options)) {
-			$options = array(
+			$options = [
 				$options
-			);
+			];
 		}
 
 		$string = wfMessage($key, $args)->text();
