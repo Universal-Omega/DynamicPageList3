@@ -19,8 +19,8 @@ class ListMode {
 	public $sItemStart = '';
 	public $sItemEnd = '';
 	public $sInline = '';
-	public $sSectionTags = array();
-	public $aMultiSecSeparators = array();
+	public $sSectionTags = [];
+	public $aMultiSecSeparators = [];
 	public $iDominantSection = -1;
 
 	/**
@@ -67,7 +67,7 @@ class ListMode {
 
 				$this->sItemStart = '';
 				$this->sItemEnd   = '||';
-				$this->sInline    =  "\n";
+				$this->sInline    = "\n";
 				break;
 			case 'ordered':
 				if ($iOffset == 0) {

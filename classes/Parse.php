@@ -275,7 +275,7 @@ class Parse {
 			$this->parameters->getParameter('inlinetext'),
 			$this->parameters->getParameter('listattr'),
 			$this->parameters->getParameter('itemattr'),
-			(array) $this->parameters->getParameter('listseparators'),
+			(array)$this->parameters->getParameter('listseparators'),
 			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
@@ -287,7 +287,7 @@ class Parse {
 			'',
 			$this->parameters->getParameter('hlistattr'),
 			$this->parameters->getParameter('hitemattr'),
-			(array) $this->parameters->getParameter('listseparators'),
+			(array)$this->parameters->getParameter('listseparators'),
 			$offset,
 			$this->parameters->getParameter('dominantsection')
 		);
@@ -747,7 +747,7 @@ class Parse {
 		//Delayed to the construction of the SQL query, see near line 2211, gs
 		//if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
 
-		$orderMethods = (array) $this->parameters->getParameter('ordermethod');
+		$orderMethods = (array)$this->parameters->getParameter('ordermethod');
 		//Throw an error in no categories were selected when using category sorting modes or requesting category information.
 		if ($totalCategories == 0 && (in_array('categoryadd', $orderMethods) || $this->parameters->getParameter('addfirstcategorydate') === true)) {
 			$this->logger->addMessage(\DynamicPageListHooks::FATAL_CATDATEBUTNOINCLUDEDCATS);
@@ -829,7 +829,7 @@ class Parse {
 	 * @return	array	Updated 'tablerow' parameter.
 	 */
 	private static function updateTableRowKeys($tableRow, $sectionLabels) {
-		$_tableRow	= (array) $tableRow;
+		$_tableRow	= (array)$tableRow;
 		$tableRow	= [];
 		$groupNr	= -1;
 		$t			= -1;
@@ -866,7 +866,7 @@ class Parse {
 	 * @return	string	Raw input with variables replaced
 	 */
 	private function resolveUrlArguments($input, $arguments) {
-		$arguments = (array) $arguments;
+		$arguments = (array)$arguments;
 		foreach ($arguments as $arg) {
 			$dplArg = $this->wgRequest->getVal($arg, '');
 			if ($dplArg == '') {
@@ -907,7 +907,7 @@ class Parse {
 	 * @return	void
 	 */
 	private function defineScrollVariables($scrollVariables) {
-		$scrollVariables = (array) $scrollVariables;
+		$scrollVariables = (array)$scrollVariables;
 
 		foreach ($scrollVariables as $variable => $value) {
 			Variables::setVar(['', '', $variable, $value]);

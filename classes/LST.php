@@ -9,14 +9,14 @@
  *
  * @author Steve Sanbeg
  * @copyright Copyright © 2006, Steve Sanbeg
- * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
+ * @license GPL-2.0-or-later
  *
  *
  * This copy was made to avoid version conflicts between the two extensions.
  * In this copy names were changed (wfLst.. --> wfDplLst..).
  * So any version of LabeledSectionTransclusion can be installed together with DPL
  *
- * Enhancements were made to 
+ * Enhancements were made to
  *     -  allow inclusion of templates ("template swapping")
  *     -  reduce the size of the transcluded text to a limit of <n> characters
  *
@@ -47,7 +47,6 @@ class LST {
 			$parser->mTemplatePath[$part1] = 1;
 			return true;
 		}
-
 	}
 
 	/**
@@ -69,8 +68,7 @@ class LST {
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
 	 **/
-	private static function parse($parser, $title, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = array()) {
-
+	private static function parse($parser, $title, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = []) {
 		// if someone tries something like<section begin=blah>lst only</section>
 		// text, may as well do the right thing.
 		$text = str_replace('</section>', '', $text);
@@ -82,7 +80,7 @@ class LST {
 
 		if (self::open($parser, $part1)) {
 
-			//Handle recursion here, so we can break cycles.    
+			//Handle recursion here, so we can break cycles.
 			if ($recursionCheck == false) {
 				$text = $parser->preprocess($text, $parser->mTitle, $parser->mOptions);
 				self::close($parser, $part1);
@@ -99,7 +97,6 @@ class LST {
 		} else {
 			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
 		}
-
 	}
 
 	##############################################################
@@ -115,7 +112,7 @@ class LST {
 	 * @param Parser $parser
 	 * @return string HTML output
 	 */
-	static private function noop($in, $assocArgs = array(), $parser = null) {
+	static private function noop($in, $assocArgs = [], $parser = null) {
 		return '';
 	}
 
@@ -162,7 +159,7 @@ class LST {
 
 		$count = 0;
 		$offset = 0;
-		$m = array();
+		$m = [];
 		while (preg_match("/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset)) {
 			if ($m[2][1] > $limit) {
 				break;
@@ -195,8 +192,8 @@ class LST {
 	}
 
 	///section inclusion - include all matching sections
-	public static function includeSection($parser, $page = '', $sec = '', $to = '', $recursionCheck = true, $trim = false, $skipPattern = array()) {
-		$output = array();
+	public static function includeSection($parser, $page = '', $sec = '', $to = '', $recursionCheck = true, $trim = false, $skipPattern = []) {
+		$output = [];
 		if (self::text($parser, $page, $title, $text) == false) {
 			$output[] = $text;
 			return $output;
@@ -234,7 +231,6 @@ class LST {
 	 *         will be returned without any checks for balance of tags
 	 */
 	public static function limitTranscludedText($text, $limit, $link = '') {
-
 		// if text is smaller than limit return complete text
 		if ($limit >= strlen($text)) {
 			return $text;
@@ -276,7 +272,7 @@ class LST {
 			}
 		}
 
-		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit 
+		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
 		if ($n0 >= 0) {
 			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
 			if ($nb > 0 && $nb + 15 > $n0) {
@@ -284,7 +280,7 @@ class LST {
 			}
 			$cut = substr($text, 0, $n0 + 1);
 
-			// an open html comment would be fatal, but this should not happen as we already have 
+			// an open html comment would be fatal, but this should not happen as we already have
 			// eliminated html comments at the beginning
 
 			// some tags are critical: ref, pre, nowiki
@@ -293,13 +289,13 @@ class LST {
 			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
 			// This simple approach may fail in some cases ...
 
-			$matches   = array();
+			$matches   = [];
 			$noMatches = preg_match_all('#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches);
-			$tags      = array(
+			$tags      = [
 				'ref' => 0,
 				'pre' => 0,
 				'nowiki' => 0
-			);
+			];
 
 			if ($noMatches > 0) {
 				// calculate tag count (ignoring nesting)
@@ -334,8 +330,8 @@ class LST {
 		}
 	}
 
-	public static function includeHeading($parser, $page = '', $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $link = 'default', $trim = false, $skipPattern = array()) {
-		$output = array();
+	public static function includeHeading($parser, $page = '', $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $link = 'default', $trim = false, $skipPattern = []) {
+		$output = [];
 		if (self::text($parser, $page, $title, $text) == false) {
 			$output[0] = $text;
 			return $output;
@@ -346,8 +342,7 @@ class LST {
 	}
 
 	//section inclusion - include all matching sections (return array)
-	public static function extractHeadingFromText($parser, $page, $title, $text, $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $cLink = 'default', $trim = false, $skipPattern = array()) {
-
+	public static function extractHeadingFromText($parser, $page, $title, $text, $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $cLink = 'default', $trim = false, $skipPattern = []) {
 		$continueSearch = true;
 		$n              = 0;
 		$output[$n]     = '';
@@ -382,7 +377,7 @@ class LST {
 					$pat = '^(={1,6})\s*' . str_replace('/', '\/', $sec) . '\s*\1\s*($)';
 				}
 				if (preg_match("/$pat/im", $text, $m, PREG_OFFSET_CAPTURE)) {
-					$mata           = array();
+					$mata           = [];
 					$no_parenthesis = preg_match_all('/\(/', $pat, $mata);
 					$begin_off      = $m[$no_parenthesis][1];
 					$head_len       = strlen($m[1][0]);
@@ -503,7 +498,7 @@ class LST {
 		$user  = $article->mUserLink;
 		$title = \Title::newFromText($page);
 		/* get text and throw away html comments */
-		$text  = preg_replace('/<!--.*?-->/s', '', $parser->fetchTemplate($title));
+		$text = preg_replace('/<!--.*?-->/s', '', $parser->fetchTemplate($title));
 
 		if ($template1 != '' && $template1[0] == '#') {
 			// --------------------------------------------- looking for a parser function call
@@ -549,12 +544,12 @@ class LST {
 			}
 		}
 
-		$output      = array();
-		$extractParm = array();
+		$output      = [];
+		$extractParm = [];
 
 		// check if we want to extract parameters directly from the call
 		// in that case we won´t invoke template2 but will directly return the extracted parameters
-		// as a sequence of table columns; 
+		// as a sequence of table columns;
 		if (strlen($template2) > strlen($template1) && substr($template2, 0, strlen($template1) + 1) == ($template1 . ':')) {
 			$extractParm = preg_split('/:\s*/s', trim(substr($template2, strlen($template1) + 1)));
 		}
@@ -623,7 +618,7 @@ class LST {
 				$cbrackets    = 2;
 				$templateCall = $tCall;
 				$size         = strlen($templateCall);
-				$parms        = array();
+				$parms        = [];
 				$parm         = '';
 				$hasParm      = false;
 

@@ -149,7 +149,7 @@ class Parameters extends ParametersData {
 				if (!is_array($pageGroups)) {
 					$pageGroups = [];
 				}
-				$pages = $this->getPageNameList($option, (bool) $parameterData['page_name_must_exist']);
+				$pages = $this->getPageNameList($option, (bool)$parameterData['page_name_must_exist']);
 				if ($pages === false) {
 					$success = false;
 				} else {

@@ -78,13 +78,13 @@ class Variables {
 			return '';
 		}
 		if ($value == '') {
-			self::$memoryArray[$var] = array();
+			self::$memoryArray[$var] = [];
 			return;
 		}
 		if ($delimiter == '') {
-			self::$memoryArray[$var] = array(
+			self::$memoryArray[$var] = [
 				$value
-			);
+			];
 			return;
 		}
 		if (0 !== strpos($delimiter, '/') || (strlen($delimiter) - 1) !== strrpos($delimiter, '/')) {
@@ -122,16 +122,16 @@ class Variables {
 			return '';
 		}
 		$values          = self::$memoryArray[$var];
-		$rendered_values = array();
+		$rendered_values = [];
 		foreach ($values as $v) {
 			$temp_result_value = str_replace($search, $v, $subject);
 			$rendered_values[] = $temp_result_value;
 		}
-		return array(
+		return [
 			implode($delimiter, $rendered_values),
 			'noparse'	=> false,
 			'isHTML'	=> false
-		);
+		];
 	}
 }
 ?>
