@@ -709,9 +709,9 @@ class LST {
 		return $output;
 	}
 
-	static function spaceOrUnderscore($pattern) {
+	static public function spaceOrUnderscore($pattern) {
 		// returns a pettern that matches underscores as well as spaces
 		return str_replace(' ', '[ _]', $pattern);
 	}
-
 }
+?>
