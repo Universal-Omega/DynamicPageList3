@@ -268,15 +268,7 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'));
-		$lister->setListAttributes($this->parameters->getParameter('listattr'));
-		$lister->setItemAttributes($this->parameters->getParameter('itemattr'));
-		$lister->setDominantSectionCount($this->parameters->getParameter('dominantsection'));
-		$lister->setTemplateSuffix($this->parameters->getParameter('defaulttemplatesuffix'));
-		$lister->setTrimIncluded($this->parameters->getParameter('includetrim'));
-		$lister->setTableSortColumn($this->parameters->getParameter('tablesortcol'));
-		$lister->setTitleMaxLength($this->parameters->getParameter('titlemaxlen'));
-		$lister->setEscapeLinks($this->parameters->getParameter('escapelinks'));
+		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters);
 
 		$listMode = new ListMode(
 			$this->parameters->getParameter('mode'),
@@ -313,7 +305,6 @@ class Parse {
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
 			$lister,
-			$this->parameters->getParameter('addexternallink'),
 			$this->parameters->getParameter('incpage'),
 			$this->parameters->getParameter('includemaxlen'),
 			$this->parameters->getParameter('seclabels'),
