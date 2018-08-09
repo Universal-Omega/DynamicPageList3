@@ -1026,14 +1026,14 @@ class ParametersData {
 		 * if only one tag is given it will be used for all sections as a start tag (end tag will be empty then)
 		 */
 		'secseparators' => [
-			'default' => null
+			'default' => []
 		],
 		/**
 		 * multisecseparators is a list of tags (which correspond to the items in includepage)
 		 * and which are put between identical sections included from the same file
 		 */
 		'multisecseparators' => [
-			'default' => null
+			'default' => []
 		],
 		/**
 		 * dominantSection is the number (starting from 1) of an includepage argument which shall be used

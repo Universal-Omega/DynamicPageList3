@@ -327,6 +327,8 @@ class DynamicPageList {
 		$rBody = '';
 		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 
+		return $lister->formatList($this->mArticles, $iStart, $iCount);
+
 		// if requested we sort the table by the contents of a given column
 		if ($lister->getTableSortColumn() !== null) {
 			$sortColumn	= $lister->getTableSortColumn();

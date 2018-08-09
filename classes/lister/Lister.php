@@ -199,11 +199,11 @@ class Lister {
 		$this->setEscapeLinks($parameters->getParameter('escapelinks'));
 		$this->setSectionSeparators($parameters->getParameter('secseparators'));
 		$this->setMultiSectionSeparators($parameters->getParameter('multisecseparators'));
-		$this->setIncludePageText($this->parameters->getParameter('incpage'));
+		$this->setIncludePageText($parameters->getParameter('incpage'));
 		$this->setIncludePageMaxLength($parameters->getParameter('includemaxlen'));
-		$this->setPageTextMatch($parameters->getParameter('seclabels'));
-		$this->setPageTextMatchRegex($parameters->getParameter('seclabelsmatch'));
-		$this->setPageTextMatchNotRegex($parameters->getParameter('seclabelsnotmatch'));
+		$this->setPageTextMatch((array)$parameters->getParameter('seclabels'));
+		$this->setPageTextMatchRegex((array)$parameters->getParameter('seclabelsmatch'));
+		$this->setPageTextMatchNotRegex((array)$parameters->getParameter('seclabelsnotmatch'));
 		$this->setIncludePageParsed($parameters->getParameter('incparsed'));
 	}
 
@@ -249,7 +249,7 @@ class Lister {
 		}
 		$class = '\DPL\Lister\\'.$class;
 
-		return new $class;
+		return new $class($parameters);
 	}
 
 	/**
@@ -418,7 +418,7 @@ class Lister {
 	 * @param	array	[Optional] Array of section separators.
 	 * @return	void
 	 */
-	public function setSectionSeparators($separators = []) {
+	public function setSectionSeparators(array $separators = []) {
 		$this->sectionSeparators = (array)$separators;
 	}
 
@@ -429,7 +429,7 @@ class Lister {
 	 * @param	array	[Optional] Array of section separators.
 	 * @return	void
 	 */
-	public function setMultiSectionSeparators($separators = []) {
+	public function setMultiSectionSeparators(array $separators = []) {
 		$this->multiSectionSeparators = (array)$separators;
 	}
 
@@ -511,7 +511,7 @@ class Lister {
 	public function formatList($articles, $start, $count) {
 		$filteredCount = 0;
 		$items = [];
-		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
+		for ($i = $start; $i < $start + $count; $i++) {
 
 			$article = $articles[$i];
 			if (empty($article) || empty($article->mTitle)) {
@@ -521,13 +521,13 @@ class Lister {
 			// Page transclusion: get contents and apply selection criteria based on that contents
 
 			$pageText = null;
-			if ($this->mIncPage) {
+			if ($this->includePageText) {
 				$pageText = $this->transcludePage($article, $filteredCount);
 			} else {
 				$filteredCount = $filteredCount + 1;
 			}
 
-			if ($i > $iStart) {
+			if ($i > $start) {
 				$rBody .= $this->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
 			}
 
