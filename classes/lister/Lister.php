@@ -182,6 +182,13 @@ class Lister {
 	protected $includePageParsed = false;
 
 	/**
+	 * Total result count after parsing, transcluding, and such.
+	 *
+	 * @var		integer
+	 */
+	protected $rowCount = 0;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -533,6 +540,8 @@ class Lister {
 
 			$items[] = $this->formatItem($article, $pageText);
 		}
+
+		$this->rowCount = $filteredCount;
 
 		//@TODO: This start stuff might be UserFormat only.
 		// increase start value of ordered lists at multi-column output
@@ -934,6 +943,16 @@ class Lister {
 			}
 		}
 		return $pageText;
+	}
+
+	/**
+	 * Get the count of listed items after formatting, transcluding, and such.
+	 *
+	 * @access	public
+	 * @return	integer	Row Count
+	 */
+	public function getRowCount() {
+		return $this->rowCount;
 	}
 }
 ?>

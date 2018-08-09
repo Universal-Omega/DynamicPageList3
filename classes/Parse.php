@@ -318,7 +318,7 @@ class Parse {
 		);
 
 		if ($foundRows === null) {
-			$foundRows = $this->dpl->getRowCount();
+			$foundRows = $lister->getRowCount();
 		}
 		$this->addOutput($this->dpl->getText());
 
@@ -326,7 +326,7 @@ class Parse {
 		/* Replacement Variables       */
 		/*******************************/
 		$this->setVariable('TOTALPAGES', $foundRows); //Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used.  Otherwise only accurate if results are less than the SQL LIMIT.
-		$this->setVariable('PAGES', $this->dpl->getRowCount()); //This could be different than TOTALPAGES.  PAGES represents the total results within the constraints of SQL LIMIT.
+		$this->setVariable('PAGES', $lister->getRowCount()); //This could be different than TOTALPAGES.  PAGES represents the total results within the constraints of SQL LIMIT.
 
 		//Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp   = date('Y/m/d H:i:s');
@@ -359,7 +359,7 @@ class Parse {
 			'DPL_time'				=> $dplTime,
 			'DPL_count'				=> $this->parameters->getParameter('count'),
 			'DPL_totalPages'		=> $foundRows,
-			'DPL_pages'				=> $this->dpl->getRowCount()
+			'DPL_pages'				=> $lister->getRowCount()
 		];
 		$this->defineScrollVariables($scrollVariables);
 
