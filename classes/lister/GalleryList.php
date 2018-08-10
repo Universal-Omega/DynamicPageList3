@@ -23,7 +23,7 @@ class GalleryList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<gallery>';
+	public $listStart = '<gallery%s>';
 
 	/**
 	 * List(Section) End
@@ -31,6 +31,7 @@ class GalleryList extends Lister {
 	 * @var		string
 	 */
 	public $listEnd = '</gallery>';
+
 	/**
 	 * Item Start
 	 *
@@ -43,7 +44,7 @@ class GalleryList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $itemEnd = "||";
+	public $itemEnd = "|";
 
 	/**
 	 * Format an item.
@@ -54,15 +55,16 @@ class GalleryList extends Lister {
 	 * @return	string	Item HTML
 	 */
 	public function formatItem($article, $pageText = null) {
-		$item = $this->itemStart;
-		$item .= $article->mTitle;
+		$item = $article->mTitle;
 
 		if ($pageText !== null) {
 			//Include parsed/processed wiki markup content after each item before the closing tag.
 			$item .= $pageText;
 		}
 
-		$item .= $this->itemEnd;
+		$item = $this->getItemStart().$item.$this->itemEnd;
+
+		$item = $this->replaceTagParameters($item, $article);
 
 		return $item;
 	}

@@ -23,7 +23,7 @@ class DefinitionList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $headingStart = '<dt>';
+	public $headingStart = '<dt%s>';
 
 	/**
 	 * Heading End
@@ -37,7 +37,7 @@ class DefinitionList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<dl>';
+	public $listStart = '<dl%s>';
 
 	/**
 	 * List(Section) End
@@ -45,12 +45,13 @@ class DefinitionList extends Lister {
 	 * @var		string
 	 */
 	public $listEnd = '</dl>';
+
 	/**
 	 * Item Start
 	 *
 	 * @var		string
 	 */
-	public $itemStart = '<dd>';
+	public $itemStart = '<dd%s>';
 
 	/**
 	 * Item End

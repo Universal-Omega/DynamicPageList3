@@ -37,7 +37,7 @@ class InlineList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<div>';
+	public $listStart = '<div%s>';
 
 	/**
 	 * List(Section) End
@@ -45,12 +45,13 @@ class InlineList extends Lister {
 	 * @var		string
 	 */
 	public $listEnd = '</div>';
+
 	/**
 	 * Item Start
 	 *
 	 * @var		string
 	 */
-	public $itemStart = '<span>';
+	public $itemStart = '<span%s>';
 
 	/**
 	 * Item End
@@ -64,7 +65,7 @@ class InlineList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $textSeparator = '';
+	protected $textSeparator = '';
 
 	/**
 	 * Main Constructor
@@ -79,21 +80,14 @@ class InlineList extends Lister {
 	}
 
 	/**
-	 * Format an item.
+	 * Join together items after being processed by formatItem().
 	 *
 	 * @access	public
-	 * @param	object	DPL\Article
-	 * @param	string	[Optional] Page text to include.
-	 * @return	string	Item HTML
+	 * @param	array	Items as formatted by formatItem().
+	 * @return	string	Imploded items.
 	 */
-	public function formatItem($article, $pageText = null) {
-		$item = $lister->replaceTagParameters($lister->itemStart, $article, $this->filteredCount);
-
-		$item .= parent::formatItem($article, $pageText);
-
-		$item .= $lister->replaceTagParameters($lister->itemEnd, $article, $this->filteredCount);
-
-		return $item;
+	protected function implodeItems($items) {
+		return implode($this->textSeparator, $items);
 	}
 }
 ?>

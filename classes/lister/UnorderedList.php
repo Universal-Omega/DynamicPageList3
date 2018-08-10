@@ -23,7 +23,7 @@ class UnorderedList extends Lister {
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<ul>';
+	public $listStart = '<ul%s>';
 
 	/**
 	 * List(Section) End
@@ -31,12 +31,13 @@ class UnorderedList extends Lister {
 	 * @var		string
 	 */
 	public $listEnd = '</ul>';
+
 	/**
 	 * Item Start
 	 *
 	 * @var		string
 	 */
-	public $itemStart = '<li>';
+	public $itemStart = '<li%s>';
 
 	/**
 	 * Item End

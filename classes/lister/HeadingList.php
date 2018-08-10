@@ -45,6 +45,7 @@ class HeadingList extends Lister {
 	 * @var		string
 	 */
 	public $listEnd = '';
+
 	/**
 	 * Item Start
 	 *

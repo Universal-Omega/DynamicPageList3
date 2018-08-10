@@ -30,6 +30,7 @@ class Lister {
 
 	/**
 	 * Heading Start
+	 * Use %s for attribute placement.  Example: <div%s>
 	 *
 	 * @var		string
 	 */
@@ -44,6 +45,7 @@ class Lister {
 
 	/**
 	 * List(Section) Start
+	 * Use %s for attribute placement.  Example: <div%s>
 	 *
 	 * @var		string
 	 */
@@ -55,8 +57,10 @@ class Lister {
 	 * @var		string
 	 */
 	public $listEnd = '';
+
 	/**
 	 * Item Start
+	 * Use %s for attribute placement.  Example: <div%s>
 	 *
 	 * @var		string
 	 */
@@ -68,6 +72,13 @@ class Lister {
 	 * @var		string
 	 */
 	public $itemEnd = '';
+
+	/**
+	 * Extra heading HTML attributes.
+	 *
+	 * @var		array
+	 */
+	public $headingAttributes = '';
 
 	/**
 	 * Extra list HTML attributes.
@@ -537,7 +548,6 @@ class Lister {
 		$filteredCount = 0;
 		$items = [];
 		for ($i = $start; $i < $start + $count; $i++) {
-
 			$article = $articles[$i];
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
@@ -550,10 +560,6 @@ class Lister {
 				$filteredCount = $filteredCount + 1;
 			}
 
-			if ($i > $start) {
-				$rBody .= $this->sInline; //If mode is not 'inline', sInline attribute is empty, so does nothing
-			}
-
 			$items[] = $this->formatItem($article, $pageText);
 		}
 
@@ -561,7 +567,7 @@ class Lister {
 
 		//@TODO: This start stuff might be UserFormat only.
 		// increase start value of ordered lists at multi-column output
-		$actualStart = $this->listStart;
+		$actualStart = $this->getListStart();
 		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actualStart);
 		$start    = intval($start);
 		if ($start != 0) {
@@ -569,7 +575,7 @@ class Lister {
 			$actualStart = preg_replace('/start=[0-9]+/', "start=$start", $actualStart);
 		}
 
-		return $actualStart.implode($items).$this->listEnd;
+		return $actualStart.$this->implodeItems($items).$this->listEnd;
 	}
 
 	/**
@@ -583,7 +589,7 @@ class Lister {
 	public function formatItem($article, $pageText = null) {
 		global $wgLang;
 
-		$item = $this->itemStart;
+		$item = '';
 		//DPL Article, not MediaWiki.
 		$date = $article->getDate();
 		if ($date !== null) {
@@ -623,8 +629,7 @@ class Lister {
 			$item .= ' . . <small>'.wfMessage('categories').': '.implode(' | ', $article->mCategoryLinks).'</small>';
 		}
 
-		//@TODO: I removed "$this->mAddExternalLink && " for testing.  Need to get this from the addexternallink parameter somehow.
-		if ($article->mExternalLink !== null) {
+		if ($this->getParameters()->getParameter('addexternallink') && $article->mExternalLink !== null) {
 			$item .= ' → '.$article->mExternalLink;
 		}
 
@@ -633,11 +638,52 @@ class Lister {
 			$item .= $pageText;
 		}
 
-		$item .= $this->itemEnd;
+		$item = $this->getItemStart().$item.$this->itemEnd;
 
-		$item = $this->replaceTagParameters($tag, $article);
+		$item = $this->replaceTagParameters($item, $article);
 
 		return $item;
+	}
+
+	/**
+	 * Return $this->headingStart with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	Heading Start
+	 */
+	public function getHeadingStart() {
+		return sprintf($this->headingStart, $this->headingAttributes);
+	}
+
+	/**
+	 * Return $this->listStart with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	List Start
+	 */
+	public function getListStart() {
+		return sprintf($this->listStart, $this->listAttributes);
+	}
+
+	/**
+	 * Return $this->itemStart with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	Item Start
+	 */
+	public function getItemStart() {
+		return sprintf($this->itemStart, $this->itemAttributes);
+	}
+
+	/**
+	 * Join together items after being processed by formatItem().
+	 *
+	 * @access	public
+	 * @param	array	Items as formatted by formatItem().
+	 * @return	string	Imploded items.
+	 */
+	protected function implodeItems($items) {
+		return implode('', $items);
 	}
 
 	/**

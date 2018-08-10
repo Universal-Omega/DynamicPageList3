@@ -23,7 +23,7 @@ class OrderedList extends UnorderedList {
 	 *
 	 * @var		string
 	 */
-	public $listStart = '<ol>';
+	public $listStart = '<ol%s>';
 
 	/**
 	 * List(Section) End
