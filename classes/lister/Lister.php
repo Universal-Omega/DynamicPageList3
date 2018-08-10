@@ -197,7 +197,7 @@ class Lister {
 	 *
 	 * @var		integer
 	 */
-	protected $rowCount = 0;
+	public $rowCount = 0;
 
 	/**
 	 * \DPL\Parameters
@@ -244,6 +244,9 @@ class Lister {
 	static public function newFromStyle($style, \DPL\Parameters $parameters) {
 		$style = strtolower($style);
 		switch ($style) {
+			case 'category':
+				$class = 'CategoryList';
+				break;
 			case 'definition':
 				$class = 'DefinitionList';
 				break;

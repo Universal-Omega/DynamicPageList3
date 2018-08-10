@@ -203,15 +203,6 @@ class DynamicPageList {
 	 */
 	public function formatList($iStart, $iCount) {
 		$lister = $this->mListMode;
-		//categorypage-style list output mode
-		if ($lister->getStyle() == Lister::LIST_CATEGORY) {
-			return $this->formatCategoryList($iStart, $iCount);
-		}
-
-		//process results of query, outputing equivalent of <li>[[Article]]</li> for each result,
-		//or something similar if the list uses other startlist/endlist;
-		$rBody = '';
-		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 
 		return $lister->formatList($this->mArticles, $iStart, $iCount);
 	}
@@ -302,22 +293,6 @@ class DynamicPageList {
 			return $text;
 		}
 		return LST::limitTranscludedText($text, $lim);
-	}
-
-	//slightly different from CategoryViewer::formatList() (no need to instantiate a CategoryViewer object)
-	public function formatCategoryList($iStart, $iCount) {
-		for ($i = $iStart; $i < $iStart + $iCount; $i++) {
-			$aArticles[]            = $this->mArticles[$i]->mLink;
-			$aArticles_start_char[] = $this->mArticles[$i]->mStartChar;
-			$this->filteredCount    = $this->filteredCount + 1;
-		}
-		if (count($aArticles) > Config::getSetting('categoryStyleListCutoff')) {
-			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::columnList($aArticles, $aArticles_start_char);
-		} elseif (count($aArticles) > 0) {
-			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::shortList($aArticles, $aArticles_start_char);
-		}
-		return '';
 	}
 
 	/**

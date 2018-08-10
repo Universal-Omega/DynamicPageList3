@@ -39,6 +39,7 @@
 		"DPL\\Logger": "classes/Logger.php",
 		"DPL\\ListMode": "classes/ListMode.php",
 		"DPL\\Lister\\Lister": "classes/lister/Lister.php",
+		"DPL\\Lister\\CategoryList": "classes/lister/CategoryList.php",
 		"DPL\\Lister\\DefinitionList": "classes/lister/DefinitionList.php",
 		"DPL\\Lister\\GalleryList": "classes/lister/GalleryList.php",
 		"DPL\\Lister\\HeadingList": "classes/lister/HeadingList.php",
