@@ -542,7 +542,7 @@ class Lister {
 	 * @param	array	List of \DPL\Article
 	 * @param	integer	Start position of the array to process.
 	 * @param	integer	Total objects from the array to process.
-	 * @return	void
+	 * @return	string	Formatted list.
 	 */
 	public function formatList($articles, $start, $count) {
 		$filteredCount = 0;
@@ -565,17 +565,7 @@ class Lister {
 
 		$this->rowCount = $filteredCount;
 
-		//@TODO: This start stuff might be UserFormat only.
-		// increase start value of ordered lists at multi-column output
-		$actualStart = $this->getListStart();
-		$start    = preg_replace('/.*start=([0-9]+).*/', '\1', $actualStart);
-		$start    = intval($start);
-		if ($start != 0) {
-			$start += $count;
-			$actualStart = preg_replace('/start=[0-9]+/', "start=$start", $actualStart);
-		}
-
-		return $actualStart.$this->implodeItems($items).$this->listEnd;
+		return $this->getListStart().$this->implodeItems($items).$this->listEnd;
 	}
 
 	/**

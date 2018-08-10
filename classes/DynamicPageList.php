@@ -214,31 +214,6 @@ class DynamicPageList {
 		// the following statement caused a problem with multiple columns:  $this->filteredCount = 0;
 
 		return $lister->formatList($this->mArticles, $iStart, $iCount);
-
-		// if requested we sort the table by the contents of a given column
-		if ($lister->getTableSortColumn() !== null) {
-			$sortColumn	= $lister->getTableSortColumn();
-			$rows		= explode("\n|-", $rBody);
-			$rowsKey	= [];
-			foreach ($rows as $index => $row) {
-				if (strlen($row) > 0) {
-					if ((($word = explode("\n|", $row, $sortColumn + 2)) !== false) && (count($word) > $sortColumn)) {
-						$rowsKey[$index] = $word[$sortColumn];
-					} else {
-						$rowsKey[$index] = $row;
-					}
-				}
-			}
-			if ($sortColumn < 0) {
-				arsort($rowsKey);
-			} else {
-				asort($rowsKey);
-			}
-			$rBody = "";
-			foreach ($rowsKey as $index => $val) {
-				$rBody .= "\n|-".$rows[$index];
-			}
-		}
 	}
 
 	// generate a hyperlink to the article
