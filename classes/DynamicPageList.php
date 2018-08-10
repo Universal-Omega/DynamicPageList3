@@ -220,90 +220,8 @@ class DynamicPageList {
 		} else {
 			$message = 'dpl_articlecount';
 		}
-		return '<p>'.$this->msgExt($message, [], $numart).'</p>';
+		return '<p>'.wfMessage($message, $numart).'</p>';
 	}
-
-	// substitute symbolic names within a user defined format tag
-	/*public function substTagParm($tag, $pagename, $article, $imageUrl, $nr, $titleMaxLength) {
-		global $wgLang;
-		if (strchr($tag, '%') < 0) {
-			return $tag;
-		}
-		$sTag = str_replace('%PAGE%', $pagename, $tag);
-		$sTag = str_replace('%PAGEID%', $article->mID, $sTag);
-		$sTag = str_replace('%NAMESPACE%', $this->nameSpaces[$article->mNamespace], $sTag);
-		$sTag = str_replace('%IMAGE%', $imageUrl, $sTag);
-		$sTag = str_replace('%EXTERNALLINK%', $article->mExternalLink, $sTag);
-		$sTag = str_replace('%EDITSUMMARY%', $article->mComment, $sTag);
-
-		$title = $article->mTitle->getText();
-		if (strpos($title, '%TITLE%') >= 0) {
-			if ($this->mReplaceInTitle[0] != '') {
-				$title = preg_replace($this->mReplaceInTitle[0], $this->mReplaceInTitle[1], $title);
-			}
-			if (isset($titleMaxLength) && (strlen($title) > $titleMaxLength)) {
-				$title = substr($title, 0, $titleMaxLength).'...';
-			}
-			$sTag = str_replace('%TITLE%', $title, $sTag);
-		}
-
-		$sTag = str_replace('%NR%', $nr, $sTag);
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNT%', $article->mCounter, $sTag);
-		}
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNTFS%', floor(log($article->mCounter) * 0.7), $sTag);
-		}
-		if ($article->mCounter != '') {
-			$sTag = str_replace('%COUNTFS2%', floor(sqrt(log($article->mCounter))), $sTag);
-		}
-		if ($article->mSize != '') {
-			$sTag = str_replace('%SIZE%', $article->mSize, $sTag);
-		}
-		if ($article->mSize != '') {
-			$sTag = str_replace('%SIZEFS%', floor(sqrt(log($article->mSize)) * 2.5 - 5), $sTag);
-		}
-		if ($article->mDate != '') {
-			if ($article->myDate != '') {
-				$sTag = str_replace('%DATE%', $article->myDate, $sTag);
-			} else {
-				$sTag = str_replace('%DATE%', $wgLang->timeanddate($article->mDate, true), $sTag);
-			}
-		}
-		if ($article->mRevision != '') {
-			$sTag = str_replace('%REVISION%', $article->mRevision, $sTag);
-		}
-		if ($article->mContribution != '') {
-			$sTag = str_replace('%CONTRIBUTION%', $article->mContribution, $sTag);
-			$sTag = str_replace('%CONTRIB%', $article->mContrib, $sTag);
-			$sTag = str_replace('%CONTRIBUTOR%', $article->mContributor, $sTag);
-		}
-		if ($article->mUserLink != '') {
-			$sTag = str_replace('%USER%', $article->mUser, $sTag);
-		}
-		if ($article->mSelTitle != null) {
-			if ($article->mSelNamespace == 0) {
-				$sTag = str_replace('%PAGESEL%', str_replace('_', ' ', $article->mSelTitle), $sTag);
-			} else {
-				$sTag = str_replace('%PAGESEL%', $this->nameSpaces[$article->mSelNamespace].':'.str_replace('_', ' ', $article->mSelTitle), $sTag);
-			}
-		}
-		if ($article->mImageSelTitle != null) {
-			$sTag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $sTag);
-		}
-		if (strpos($sTag, "%CAT") >= 0) {
-			if (!empty($article->mCategoryLinks)) {
-				$sTag = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $sTag);
-				$sTag = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $sTag);
-				$sTag = str_replace('%CATNAMES%', implode(', ', $article->mCategoryTexts), $sTag);
-			} else {
-				$sTag = str_replace('%CATLIST%', '', $sTag);
-				$sTag = str_replace('%CATBULLETS%', '', $sTag);
-				$sTag = str_replace('%CATNAMES%', '', $sTag);
-			}
-		}
-		return $sTag;
-	}*/
 
 	/**
 	 * Format the list of items.
@@ -360,11 +278,6 @@ class DynamicPageList {
 		return $lister->replaceTagParameters($tag, $article, $this->filteredCount, '');
 	}
 
-	//format one item of an entry in the output list (i.e. the collection of occurences of one item from the include parameter)
-	public function formatItem($piece, $tagStart, $tagEnd) {
-		return $tagStart.$piece.$tagEnd;
-	}
-
 	//format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter)
 	public function formatSingleItems(&$pieces, $s, $article) {
 		$firstCall = true;
@@ -382,16 +295,14 @@ class DynamicPageList {
 				}
 				$pieces[$key] = str_replace('%IMAGE%', self::imageWithPath($val), $pieces[$key]);
 				$pieces[$key] = str_replace('%PAGE%', $article->mTitle->getPrefixedText(), $pieces[$key]);
-				if (strpos($pieces[$key], "%CAT") >= 0) {
-					if (!empty($article->mCategoryLinks)) {
-						$pieces[$key] = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $pieces[$key]);
-						$pieces[$key] = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $pieces[$key]);
-						$pieces[$key] = str_replace('%CATNAMES%', implode(', ', $article->mCategoryTexts), $pieces[$key]);
-					} else {
-						$pieces[$key] = str_replace('%CATLIST%', '', $pieces[$key]);
-						$pieces[$key] = str_replace('%CATBULLETS%', '', $pieces[$key]);
-						$pieces[$key] = str_replace('%CATNAMES%', '', $pieces[$key]);
-					}
+				if (!empty($article->mCategoryLinks)) {
+					$pieces[$key] = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $pieces[$key]);
+					$pieces[$key] = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $pieces[$key]);
+					$pieces[$key] = str_replace('%CATNAMES%', implode(', ', $article->mCategoryTexts), $pieces[$key]);
+				} else {
+					$pieces[$key] = str_replace('%CATLIST%', '', $pieces[$key]);
+					$pieces[$key] = str_replace('%CATBULLETS%', '', $pieces[$key]);
+					$pieces[$key] = str_replace('%CATNAMES%', '', $pieces[$key]);
 				}
 			}
 			$firstCall = false;
@@ -430,11 +341,6 @@ class DynamicPageList {
 		} else {
 			return $result;
 		}
-	}
-
-	//return the total number of rows (filtered)
-	public function getRowCount() {
-		return intval($this->filteredCount);
 	}
 
 	/**
@@ -486,34 +392,6 @@ class DynamicPageList {
 			$imageUrl = '???';
 		}
 		return $imageUrl;
-	}
-
-	/**
-	 * Returns message in the requested format after parsing wikitext to html
-	 * This is meant to be equivalent to wfMsgExt() with parse, parsemag and escape as available options but using the DPL local parser instead of the global one (bugfix).
-	 */
-	public function msgExt($key, $options) {
-		$args = func_get_args();
-		array_shift($args);
-		array_shift($args);
-
-		if (!is_array($options)) {
-			$options = [
-				$options
-			];
-		}
-
-		$string = wfMessage($key, $args)->text();
-
-		$this->mParserOptions->setInterfaceMessage(true);
-		$string = $this->mParser->recursiveTagParse($string);
-		$this->mParserOptions->setInterfaceMessage(false);
-
-		if (in_array('escape', $options)) {
-			$string = htmlspecialchars($string);
-		}
-
-		return $string;
 	}
 
 	public function getText() {

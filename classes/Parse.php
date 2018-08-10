@@ -313,7 +313,6 @@ class Parse {
 			$this->parameters->getParameter('incparsed'),
 			$this->parser,
 			$this->parameters->getParameter('replaceintitle'),
-			$this->parameters->getParameter('titlemaxlen'),
 			$this->parameters->getParameter('tablerow')
 		);
 

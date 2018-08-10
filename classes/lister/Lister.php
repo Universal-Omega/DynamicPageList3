@@ -189,6 +189,13 @@ class Lister {
 	protected $rowCount = 0;
 
 	/**
+	 * \DPL\Parameters
+	 *
+	 * @var		object
+	 */
+	protected $parameters = null;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
@@ -212,6 +219,7 @@ class Lister {
 		$this->setPageTextMatchRegex((array)$parameters->getParameter('seclabelsmatch'));
 		$this->setPageTextMatchNotRegex((array)$parameters->getParameter('seclabelsnotmatch'));
 		$this->setIncludePageParsed($parameters->getParameter('incparsed'));
+		$this->parameters = $parameters;
 	}
 
 	/**
@@ -257,6 +265,16 @@ class Lister {
 		$class = '\DPL\Lister\\'.$class;
 
 		return new $class($parameters);
+	}
+
+	/**
+	 * Get the \DPL\Parameters object this object was constructed with.
+	 *
+	 * @access	public
+	 * @return	object	\DPL\Parameters
+	 */
+	public function getParameters() {
+		return $this->parameters;
 	}
 
 	/**
@@ -507,7 +525,7 @@ class Lister {
 	}
 
 	/**
-	 * Function Documentation
+	 * Format the list of articles.
 	 *
 	 * @access	public
 	 * @param	array	List of \DPL\Article
@@ -524,8 +542,6 @@ class Lister {
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
 			}
-
-			// Page transclusion: get contents and apply selection criteria based on that contents
 
 			$pageText = null;
 			if ($this->includePageText) {
@@ -557,7 +573,7 @@ class Lister {
 	}
 
 	/**
-	 * Format an item.
+	 * Format a single item.
 	 *
 	 * @access	public
 	 * @param	object	DPL\Article
@@ -589,12 +605,7 @@ class Lister {
 		}
 
 		if ($article->mCounter !== null) {
-			// Adapted from SpecialPopularPages::formatResult()
-			// $nv = $this->msgExt( 'nviews', array( 'parsemag', 'escape'), $wgLang->formatNum( $article->mCounter ) );
-			$nv = $this->msgExt('hitcounters-nviews', [
-				'escape'
-			], $wgLang->formatNum($article->mCounter));
-			$item .= ' '.$wgContLang->getDirMark().'('.$nv.')';
+			$item .= ' '.$wgContLang->getDirMark().'('.wfMessage('hitcounters-nviews', $wgLang->formatNum($article->mCounter))->escaped().')';
 		}
 
 		if ($article->mUserLink !== null) {
@@ -624,6 +635,8 @@ class Lister {
 
 		$item .= $this->itemEnd;
 
+		$item = $this->replaceTagParameters($tag, $article);
+
 		return $item;
 	}
 
@@ -633,11 +646,12 @@ class Lister {
 	 * @access	public
 	 * @param	string	Text to perform replacements on.
 	 * @param	object	\DPL\Article
-	 * @param	integer	The current article sequence number (starting from 1).
 	 * @return	string	Text with replacements performed.
 	 */
-	public function replaceTagParameters($tag, \DPL\Article $article, $nr) {
-		global $wgLang;
+	public function replaceTagParameters($tag, \DPL\Article $article) {
+		global $wgLang, $wgContLang;
+
+		$namespaces = $wgContLang->getNamespaces();
 
 		if (strpos($tag, '%') === false) {
 			return $tag;
@@ -658,6 +672,7 @@ class Lister {
 			}
 		}
 
+		$pagename = $article->mTitle->getPrefixedText();
 		if ($this->getEscapeLinks() && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
 			// links to categories or images need an additional ":"
 			$pagename = ':'.$pagename;
@@ -665,24 +680,22 @@ class Lister {
 
 		$tag = str_replace('%PAGE%', $pagename, $tag);
 		$tag = str_replace('%PAGEID%', $article->mID, $tag);
-		$tag = str_replace('%NAMESPACE%', $this->nameSpaces[$article->mNamespace], $tag);
+		$tag = str_replace('%NAMESPACE%', $namespaces[$article->mNamespace], $tag);
 		$tag = str_replace('%IMAGE%', $imageUrl, $tag);
 		$tag = str_replace('%EXTERNALLINK%', $article->mExternalLink, $tag);
 		$tag = str_replace('%EDITSUMMARY%', $article->mComment, $tag);
 
 		$title = $article->mTitle->getText();
-		if (strpos($title, '%TITLE%') >= 0) {
-			if ($this->mReplaceInTitle[0] != '') {
-				$title = preg_replace($this->mReplaceInTitle[0], $this->mReplaceInTitle[1], $title);
-			}
-			$titleMaxLength = $this->getTitleMaxLength();
-			if ($titleMaxLength !== null && (strlen($title) > $titleMaxLength)) {
-				$title = substr($title, 0, $titleMaxLength).'...';
-			}
-			$tag = str_replace('%TITLE%', $title, $tag);
+		$replaceInTitle = $this->getParameters()->getParameter('replaceintitle');
+		if (is_array($replaceInTitle) && count($replaceInTitle) === 2) {
+			$title = preg_replace($replaceInTitle[0], $replaceInTitle[1], $title);
 		}
+		$titleMaxLength = $this->getTitleMaxLength();
+		if ($titleMaxLength !== null && (strlen($title) > $titleMaxLength)) {
+			$title = substr($title, 0, $titleMaxLength).'...';
+		}
+		$tag = str_replace('%TITLE%', $title, $tag);
 
-		$tag = str_replace('%NR%', $nr, $tag);
 		$tag = str_replace('%COUNT%', $article->mCounter, $tag);
 		$tag = str_replace('%COUNTFS%', floor(log($article->mCounter) * 0.7), $tag);
 		$tag = str_replace('%COUNTFS2%', floor(sqrt(log($article->mCounter))), $tag);
@@ -699,7 +712,7 @@ class Lister {
 			if ($article->mSelNamespace == 0) {
 				$tag = str_replace('%PAGESEL%', str_replace('_', ' ', $article->mSelTitle), $tag);
 			} else {
-				$tag = str_replace('%PAGESEL%', $this->nameSpaces[$article->mSelNamespace].':'.str_replace('_', ' ', $article->mSelTitle), $tag);
+				$tag = str_replace('%PAGESEL%', $namespaces[$article->mSelNamespace].':'.str_replace('_', ' ', $article->mSelTitle), $tag);
 			}
 		}
 		$tag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $tag);
@@ -715,6 +728,18 @@ class Lister {
 		}
 
 		return $tag;
+	}
+
+	/**
+	 * Replace the %NR%(current article sequence number) in text.
+	 *
+	 * @access	public
+	 * @param	string	Text to perform replacements on.
+	 * @param	integer	The current article sequence number (starting from 1).
+	 * @return	string	Text with replacements performed.
+	 */
+	public function replaceTagCount($tag, $nr) {
+		return str_replace('%NR%', $nr, $tag);
 	}
 
 	/**
@@ -743,7 +768,7 @@ class Lister {
 
 				// append full text to output
 				if (is_array($this->sectionSeparators) && array_key_exists('0', $this->sectionSeparators)) {
-					$pageText .= $this->replaceTagParameters($this->sectionSeparators[0], $article, $filteredCount);
+					$pageText .= $this->replaceTagCount($this->sectionSeparators[0], $filteredCount);
 					$pieces = [
 						0 => $text
 					];
@@ -808,12 +833,12 @@ class Lister {
 				}
 
 				// find out if the user specified an includematch / includenotmatch condition
-				if (is_array($this->pageTextMatchRegex) && count($this->pageTextMatchRegex) > $s && $this->pageTextMatchRegex[$s] != '') {
+				if (is_array($this->pageTextMatchRegex) && count($this->pageTextMatchRegex) > $s && !empty($this->pageTextMatchRegex[$s])) {
 					$mustMatch = $this->pageTextMatchRegex[$s];
 				} else {
 					$mustMatch = '';
 				}
-				if (is_array($this->pageTextMatchNotRegex) && count($this->pageTextMatchNotRegex) > $s && $this->pageTextMatchNotRegex[$s] != '') {
+				if (is_array($this->pageTextMatchNotRegex) && count($this->pageTextMatchNotRegex) > $s && !empty($this->pageTextMatchNotRegex[$s])) {
 					$mustNotMatch = $this->pageTextMatchNotRegex[$s];
 				} else {
 					$mustNotMatch = '';
@@ -856,7 +881,7 @@ class Lister {
 					$secPiece[$s] = $secPieces[0];
 					for ($sp = 1; $sp < count($secPieces); $sp++) {
 						if (isset($this->multiSectionSeparators[$s])) {
-							$secPiece[$s] .= str_replace('%SECTION%', $sectionHeading[$sp], $this->replaceTagParameters($this->multiSectionSeparators[$s], $article, $filteredCount));
+							$secPiece[$s] .= str_replace('%SECTION%', $sectionHeading[$sp], $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount));
 						}
 						$secPiece[$s] .= $secPieces[$sp];
 					}
@@ -880,7 +905,7 @@ class Lister {
 					}
 					//Why the hell was defaultTemplateSuffix be passed all over the place for just fucking here?  --Alexia
 					$secPieces    = LST::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2.$this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode(', ', $article->mCategoryLinks));
-					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagParameters($this->multiSectionSeparators[$s], $article, $filteredCount) : '', $secPieces);
+					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount) : '', $secPieces);
 					if ($this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count($secPieces) > 1) {
 						$dominantPieces = $secPieces;
 					}
@@ -891,7 +916,7 @@ class Lister {
 				} else {
 					// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
 					$secPieces    = LST::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern);
-					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagParameters($this->multiSectionSeparators[$s], $article, $filteredCount) : '', $secPieces);
+					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount) : '', $secPieces);
 					if ($this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count($secPieces) > 1) {
 						$dominantPieces = $secPieces;
 					}
@@ -904,14 +929,14 @@ class Lister {
 				// separator tags
 				if (is_array($this->sectionSeparators) && count($this->sectionSeparators) == 1) {
 					// If there is only one separator tag use it always
-					$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagParameters($this->sectionSeparators[0], $article, $filteredCount));
+					$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagCount($this->sectionSeparators[0], $filteredCount));
 				} elseif (isset($this->sectionSeparators[$s * 2])) {
-					$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagParameters($this->sectionSeparators[$s * 2], $article, $filteredCount));
+					$septag[$s * 2] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagCount($this->sectionSeparators[$s * 2], $filteredCount));
 				} else {
 					$septag[$s * 2] = '';
 				}
 				if (isset($this->sectionSeparators[$s * 2 + 1])) {
-					$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagParameters($this->sectionSeparators[$s * 2 + 1], $article, $filteredCount));
+					$septag[$s * 2 + 1] = str_replace('%SECTION%', $sectionHeading[0], $this->replaceTagCount($this->sectionSeparators[$s * 2 + 1], $filteredCount));
 				} else {
 					$septag[$s * 2 + 1] = '';
 				}
