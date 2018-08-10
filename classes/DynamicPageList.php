@@ -16,45 +16,17 @@ use \DPL\Lister\UserFormatLister;
 class DynamicPageList {
 	public $mArticles;
 	public $mHeadingType; // type of heading: category, user, etc. (depends on 'ordermethod' param)
-	public $mHListMode; // html list mode for headings
 	public $mListMode; // html list mode for pages
-	public $mAddExternalLink; // whether to add the text of an external link or not
-	public $mIncPage; // true only if page transclusion is enabled
-	public $mIncMaxLen; // limit for text to include
-	public $mIncSecLabels = []; // array of labels of sections to transclude
-	public $mIncSecLabelsMatch = []; // array of match patterns for sections to transclude
-	public $mIncSecLabelsNotMatch = []; // array of NOT match patterns for sections to transclude
-	public $mIncParsed; // whether to match raw parameters or parsed contents
 	public $mParser;
 	public $mParserOptions;
 	public $mParserTitle;
 	public $mOutput;
-	public $mReplaceInTitle;
-	public $filteredCount = 0; // number of (filtered) row count
-	public $nameSpaces;
 	public $mTableRow; // formatting rules for table fields
 
-	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, $includepage, $includemaxlen, $includeseclabels, $includeseclabelsmatch, $includeseclabelsnotmatch, $includematchparsed, &$parser, $replaceInTitle, $aTableRow) {
-		global $wgContLang;
-
-		$this->nameSpaces       = $wgContLang->getNamespaces();
+	public function __construct($headings, $bHeadingCount, $iColumns, $iRows, $iRowSize, $sRowColFormat, $articles, $headingtype, $hlistmode, $listmode, &$parser, $aTableRow) {
 		$this->mArticles        = $articles;
 		$this->mListMode        = $listmode;
-		$this->mIncPage         = $includepage;
-		if ($includepage) {
-			$this->mIncSecLabels         = $includeseclabels;
-			$this->mIncSecLabelsMatch    = $includeseclabelsmatch;
-			$this->mIncSecLabelsNotMatch = $includeseclabelsnotmatch;
-			$this->mIncParsed            = $includematchparsed;
-		}
 
-		if (isset($includemaxlen)) {
-			$this->mIncMaxLen = $includemaxlen + 1;
-		} else {
-			$this->mIncMaxLen = 0;
-		}
-
-		$this->mReplaceInTitle = $replaceInTitle;
 		$this->mTableRow       = $aTableRow;
 
 		// cloning the parser in the following statement leads in some cases to a php error in MW 1.15
@@ -95,7 +67,6 @@ class DynamicPageList {
 					$nsize = $hspace + 1; // correction for result sets with one entry
 				}
 				$this->mHeadingType = $headingtype;
-				$this->mHListMode   = $hlistmode;
 				$this->mOutput .= $hlistmode->sListStart;
 				$nstart = 0;
 				$greml  = $nsize; // remaining lines in current group
@@ -146,7 +117,6 @@ class DynamicPageList {
 				$this->mOutput .= "\n|}\n";
 			} else {
 				$this->mHeadingType = $headingtype;
-				$this->mHListMode   = $hlistmode;
 				$this->mOutput .= $hlistmode->sListStart;
 				$headingStart = 0;
 				foreach ($headings as $headingCount) {
@@ -232,8 +202,6 @@ class DynamicPageList {
 	 * @return	void
 	 */
 	public function formatList($iStart, $iCount) {
-		global $wgLang, $wgContLang;
-
 		$lister = $this->mListMode;
 		//categorypage-style list output mode
 		if ($lister->getStyle() == Lister::LIST_CATEGORY) {

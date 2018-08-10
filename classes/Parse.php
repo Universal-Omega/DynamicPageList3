@@ -305,14 +305,7 @@ class Parse {
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
 			$lister,
-			$this->parameters->getParameter('incpage'),
-			$this->parameters->getParameter('includemaxlen'),
-			$this->parameters->getParameter('seclabels'),
-			$this->parameters->getParameter('seclabelsmatch'),
-			$this->parameters->getParameter('seclabelsnotmatch'),
-			$this->parameters->getParameter('incparsed'),
 			$this->parser,
-			$this->parameters->getParameter('replaceintitle'),
 			$this->parameters->getParameter('tablerow')
 		);
 
