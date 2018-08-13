@@ -683,7 +683,7 @@ class Lister {
 	/**
 	 * Join together items after being processed by formatItem().
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	array	Items as formatted by formatItem().
 	 * @return	string	Imploded items.
 	 */
@@ -694,12 +694,12 @@ class Lister {
 	/**
 	 * Replace user tag parameters.
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	Text to perform replacements on.
 	 * @param	object	\DPL\Article
 	 * @return	string	Text with replacements performed.
 	 */
-	public function replaceTagParameters($tag, \DPL\Article $article) {
+	protected function replaceTagParameters($tag, \DPL\Article $article) {
 		global $wgLang, $wgContLang;
 
 		$namespaces = $wgContLang->getNamespaces();
@@ -708,20 +708,7 @@ class Lister {
 			return $tag;
 		}
 
-		$imageUrl = '';
-		if ($article->mNamespace == NS_FILE) {
-			// calculate URL for existing images
-			// $img = Image::newFromName($article->mTitle->getText());
-			$img = wfFindFile(\Title::makeTitle(NS_FILE, $article->mTitle->getText()));
-			//@TODO: Check this preg_replace.  Probably only works for stock file repositories.
-			if ($img && $img->exists()) {
-				$imageUrl = $img->getURL();
-				$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
-			} else {
-				$iTitle   = \Title::makeTitleSafe(6, $article->mTitle->getDBKey());
-				$imageUrl = preg_replace('~^.*images/(.*)~', '\1', \RepoGroup::singleton()->getLocalRepo()->newFile($iTitle)->getPath());
-			}
-		}
+		$imageUrl = $this->parseImageUrlWithPath($article);
 
 		$pagename = $article->mTitle->getPrefixedText();
 		if ($this->getEscapeLinks() && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
@@ -768,6 +755,20 @@ class Lister {
 		}
 		$tag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $tag);
 
+		$tag = $this->replaceTagCategory($tag, $article);
+
+		return $tag;
+	}
+
+	/**
+	 * Replace user tag parameters for categories.
+	 *
+	 * @access	protected
+	 * @param	string	Text to perform replacements on.
+	 * @param	object	\DPL\Article
+	 * @return	string	Text with replacements performed.
+	 */
+	protected function replaceTagCategory($tag, \DPL\Article $article) {
 		if (!empty($article->mCategoryLinks)) {
 			$tag = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $tag);
 			$tag = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $tag);
@@ -784,13 +785,149 @@ class Lister {
 	/**
 	 * Replace the %NR%(current article sequence number) in text.
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @param	string	Text to perform replacements on.
 	 * @param	integer	The current article sequence number (starting from 1).
 	 * @return	string	Text with replacements performed.
 	 */
-	public function replaceTagCount($tag, $nr) {
+	protected function replaceTagCount($tag, $nr) {
 		return str_replace('%NR%', $nr, $tag);
+	}
+
+	//
+	/**
+	 * Format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter).
+	 * @TODO: I am not exactly sure how this function differs from replaceTagParameters().  It has something to do with table row formatting.  --Alexia
+	 *
+	 * @access	private
+	 * @param	array	String pieces to perform replacements on.
+	 * @param	mixed	Index of the table row position.
+	 * @param	object	\DPL\Article
+	 * @return	void
+	 */
+	private function replaceTagTableRow(&$pieces, $s, \DPL\Article $article) {
+		$tableFormat = $this->getParameters()->getParameter('tablerow');
+		$firstCall = true;
+		foreach ($pieces as $key => $val) {
+			if (isset($tableFormat[$s])) {
+				if ($s == 0 || $firstCall) {
+					$pieces[$key] = str_replace('%%', $val, $tableFormat[$s]);
+				} else {
+					$n = strpos($tableFormat[$s], '|');
+					if ($n === false || !(strpos(substr($tableFormat[$s], 0, $n), '{') === false) || !(strpos(substr($tableFormat[$s], 0, $n), '[') === false)) {
+						$pieces[$key] = str_replace('%%', $val, $tableFormat[$s]);
+					} else {
+						$pieces[$key] = str_replace('%%', $val, substr($tableFormat[$s], $n + 1));
+					}
+				}
+				$pieces[$key] = str_replace('%IMAGE%', $this->parseImageUrlWithPath($val), $pieces[$key]);
+				$pieces[$key] = str_replace('%PAGE%', $article->mTitle->getPrefixedText(), $pieces[$key]);
+
+				$pieces[$key] = $this->replaceTagCategory($pieces[$key], $article);
+			}
+			$firstCall = false;
+		}
+	}
+
+	/**
+	 * Format one single template argument of one occurence of one item from the include parameter.  This is called via a backlink from LST::includeTemplate().
+	 * @TODO: Again, another poorly documented function with vague functionality.  --Alexia
+	 *
+	 * @access	public
+	 * @param	string	Argument to parse and replace.
+	 * @param	mixed	Index of the table row position.
+	 * @param	mixed	Other part of the index of the table row position?
+	 * @param	boolean	Is this the first time this function was called in this context?
+	 * @param	integer	Maximum text length allowed.
+	 * @param	object	\DPL\Article
+	 * @return	strig	Formatted text.
+	 */
+	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxLength, \DPL\Article $article) {
+		$tableFormat = $this->getParameters()->getParameter('tablerow');
+		// we could try to format fields differently within the first call of a template
+		// currently we do not make such a difference
+
+		// if the result starts with a '-' we add a leading space; thus we avoid a misinterpretation of |- as
+		// a start of a new row (wiki table syntax)
+		if (array_key_exists("$s.$argNr", $tableFormat)) {
+			$n = -1;
+			if ($s >= 1 && $argNr == 0 && !$firstCall) {
+				$n = strpos($tableFormat["$s.$argNr"], '|');
+				if ($n === false || !(strpos(substr($tableFormat["$s.$argNr"], 0, $n), '{') === false) || !(strpos(substr($tableFormat["$s.$argNr"], 0, $n), '[') === false)) {
+					$n = -1;
+				}
+			}
+			$result = str_replace('%%', $arg, substr($tableFormat["$s.$argNr"], $n + 1));
+			$result = str_replace('%PAGE%', $article->mTitle->getPrefixedText(), $result);
+			$result = str_replace('%IMAGE%', $this->parseImageUrlWithPath($arg), $result); //@TODO: This just blindly passes the argument through hoping it is an image.  --Alexia
+			$result = $this->cutAt($maxLength, $result);
+			if (strlen($result) > 0 && $result[0] == '-') {
+				return ' '.$result;
+			} else {
+				return $result;
+			}
+		}
+		$result = $this->cutAt($maxLength, $arg);
+		if (strlen($result) > 0 && $result[0] == '-') {
+			return ' '.$result;
+		} else {
+			return $result;
+		}
+	}
+
+	/**
+	 * Truncate a portion of wikitext so that ..
+	 * ... it is not larger that $lim characters
+	 * ... it is balanced in terms of braces, brackets and tags
+	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
+	 *
+	 * @access	private
+	 * @param  $lim     limit of character count for the result
+	 * @param  $text    the wikitext to be truncated
+	 * @return the truncated text; note that in some cases it may be slightly longer than the given limit
+	 *         if the text is alread shorter than the limit or if the limit is negative, the text
+	 *         will be returned without any checks for balance of tags
+	 */
+	private function cutAt($lim, $text) {
+		if ($lim < 0) {
+			return $text;
+		}
+		return LST::limitTranscludedText($text, $lim);
+	}
+
+	/**
+	 * Prepends an image name with its hash path.
+	 *
+	 * @access	protected
+	 * @param 	mixed	\DPL\Article or string image name of the image (may start with Image: or File:).
+	 * @return	string	Image URL
+	 */
+	protected function parseImageUrlWithPath($article) {
+		$imageUrl = '';
+		if ($article instanceof \DPL\Article) {
+			if ($article->mNamespace == NS_FILE) {
+				// calculate URL for existing images
+				// $img = Image::newFromName($article->mTitle->getText());
+				$img = wfFindFile(\Title::makeTitle(NS_FILE, $article->mTitle->getText()));
+				if ($img && $img->exists()) {
+					$imageUrl = $img->getURL();
+				} else {
+					$fileTitle = \Title::makeTitleSafe(NS_FILE, $article->mTitle->getDBKey());
+					$imageUrl = \RepoGroup::singleton()->getLocalRepo()->newFile($fileTitle)->getPath();
+				}
+			}
+		} else {
+			$title = \Title::newfromText('File:'.$article);
+			if (!is_null($title)) {
+				$fileTitle   = \Title::makeTitleSafe(6, $title->getDBKey());
+				$imageUrl = \RepoGroup::singleton()->getLocalRepo()->newFile($fileTitle)->getPath();
+			}
+		}
+
+		//@TODO: Check this preg_replace.  Probably only works for stock file repositories.  --Alexia
+		$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
+
+		return $imageUrl;
 	}
 
 	/**
@@ -823,7 +960,7 @@ class Lister {
 					$pieces = [
 						0 => $text
 					];
-					$this->formatSingleItems($pieces, 0, $article);
+					$this->replaceTagTableRow($pieces, 0, $article);
 					$pageText .= $pieces[0];
 				} else {
 					$pageText .= $text;
@@ -850,24 +987,24 @@ class Lister {
 					$sSecLabel = '#'.$sSecLabel;
 				}
 
-				$maxlen = -1;
+				$maxLength = -1;
 				if ($sSecLabel == '-') {
 					// '-' is used as a dummy parameter which will produce no output
 					// if maxlen was 0 we suppress all output; note that for matching we used the full text
 					$secPieces = [
 						''
 					];
-					$this->formatSingleItems($secPieces, $s, $article);
+					$this->replaceTagTableRow($secPieces, $s, $article);
 				} elseif ($sSecLabel[0] != '{') {
 					$limpos      = strpos($sSecLabel, '[');
 					$cutLink     = 'default';
 					$skipPattern = [];
 					if ($limpos > 0 && $sSecLabel[strlen($sSecLabel) - 1] == ']') {
 						// regular expressions which define a skip pattern may precede the text
-						$fmtSec    = explode('~', substr($sSecLabel, $limpos + 1, strlen($sSecLabel) - $limpos - 2));
+						$fmtSec = explode('~', substr($sSecLabel, $limpos + 1, strlen($sSecLabel) - $limpos - 2));
 						$sSecLabel = substr($sSecLabel, 0, $limpos);
-						$cutInfo   = explode(" ", $fmtSec[count($fmtSec) - 1], 2);
-						$maxlen    = intval($cutInfo[0]);
+						$cutInfo = explode(" ", $fmtSec[count($fmtSec) - 1], 2);
+						$maxLength = intval($cutInfo[0]);
 						if (array_key_exists('1', $cutInfo)) {
 							$cutLink = $cutInfo[1];
 						}
@@ -878,8 +1015,8 @@ class Lister {
 							$skipPattern[] = $skipPat;
 						}
 					}
-					if ($maxlen < 0) {
-						$maxlen = -1; // without valid limit include whole section
+					if ($maxLength < 0) {
+						$maxLength = -1; // without valid limit include whole section
 					}
 				}
 
@@ -902,7 +1039,7 @@ class Lister {
 				} elseif ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 					$sectionHeading[0] = substr($sSecLabel, 1);
 					// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-					$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxlen, $cutLink, $this->getTrimIncluded(), $skipPattern);
+					$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxLength, $cutLink, $this->getTrimIncluded(), $skipPattern);
 					if ($mustMatch != '' || $mustNotMatch != '') {
 						$secPiecesTmp = $secPieces;
 						$offset       = 0;
@@ -914,13 +1051,13 @@ class Lister {
 						}
 					}
 					// if maxlen was 0 we suppress all output; note that for matching we used the full text
-					if ($maxlen == 0) {
+					if ($maxLength == 0) {
 						$secPieces = [
 							''
 						];
 					}
 
-					$this->formatSingleItems($secPieces, $s, $article);
+					$this->replaceTagTableRow($secPieces, $s, $article);
 					if (!array_key_exists(0, $secPieces)) {
 						// avoid matching against a non-existing array element
 						// and skip the article if there was a match condition

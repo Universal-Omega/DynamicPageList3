@@ -1075,7 +1075,7 @@ class ParametersData {
 		 * tablerow allows to define individual formats for table columns
 		 */
 		'tablerow' => [
-			'default'	=> null
+			'default'	=> []
 		],
 		/**
 		 * The number (starting with 1) of the column to be used for sorting

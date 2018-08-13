@@ -305,8 +305,7 @@ class Parse {
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
 			$lister,
-			$this->parser,
-			$this->parameters->getParameter('tablerow')
+			$this->parser
 		);
 
 		if ($foundRows === null) {
