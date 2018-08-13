@@ -563,6 +563,8 @@ class Lister {
 				$filteredCount = $filteredCount + 1;
 			}
 
+			$this->rowCount = $filteredCount;
+
 			$items[] = $this->formatItem($article, $pageText);
 		}
 
@@ -631,7 +633,7 @@ class Lister {
 			$item .= $pageText;
 		}
 
-		$item = $this->getItemStart().$item.$this->itemEnd;
+		$item = $this->getItemStart().$item.$this->getItemEnd();
 
 		$item = $this->replaceTagParameters($item, $article);
 
@@ -666,6 +668,16 @@ class Lister {
 	 */
 	public function getItemStart() {
 		return sprintf($this->itemStart, $this->itemAttributes);
+	}
+
+	/**
+	 * Return $this->itemEnd with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	Item End
+	 */
+	public function getItemEnd() {
+		return $this->itemEnd;
 	}
 
 	/**

@@ -501,7 +501,7 @@ class ParametersData {
 		 *		   : listseparators={|,\n|-\n|[[%PAGE%]],,\n|}
 		 */
 		'listseparators' => [
-			'default'	=> null
+			'default'	=> []
 		],
 		/**
 		 * sequence of four wiki tags (separated by ",") to be used together with mode = 'userformat'

@@ -19,6 +19,38 @@ class UserFormatList extends Lister {
 	public $style = parent::LIST_USERFORMAT;
 
 	/**
+	 * Inline item text separator.
+	 *
+	 * @var		string
+	 */
+	protected $textSeparator = '';
+
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @param	object	\DPL\Parameters
+	 * @return	void
+	 */
+	public function __construct(\DPL\Parameters $parameters) {
+		parent::__construct($parameters);
+		$this->textSeparator = $parameters->getParameter('inlinetext');
+		$listSeparators = $parameters->getParameter('listseparators');
+		if (isset($listSeparators[0])) {
+			$this->listStart = $listSeparators[0];
+		}
+		if (isset($listSeparators[1])) {
+			$this->itemStart = $listSeparators[1];
+		}
+		if (isset($listSeparators[2])) {
+			$this->itemEnd = $listSeparators[2];
+		}
+		if (isset($listSeparators[3])) {
+			$this->listEnd = $listSeparators[3];
+		}
+	}
+
+	/**
 	 * Format the list of articles.
 	 *
 	 * @access	public
@@ -54,10 +86,12 @@ class UserFormatList extends Lister {
 				$list .= "\n|-".$rows[$index];
 			}
 		}
+
+		return $list;
 	}
 
 	/**
-	 * Format an item.
+	 * Format a single item.
 	 *
 	 * @access	public
 	 * @param	object	DPL\Article
@@ -65,13 +99,49 @@ class UserFormatList extends Lister {
 	 * @return	string	Item HTML
 	 */
 	public function formatItem($article, $pageText = null) {
-		$item = $lister->replaceTagParameters($lister->itemStart, $article, $this->filteredCount);
+		$item = '';
 
-		$item .= parent::formatItem($article, $pageText);
+		if ($pageText !== null) {
+			//Include parsed/processed wiki markup content after each item before the closing tag.
+			$item .= $pageText;
+		}
 
-		$item .= $lister->replaceTagParameters($lister->itemEnd, $article, $this->filteredCount);
+		$item = $this->getItemStart().$item.$this->getItemEnd();
+
+		$item = $this->replaceTagParameters($item, $article);
 
 		return $item;
+	}
+
+	/**
+	 * Return $this->itemStart with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	Item Start
+	 */
+	public function getItemStart() {
+		return $this->replaceTagCount($this->itemStart, $this->getRowCount());
+	}
+
+	/**
+	 * Return $this->itemEnd with attributes replaced.
+	 *
+	 * @access	public
+	 * @return	string	Item End
+	 */
+	public function getItemEnd() {
+		return $this->replaceTagCount($this->itemEnd, $this->getRowCount());
+	}
+
+	/**
+	 * Join together items after being processed by formatItem().
+	 *
+	 * @access	public
+	 * @param	array	Items as formatted by formatItem().
+	 * @return	string	Imploded items.
+	 */
+	protected function implodeItems($items) {
+		return implode($this->textSeparator, $items);
 	}
 }
 ?>

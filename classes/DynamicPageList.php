@@ -11,7 +11,6 @@
 namespace DPL;
 
 use \DPL\Lister\Lister;
-use \DPL\Lister\UserFormatLister;
 
 class DynamicPageList {
 	public $mArticles;
