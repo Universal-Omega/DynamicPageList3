@@ -30,10 +30,11 @@ class UserFormatList extends Lister {
 	 *
 	 * @access	public
 	 * @param	object	\DPL\Parameters
+	 * @param	object	MediaWiki \Parser
 	 * @return	void
 	 */
-	public function __construct(\DPL\Parameters $parameters) {
-		parent::__construct($parameters);
+	public function __construct(\DPL\Parameters $parameters, \Parser $parser) {
+		parent::__construct($parameters, $parser);
 		$this->textSeparator = $parameters->getParameter('inlinetext');
 		$listSeparators = $parameters->getParameter('listseparators');
 		if (isset($listSeparators[0])) {

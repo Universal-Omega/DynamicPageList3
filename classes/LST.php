@@ -664,7 +664,7 @@ class LST {
 								if (strpos($exParm, '%') !== false) {
 									// %% is a short form for inclusion of %PAGE% and %TITLE%
 									$found = true;
-									$output[$n] .= $lister->formatTemplateArg($lister->articleLink($exParm, $article), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+									$output[$n] .= $lister->formatTemplateArg($exParm, $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 								}
 								if (!$found) {
 									// named parameter

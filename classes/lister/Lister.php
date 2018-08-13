@@ -207,13 +207,21 @@ class Lister {
 	protected $parameters = null;
 
 	/**
+	 * Parser
+	 *
+	 * @var		object
+	 */
+	protected $parser = null;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @access	public
 	 * @param	object	\DPL\Parameters
+	 * @param	object	MediaWiki \Parser
 	 * @return	void
 	 */
-	public function __construct(\DPL\Parameters $parameters) {
+	public function __construct(\DPL\Parameters $parameters, \Parser $parser) {
 		$this->setListAttributes($parameters->getParameter('listattr'));
 		$this->setItemAttributes($parameters->getParameter('itemattr'));
 		$this->setDominantSectionCount($parameters->getParameter('dominantsection'));
@@ -231,6 +239,7 @@ class Lister {
 		$this->setPageTextMatchNotRegex((array)$parameters->getParameter('seclabelsnotmatch'));
 		$this->setIncludePageParsed($parameters->getParameter('incparsed'));
 		$this->parameters = $parameters;
+		$this->parser = $parser;
 	}
 
 	/**
@@ -239,9 +248,10 @@ class Lister {
 	 * @access	public
 	 * @param	string	List style.
 	 * @param	object	\DPL\Parameters
+	 * @param	object	MediaWiki \Parser
 	 * @return	object	List subclass.
 	 */
-	static public function newFromStyle($style, \DPL\Parameters $parameters) {
+	static public function newFromStyle($style, \DPL\Parameters $parameters, \Parser $parser) {
 		$style = strtolower($style);
 		switch ($style) {
 			case 'category':
@@ -278,7 +288,7 @@ class Lister {
 		}
 		$class = '\DPL\Lister\\'.$class;
 
-		return new $class($parameters);
+		return new $class($parameters, $parser);
 	}
 
 	/**
@@ -947,7 +957,7 @@ class Lister {
 			} else {
 				$pageText = '<br/>';
 			}
-			$text = $this->mParser->fetchTemplate(\Title::newFromText($title));
+			$text = $this->parser->fetchTemplate(\Title::newFromText($title));
 			if ((count($this->pageTextMatchRegex) <= 0 || $this->pageTextMatchRegex[0] == '' || !preg_match($this->pageTextMatchRegex[0], $text) == false) && (count($this->pageTextMatchNotRegex) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match($this->pageTextMatchNotRegex[0], $text) == false)) {
 				if ($this->includePageMaxLength > 0 && (strlen($text) > $this->includePageMaxLength)) {
 					$text = LST::limitTranscludedText($text, $this->includePageMaxLength, ' [['.$title.'|..→]]');
@@ -968,7 +978,6 @@ class Lister {
 			} else {
 				return '';
 			}
-
 		} else {
 			// identify section pieces
 			$secPiece       = [];
@@ -1039,7 +1048,7 @@ class Lister {
 				} elseif ($sSecLabel[0] == '#' || $sSecLabel[0] == '@') {
 					$sectionHeading[0] = substr($sSecLabel, 1);
 					// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-					$secPieces = LST::includeHeading($this->mParser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxLength, $cutLink, $this->getTrimIncluded(), $skipPattern);
+					$secPieces = LST::includeHeading($this->parser, $article->mTitle->getPrefixedText(), substr($sSecLabel, 1), '', $sectionHeading, false, $maxLength, $cutLink, $this->getTrimIncluded(), $skipPattern);
 					if ($mustMatch != '' || $mustNotMatch != '') {
 						$secPiecesTmp = $secPieces;
 						$offset       = 0;
@@ -1092,7 +1101,7 @@ class Lister {
 						$template2 = preg_replace('/^.+\|/', '', $template2);
 					}
 					//Why the hell was defaultTemplateSuffix be passed all over the place for just fucking here?  --Alexia
-					$secPieces    = LST::includeTemplate($this->mParser, $this, $s, $article, $template1, $template2, $template2.$this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode(', ', $article->mCategoryLinks));
+					$secPieces    = LST::includeTemplate($this->parser, $this, $s, $article, $template1, $template2, $template2.$this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode(', ', $article->mCategoryLinks));
 					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount) : '', $secPieces);
 					if ($this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count($secPieces) > 1) {
 						$dominantPieces = $secPieces;
@@ -1103,7 +1112,7 @@ class Lister {
 					}
 				} else {
 					// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-					$secPieces    = LST::includeSection($this->mParser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern);
+					$secPieces    = LST::includeSection($this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern);
 					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount) : '', $secPieces);
 					if ($this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count($secPieces) > 1) {
 						$dominantPieces = $secPieces;
@@ -1128,7 +1137,6 @@ class Lister {
 				} else {
 					$septag[$s * 2 + 1] = '';
 				}
-
 			}
 
 			// if there was a match condition on included contents which failed we skip the whole page

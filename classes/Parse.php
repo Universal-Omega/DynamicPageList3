@@ -268,7 +268,7 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters);
+		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters, $this->parser);
 
 		$listMode = new ListMode(
 			$this->parameters->getParameter('mode'),
@@ -286,7 +286,7 @@ class Parse {
 			$this->parameters->getParameter('headingmode'),
 			$this->parameters->getParameter('secseparators'),
 			$this->parameters->getParameter('multisecseparators'),
-			'',
+			'', //Inline Text
 			$this->parameters->getParameter('hlistattr'),
 			$this->parameters->getParameter('hitemattr'),
 			$this->parameters->getParameter('listseparators'),
@@ -295,17 +295,12 @@ class Parse {
 		);
 
 		$this->dpl = new DynamicPageList(
+			$this->parameters,
 			Article::getHeadings(),
-			$this->parameters->getParameter('headingcount'),
-			$this->parameters->getParameter('columns'),
-			$this->parameters->getParameter('rows'),
-			$this->parameters->getParameter('rowsize'),
-			$this->parameters->getParameter('rowcolformat'),
 			$articles,
 			$this->parameters->getParameter('ordermethods')[0],
 			$hListMode,
-			$lister,
-			$this->parser
+			$lister
 		);
 
 		if ($foundRows === null) {

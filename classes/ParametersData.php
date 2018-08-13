@@ -380,6 +380,7 @@ class ParametersData {
 			],
 			'open_ref_conflict'	=> true
 		],
+
 		/**
 		 * we can display the number of articles within a heading group
 		 */
@@ -388,6 +389,7 @@ class ParametersData {
 			'boolean'			=> true,
 			'open_ref_conflict'	=> true
 		],
+
 		/**
 		 * Attributes for HTML list items (headings) at the heading level, depending on 'headingmode' (e.g. 'li' for ordered/unordered)
 		 * Not yet applicable to 'headingmode=none | definition | H2 | H3 | H4'.
@@ -397,6 +399,7 @@ class ParametersData {
 		'hitemattr' => [
 			'default'	=> null
 		],
+
 		/**
 		 * Attributes for the HTML list element at the heading/top level, depending on 'headingmode' (e.g. 'ol' for ordered, 'ul' for unordered, 'dl' for definition)
 		 * Not yet applicable to 'headingmode=none'.
@@ -406,6 +409,7 @@ class ParametersData {
 		'hlistattr' => [
 			'default'	=> null
 		],
+
 		/**
 		 * PAGE TRANSCLUSION: includepage=... or include=...
 		 * To include the whole page, use a wildcard:
@@ -423,6 +427,7 @@ class ParametersData {
 		'includepage' => [
 			'default'	=> null
 		],
+
 		/**
 		 * make comparisons (linksto, linksfrom ) case insensitive
 		 */
@@ -433,6 +438,7 @@ class ParametersData {
 		'include'			   => [
 			'default'	=> null
 		],
+
 		/**
 		 * includesubpages
 		 */
@@ -440,6 +446,7 @@ class ParametersData {
 			'default'	=> true,
 			'boolean'	=> true
 		],
+
 		/**
 		 * includematch=..,..	 allows to specify regular expressions which must match the included contents
 		 */
@@ -1013,8 +1020,9 @@ class ParametersData {
 			'default'	=> 0,
 			'integer'	=> true
 		],
+
 		/**
-		 * the html tags used for columns and rows
+		 * The HTML tags used for columns and rows.
 		 */
 		'rowcolformat' => [
 			'default'		=> null,
