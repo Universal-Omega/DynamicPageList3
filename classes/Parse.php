@@ -75,13 +75,6 @@ class Parse {
 	private $output = '';
 
 	/**
-	 * DynamicPageList Object Holder
-	 *
-	 * @var		object
-	 */
-	private $dpl = null;
-
-	/**
 	 * Replacement Variables
 	 *
 	 * @var		array
@@ -270,18 +263,6 @@ class Parse {
 		/*******************/
 		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters, $this->parser);
 
-		$listMode = new ListMode(
-			$this->parameters->getParameter('mode'),
-			$this->parameters->getParameter('secseparators'),
-			$this->parameters->getParameter('multisecseparators'),
-			$this->parameters->getParameter('inlinetext'),
-			$this->parameters->getParameter('listattr'),
-			$this->parameters->getParameter('itemattr'),
-			$this->parameters->getParameter('listseparators'),
-			$offset,
-			$this->parameters->getParameter('dominantsection')
-		);
-
 		$hListMode = new ListMode(
 			$this->parameters->getParameter('headingmode'),
 			$this->parameters->getParameter('secseparators'),
@@ -294,19 +275,10 @@ class Parse {
 			$this->parameters->getParameter('dominantsection')
 		);
 
-		$this->dpl = new DynamicPageList(
-			$this->parameters,
-			Article::getHeadings(),
-			$articles,
-			$this->parameters->getParameter('ordermethods')[0],
-			$hListMode,
-			$lister
-		);
-
+		$this->addOutput($lister->format($articles));
 		if ($foundRows === null) {
-			$foundRows = $lister->getRowCount();
+			$foundRows = $lister->getRowCount(); //Get row count after calling format() otherwise the count will be inaccurate.
 		}
-		$this->addOutput($this->dpl->getText());
 
 		/*******************************/
 		/* Replacement Variables       */
@@ -788,7 +760,7 @@ class Parse {
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
-		if ($this->parameters->getParameter('headingmode') != 'none' && count($orderMethods) < 2) {
+		if ($this->parameters->getParameter('headingmode') !== 'none' && count($orderMethods) < 2) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter('headingmode'), 'none');
 			$this->parameters->setParameter('headingmode', 'none');
 		}

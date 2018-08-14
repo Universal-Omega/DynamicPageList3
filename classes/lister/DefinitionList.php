@@ -19,18 +19,34 @@ class DefinitionList extends Lister {
 	public $style = parent::LIST_DEFINITION;
 
 	/**
-	 * Heading Start
+	 * Heading List Start
+	 * Use %s for attribute placement.  Example: <div%s>
 	 *
 	 * @var		string
 	 */
-	public $headingStart = '<dt%s>';
+	public $headListStart = '<dt%s>';
 
 	/**
-	 * Heading End
+	 * Heading List End
 	 *
 	 * @var		string
 	 */
-	public $headingEnd = '</dt>';
+	public $headListEnd = '</dt>';
+
+	/**
+	 * Heading List Start
+	 * Use %s for attribute placement.  Example: <div%s>
+	 *
+	 * @var		string
+	 */
+	public $headItemStart = '';
+
+	/**
+	 * Heading List End
+	 *
+	 * @var		string
+	 */
+	public $headItemEnd = '';
 
 	/**
 	 * List(Section) Start

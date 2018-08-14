@@ -998,12 +998,14 @@ class ParametersData {
 				'none'
 			]
 		],
+
 		/**
 		 * fixcategory=..	prevents a category from being reset
 		 */
 		'fixcategory' => [
 			'default' => null
 		],
+
 		/**
 		 * Number of rows for output, default is 1
 		 * Note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated
@@ -1012,6 +1014,7 @@ class ParametersData {
 			'default'	=> 1,
 			'integer'	=> true
 		],
+
 		/**
 		 * Number of elements in a rows for output, default is "all"
 		 * Note: a "row" is a group of lines for which the heading tags defined in listeseparators will be repeated
@@ -1022,7 +1025,7 @@ class ParametersData {
 		],
 
 		/**
-		 * The HTML tags used for columns and rows.
+		 * The HTML attribute tags(class, cellspacing) used for columns and rows in MediaWiki table markup.
 		 */
 		'rowcolformat' => [
 			'default'		=> null,

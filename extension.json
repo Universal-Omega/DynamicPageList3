@@ -35,7 +35,6 @@
 		"DPL\\Article": "classes/Article.php",
 		"DPL\\Config": "classes/Config.php",
 		"DPL\\DB\\CreateTemplateUpdateMaintenance": "classes/db/CreateTemplateUpdateMaintenance.php",
-		"DPL\\DynamicPageList": "classes/DynamicPageList.php",
 		"DPL\\Logger": "classes/Logger.php",
 		"DPL\\ListMode": "classes/ListMode.php",
 		"DPL\\Lister\\CategoryList": "classes/lister/CategoryList.php",
