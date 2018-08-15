@@ -274,7 +274,7 @@ class Lister {
 	 * @param	string	List style.
 	 * @param	object	\DPL\Parameters
 	 * @param	object	MediaWiki \Parser
-	 * @return	object	List subclass.
+	 * @return	object	Lister subclass.
 	 */
 	static public function newFromStyle($style, \DPL\Parameters $parameters, \Parser $parser) {
 		$style = strtolower($style);
@@ -596,159 +596,14 @@ class Lister {
 	}
 
 	/**
-	 * Format a list of articles into all lists with headings as needed.
+	 * Shortcut to format all articles into a single formatted list.
 	 *
 	 * @access	public
 	 * @param	array	List of \DPL\Article
 	 * @return	string	Formatted list.
 	 */
 	public function format($articles) {
-		$showHeadingCount = $this->getParameters()->getParameter('headingcount');
-		$columns = $this->getParameters()->getParameter('columns');
-		$rows = $this->getParameters()->getParameter('rows');
-		$rowSize = $this->getParameters()->getParameter('rowsize');
-		$rowColFormat = $this->getParameters()->getParameter('rowcolformat');
-
-		$start = 0;
-		$count = 0;
-
-		$headings = Article::getHeadings();
-		$output = '';
-		if (!empty($headings)) {
-			if ($columns != 1 || $rows != 1) {
-				$hspace = 2; // the extra space for headings
-				// repeat outer tags for each of the specified columns / rows in the output
-				// we assume that a heading roughly takes the space of two articles
-				$count = count($articles) + $hspace * count($headings);
-				if ($columns != 1) {
-					$iGroup = $columns;
-				} else {
-					$iGroup = $rows;
-				}
-				$nsize = floor($count / $iGroup);
-				$rest  = $count - (floor($nsize) * floor($iGroup));
-				if ($rest > 0) {
-					$nsize += 1;
-				}
-				$output .= "{|".$rowColFormat."\n|\n";
-				if ($nsize < $hspace + 1) {
-					$nsize = $hspace + 1; // correction for result sets with one entry
-				}
-				$output .= $this->getHeadListStart();
-				$nstart = 0;
-				$greml  = $nsize; // remaining lines in current group
-				$g      = 0;
-				$offset = 0;
-				foreach ($headings as $headingCount) {
-					$headingLink = $articles[$nstart - $offset]->mParentHLink;
-					$output .= $this->getItemStart();
-					$output .= $this->getHeadItemStart().$headingLink.$this->getHeadItemEnd();
-					if ($showHeadingCount) {
-						$output .= $this->formatCount($headingCount);
-					}
-					$offset += $hspace;
-					$nstart += $hspace;
-					$portion = $headingCount;
-					$greml -= $hspace;
-					do {
-						$greml -= $portion;
-						// $output .= "nsize=$nsize, portion=$portion, greml=$greml";
-						if ($greml > 0) {
-							$output .= $this->formatList($articles, $nstart - $offset, $portion);
-							$nstart += $portion;
-							$portion = 0;
-							break;
-						} else {
-							$output .= $this->formatList($articles, $nstart - $offset, $portion + $greml);
-							$nstart += ($portion + $greml);
-							$portion = (-$greml);
-							if ($columns != 1) {
-								$output .= "\n|valign=top|\n";
-							} else {
-								$output .= "\n|-\n|\n";
-							}
-							++$g;
-							// if ($rest != 0 && $g==$rest) $nsize -= 1;
-							if ($nstart + $nsize > $count) {
-								$nsize = $count - $nstart;
-							}
-							$greml = $nsize;
-							if ($greml <= 0) {
-								break;
-							}
-						}
-					} while ($portion > 0);
-					$output .= $this->getItemEnd();
-				}
-				$output .= $this->headListEnd;
-				$output .= "\n|}\n";
-			} else {
-				$output .= $this->getHeadListStart();
-				$headingStart = 0;
-				foreach ($headings as $headingCount) {
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->getItemStart();
-					$output .= $this->getHeadItemStart().$headingLink.$this->getHeadItemEnd();
-					if ($showHeadingCount) {
-						$output .= $this->formatCount($headingCount);
-					}
-					$output .= $this->formatList($articles, $headingStart, $headingCount);
-					$output .= $this->getItemEnd();
-					$headingStart += $headingCount;
-				}
-				$output .= $this->headListEnd;
-			}
-		} elseif ($columns != 1 || $rows != 1) {
-			// repeat outer tags for each of the specified columns / rows in the output
-			$nstart = 0;
-			$count  = count($articles);
-			if ($columns != 1) {
-				$iGroup = $columns;
-			} else {
-				$iGroup = $rows;
-			}
-			$nsize = floor($count / $iGroup);
-			$rest  = $count - (floor($nsize) * floor($iGroup));
-			if ($rest > 0) {
-				$nsize += 1;
-			}
-			$output .= "{|".$rowColFormat."\n|\n";
-			for ($g = 0; $g < $iGroup; $g++) {
-				$output .= $this->formatList($articles, $nstart, $nsize);
-				if ($columns != 1) {
-					$output .= "\n|valign=top|\n";
-				} else {
-					$output .= "\n|-\n|\n";
-				}
-				$nstart = $nstart + $nsize;
-				// if ($rest != 0 && $g+1==$rest) $nsize -= 1;
-				if ($nstart + $nsize > $count) {
-					$nsize = $count - $nstart;
-				}
-			}
-			$output .= "\n|}\n";
-		} elseif ($rowSize > 0) {
-			// repeat row header after n lines of output
-			$nstart = 0;
-			$nsize  = $rowSize;
-			$count  = count($articles);
-			$output .= '{|'.$rowColFormat."\n|\n";
-			do {
-				if ($nstart + $nsize > $count) {
-					$nsize = $count - $nstart;
-				}
-				$output .= $this->formatList($articles, $nstart, $nsize);
-				$output .= "\n|-\n|\n";
-				$nstart = $nstart + $nsize;
-				if ($nstart >= $count) {
-					break;
-				}
-			} while (true);
-			$output .= "\n|}\n";
-		} else {
-			$output .= $this->formatList($articles, 0, count($articles));
-		}
-		return $output;
+		return $this->formatList($articles, 0, count($articles));
 	}
 
 	/**
@@ -1161,23 +1016,6 @@ class Lister {
 		$imageUrl = preg_replace('~^.*images/(.*)~', '\1', $imageUrl);
 
 		return $imageUrl;
-	}
-
-	/**
-	 * Get the article count message appropriate for this list.
-	 *
-	 * @access	public
-	 * @param	integer	Count
-	 * @return	string	Message
-	 */
-	protected function articleCountMessage($count) {
-		$orderMethods = $this->getParameters()->getParameter('ordermethods');
-		if (isset($orderMethods[0]) && $orderMethods[0] === 'category') {
-			$message = 'categoryarticlecount';
-		} else {
-			$message = 'dpl_articlecount';
-		}
-		return '<p>'.wfMessage($message, $count)->escaped().'</p>';
 	}
 
 	/**

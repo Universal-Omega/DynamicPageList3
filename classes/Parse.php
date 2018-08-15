@@ -10,6 +10,9 @@
  **/
 namespace DPL;
 
+use DPL\Heading\Heading;
+use DPL\Lister\Lister;
+
 class Parse {
 	/**
 	 * Mediawiki Database Object
@@ -261,21 +264,15 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$lister = Lister\Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters, $this->parser);
+		$lister = Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters, $this->parser);
+		$heading = Heading::newFromStyle($this->parameters->getParameter('headingmode'), $this->parameters);
+		if ($heading !== null) {
+			$this->addOutput($heading->format($articles, $lister));
+		} else {
+			$this->addOutput($lister->format($articles));
+		}
 
-		$hListMode = new ListMode(
-			$this->parameters->getParameter('headingmode'),
-			$this->parameters->getParameter('secseparators'),
-			$this->parameters->getParameter('multisecseparators'),
-			'', //Inline Text
-			$this->parameters->getParameter('hlistattr'),
-			$this->parameters->getParameter('hitemattr'),
-			$this->parameters->getParameter('listseparators'),
-			$offset,
-			$this->parameters->getParameter('dominantsection')
-		);
-
-		$this->addOutput($lister->format($articles));
+		//$this->addOutput($lister->format($articles));
 		if ($foundRows === null) {
 			$foundRows = $lister->getRowCount(); //Get row count after calling format() otherwise the count will be inaccurate.
 		}
