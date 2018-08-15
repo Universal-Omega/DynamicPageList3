@@ -778,8 +778,8 @@ class Lister {
 	 * @param	object	\DPL\Article
 	 * @return	string	Text with replacements performed.
 	 */
-	protected function replaceTagParameters($tag, \DPL\Article $article) {
-		global $wgLang, $wgContLang;
+	protected function replaceTagParameters($tag, Article $article) {
+		global $wgContLang;
 
 		$namespaces = $wgContLang->getNamespaces();
 
@@ -847,7 +847,7 @@ class Lister {
 	 * @param	object	\DPL\Article
 	 * @return	string	Text with replacements performed.
 	 */
-	protected function replaceTagCategory($tag, \DPL\Article $article) {
+	protected function replaceTagCategory($tag, Article $article) {
 		if (!empty($article->mCategoryLinks)) {
 			$tag = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $tag);
 			$tag = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $tag);
@@ -884,7 +884,7 @@ class Lister {
 	 * @param	object	\DPL\Article
 	 * @return	void
 	 */
-	private function replaceTagTableRow(&$pieces, $s, \DPL\Article $article) {
+	private function replaceTagTableRow(&$pieces, $s, Article $article) {
 		$tableFormat = $this->getParameters()->getParameter('tablerow');
 		$firstCall = true;
 		foreach ($pieces as $key => $val) {
@@ -921,7 +921,7 @@ class Lister {
 	 * @param	object	\DPL\Article
 	 * @return	strig	Formatted text.
 	 */
-	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxLength, \DPL\Article $article) {
+	public function formatTemplateArg($arg, $s, $argNr, $firstCall, $maxLength, Article $article) {
 		$tableFormat = $this->getParameters()->getParameter('tablerow');
 		// we could try to format fields differently within the first call of a template
 		// currently we do not make such a difference
@@ -1017,7 +1017,7 @@ class Lister {
 	 * @param	integer	Filtered Article Count
 	 * @return	string	Page Text
 	 */
-	public function transcludePage(\DPL\Article $article, &$filteredCount) {
+	public function transcludePage(Article $article, &$filteredCount) {
 		$matchFailed = false;
 		if (empty($this->pageTextMatch) || $this->pageTextMatch[0] == '*') { // include whole article
 			$title = $article->mTitle->getPrefixedText();
