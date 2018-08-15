@@ -10,6 +10,8 @@
 
 namespace DPL\Heading;
 
+use DPL\Lister\Lister;
+
 class DefinitionHeading extends Heading {
 	/**
 	 * Heading List Start
@@ -17,7 +19,7 @@ class DefinitionHeading extends Heading {
 	 *
 	 * @var		string
 	 */
-	public $headListStart = '<dt%s>';
+	public $headListStart = '<dt>';
 
 	/**
 	 * Heading List End
@@ -68,5 +70,29 @@ class DefinitionHeading extends Heading {
 	 * @var		string
 	 */
 	public $itemEnd = '</dd>';
+
+	/**
+	 * Format a heading group.
+	 *
+	 * @access	public
+	 * @param	integer	Article start index for this heading.
+	 * @param	integer	Article count for this heading.
+	 * @param	string	Heading link/text display.
+	 * @param	array	List of \DPL\Article.
+	 * @param	object	List of \DPL\Lister\Lister
+	 * @return	string	Heading HTML
+	 */
+	public function formatItem($headingStart, $headingCount, $headingLink, $articles, Lister $lister) {
+		$item = '';
+
+		$item .= $this->headListStart.$headingLink;
+		if ($this->showHeadingCount) {
+			$item .= $this->articleCountMessage($headingCount);
+		}
+		$item .= $this->headListEnd;
+		$item .= $this->getItemStart().$lister->formatList($articles, $headingStart, $headingCount).$this->getItemEnd();
+
+		return $item;
+	}
 }
 ?>

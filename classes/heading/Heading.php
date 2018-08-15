@@ -387,7 +387,7 @@ class Heading {
 	public function formatItem($headingStart, $headingCount, $headingLink, $articles, Lister $lister) {
 		$item = '';
 
-		$item .= $this->getItemStart().$headingLink.$this->getItemEnd();
+		$item .= $this->getItemStart().$headingLink;
 		if ($this->showHeadingCount) {
 			$item .= $this->articleCountMessage($headingCount);
 		}
