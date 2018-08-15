@@ -380,7 +380,7 @@ class ParametersData {
 				'h4',
 				'h5',
 				'h6',
-				'header',
+				//'header',
 				'definition',
 				'none',
 				'ordered',
