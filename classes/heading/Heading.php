@@ -114,8 +114,8 @@ class Heading {
 			case 'h4':
 			case 'h5':
 			case 'h6':
-			case 'heading':
-				$class = 'HeadingList';
+			case 'header':
+				$class = 'TieredHeading';
 				break;
 			case 'ordered':
 				$class = 'OrderedHeading';
@@ -339,41 +339,6 @@ class Heading {
 	}
 
 	/**
-	 * Format a list of articles into a singular list.
-	 *
-	 * @access	public
-	 * @param	array	List of \DPL\Article
-	 * @param	integer	Start position of the array to process.
-	 * @param	integer	Total objects from the array to process.
-	 * @return	string	Formatted list.
-	 */
-	public function formatList($articles, $start, $count) {
-		$filteredCount = 0;
-		$items = [];
-		for ($i = $start; $i < $start + $count; $i++) {
-			$article = $articles[$i];
-			if (empty($article) || empty($article->mTitle)) {
-				continue;
-			}
-
-			$pageText = null;
-			if ($this->includePageText) {
-				$pageText = $this->transcludePage($article, $filteredCount);
-			} else {
-				$filteredCount = $filteredCount + 1;
-			}
-
-			$this->rowCount = $filteredCount;
-
-			$items[] = $this->formatItem($article, $pageText);
-		}
-
-		$this->rowCount = $filteredCount;
-
-		return $this->getListStart().$this->implodeItems($items).$this->listEnd;
-	}
-
-	/**
 	 * Format a heading group.
 	 *
 	 * @access	public
@@ -425,17 +390,6 @@ class Heading {
 	 */
 	public function getItemEnd() {
 		return $this->itemEnd;
-	}
-
-	/**
-	 * Join together items after being processed by formatItem().
-	 *
-	 * @access	protected
-	 * @param	array	Items as formatted by formatItem().
-	 * @return	string	Imploded items.
-	 */
-	protected function implodeItems($items) {
-		return implode('', $items);
 	}
 
 	/**

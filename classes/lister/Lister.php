@@ -288,15 +288,6 @@ class Lister {
 			case 'gallery':
 				$class = 'GalleryList';
 				break;
-			case 'h1':
-			case 'h2':
-			case 'h3':
-			case 'h4':
-			case 'h5':
-			case 'h6':
-			case 'heading':
-				$class = 'HeadingList';
-				break;
 			case 'inline':
 				$class = 'InlineList';
 				break;

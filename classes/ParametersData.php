@@ -364,6 +364,7 @@ class ParametersData {
 			'open_ref_conflict'	=> true
 		],
 
+		//Include the lowercase variants of header tiers for ease of use.
 		'headingmode' => [
 			'default'	=> 'none',
 			'values'	=> [
@@ -373,6 +374,13 @@ class ParametersData {
 				'H4',
 				'H5',
 				'H6',
+				'h1',
+				'h2',
+				'h3',
+				'h4',
+				'h5',
+				'h6',
+				'header',
 				'definition',
 				'none',
 				'ordered',
