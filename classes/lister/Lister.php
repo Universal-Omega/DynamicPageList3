@@ -7,10 +7,12 @@
  * @package		DynamicPageList3
  *
  **/
+
 namespace DPL\Lister;
 
 use DPL\Article;
 use DPL\LST;
+use DPL\UpdateArticle;
 
 class Lister {
 	const LIST_DEFINITION = 1;
@@ -640,7 +642,7 @@ class Lister {
 	 * @param	string	[Optional] Page text to include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem($article, $pageText = null) {
+	public function formatItem(Article $article, $pageText = null) {
 		global $wgLang;
 
 		$item = '';
@@ -1033,16 +1035,29 @@ class Lister {
 				}
 				$filteredCount = $filteredCount + 1;
 
-				// append full text to output
-				if (is_array($this->sectionSeparators) && array_key_exists('0', $this->sectionSeparators)) {
-					$pageText .= $this->replaceTagCount($this->sectionSeparators[0], $filteredCount);
-					$pieces = [
-						0 => $text
-					];
-					$this->replaceTagTableRow($pieces, 0, $article);
-					$pageText .= $pieces[0];
+				// update article if include=* and updaterules are given
+				$updateRules = $this->getParameters()->getParameter('updaterules');
+				$deleteRules = $this->getParameters()->getParameter('deleterules');
+				if (!empty($updateRules)) {
+					$ruleOutput = UpdateArticle::updateArticleByRule($title, $text, $updateRules);
+					// append update message to output
+					$pageText .= $ruleOutput;
+				} elseif (!empty($deleteRules)) {
+					$ruleOutput = UpdateArticle::deleteArticleByRule($title, $text, $deleteRules);
+					// append delete message to output
+					$pageText .= $ruleOutput;
 				} else {
-					$pageText .= $text;
+					// append full text to output
+					if (is_array($this->sectionSeparators) && array_key_exists('0', $this->sectionSeparators)) {
+						$pageText .= $this->replaceTagCount($this->sectionSeparators[0], $filteredCount);
+						$pieces = [
+							0 => $text
+						];
+						$this->replaceTagTableRow($pieces, 0, $article);
+						$pageText .= $pieces[0];
+					} else {
+						$pageText .= $text;
+					}
 				}
 			} else {
 				return '';
@@ -1220,19 +1235,32 @@ class Lister {
 				foreach ($dominantPieces as $dominantPiece) {
 					foreach ($secPiece as $s => $piece) {
 						if ($s == $this->getDominantSectionCount()) {
-							$pageText .= $this->formatItem($dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]);
+							$pageText .= $this->joinSectionTagPieces($dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]);
 						} else {
-							$pageText .= $this->formatItem($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
+							$pageText .= $this->joinSectionTagPieces($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
 						}
 					}
 				}
 			} else {
 				foreach ($secPiece as $s => $piece) {
-					$pageText .= $this->formatItem($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
+					$pageText .= $this->joinSectionTagPieces($piece, $septag[$s * 2], $septag[$s * 2 + 1]);
 				}
 			}
 		}
 		return $pageText;
+	}
+
+	/**
+	 * Wrap seciton pieces with start and end tags.
+	 *
+	 * @access	protected
+	 * @param	string	Piece to be wrapped.
+	 * @param	string	Text to prepend.
+	 * @param	string	Text to append.
+	 * @return	string	Wrapped text.
+	 */
+	protected function joinSectionTagPieces($piece, $start, $end) {
+		return $start.$piece.$end;
 	}
 
 	/**

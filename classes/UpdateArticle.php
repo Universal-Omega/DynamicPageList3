@@ -1,4 +1,15 @@
 <?php
+/**
+ * DynamicPageList3
+ * DPL UpdateArticle Class
+ *
+ * @license		GPL-2.0-or-later
+ * @package		DynamicPageList3
+ *
+ **/
+
+namespace DPL;
+
 class UpdateArticle {
 	/**
 	 * this fucntion hast three tasks (depending on $exec):
@@ -9,7 +20,7 @@ class UpdateArticle {
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
 	 */
-	public function updateArticleByRule($title, $text, $rulesText) {
+	static public function updateArticleByRule($title, $text, $rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText       = str_replace(";", '°', $rulesText);
@@ -316,7 +327,7 @@ class UpdateArticle {
 		return "exec must be one of the following: edit, preview, set";
 	}
 
-	public function updateArticle($title, $text, $summary) {
+	static private function updateArticle($title, $text, $summary) {
 		global $wgUser, $wgRequest, $wgOut;
 
 		if (!$wgUser->matchEditToken($wgRequest->getVal('wpEditToken'))) {
@@ -338,7 +349,7 @@ class UpdateArticle {
 		}
 	}
 
-	public function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
+	static private function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
 		$matches = [];
 		$nlCount = preg_match_all('/\n/', $value, $matches);
 		if ($nlCount > 0) {
@@ -360,7 +371,7 @@ class UpdateArticle {
 	/**
 	 * return an array of template invocations; each element is an associative array of parameter and value
 	 */
-	public function getTemplateParmValues($text, $template) {
+	static private function getTemplateParmValues($text, $template) {
 		$matches   = [];
 		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
@@ -427,7 +438,7 @@ class UpdateArticle {
 	/*
 	 * Changes a single parameter value within a certain call of a template
 	 */
-	public function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
+	static private function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value == '') {
 			return $text;

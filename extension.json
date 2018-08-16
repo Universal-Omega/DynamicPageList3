@@ -31,11 +31,9 @@
 		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
 	},
 	"AutoloadClasses": {
-		"DynamicPageListHooks": "DynamicPageListHooks.php",
 		"DPL\\Article": "classes/Article.php",
 		"DPL\\Config": "classes/Config.php",
 		"DPL\\DB\\CreateTemplateUpdateMaintenance": "classes/db/CreateTemplateUpdateMaintenance.php",
-		"DPL\\Logger": "classes/Logger.php",
 		"DPL\\Heading\\DefinitionHeading": "classes/heading/DefinitionHeading.php",
 		"DPL\\Heading\\Heading": "classes/heading/Heading.php",
 		"DPL\\Heading\\OrderedHeading": "classes/heading/OrderedHeading.php",
@@ -49,12 +47,15 @@
 		"DPL\\Lister\\OrderedList": "classes/lister/OrderedList.php",
 		"DPL\\Lister\\UnorderedList": "classes/lister/UnorderedList.php",
 		"DPL\\Lister\\UserFormatList": "classes/lister/UserFormatList.php",
+		"DPL\\Logger": "classes/Logger.php",
 		"DPL\\LST": "classes/LST.php",
 		"DPL\\Parameters": "classes/Parameters.php",
 		"DPL\\ParametersData": "classes/ParametersData.php",
 		"DPL\\Parse": "classes/Parse.php",
 		"DPL\\Query": "classes/Query.php",
-		"DPL\\Variables": "classes/Variables.php"
+		"DPL\\UpdateArticle": "classes/UpdateArticle.php",
+		"DPL\\Variables": "classes/Variables.php",
+		"DynamicPageListHooks": "DynamicPageListHooks.php"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
