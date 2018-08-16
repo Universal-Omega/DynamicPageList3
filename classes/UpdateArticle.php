@@ -203,7 +203,7 @@ class UpdateArticle {
 		if ($template != '') {
 
 			if ($exec == 'edit') {
-				$tpv        = $this->getTemplateParmValues($text, $template);
+				$tpv        = self::getTemplateParmValues($text, $template);
 				$legendText = '';
 				if ($legendPage != '') {
 					$legendTitle = '';
@@ -220,7 +220,7 @@ class UpdateArticle {
 					global $wgParser, $wgUser;
 					$parser = clone $wgParser;
 					LST::text($parser, $instructionPage, $instructionTitle, $instructionText);
-					$instructions = $this->getTemplateParmValues($instructionText, 'Template field');
+					$instructions = self::getTemplateParmValues($instructionText, 'Template field');
 				}
 				// construct an edit form containing all template invocations
 				$form = "<html><form method=post action=\"$action\" $editForm>\n";
@@ -262,7 +262,7 @@ class UpdateArticle {
 						if (array_key_exists($parm, $tpv[$call])) {
 							$myValue = $tpv[$call][$parm];
 						}
-						$form .= $this->editTemplateCall($text, $template, $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat);
+						$form .= self::editTemplateCall($text, $template, $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat);
 					}
 					$form .= "</table>\n<br/><br/>";
 				}
@@ -294,7 +294,7 @@ class UpdateArticle {
 						if (array_key_exists($nr, $afterparm)) {
 							$myAfterParm = $afterparm[$nr];
 						}
-						$text = $this->updateTemplateCall($matchCount, $text, $template, $call, $parm, $myValue, $myAfterParm, $myOptional);
+						$text = self::updateTemplateCall($matchCount, $text, $template, $call, $parm, $myValue, $myAfterParm, $myOptional);
 					}
 					if ($exec == 'set') {
 						break; // values taken from dpl text only populate the first invocation
@@ -304,7 +304,7 @@ class UpdateArticle {
 		}
 
 		if ($exec == 'set') {
-			return $this->updateArticle($title, $text, $summary);
+			return self::updateArticle($title, $text, $summary);
 		} elseif ($exec == 'preview') {
 			global $wgScriptPath, $wgRequest;
 			$titleX   = \Title::newFromText($title);
