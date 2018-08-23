@@ -701,6 +701,7 @@ class ParametersData {
 				'inline',
 				'none',
 				'ordered',
+				'subpage',
 				'unordered',
 				'userformat'
 			]

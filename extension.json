@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.3.0-alpha2",
+	"version": "3.3.0-alpha3",
 	"author": [
 		"[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]",
 		"Alexia E. Smith"
@@ -45,6 +45,7 @@
 		"DPL\\Lister\\InlineList": "classes/lister/InlineList.php",
 		"DPL\\Lister\\Lister": "classes/lister/Lister.php",
 		"DPL\\Lister\\OrderedList": "classes/lister/OrderedList.php",
+		"DPL\\Lister\\SubPageList": "classes/lister/SubPageList.php",
 		"DPL\\Lister\\UnorderedList": "classes/lister/UnorderedList.php",
 		"DPL\\Lister\\UserFormatList": "classes/lister/UserFormatList.php",
 		"DPL\\Logger": "classes/Logger.php",

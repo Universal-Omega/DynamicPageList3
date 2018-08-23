@@ -296,6 +296,9 @@ class Lister {
 			case 'ordered':
 				$class = 'OrderedList';
 				break;
+			case 'subpage':
+				$class = 'SubPageList';
+				break;
 			default:
 			case 'unordered':
 				$class = 'UnorderedList';
@@ -621,7 +624,7 @@ class Lister {
 			if ($this->includePageText) {
 				$pageText = $this->transcludePage($article, $filteredCount);
 			} else {
-				$filteredCount = $filteredCount + 1;
+				$filteredCount++;
 			}
 
 			$this->rowCount = $filteredCount;
