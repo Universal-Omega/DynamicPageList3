@@ -63,10 +63,18 @@ class SubPageList extends UnorderedList {
 			if (empty($article) || empty($article->mTitle)) {
 				continue;
 			}
+
+			$pageText = null;
+			if ($this->includePageText) {
+				$pageText = $this->transcludePage($article, $filteredCount);
+			} else {
+				$filteredCount++;
+			}
+
 			$this->rowCount = $filteredCount++;
 
 			$parts = explode('/', $article->mTitle);
-			$item = $this->formatItem($article, null);
+			$item = $this->formatItem($article, $pageText);
 			$items = $this->nestItem($parts, $items, $item);
 		}
 
