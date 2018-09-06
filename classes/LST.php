@@ -26,6 +26,8 @@
  */
 namespace DPL;
 
+use DPL\Lister\Lister;
+
 class LST {
 	##############################################################
 	# To do transclusion from an extension, we need to interact with the parser
@@ -492,7 +494,7 @@ class LST {
 	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
-	public static function includeTemplate($parser, \DPL\Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist) {
+	public static function includeTemplate($parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist) {
 		$page  = $article->mTitle->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
