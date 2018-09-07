@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.2.2",
+	"version": "3.3.0",
 	"author": [
 		"[http://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]",
 		"Alexia E. Smith"
@@ -31,19 +31,32 @@
 		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
 	},
 	"AutoloadClasses": {
-		"DynamicPageListHooks": "DynamicPageListHooks.php",
 		"DPL\\Article": "classes/Article.php",
 		"DPL\\Config": "classes/Config.php",
 		"DPL\\DB\\CreateTemplateUpdateMaintenance": "classes/db/CreateTemplateUpdateMaintenance.php",
-		"DPL\\DynamicPageList": "classes/DynamicPageList.php",
+		"DPL\\Heading\\DefinitionHeading": "classes/heading/DefinitionHeading.php",
+		"DPL\\Heading\\Heading": "classes/heading/Heading.php",
+		"DPL\\Heading\\OrderedHeading": "classes/heading/OrderedHeading.php",
+		"DPL\\Heading\\TieredHeading": "classes/heading/TieredHeading.php",
+		"DPL\\Heading\\UnorderedHeading": "classes/heading/UnorderedHeading.php",
+		"DPL\\Lister\\CategoryList": "classes/lister/CategoryList.php",
+		"DPL\\Lister\\DefinitionList": "classes/lister/DefinitionList.php",
+		"DPL\\Lister\\GalleryList": "classes/lister/GalleryList.php",
+		"DPL\\Lister\\InlineList": "classes/lister/InlineList.php",
+		"DPL\\Lister\\Lister": "classes/lister/Lister.php",
+		"DPL\\Lister\\OrderedList": "classes/lister/OrderedList.php",
+		"DPL\\Lister\\SubPageList": "classes/lister/SubPageList.php",
+		"DPL\\Lister\\UnorderedList": "classes/lister/UnorderedList.php",
+		"DPL\\Lister\\UserFormatList": "classes/lister/UserFormatList.php",
 		"DPL\\Logger": "classes/Logger.php",
-		"DPL\\ListMode": "classes/ListMode.php",
 		"DPL\\LST": "classes/LST.php",
 		"DPL\\Parameters": "classes/Parameters.php",
 		"DPL\\ParametersData": "classes/ParametersData.php",
 		"DPL\\Parse": "classes/Parse.php",
 		"DPL\\Query": "classes/Query.php",
-		"DPL\\Variables": "classes/Variables.php"
+		"DPL\\UpdateArticle": "classes/UpdateArticle.php",
+		"DPL\\Variables": "classes/Variables.php",
+		"DynamicPageListHooks": "DynamicPageListHooks.php"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [

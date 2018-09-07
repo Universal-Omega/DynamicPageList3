@@ -10,6 +10,9 @@
  **/
 namespace DPL;
 
+use DPL\Heading\Heading;
+use DPL\Lister\Lister;
+
 class Parse {
 	/**
 	 * Mediawiki Database Object
@@ -73,13 +76,6 @@ class Parse {
 	 * @var		string
 	 */
 	private $output = '';
-
-	/**
-	 * DynamicPageList Object Holder
-	 *
-	 * @var		object
-	 */
-	private $dpl = null;
 
 	/**
 	 * Replacement Variables
@@ -268,70 +264,24 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$listMode = new ListMode(
-			$this->parameters->getParameter('mode'),
-			$this->parameters->getParameter('secseparators'),
-			$this->parameters->getParameter('multisecseparators'),
-			$this->parameters->getParameter('inlinetext'),
-			$this->parameters->getParameter('listattr'),
-			$this->parameters->getParameter('itemattr'),
-			(array)$this->parameters->getParameter('listseparators'),
-			$offset,
-			$this->parameters->getParameter('dominantsection')
-		);
-
-		$hListMode = new ListMode(
-			$this->parameters->getParameter('headingmode'),
-			$this->parameters->getParameter('secseparators'),
-			$this->parameters->getParameter('multisecseparators'),
-			'',
-			$this->parameters->getParameter('hlistattr'),
-			$this->parameters->getParameter('hitemattr'),
-			(array)$this->parameters->getParameter('listseparators'),
-			$offset,
-			$this->parameters->getParameter('dominantsection')
-		);
-
-		$this->dpl = new DynamicPageList(
-			Article::getHeadings(),
-			$this->parameters->getParameter('headingcount'),
-			$this->parameters->getParameter('columns'),
-			$this->parameters->getParameter('rows'),
-			$this->parameters->getParameter('rowsize'),
-			$this->parameters->getParameter('rowcolformat'),
-			$articles,
-			$this->parameters->getParameter('ordermethods')[0],
-			$hListMode,
-			$listMode,
-			$this->parameters->getParameter('escapelinks'),
-			$this->parameters->getParameter('addexternallink'),
-			$this->parameters->getParameter('incpage'),
-			$this->parameters->getParameter('includemaxlen'),
-			$this->parameters->getParameter('seclabels'),
-			$this->parameters->getParameter('seclabelsmatch'),
-			$this->parameters->getParameter('seclabelsnotmatch'),
-			$this->parameters->getParameter('incparsed'),
-			$this->parser,
-			$this->parameters->getParameter('replaceintitle'),
-			$this->parameters->getParameter('titlemaxlen'),
-			$this->parameters->getParameter('defaulttemplatesuffix'),
-			$this->parameters->getParameter('tablerow'),
-			$this->parameters->getParameter('includetrim'),
-			$this->parameters->getParameter('tablesortcol'),
-			$this->parameters->getParameter('updaterules'),
-			$this->parameters->getParameter('deleterules')
-		);
-
-		if ($foundRows === null) {
-			$foundRows = $this->dpl->getRowCount();
+		$lister = Lister::newFromStyle($this->parameters->getParameter('mode'), $this->parameters, $this->parser);
+		$heading = Heading::newFromStyle($this->parameters->getParameter('headingmode'), $this->parameters);
+		if ($heading !== null) {
+			$this->addOutput($heading->format($articles, $lister));
+		} else {
+			$this->addOutput($lister->format($articles));
 		}
-		$this->addOutput($this->dpl->getText());
+
+		//$this->addOutput($lister->format($articles));
+		if ($foundRows === null) {
+			$foundRows = $lister->getRowCount(); //Get row count after calling format() otherwise the count will be inaccurate.
+		}
 
 		/*******************************/
 		/* Replacement Variables       */
 		/*******************************/
 		$this->setVariable('TOTALPAGES', $foundRows); //Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used.  Otherwise only accurate if results are less than the SQL LIMIT.
-		$this->setVariable('PAGES', $this->dpl->getRowCount()); //This could be different than TOTALPAGES.  PAGES represents the total results within the constraints of SQL LIMIT.
+		$this->setVariable('PAGES', $lister->getRowCount()); //This could be different than TOTALPAGES.  PAGES represents the total results within the constraints of SQL LIMIT.
 
 		//Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp   = date('Y/m/d H:i:s');
@@ -364,7 +314,7 @@ class Parse {
 			'DPL_time'				=> $dplTime,
 			'DPL_count'				=> $this->parameters->getParameter('count'),
 			'DPL_totalPages'		=> $foundRows,
-			'DPL_pages'				=> $this->dpl->getRowCount()
+			'DPL_pages'				=> $lister->getRowCount()
 		];
 		$this->defineScrollVariables($scrollVariables);
 
@@ -807,7 +757,7 @@ class Parse {
 		}
 
 		//headingmode has effects with ordermethod on multiple components only
-		if ($this->parameters->getParameter('headingmode') != 'none' && count($orderMethods) < 2) {
+		if ($this->parameters->getParameter('headingmode') !== 'none' && count($orderMethods) < 2) {
 			$this->logger->addMessage(\DynamicPageListHooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter('headingmode'), 'none');
 			$this->parameters->setParameter('headingmode', 'none');
 		}

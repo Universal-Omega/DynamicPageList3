@@ -26,6 +26,8 @@
  */
 namespace DPL;
 
+use DPL\Lister\Lister;
+
 class LST {
 	##############################################################
 	# To do transclusion from an extension, we need to interact with the parser
@@ -82,7 +84,7 @@ class LST {
 
 			//Handle recursion here, so we can break cycles.
 			if ($recursionCheck == false) {
-				$text = $parser->preprocess($text, $parser->mTitle, $parser->mOptions);
+				$text = $parser->recursiveTagParse($text);
 				self::close($parser, $part1);
 			}
 
@@ -491,8 +493,8 @@ class LST {
 	// replace its name by template2, then expand template2 and return the result
 	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
 	// and do NOT match the condition "$mustNotMatch" (if specified)
-	// we use a callback function to format retrieved parameters, accessible via $dpl->formatTemplateArg()
-	public static function includeTemplate($parser, &$dpl, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $iTitleMaxLen, $catlist) {
+	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
+	public static function includeTemplate($parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist) {
 		$page  = $article->mTitle->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
@@ -559,16 +561,16 @@ class LST {
 			if (count($extractParm) > 0) {
 				// if parameters are required directly: return empty columns
 				if (count($extractParm) > 1) {
-					$output[0] = $dpl->formatTemplateArg('', $dplNr, 0, true, -1, $article);
+					$output[0] = $lister->formatTemplateArg('', $dplNr, 0, true, -1, $article);
 					for ($i = 1; $i < count($extractParm); $i++) {
-						$output[0] .= "\n|" . $dpl->formatTemplateArg('', $dplNr, $i, true, -1, $article);
+						$output[0] .= "\n|" . $lister->formatTemplateArg('', $dplNr, $i, true, -1, $article);
 					}
 				} else {
-					$output[0] = $dpl->formatTemplateArg('', $dplNr, 0, true, -1, $article);
+					$output[0] = $lister->formatTemplateArg('', $dplNr, 0, true, -1, $article);
 				}
 			} else {
 				// put a red link into the output
-				$output[0] = $parser->preprocess('{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->mTitle, $parser->mOptions);
+				$output[0] = $parser->recursiveTagParse('{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}');
 			}
 			unset($title);
 			return $output;
@@ -608,7 +610,7 @@ class LST {
 								$argChain .= "|%CATLIST%=$catlist";
 							}
 							$argChain .= '|%DATE%=' . $date . '|%USER%=' . $user . '|%ARGS%=' . str_replace('|', '§', preg_replace('/[}]+/', '}', preg_replace('/[{]+/', '{', substr($invocation, strlen($template2) + 2)))) . '}}';
-							$output[++$n] = $parser->preprocess($argChain, $parser->mTitle, $parser->mOptions);
+							$output[++$n] = $parser->recursiveTagParse($argChain);
 						}
 						break;
 					}
@@ -664,7 +666,7 @@ class LST {
 								if (strpos($exParm, '%') !== false) {
 									// %% is a short form for inclusion of %PAGE% and %TITLE%
 									$found = true;
-									$output[$n] .= $dpl->formatTemplateArg($dpl->articleLink($exParm, $article, $iTitleMaxLen), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+									$output[$n] .= $lister->formatTemplateArg($exParm, $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 								}
 								if (!$found) {
 									// named parameter
@@ -674,7 +676,7 @@ class LST {
 											continue;
 										}
 										$found = true;
-										$output[$n] .= $dpl->formatTemplateArg(preg_replace("/^$exParmQuote\s*=\s*/", "", $parm), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+										$output[$n] .= $lister->formatTemplateArg(preg_replace("/^$exParmQuote\s*=\s*/", "", $parm), $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 										break;
 									}
 								}
@@ -689,12 +691,12 @@ class LST {
 											continue;
 										}
 										$found = true;
-										$output[$n] .= $dpl->formatTemplateArg($parm, $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+										$output[$n] .= $lister->formatTemplateArg($parm, $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 										break;
 									}
 								}
 								if (!$found) {
-									$output[$n] .= $dpl->formatTemplateArg('', $dplNr, $exParmKey, $firstCall, $maxlen, $article);
+									$output[$n] .= $lister->formatTemplateArg('', $dplNr, $exParmKey, $firstCall, $maxlen, $article);
 								}
 								$second = true;
 							}

@@ -37,7 +37,7 @@ class Article {
 	 *
 	 * @var		string
 	 */
-	public $mSelTitle = '';
+	public $mSelTitle = null;
 
 	/**
 	 * Selected namespace ID of initial page.
@@ -51,7 +51,7 @@ class Article {
 	 *
 	 * @var		string
 	 */
-	public $mImageSelTitle = '';
+	public $mImageSelTitle = null;
 
 	/**
 	 * HTML link to page.
@@ -65,7 +65,7 @@ class Article {
 	 *
 	 * @var		string
 	 */
-	public $mExternalLink = '';
+	public $mExternalLink = null;
 
 	/**
 	 * First character of the page title.
@@ -100,14 +100,14 @@ class Article {
 	 *
 	 * @var		integer
 	 */
-	public $mCounter = 0;
+	public $mCounter = null;
 
 	/**
 	 * Article length in bytes of wiki text
 	 *
-	 * @var		string
+	 * @var		integer
 	 */
-	public $mSize = '';
+	public $mSize = null;
 
 	/**
 	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
@@ -244,12 +244,12 @@ class Article {
 
 		//SHOW PAGE_COUNTER
 		if (isset($row['page_counter'])) {
-			$article->mCounter = $row['page_counter'];
+			$article->mCounter = intval($row['page_counter']);
 		}
 
 		//SHOW PAGE_SIZE
 		if (isset($row['page_len'])) {
-			$article->mSize = $row['page_len'];
+			$article->mSize = intval($row['page_len']);
 		}
 		//STORE initially selected PAGE
 		if (is_array($parameters->getParameter('linksto')) && (count($parameters->getParameter('linksto')) || count($parameters->getParameter('linksfrom')))) {
@@ -371,6 +371,22 @@ class Article {
 	 */
 	static public function resetHeadings() {
 		self::$headings = [];
+	}
+
+	/**
+	 * Get the formatted date for this article if available.
+	 *
+	 * @access	public
+	 * @return	mixed	Formatted string or null for none set.
+	 */
+	public function getDate() {
+		global $wgLang;
+		if ($this->myDate !== null) {
+			return $this->myDate;
+		} elseif ($this->mDate !== null) {
+			return $wgLang->timeanddate($article->mDate, true);
+		}
+		return null;
 	}
 }
 ?>

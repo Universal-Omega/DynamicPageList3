@@ -665,3 +665,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.2.2
 * Minor bug fix for the category parameter to stop producing a warning.
+
+# Version 3.3.0
+* Overhaul and rewrite of the list generation class(DynamicPageList).
+	* Two new class bases, Lister and Heading.
+* New listing mode, subpage.

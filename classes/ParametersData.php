@@ -364,12 +364,23 @@ class ParametersData {
 			'open_ref_conflict'	=> true
 		],
 
+		//Include the lowercase variants of header tiers for ease of use.
 		'headingmode' => [
 			'default'	=> 'none',
 			'values'	=> [
+				'H1',
 				'H2',
 				'H3',
 				'H4',
+				'H5',
+				'H6',
+				'h1',
+				'h2',
+				'h3',
+				'h4',
+				'h5',
+				'h6',
+				//'header',
 				'definition',
 				'none',
 				'ordered',
@@ -377,6 +388,7 @@ class ParametersData {
 			],
 			'open_ref_conflict'	=> true
 		],
+
 		/**
 		 * we can display the number of articles within a heading group
 		 */
@@ -385,6 +397,7 @@ class ParametersData {
 			'boolean'			=> true,
 			'open_ref_conflict'	=> true
 		],
+
 		/**
 		 * Attributes for HTML list items (headings) at the heading level, depending on 'headingmode' (e.g. 'li' for ordered/unordered)
 		 * Not yet applicable to 'headingmode=none | definition | H2 | H3 | H4'.
@@ -394,6 +407,7 @@ class ParametersData {
 		'hitemattr' => [
 			'default'	=> null
 		],
+
 		/**
 		 * Attributes for the HTML list element at the heading/top level, depending on 'headingmode' (e.g. 'ol' for ordered, 'ul' for unordered, 'dl' for definition)
 		 * Not yet applicable to 'headingmode=none'.
@@ -403,6 +417,7 @@ class ParametersData {
 		'hlistattr' => [
 			'default'	=> null
 		],
+
 		/**
 		 * PAGE TRANSCLUSION: includepage=... or include=...
 		 * To include the whole page, use a wildcard:
@@ -420,6 +435,7 @@ class ParametersData {
 		'includepage' => [
 			'default'	=> null
 		],
+
 		/**
 		 * make comparisons (linksto, linksfrom ) case insensitive
 		 */
@@ -430,6 +446,7 @@ class ParametersData {
 		'include'			   => [
 			'default'	=> null
 		],
+
 		/**
 		 * includesubpages
 		 */
@@ -437,6 +454,7 @@ class ParametersData {
 			'default'	=> true,
 			'boolean'	=> true
 		],
+
 		/**
 		 * includematch=..,..	 allows to specify regular expressions which must match the included contents
 		 */
@@ -498,7 +516,7 @@ class ParametersData {
 		 *		   : listseparators={|,\n|-\n|[[%PAGE%]],,\n|}
 		 */
 		'listseparators' => [
-			'default'	=> null
+			'default'	=> []
 		],
 		/**
 		 * sequence of four wiki tags (separated by ",") to be used together with mode = 'userformat'
@@ -678,10 +696,12 @@ class ParametersData {
 			'default'	=> 'unordered',
 			'values'	=> [
 				'category',
-				'inline',
+				'definition',
 				'gallery',
+				'inline',
 				'none',
 				'ordered',
+				'subpage',
 				'unordered',
 				'userformat'
 			]
@@ -987,12 +1007,14 @@ class ParametersData {
 				'none'
 			]
 		],
+
 		/**
 		 * fixcategory=..	prevents a category from being reset
 		 */
 		'fixcategory' => [
 			'default' => null
 		],
+
 		/**
 		 * Number of rows for output, default is 1
 		 * Note: a "row" is a group of lines for which the heading tags defined in listseparators/format will be repeated
@@ -1001,6 +1023,7 @@ class ParametersData {
 			'default'	=> 1,
 			'integer'	=> true
 		],
+
 		/**
 		 * Number of elements in a rows for output, default is "all"
 		 * Note: a "row" is a group of lines for which the heading tags defined in listeseparators will be repeated
@@ -1009,8 +1032,9 @@ class ParametersData {
 			'default'	=> 0,
 			'integer'	=> true
 		],
+
 		/**
-		 * the html tags used for columns and rows
+		 * The HTML attribute tags(class, cellspacing) used for columns and rows in MediaWiki table markup.
 		 */
 		'rowcolformat' => [
 			'default'		=> null,
@@ -1022,14 +1046,14 @@ class ParametersData {
 		 * if only one tag is given it will be used for all sections as a start tag (end tag will be empty then)
 		 */
 		'secseparators' => [
-			'default' => null
+			'default' => []
 		],
 		/**
 		 * multisecseparators is a list of tags (which correspond to the items in includepage)
 		 * and which are put between identical sections included from the same file
 		 */
 		'multisecseparators' => [
-			'default' => null
+			'default' => []
 		],
 		/**
 		 * dominantSection is the number (starting from 1) of an includepage argument which shall be used
@@ -1071,13 +1095,13 @@ class ParametersData {
 		 * tablerow allows to define individual formats for table columns
 		 */
 		'tablerow' => [
-			'default'	=> null
+			'default'	=> []
 		],
 		/**
 		 * The number (starting with 1) of the column to be used for sorting
 		 */
 		'tablesortcol' => [
-			'default'	=> 0,
+			'default'	=> null,
 			'integer'	=> true
 		],
 		/**
