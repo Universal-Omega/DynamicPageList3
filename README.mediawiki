@@ -5,8 +5,8 @@
 |type2       = parser function
 |author      = '''[[User:Alexia_E._Smith|Alexia E. Smith]]''', [[User:Algorithmix|Algorithmix]], [[meta:User:Dangerman|Dangerville]], [[w:en:User:IlyaHaykinson|IlyaHaykinson]], [[User:Theaitetos|Theaitetos]], [[w:de:Benutzer:Unendlich|Unendlich]]
 |image       =
-|version     = 3.2.2
-|update      = 2018-08-06
+|version     = 3.3.0
+|update      = 2018-09-07
 |mediawiki   = 1.27+
 |php         = 5.6+
 |download    = {{TNT|GithubDownload|Alexia|DynamicPageList}}
@@ -35,7 +35,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 == Installation ==
 {{TNT|ExtensionInstall
 |DynamicPageList
-|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.2.2.zip Download, extract]
+|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.3.0.zip Download, extract]
 |custom-steps=* [[#Configuration|If necessary configure as required.]]
 |registration=required
 }}
