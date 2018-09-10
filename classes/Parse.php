@@ -193,7 +193,8 @@ class Parse {
 		}
 
 		//Construct internal keys for TableRow according to the structure of "include".  This will be needed in the output phase.
-		if ($this->parameters->getParameter('seclabels') !== null) {
+		$secLabels = $this->parameters->getParameter('seclabels');
+		if (is_array($secLabels) && !empty($this->parameters->getParameter('seclabels'))) {
 			$this->parameters->setParameter('tablerow', $this->updateTableRowKeys($this->parameters->getParameter('tablerow'), $this->parameters->getParameter('seclabels')));
 		}
 

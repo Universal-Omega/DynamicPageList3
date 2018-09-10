@@ -61,19 +61,54 @@ class UserFormatList extends Lister {
 	 * @return	string	Formatted list.
 	 */
 	public function formatList($articles, $start, $count) {
-		$list = parent::formatList($articles, $start, $count);
+		$filteredCount = 0;
+		$items = [];
+		for ($i = $start; $i < $start + $count; $i++) {
+			$article = $articles[$i];
+			if (empty($article) || empty($article->mTitle)) {
+				continue;
+			}
+
+			$pageText = null;
+			if ($this->includePageText) {
+				$pageText = $this->transcludePage($article, $filteredCount);
+			} else {
+				$filteredCount++;
+			}
+
+			$this->rowCount = $filteredCount;
+
+			$items[] = $this->formatItem($article, $pageText);
+		}
+
+		$this->rowCount = $filteredCount;
 
 		// if requested we sort the table by the contents of a given column
-		if ($this->getTableSortColumn() !== null) {
-			$sortColumn	= $this->getTableSortColumn();
-			$rows		= explode("\n|-", $list);
+		$sortColumn	= $this->getTableSortColumn();
+		if ($sortColumn != 0) {
 			$rowsKey	= [];
-			foreach ($rows as $index => $row) {
-				if (strlen($row) > 0) {
-					if ((($word = explode("\n|", $row, $sortColumn + 2)) !== false) && (count($word) > $sortColumn)) {
-						$rowsKey[$index] = $word[$sortColumn];
+			foreach ($items as $index => $item) {
+				$item = trim($item);
+				if (strpos($item, '|-') === 0) {
+					$item = explode('|-', $item, 2);
+					if (count($item) == 2) {
+						$item = $item[1];
 					} else {
-						$rowsKey[$index] = $row;
+						$rowsKey[$index] = $item;
+						continue;
+					}
+				}
+				if (strlen($item) > 0) {
+					$word = explode("\n|", $item);
+					if (isset($word[0]) && empty($word[0])) {
+						array_shift($word);
+					}
+					if (isset($word[abs($sortColumn) - 1])) {
+						$test = trim($word[abs($sortColumn) - 1]);
+						if (strpos($test, '|') > 0) {
+							$test = trim(explode('|', $test)[1]);
+						}
+						$rowsKey[$index] = $test;
 					}
 				}
 			}
@@ -82,13 +117,14 @@ class UserFormatList extends Lister {
 			} else {
 				asort($rowsKey);
 			}
-			$list = "";
+			$newItems = [];
 			foreach ($rowsKey as $index => $val) {
-				$list .= "\n|-".$rows[$index];
+				$newItems[] = $items[$index];
 			}
+			$items = $newItems;
 		}
 
-		return $list;
+		return $this->getListStart().$this->implodeItems($items).$this->listEnd;;
 	}
 
 	/**

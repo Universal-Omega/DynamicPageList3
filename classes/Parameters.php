@@ -1168,7 +1168,7 @@ class Parameters extends ParametersData {
 		//Overwrite 'listseparators'.
 		$this->setParameter('listseparators', $listSeparators);
 
-		$sectionLabels = $this->getParameter('seclabels');
+		$sectionLabels = (array)$this->getParameter('seclabels');
 		$sectionSeparators = $this->getParameter('secseparators');
 		$multiSectionSeparators = $this->getParameter('multisecseparators');
 		for ($i = 0; $i < count($sectionLabels); $i++) {
