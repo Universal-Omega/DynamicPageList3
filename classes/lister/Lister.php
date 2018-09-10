@@ -266,7 +266,7 @@ class Lister {
 		$this->setPageTextMatchNotRegex((array)$parameters->getParameter('seclabelsnotmatch'));
 		$this->setIncludePageParsed($parameters->getParameter('incparsed'));
 		$this->parameters = $parameters;
-		$this->parser = $parser;
+		$this->parser = clone $parser;
 	}
 
 	/**

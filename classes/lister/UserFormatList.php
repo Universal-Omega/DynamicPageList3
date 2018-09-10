@@ -10,6 +10,8 @@
 
 namespace DPL\Lister;
 
+use DPL\Article;
+
 class UserFormatList extends Lister {
 	/**
 	 * Listing style for this class.
@@ -135,7 +137,7 @@ class UserFormatList extends Lister {
 	 * @param	string	[Optional] Page text to include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem($article, $pageText = null) {
+	public function formatItem(Article $article, $pageText = null) {
 		$item = '';
 
 		if ($pageText !== null) {
