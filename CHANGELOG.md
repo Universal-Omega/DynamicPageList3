@@ -670,3 +670,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Overhaul and rewrite of the list generation class(DynamicPageList).
 	* Two new class bases, Lister and Heading.
 * New listing mode, subpage.
+
+# Version 3.3.1
+* Fixed regression with parameter tablesortcol breaking table output.
