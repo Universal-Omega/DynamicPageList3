@@ -673,3 +673,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.3.1
 * Fixed regression with parameter tablesortcol breaking table output.
+* Fixed regression with page tranclusion parsing that was done to improve performance.
