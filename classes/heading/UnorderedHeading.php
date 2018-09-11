@@ -39,4 +39,3 @@ class UnorderedHeading extends Heading {
 	 */
 	public $itemEnd = '</li>';
 }
-?>

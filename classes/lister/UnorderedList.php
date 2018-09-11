@@ -46,4 +46,3 @@ class UnorderedList extends Lister {
 	 */
 	public $itemEnd = '</li>';
 }
-?>

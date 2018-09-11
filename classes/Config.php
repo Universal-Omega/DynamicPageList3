@@ -25,7 +25,7 @@ class Config {
 	 * @param	array	Settings to initialize for DPL.
 	 * @return	void
 	 */
-	static public function init($settings = false) {
+	public static function init($settings = false) {
 		if ($settings === false) {
 			global $wgDplSettings;
 
@@ -33,7 +33,7 @@ class Config {
 		}
 
 		if (!is_array($settings)) {
-			throw new MWException(__METHOD__.": Invalid settings passed.");
+			throw new MWException(__METHOD__ . ": Invalid settings passed.");
 		}
 
 		self::$settings = array_merge(self::$settings, $settings);
@@ -46,7 +46,7 @@ class Config {
 	 * @param	string	Setting Key
 	 * @return	mixed	The setting's actual setting or null if it does not exist.
 	 */
-	static public function getSetting($setting) {
+	public static function getSetting($setting) {
 		return (array_key_exists($setting, self::$settings) ? self::$settings[$setting] : null);
 	}
 
@@ -56,7 +56,7 @@ class Config {
 	 * @access	public
 	 * @return	array	All settings
 	 */
-	static public function getAllSettings() {
+	public static function getAllSettings() {
 		return self::$settings;
 	}
 
@@ -68,11 +68,10 @@ class Config {
 	 * @param	mixed	[Optional] Appropriate value for the setting key.
 	 * @return	void
 	 */
-	static public function setSetting($setting, $value = null) {
+	public static function setSetting($setting, $value = null) {
 		if (empty($setting) || !is_string($setting)) {
-			throw new MWException(__METHOD__.": Setting keys can not be blank.");
+			throw new MWException(__METHOD__ . ": Setting keys can not be blank.");
 		}
 		self::$settings[$setting] = $value;
 	}
 }
-?>

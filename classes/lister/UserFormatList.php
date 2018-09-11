@@ -126,7 +126,8 @@ class UserFormatList extends Lister {
 			$items = $newItems;
 		}
 
-		return $this->getListStart().$this->implodeItems($items).$this->listEnd;;
+		return $this->getListStart() . $this->implodeItems($items) . $this->listEnd;
+;
 	}
 
 	/**
@@ -145,7 +146,7 @@ class UserFormatList extends Lister {
 			$item .= $pageText;
 		}
 
-		$item = $this->getItemStart().$item.$this->getItemEnd();
+		$item = $this->getItemStart() . $item . $this->getItemEnd();
 
 		$item = $this->replaceTagParameters($item, $article);
 
@@ -183,4 +184,3 @@ class UserFormatList extends Lister {
 		return implode($this->textSeparator, $items);
 	}
 }
-?>

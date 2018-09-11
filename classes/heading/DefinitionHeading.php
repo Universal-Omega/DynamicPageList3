@@ -85,14 +85,13 @@ class DefinitionHeading extends Heading {
 	public function formatItem($headingStart, $headingCount, $headingLink, $articles, Lister $lister) {
 		$item = '';
 
-		$item .= $this->headListStart.$headingLink;
+		$item .= $this->headListStart . $headingLink;
 		if ($this->showHeadingCount) {
 			$item .= $this->articleCountMessage($headingCount);
 		}
 		$item .= $this->headListEnd;
-		$item .= $this->getItemStart().$lister->formatList($articles, $headingStart, $headingCount).$this->getItemEnd();
+		$item .= $this->getItemStart() . $lister->formatList($articles, $headingStart, $headingCount) . $this->getItemEnd();
 
 		return $item;
 	}
 }
-?>

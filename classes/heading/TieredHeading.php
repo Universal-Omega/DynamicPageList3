@@ -75,7 +75,7 @@ class TieredHeading extends Heading {
 	public function formatItem($headingStart, $headingCount, $headingLink, $articles, Lister $lister) {
 		$item = '';
 
-		$item .= $this->getItemStart().$headingLink;
+		$item .= $this->getItemStart() . $headingLink;
 		if ($this->showHeadingCount) {
 			$item .= $this->articleCountMessage($headingCount);
 		}
@@ -115,4 +115,3 @@ class TieredHeading extends Heading {
 		return sprintf($this->itemEnd, $this->itemAttributes, $this->tierLevel);
 	}
 }
-?>

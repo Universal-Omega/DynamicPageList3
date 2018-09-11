@@ -102,7 +102,7 @@ class Heading {
 	 * @param	object	MediaWiki \Parser
 	 * @return	mixed	Heading subclass or null for a bad style.
 	 */
-	static public function newFromStyle($style, \DPL\Parameters $parameters) {
+	public static function newFromStyle($style, \DPL\Parameters $parameters) {
 		$style = strtolower($style);
 		switch ($style) {
 			case 'definition':
@@ -127,7 +127,7 @@ class Heading {
 				return null;
 				break;
 		}
-		$class = '\DPL\Heading\\'.$class;
+		$class = '\DPL\Heading\\' . $class;
 
 		return new $class($parameters);
 	}
@@ -220,7 +220,7 @@ class Heading {
 				if ($rest > 0) {
 					$nsize += 1;
 				}
-				$output .= "{|".$rowColFormat."\n|\n";
+				$output .= "{|" . $rowColFormat . "\n|\n";
 				if ($nsize < $hspace + 1) {
 					$nsize = $hspace + 1; // correction for result sets with one entry
 				}
@@ -232,7 +232,7 @@ class Heading {
 				foreach ($headings as $headingCount) {
 					$headingStart = $nstart - $offset;
 					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->getItemStart().$headingLink.$this->getItemEnd();
+					$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
 					if ($this->showHeadingCount) {
 						$output .= $this->articleCountMessage($headingCount);
 					}
@@ -297,7 +297,7 @@ class Heading {
 			if ($rest > 0) {
 				$nsize += 1;
 			}
-			$output .= "{|".$rowColFormat."\n|\n";
+			$output .= "{|" . $rowColFormat . "\n|\n";
 			for ($g = 0; $g < $iGroup; $g++) {
 				$output .= $lister->formatList($articles, $nstart, $nsize);
 				if ($columns != 1) {
@@ -317,7 +317,7 @@ class Heading {
 			$nstart = 0;
 			$nsize  = $rowSize;
 			$count  = count($articles);
-			$output .= '{|'.$rowColFormat."\n|\n";
+			$output .= '{|' . $rowColFormat . "\n|\n";
 			do {
 				if ($nstart + $nsize > $count) {
 					$nsize = $count - $nstart;
@@ -352,7 +352,7 @@ class Heading {
 	public function formatItem($headingStart, $headingCount, $headingLink, $articles, Lister $lister) {
 		$item = '';
 
-		$item .= $this->getItemStart().$headingLink;
+		$item .= $this->getItemStart() . $headingLink;
 		if ($this->showHeadingCount) {
 			$item .= $this->articleCountMessage($headingCount);
 		}
@@ -406,7 +406,6 @@ class Heading {
 		} else {
 			$message = 'dpl_articlecount';
 		}
-		return '<p>'.wfMessage($message, $count)->escaped().'</p>';
+		return '<p>' . wfMessage($message, $count)->escaped() . '</p>';
 	}
 }
-?>

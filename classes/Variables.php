@@ -27,7 +27,7 @@ class Variables {
 
 	// expects pairs of 'variable name' and 'value'
 	// if the first parameter is empty it will be ignored {{#vardefine:|a|b}} is the same as {{#vardefine:a|b}}
-	static public function setVar($arg) {
+	public static function setVar($arg) {
 		$numargs = count($arg);
 		if ($numargs >= 3 && $arg[2] == '') {
 			$start = 3;
@@ -45,7 +45,7 @@ class Variables {
 		return '';
 	}
 
-	static public function setVarDefault($arg) {
+	public static function setVarDefault($arg) {
 		$numargs = count($arg);
 		if ($numargs > 3) {
 			$value = $arg[3];
@@ -59,14 +59,14 @@ class Variables {
 		return '';
 	}
 
-	static public function getVar($var) {
+	public static function getVar($var) {
 		if (array_key_exists($var, self::$memoryVar)) {
 			return self::$memoryVar[$var];
 		}
 		return '';
 	}
 
-	static public function setArray($arg) {
+	public static function setArray($arg) {
 		$numargs = count($arg);
 		if ($numargs < 5) {
 			return '';
@@ -94,7 +94,7 @@ class Variables {
 		return "value={$value}, delimiter={$delimiter}," . count(self::$memoryArray[$var]);
 	}
 
-	static public function dumpArray($arg) {
+	public static function dumpArray($arg) {
 		$numargs = count($arg);
 		if ($numargs < 3) {
 			return '';
@@ -113,7 +113,7 @@ class Variables {
 		return $text . "}\n";
 	}
 
-	static public function printArray($var, $delimiter, $search, $subject) {
+	public static function printArray($var, $delimiter, $search, $subject) {
 		$var = trim($var);
 		if ($var == '') {
 			return '';
@@ -134,4 +134,3 @@ class Variables {
 		];
 	}
 }
-?>

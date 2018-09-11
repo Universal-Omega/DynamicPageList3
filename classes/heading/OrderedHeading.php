@@ -25,4 +25,3 @@ class OrderedHeading extends UnorderedHeading {
 	 */
 	public $listEnd = '</ol>';
 }
-?>

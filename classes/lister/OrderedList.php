@@ -69,7 +69,6 @@ class OrderedList extends UnorderedList {
 			//$offset += $this->offsetCount;
 		}
 
-		return sprintf($this->listStart, $this->listAttributes.' start="'.$offset.'"');
+		return sprintf($this->listStart, $this->listAttributes . ' start="' . $offset . '"');
 	}
 }
-?>

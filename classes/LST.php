@@ -40,7 +40,7 @@ class LST {
 	 * @param $part1
 	 * @return bool
 	 */
-	static public function open($parser, $part1) {
+	public static function open($parser, $part1) {
 		// Infinite loop test
 		if (isset($parser->mTemplatePath[$part1])) {
 			wfDebug(__METHOD__ . ": template loop broken at '$part1'\n");
@@ -57,7 +57,7 @@ class LST {
 	 * @param $part1
 	 * @return bool
 	 */
-	static public function close($parser, $part1) {
+	public static function close($parser, $part1) {
 		// Infinite loop test
 		if (isset($parser->mTemplatePath[$part1])) {
 			unset($parser->mTemplatePath[$part1]);
@@ -114,7 +114,7 @@ class LST {
 	 * @param Parser $parser
 	 * @return string HTML output
 	 */
-	static private function noop($in, $assocArgs = [], $parser = null) {
+	private static function noop($in, $assocArgs = [], $parser = null) {
 		return '';
 	}
 
@@ -156,7 +156,7 @@ class LST {
 	 * @return int Number of matches
 	 * @private
 	 */
-	static private function countHeadings($text, $limit) {
+	private static function countHeadings($text, $limit) {
 		$pat = '^(={1,6}).+\1\s*$()';
 
 		$count = 0;
@@ -711,9 +711,8 @@ class LST {
 		return $output;
 	}
 
-	static public function spaceOrUnderscore($pattern) {
+	public static function spaceOrUnderscore($pattern) {
 		// returns a pettern that matches underscores as well as spaces
 		return str_replace(' ', '[ _]', $pattern);
 	}
 }
-?>

@@ -75,7 +75,7 @@ class Parameters extends ParametersData {
 		}
 
 		//Subvert to the real function if it exists.  This keeps code elsewhere clean from needed to check if it exists first.
-		$function = "_".$parameter;
+		$function = "_" . $parameter;
 		$this->parametersProcessed[$parameter] = true;
 		if (method_exists($this, $function)) {
 			return call_user_func_array([$this, $function], $arguments);
@@ -200,9 +200,9 @@ class Parameters extends ParametersData {
 	 * @param	array	Unsorted Parameters
 	 * @return	array	Sorted Parameters
 	 */
-	static public function sortByPriority($parameters) {
+	public static function sortByPriority($parameters) {
 		if (!is_array($parameters)) {
-			throw new \MWException(__METHOD__.': A non-array was passed.');
+			throw new \MWException(__METHOD__ . ': A non-array was passed.');
 		}
 		//'category' to get category headings first for ordermethod.
 		//'include'/'includepage' to make sure section labels are ready for 'table'.
@@ -240,7 +240,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setSelectionCriteriaFound($found = true) {
 		if (!is_bool($found)) {
-			throw new MWException(__METHOD__.': A non-boolean was passed.');
+			throw new MWException(__METHOD__ . ': A non-boolean was passed.');
 		}
 		$this->selectionCriteriaFound = $found;
 	}
@@ -264,7 +264,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setOpenReferencesConflict($conflict = true) {
 		if (!is_bool($conflict)) {
-			throw new MWException(__METHOD__.': A non-boolean was passed.');
+			throw new MWException(__METHOD__ . ': A non-boolean was passed.');
 		}
 		$this->openReferencesConflict = $conflict;
 	}
@@ -337,7 +337,7 @@ class Parameters extends ParametersData {
 	 *
 	 * @access	public
 	 * @param	mixed	Integer or string to evaluated through filter_var().
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function filterBoolean($boolean) {
 		return filter_var($boolean, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
@@ -405,7 +405,7 @@ class Parameters extends ParametersData {
 				continue;
 			}
 			if ($forDb) {
-				$regex = '#'.str_replace('#', '\#', $regex).'#';
+				$regex = '#' . str_replace('#', '\#', $regex) . '#';
 			}
 			//Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
 			if (@preg_match($regex, null) === false) {
@@ -944,7 +944,7 @@ class Parameters extends ParametersData {
 			//The 'findTitle' option has argument over the 'fromTitle' argument.
 			$titlegt = $wgRequest->getVal('DPL_findTitle', '');
 			if (!empty($titlegt)) {
-				$titlegt = '=_'.ucfirst($titlegt);
+				$titlegt = '=_' . ucfirst($titlegt);
 			} else {
 				$titlegt = $wgRequest->getVal('DPL_fromTitle', '');
 				$titlegt = ucfirst($titlegt);
@@ -1330,4 +1330,3 @@ class Parameters extends ParametersData {
 		return true;
 	}
 }
-?>

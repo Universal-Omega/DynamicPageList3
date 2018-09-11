@@ -20,4 +20,3 @@ $magicWords['en'] = [
 	'dplmatrix'			=> [0, 'dplmatrix'],
 	'DynamicPageList'	=> [0, 'DynamicPageList']
 ];
-?>

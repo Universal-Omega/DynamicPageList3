@@ -278,7 +278,7 @@ class Lister {
 	 * @param	object	MediaWiki \Parser
 	 * @return	object	Lister subclass.
 	 */
-	static public function newFromStyle($style, \DPL\Parameters $parameters, \Parser $parser) {
+	public static function newFromStyle($style, \DPL\Parameters $parameters, \Parser $parser) {
 		$style = strtolower($style);
 		switch ($style) {
 			case 'category':
@@ -307,7 +307,7 @@ class Lister {
 				$class = 'UserFormatList';
 				break;
 		}
-		$class = '\DPL\Lister\\'.$class;
+		$class = '\DPL\Lister\\' . $class;
 
 		return new $class($parameters, $parser);
 	}
@@ -441,7 +441,7 @@ class Lister {
 
 	/**
 	 * Set if links should be escaped?
-	 * @TODO: The naming of this parameter is weird and I am not sure what it does.
+	 * @todo The naming of this parameter is weird and I am not sure what it does.
 	 *
 	 * @access	public
 	 * @param	boolean	[Optional] Escape
@@ -634,7 +634,7 @@ class Lister {
 
 		$this->rowCount = $filteredCount;
 
-		return $this->getListStart().$this->implodeItems($items).$this->listEnd;
+		return $this->getListStart() . $this->implodeItems($items) . $this->listEnd;
 	}
 
 	/**
@@ -652,9 +652,9 @@ class Lister {
 		//DPL Article, not MediaWiki.
 		$date = $article->getDate();
 		if ($date !== null) {
-			$item .= $date.' ';
+			$item .= $date . ' ';
 			if ($article->mRevision !== null) {
-				$item .= '[{{fullurl:'.$article->mTitle.'|oldid='.$article->mRevision.'}} '.htmlspecialchars($article->mTitle).']';
+				$item .= '[{{fullurl:' . $article->mTitle . '|oldid=' . $article->mRevision . '}} ' . htmlspecialchars($article->mTitle) . ']';
 			} else {
 				$item .= $article->mLink;
 			}
@@ -670,26 +670,26 @@ class Lister {
 		}
 
 		if ($article->mCounter !== null) {
-			$item .= ' '.$wgContLang->getDirMark().'('.wfMessage('hitcounters-nviews', $wgLang->formatNum($article->mCounter))->escaped().')';
+			$item .= ' ' . $wgContLang->getDirMark() . '(' . wfMessage('hitcounters-nviews', $wgLang->formatNum($article->mCounter))->escaped() . ')';
 		}
 
 		if ($article->mUserLink !== null) {
-			$item .= ' . . [[User:'.$article->mUser.'|'.$article->mUser.']]';
+			$item .= ' . . [[User:' . $article->mUser . '|' . $article->mUser . ']]';
 			if ($article->mComment != '') {
-				$item .= ' { '.$article->mComment.' }';
+				$item .= ' { ' . $article->mComment . ' }';
 			}
 		}
 
 		if ($article->mContributor !== null) {
-			$item .= ' . . [[User:'.$article->mContributor.'|'.$article->mContributor." $article->mContrib]]";
+			$item .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
 		}
 
 		if (!empty($article->mCategoryLinks)) {
-			$item .= ' . . <small>'.wfMessage('categories').': '.implode(' | ', $article->mCategoryLinks).'</small>';
+			$item .= ' . . <small>' . wfMessage('categories') . ': ' . implode(' | ', $article->mCategoryLinks) . '</small>';
 		}
 
 		if ($this->getParameters()->getParameter('addexternallink') && $article->mExternalLink !== null) {
-			$item .= ' → '.$article->mExternalLink;
+			$item .= ' → ' . $article->mExternalLink;
 		}
 
 		if ($pageText !== null) {
@@ -697,7 +697,7 @@ class Lister {
 			$item .= $pageText;
 		}
 
-		$item = $this->getItemStart().$item.$this->getItemEnd();
+		$item = $this->getItemStart() . $item . $this->getItemEnd();
 
 		$item = $this->replaceTagParameters($item, $article);
 
@@ -797,7 +797,7 @@ class Lister {
 		$pagename = $article->mTitle->getPrefixedText();
 		if ($this->getEscapeLinks() && ($article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE)) {
 			// links to categories or images need an additional ":"
-			$pagename = ':'.$pagename;
+			$pagename = ':' . $pagename;
 		}
 
 		$tag = str_replace('%PAGE%', $pagename, $tag);
@@ -814,7 +814,7 @@ class Lister {
 		}
 		$titleMaxLength = $this->getTitleMaxLength();
 		if ($titleMaxLength !== null && (strlen($title) > $titleMaxLength)) {
-			$title = substr($title, 0, $titleMaxLength).'...';
+			$title = substr($title, 0, $titleMaxLength) . '...';
 		}
 		$tag = str_replace('%TITLE%', $title, $tag);
 
@@ -834,7 +834,7 @@ class Lister {
 			if ($article->mSelNamespace == 0) {
 				$tag = str_replace('%PAGESEL%', str_replace('_', ' ', $article->mSelTitle), $tag);
 			} else {
-				$tag = str_replace('%PAGESEL%', $namespaces[$article->mSelNamespace].':'.str_replace('_', ' ', $article->mSelTitle), $tag);
+				$tag = str_replace('%PAGESEL%', $namespaces[$article->mSelNamespace] . ':' . str_replace('_', ' ', $article->mSelTitle), $tag);
 			}
 		}
 		$tag = str_replace('%IMAGESEL%', str_replace('_', ' ', $article->mImageSelTitle), $tag);
@@ -855,7 +855,7 @@ class Lister {
 	protected function replaceTagCategory($tag, Article $article) {
 		if (!empty($article->mCategoryLinks)) {
 			$tag = str_replace('%CATLIST%', implode(', ', $article->mCategoryLinks), $tag);
-			$tag = str_replace('%CATBULLETS%', '* '.implode("\n* ", $article->mCategoryLinks), $tag);
+			$tag = str_replace('%CATBULLETS%', '* ' . implode("\n* ", $article->mCategoryLinks), $tag);
 			$tag = str_replace('%CATNAMES%', implode(', ', $article->mCategoryTexts), $tag);
 		} else {
 			$tag = str_replace('%CATLIST%', '', $tag);
@@ -881,7 +881,7 @@ class Lister {
 	//
 	/**
 	 * Format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter).
-	 * @TODO: I am not exactly sure how this function differs from replaceTagParameters().  It has something to do with table row formatting.  --Alexia
+	 * @todo I am not exactly sure how this function differs from replaceTagParameters().  It has something to do with table row formatting.  --Alexia
 	 *
 	 * @access	private
 	 * @param	array	String pieces to perform replacements on.
@@ -915,7 +915,7 @@ class Lister {
 
 	/**
 	 * Format one single template argument of one occurence of one item from the include parameter.  This is called via a backlink from LST::includeTemplate().
-	 * @TODO: Again, another poorly documented function with vague functionality.  --Alexia
+	 * @todo Again, another poorly documented function with vague functionality.  --Alexia
 	 *
 	 * @access	public
 	 * @param	string	Argument to parse and replace.
@@ -946,14 +946,14 @@ class Lister {
 			$result = str_replace('%IMAGE%', $this->parseImageUrlWithPath($arg), $result); //@TODO: This just blindly passes the argument through hoping it is an image.  --Alexia
 			$result = $this->cutAt($maxLength, $result);
 			if (strlen($result) > 0 && $result[0] == '-') {
-				return ' '.$result;
+				return ' ' . $result;
 			} else {
 				return $result;
 			}
 		}
 		$result = $this->cutAt($maxLength, $arg);
 		if (strlen($result) > 0 && $result[0] == '-') {
-			return ' '.$result;
+			return ' ' . $result;
 		} else {
 			return $result;
 		}
@@ -1001,7 +1001,7 @@ class Lister {
 				}
 			}
 		} else {
-			$title = \Title::newfromText('File:'.$article);
+			$title = \Title::newfromText('File:' . $article);
 			if (!is_null($title)) {
 				$fileTitle   = \Title::makeTitleSafe(6, $title->getDBKey());
 				$imageUrl = \RepoGroup::singleton()->getLocalRepo()->newFile($fileTitle)->getPath();
@@ -1034,7 +1034,7 @@ class Lister {
 			$text = $this->parser->fetchTemplate(\Title::newFromText($title));
 			if ((count($this->pageTextMatchRegex) <= 0 || $this->pageTextMatchRegex[0] == '' || !preg_match($this->pageTextMatchRegex[0], $text) == false) && (count($this->pageTextMatchNotRegex) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match($this->pageTextMatchNotRegex[0], $text) == false)) {
 				if ($this->includePageMaxLength > 0 && (strlen($text) > $this->includePageMaxLength)) {
-					$text = LST::limitTranscludedText($text, $this->includePageMaxLength, ' [['.$title.'|..→]]');
+					$text = LST::limitTranscludedText($text, $this->includePageMaxLength, ' [[' . $title . '|..→]]');
 				}
 				$filteredCount = $filteredCount + 1;
 
@@ -1080,7 +1080,7 @@ class Lister {
 				}
 				// if sections are identified by number we have a % at the beginning
 				if ($sSecLabel[0] == '%') {
-					$sSecLabel = '#'.$sSecLabel;
+					$sSecLabel = '#' . $sSecLabel;
 				}
 
 				$maxLength = -1;
@@ -1188,7 +1188,7 @@ class Lister {
 						$template2 = preg_replace('/^.+\|/', '', $template2);
 					}
 					//Why the hell was defaultTemplateSuffix be passed all over the place for just fucking here?  --Alexia
-					$secPieces    = LST::includeTemplate($this->parser, $this, $s, $article, $template1, $template2, $template2.$this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode(', ', $article->mCategoryLinks));
+					$secPieces    = LST::includeTemplate($this->parser, $this, $s, $article, $template1, $template2, $template2 . $this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode(', ', $article->mCategoryLinks));
 					$secPiece[$s] = implode(isset($this->multiSectionSeparators[$s]) ? $this->replaceTagCount($this->multiSectionSeparators[$s], $filteredCount) : '', $secPieces);
 					if ($this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count($secPieces) > 1) {
 						$dominantPieces = $secPieces;
@@ -1263,7 +1263,7 @@ class Lister {
 	 * @return	string	Wrapped text.
 	 */
 	protected function joinSectionTagPieces($piece, $start, $end) {
-		return $start.$piece.$end;
+		return $start . $piece . $end;
 	}
 
 	/**
@@ -1276,4 +1276,3 @@ class Lister {
 		return $this->rowCount;
 	}
 }
-?>

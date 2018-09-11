@@ -76,4 +76,3 @@ class DefinitionList extends Lister {
 	 */
 	public $itemEnd = '</dd>';
 }
-?>

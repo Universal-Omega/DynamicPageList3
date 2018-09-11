@@ -1255,7 +1255,7 @@ class ParametersData {
 			}
 			return null;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1272,7 +1272,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1280,7 +1280,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function setsCriteriaFound($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1289,7 +1289,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1297,7 +1297,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function isOpenReferenceConflict($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1306,7 +1306,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1314,7 +1314,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function shouldPreserveCase($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1323,7 +1323,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1331,7 +1331,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function isPageNameList($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1340,7 +1340,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1348,7 +1348,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function isBoolean($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1357,7 +1357,7 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 
 	/**
@@ -1365,7 +1365,7 @@ class ParametersData {
 	 *
 	 * @access	public
 	 * @param	string	Parameter Name
-	 * @return	boolean
+	 * @return	bool
 	 */
 	public function isTimestamp($parameter) {
 		if (array_key_exists($parameter, $this->data)) {
@@ -1374,7 +1374,6 @@ class ParametersData {
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__.": Attempted to load a parameter that does not exist.");
+		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
 	}
 }
-?>

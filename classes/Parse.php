@@ -149,7 +149,7 @@ class Parse {
 		/************************************/
 		if (strpos($input, '{%DPL_') >= 0) {
 			for ($i = 1; $i <= 5; $i++) {
-				$this->urlArguments[] = 'DPL_arg'.$i;
+				$this->urlArguments[] = 'DPL_arg' . $i;
 			}
 		}
 		$input = $this->resolveUrlArguments($input, $this->urlArguments);
@@ -208,7 +208,7 @@ class Parse {
 		}
 
 		$calcRows = false;
-		if (!Config::getSetting('allowUnlimitedResults') && $this->parameters->getParameter('goal') != 'categories' && strpos($this->parameters->getParameter('resultsheader').$this->parameters->getParameter('noresultsheader').$this->parameters->getParameter('resultsfooter'), '%TOTALPAGES%') !== false) {
+		if (!Config::getSetting('allowUnlimitedResults') && $this->parameters->getParameter('goal') != 'categories' && strpos($this->parameters->getParameter('resultsheader') . $this->parameters->getParameter('noresultsheader') . $this->parameters->getParameter('resultsfooter'), '%TOTALPAGES%') !== false) {
 			$calcRows = true;
 		}
 
@@ -228,7 +228,7 @@ class Parse {
 
 		global $wgDebugDumpSql;
 		if (\DynamicPageListHooks::getDebugLevel() >= 4 && $wgDebugDumpSql) {
-			$this->addOutput($this->query->getSqlQuery()."\n");
+			$this->addOutput($this->query->getSqlQuery() . "\n");
 		}
 
 		$this->addOutput('{{Extension DPL}}');
@@ -527,7 +527,7 @@ class Parse {
 		}
 		$messages = $this->logger->getMessages(false);
 
-		return (count($messages) ? implode("<br/>\n", $messages) : null).$this->getHeader().$this->getOutput().$this->getFooter();
+		return (count($messages) ? implode("<br/>\n", $messages) : null) . $this->getHeader() . $this->getOutput() . $this->getFooter();
 	}
 
 	/**
@@ -539,7 +539,7 @@ class Parse {
 	 */
 	private function setHeader($header) {
 		if (\DynamicPageListHooks::getDebugLevel() == 5) {
-			$header = '<pre><nowiki>'.$header;
+			$header = '<pre><nowiki>' . $header;
 		}
 		$this->header = $this->replaceVariables($header);
 	}
@@ -592,12 +592,12 @@ class Parse {
 			return false;
 		}
 
-		if ($this->parameters->getParameter('results'.$position) !== null && ($count >= 2 || ($this->parameters->getParameter('oneresult'.$position) === null && $count >= 1))) {
-			$_type = 'results'.$position;
-		} elseif ($count === 1 && $this->parameters->getParameter('oneresult'.$position) !== null) {
-			$_type = 'oneresult'.$position;
-		} elseif ($count === 0 && $this->parameters->getParameter('noresults'.$position) !== null) {
-			$_type = 'noresults'.$position;
+		if ($this->parameters->getParameter('results' . $position) !== null && ($count >= 2 || ($this->parameters->getParameter('oneresult' . $position) === null && $count >= 1))) {
+			$_type = 'results' . $position;
+		} elseif ($count === 1 && $this->parameters->getParameter('oneresult' . $position) !== null) {
+			$_type = 'oneresult' . $position;
+		} elseif ($count === 0 && $this->parameters->getParameter('noresults' . $position) !== null) {
+			$_type = 'noresults' . $position;
 		} else {
 			$_type = false;
 		}
@@ -613,7 +613,7 @@ class Parse {
 	 * @return	void
 	 */
 	private function setVariable($variable, $replacement) {
-		$variable = "%".mb_strtoupper($variable, "UTF-8")."%";
+		$variable = "%" . mb_strtoupper($variable, "UTF-8") . "%";
 		$this->replacementVariables[$variable] = $replacement;
 	}
 
@@ -639,7 +639,7 @@ class Parse {
 	 * @param	string	Text
 	 * @return	string	New Lined Text
 	 */
-	static public function replaceNewLines($text) {
+	public static function replaceNewLines($text) {
 		return str_replace(['\n', "¶"], "\n", $text);
 	}
 
@@ -800,7 +800,7 @@ class Parse {
 					$colNr++;
 					$t++;
 					if (array_key_exists($t, $_tableRow)) {
-						$tableRow[$groupNr.'.'.$colNr] = $_tableRow[$t];
+						$tableRow[$groupNr . '.' . $colNr] = $_tableRow[$t];
 					}
 				}
 			}
@@ -1004,4 +1004,3 @@ class Parse {
 		return $sortedArticles;
 	}
 }
-?>

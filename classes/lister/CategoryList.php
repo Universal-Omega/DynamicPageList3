@@ -40,10 +40,10 @@ class CategoryList extends Lister {
 		$this->rowCount = $filteredCount;
 
 		if (count($articleLinks) > Config::getSetting('categoryStyleListCutoff')) {
-			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::columnList($articleLinks, $articleStartChars);
+			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::columnList($articleLinks, $articleStartChars);
 		} elseif (count($articleLinks) > 0) {
 			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__".\CategoryViewer::shortList($articleLinks, $articleStartChars);
+			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::shortList($articleLinks, $articleStartChars);
 		}
 		return '';
 	}
@@ -60,4 +60,3 @@ class CategoryList extends Lister {
 		return '';
 	}
 }
-?>

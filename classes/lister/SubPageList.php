@@ -78,7 +78,7 @@ class SubPageList extends UnorderedList {
 			$items = $this->nestItem($parts, $items, $item);
 		}
 
-		return $this->getListStart().$this->implodeItems($items).$this->listEnd;
+		return $this->getListStart() . $this->implodeItems($items) . $this->listEnd;
 	}
 
 	/**
@@ -120,10 +120,9 @@ class SubPageList extends UnorderedList {
 				continue;
 			}
 			if (is_array($item)) {
-				$list .= $this->getItemStart().$key.$this->getListStart().$this->implodeItems($item).$this->listEnd.$this->getItemEnd();
+				$list .= $this->getItemStart() . $key . $this->getListStart() . $this->implodeItems($item) . $this->listEnd . $this->getItemEnd();
 			}
 		}
 		return $list;
 	}
 }
-?>

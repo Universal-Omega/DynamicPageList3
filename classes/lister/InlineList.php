@@ -91,4 +91,3 @@ class InlineList extends Lister {
 		return implode($this->textSeparator, $items);
 	}
 }
-?>

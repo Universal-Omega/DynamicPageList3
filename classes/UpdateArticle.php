@@ -20,7 +20,7 @@ class UpdateArticle {
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
 	 */
-	static public function updateArticleByRule($title, $text, $rulesText) {
+	public static function updateArticleByRule($title, $text, $rulesText) {
 		// we use ; as command delimiter; \; stands for a semicolon
 		// \n is translated to a real linefeed
 		$rulesText       = str_replace(";", '°', $rulesText);
@@ -189,11 +189,11 @@ class UpdateArticle {
 		}
 
 		if ($insertionBefore != '' && $before != '') {
-			$text = preg_replace("/($before)/", $insertionBefore.'\1', $text);
+			$text = preg_replace("/($before)/", $insertionBefore . '\1', $text);
 		}
 
 		if ($insertionAfter != '' && $after != '') {
-			$text = preg_replace("/($after)/", '\1'.$insertionAfter, $text);
+			$text = preg_replace("/($after)/", '\1' . $insertionAfter, $text);
 		}
 
 		// deal with template parameters =================================================
@@ -251,11 +251,11 @@ class UpdateArticle {
 						}
 						$myOptional = array_key_exists($nr, $optional);
 						if ($legendText != '' && $myToolTip == '') {
-							$myToolTip = preg_replace('/^.*\<section\s+begin\s*=\s*'.preg_quote($parm, '/').'\s*\/\>/s', '', $legendText);
+							$myToolTip = preg_replace('/^.*\<section\s+begin\s*=\s*' . preg_quote($parm, '/') . '\s*\/\>/s', '', $legendText);
 							if (strlen($myToolTip) == strlen($legendText)) {
 								$myToolTip = '';
 							} else {
-								$myToolTip = preg_replace('/\<section\s+end\s*=\s*'.preg_quote($parm, '/').'\s*\/\>.*/s', '', $myToolTip);
+								$myToolTip = preg_replace('/\<section\s+end\s*=\s*' . preg_quote($parm, '/') . '\s*\/\>.*/s', '', $myToolTip);
 							}
 						}
 						$myValue = '';
@@ -267,11 +267,11 @@ class UpdateArticle {
 					$form .= "</table>\n<br/><br/>";
 				}
 				foreach ($hidden as $hide) {
-					$form .= "<input type='hidden' ".$hide." />";
+					$form .= "<input type='hidden' " . $hide . " />";
 				}
 				$form .= "<input type='hidden' name='wpEditToken' value='{$wgUser->getEditToken()}'/>";
 				foreach ($preview as $prev) {
-					$form .= "<input type='submit' ".$prev." /> ";
+					$form .= "<input type='submit' " . $prev . " /> ";
 				}
 				$form .= "</form></html>\n";
 				return $form;
@@ -287,7 +287,7 @@ class UpdateArticle {
 							if ($call >= $matchCount) {
 								break;
 							}
-							$myValue = $wgRequest->getVal(urlencode($call.'_'.$parm), '');
+							$myValue = $wgRequest->getVal(urlencode($call . '_' . $parm), '');
 						}
 						$myOptional  = array_key_exists($nr, $optional);
 						$myAfterParm = [];
@@ -310,16 +310,16 @@ class UpdateArticle {
 			$titleX   = \Title::newFromText($title);
 			$articleX = new \Article($titleX);
 			$form     = '<html>
-	<form id="editform" name="editform" method="post" action="'.$wgScriptPath.'/index.php?title='.urlencode($title).'&action=submit" enctype="multipart/form-data">
+	<form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode($title) . '&action=submit" enctype="multipart/form-data">
 		<input type="hidden" value="" name="wpSection" />
-		<input type="hidden" value="'.wfTimestampNow().'" name="wpStarttime" />
-		<input type="hidden" value="'.$articleX->getTimestamp().'" name="wpEdittime" />
+		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
+		<input type="hidden" value="' . $articleX->getTimestamp() . '" name="wpEdittime" />
 		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="'.$wgUser->getIntOption('rows').'" cols="'.$wgUser->getIntOption('cols').'" >'.htmlspecialchars($text).'</textarea>
-		<input type="hidden" name="wpSummary value="'.$summary.'" id="wpSummary" />
+		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $wgUser->getIntOption('rows') . '" cols="' . $wgUser->getIntOption('cols') . '" >' . htmlspecialchars($text) . '</textarea>
+		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
 		<input name="wpAutoSummary" type="hidden" value="" />
 		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
-		<input type="hidden" value="'.$wgRequest->getVal('token').'" name="wpEditToken" />
+		<input type="hidden" value="' . $wgRequest->getVal('token') . '" name="wpEditToken" />
 	</form>
 </html>';
 			return $form;
@@ -327,7 +327,7 @@ class UpdateArticle {
 		return "exec must be one of the following: edit, preview, set";
 	}
 
-	static private function updateArticle($title, $text, $summary) {
+	private static function updateArticle($title, $text, $summary) {
 		global $wgUser, $wgRequest, $wgOut;
 
 		if (!$wgUser->matchEditToken($wgRequest->getVal('wpEditToken'))) {
@@ -349,7 +349,7 @@ class UpdateArticle {
 		}
 	}
 
-	static private function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
+	private static function editTemplateCall($text, $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat) {
 		$matches = [];
 		$nlCount = preg_match_all('/\n/', $value, $matches);
 		if ($nlCount > 0) {
@@ -364,16 +364,16 @@ class UpdateArticle {
 		if (preg_match('/cols\s*=/', $format) <= 0) {
 			$format .= " cols=$cols";
 		}
-		$textArea = "<textarea name=\"".urlencode($call.'_'.$parameter)."\" $format/>".htmlspecialchars($value)."</textarea>";
-		return str_replace('%NAME%', htmlspecialchars(str_replace('_', ' ', $parameter)), str_replace('%TYPE%', $type, str_replace('%INPUT%', $textArea, str_replace('%LEGEND%', "</html>".htmlspecialchars($legend)."<html>", str_replace('%INSTRUCTION%', "</html>".htmlspecialchars($instruction)."<html>", $fieldFormat)))));
+		$textArea = "<textarea name=\"" . urlencode($call . '_' . $parameter) . "\" $format/>" . htmlspecialchars($value) . "</textarea>";
+		return str_replace('%NAME%', htmlspecialchars(str_replace('_', ' ', $parameter)), str_replace('%TYPE%', $type, str_replace('%INPUT%', $textArea, str_replace('%LEGEND%', "</html>" . htmlspecialchars($legend) . "<html>", str_replace('%INSTRUCTION%', "</html>" . htmlspecialchars($instruction) . "<html>", $fieldFormat)))));
 	}
 
 	/**
 	 * return an array of template invocations; each element is an associative array of parameter and value
 	 */
-	static private function getTemplateParmValues($text, $template) {
+	private static function getTemplateParmValues($text, $template) {
 		$matches   = [];
-		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
+		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
 			return '';
 		}
@@ -438,14 +438,14 @@ class UpdateArticle {
 	/*
 	 * Changes a single parameter value within a certain call of a template
 	 */
-	static private function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
+	private static function updateTemplateCall(&$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional) {
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ($optional && $value == '') {
 			return $text;
 		}
 
 		$matches   = [];
-		$noMatches = preg_match_all('/\{\{\s*'.preg_quote($template, '/').'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
+		$noMatches = preg_match_all('/\{\{\s*' . preg_quote($template, '/') . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE);
 		if ($noMatches <= 0) {
 			return $text;
 		}
@@ -500,9 +500,9 @@ class UpdateArticle {
 									// keep spaces;
 									if ($parmValue == '') {
 										if (strlen($token[1]) > 0 && $token[1][strlen($token[1]) - 1] == "\n") {
-											$substitution = str_replace("\n", $value."\n", $token[1]);
+											$substitution = str_replace("\n", $value . "\n", $token[1]);
 										} else {
-											$substitution = $value.$token[1];
+											$substitution = $value . $token[1];
 										}
 									} else {
 										$substitution = str_replace($parmValue, $value, $token[1]);
@@ -532,7 +532,7 @@ class UpdateArticle {
 								$substitution = "|$parameter = $value";
 								if ($text[$beginSubst - 1] == "\n") {
 									--$beginSubst;
-									$substitution = "\n".$substitution;
+									$substitution = "\n" . $substitution;
 								}
 								$endSubst = $beginSubst;
 								break;
@@ -557,7 +557,7 @@ class UpdateArticle {
 			return $text;
 		}
 
-		return substr($text, 0, $beginSubst).$substitution.substr($text, $endSubst);
+		return substr($text, 0, $beginSubst) . $substitution . substr($text, $endSubst);
 	}
 
 	public function deleteArticleByRule($title, $text, $rulesText) {
@@ -621,4 +621,3 @@ class UpdateArticle {
 		return $message;
 	}
 }
-?>

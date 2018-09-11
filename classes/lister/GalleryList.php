@@ -62,11 +62,10 @@ class GalleryList extends Lister {
 			$item .= $pageText;
 		}
 
-		$item = $this->getItemStart().$item.$this->itemEnd;
+		$item = $this->getItemStart() . $item . $this->itemEnd;
 
 		$item = $this->replaceTagParameters($item, $article);
 
 		return $item;
 	}
 }
-?>
