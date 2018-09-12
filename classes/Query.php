@@ -1776,7 +1776,9 @@ class Query {
 					// UTF-8 created problems with non-utf-8 MySQL databases
 					$replaceConcat = "REPLACE(CONCAT({$_namespaceIdToText}, " . $this->tableNames['page'] . ".page_title), '_', ' ')";
 
-					if (count($this->parameters->getParameter('category')) + count($this->parameters->getParameter('notcategory')) > 0) {
+					$category = (array)$this->parameters->getParameter('category');
+					$notCategory = (array)$this->parameters->getParameter('notcategory');
+					if (count($category) + count($notCategory) > 0) {
 						if (in_array('category', $this->parameters->getParameter('ordermethod'))) {
 							$this->addSelect(
 								[
