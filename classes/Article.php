@@ -304,7 +304,7 @@ class Article {
 			if ($parameters->getParameter('addcontribution')) {
 				$article->mContribution = $row['contribution'];
 				$article->mContributor  = $row['contributor'];
-				$article->mContrib      = substr('*****************', 0, round(log($row['contribution'])));
+				$article->mContrib      = substr('*****************', 0, (int) round(log($row['contribution'])));
 			}
 
 			//USER/AUTHOR(S)
