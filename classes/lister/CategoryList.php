@@ -10,6 +10,7 @@
 
 namespace DPL\Lister;
 
+use DPL\Article;
 use DPL\Config;
 
 class CategoryList extends Lister {
@@ -56,7 +57,7 @@ class CategoryList extends Lister {
 	 * @param	string	[Optional] Page text to include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem($article, $pageText = null) {
+	public function formatItem(Article $article, $pageText = null) {
 		return '';
 	}
 }

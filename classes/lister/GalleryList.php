@@ -10,6 +10,8 @@
 
 namespace DPL\Lister;
 
+use DPL\Article;
+
 class GalleryList extends Lister {
 	/**
 	 * Listing style for this class.
@@ -54,7 +56,7 @@ class GalleryList extends Lister {
 	 * @param	string	[Optional] Page text to include.include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem($article, $pageText = null) {
+	public function formatItem(Article $article, $pageText = null) {
 		$item = $article->mTitle;
 
 		if ($pageText !== null) {
