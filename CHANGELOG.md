@@ -674,3 +674,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 # Version 3.3.1
 * Fixed regression with parameter tablesortcol breaking table output.
 * Fixed regression with page tranclusion parsing that was done to improve performance.
+
+# Version 3.3.2
+* Fixed UserFormat improperly using sprintf on list start which sometimes would break output.
+* Fixed instances of formatItem() declaration being slightly incorrect.
+* Fixed $article->mContrib passing a rounded float to function expecting an integer.

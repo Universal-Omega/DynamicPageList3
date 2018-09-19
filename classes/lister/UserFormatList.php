@@ -126,8 +126,7 @@ class UserFormatList extends Lister {
 			$items = $newItems;
 		}
 
-		return $this->getListStart() . $this->implodeItems($items) . $this->listEnd;
-;
+		return $this->listStart . $this->implodeItems($items) . $this->listEnd;
 	}
 
 	/**
