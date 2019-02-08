@@ -602,7 +602,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _notcategorymatch($option) {
 		$data = $this->getParameter('notcategory');
-		if (!isset($data['like']) && !is_array($data['like'])) {
+		if (!isset($data['like']) || !is_array($data['like'])) {
 			$data['like'] = [];
 		}
 		$newMatches = explode('|', $option);
