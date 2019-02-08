@@ -523,30 +523,30 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed issues with usedby parameter causing fatal errors.
 * Fixed issue where the allrevisionssince would display a blank [[User:|]] link despite not being specified to show user information.
 * The addpagecounter parameter now requires Extension:HitCounter which itself requires MediaWiki 1.25.  All other features and parameters will continue to work on MediaWiki 1.23+.
-  * https://github.com/Alexia/DynamicPageList/issues/44
+  * https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/44
 * Preliminary support for Mediawiki 1.25+ wfLoadExtension() style extension loading.  Current implementation is broken due to extension design issues that need fixed.
 * Fix an issue with an array not being initialized in DPL's list formatter.
-  * https://github.com/Alexia/DynamicPageList/issues/43
+  * https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/43
 
 # Version 3.0.3
 * Fixed default sorting and title sort for ordermethod parameter.
 * Fixed logical AND and OR issues with category, categorymatch, and categoryregexp parameters.
-	* https://github.com/Alexia/DynamicPageList/issues/47
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/47
 * Fixed an additional issue with the new Extension:HitCounter support.  Using ordermethod=counter without specifying the addpagecounter parameter would cause a database error.
-	* https://github.com/Alexia/DynamicPageList/issues/44#issuecomment-129951800
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/44#issuecomment-129951800
 
 # Version 3.0.4
 * Added functionality to enable recursive tag parsing when using the <dpl> parser tag.
-	* https://github.com/Alexia/DynamicPageList/issues/49
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/49
 * The %VERSION% variable was not available to noresultsheader and noresultsfooter parameters.
 * Fixed and revamp how headers/footers are handled to be more consistent.
-	* https://github.com/Alexia/DynamicPageList/issues/48
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/48
 * Fixed a fundamental flaw in how parameters are tested.
-	* https://github.com/Alexia/DynamicPageList/issues/48
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/48
 * Fixed how headers/footers are checked for being empty.
-	* https://github.com/Alexia/DynamicPageList/issues/48
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/48
 * Mediawiki 1.24+ compatibility changes for extension registration and loading.
-	* https://github.com/Alexia/DynamicPageList/issues/46
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/46
 	* $dplSettings configuration variable has been renamed to $wgDplSettings to facilitate this change.  Existing configurations will need to be updated.
 
 # Version 3.0.5
@@ -557,17 +557,17 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed and improved the functionality of statements that created "NOT IN" or "!=" SQL where conditions.
 	* https://github.com/Alexia/DynamicPageList/commit/df82d75bf9fd81968ef77729b1542ff32f4852b5
 * Fixed the reset parameter being broken due to a typographical error.
-	* https://github.com/Alexia/DynamicPageList/issues/52
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/52
 
 # Version 3.0.6
 * Fixed a regression with a previous fix related to category counting.
-	* https://github.com/Alexia/DynamicPageList/issues/53
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/53
 
 # Version 3.0.7
 * Using ordermethod=firstedit with certain other parameters would cause SQL generation errors.
-	* https://github.com/Alexia/DynamicPageList/issues/57
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/57
 * Fixed implementation of CategoryViewer.
-	* https://github.com/Alexia/DynamicPageList/issues/55
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/55
 * Fixed an issue that was causing Article class taint across separate tag parses.
 	* https://github.com/Alexia/DynamicPageList/commit/74f99a3c2bbdeb5a076705369fc6d3df17e40810
 * In relation to the taint issue an error check was put in place to prevent invalid articles from passing through.
@@ -590,53 +590,53 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.0.10
 * Really fixed ordermethod=firstedit this time thanks to cillianderoiste.
-	* https://github.com/Alexia/DynamicPageList/pull/13
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/13
 * Fixed a warning that could occur in uncommon cases.
-	* https://github.com/Alexia/DynamicPageList/issues/11
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/11
 * Fixed and improved parameters that take regular expressions.
 	* Regular expressions are now validated to prevent warnings from being tossed and DPL will now provide a generic error that the parameter was bad.
 * Fixed various uses of deprecated language function calls.
 
 # Version 3.0.11
 * Fixed a bug introduced in 3.0.10 related to database regular expressions.
-	* https://github.com/Alexia/DynamicPageList/issues/15
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/15
 * Fixed empty category headings throwing warnings.
 * Fixed the #dplmatrix parser function throwing errors if the sixth parameter was omitted.
 
 # Version 3.0.12
 * Fixed SQL debug output being broken.
-	* https://github.com/Alexia/DynamicPageList/issues/19
-	* https://github.com/Alexia/DynamicPageList/pull/21
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/19
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/21
 * Fixed E_NOTICE attempting to access null as an array.
-	* https://github.com/Alexia/DynamicPageList/pull/20
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/20
 * Fixed #dplreplace throwing errors if parameters were not passed.
 
 # Version 3.1.0
 * Update to WikiPage and ContenHandler classes for article modifications.
-	* https://github.com/Alexia/DynamicPageList/pull/26
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/26
 * Swap out deprecated `NS_IMAGE` define for `NS_FILE`.
-	* https://github.com/Alexia/DynamicPageList/pull/27
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/27
 * Fix issue with an issue with a parameter not always being an array passed into array merge. - Thanks to plegault3397 and Developaws.
-	* https://github.com/Alexia/DynamicPageList/issues/24
-	* https://github.com/Alexia/DynamicPageList/pull/28
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/24
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/28
 * Improved performance of lastrevisionbefore/firstrevisionsince for small result sets. - Thanks to Cotto.
-	* https://github.com/Alexia/DynamicPageList/pull/29
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/29
 * Fixed issue with ORDER BY sort direction not applying to all columns and only the last column. - Thanks to Cotto.
-	* https://github.com/Alexia/DynamicPageList/pull/30
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/30
 * Ability to user relative timestamps for limiting query results.  Best used with allowcachedresults=false. - Thanks to Cotto.
-	* https://github.com/Alexia/DynamicPageList/pull/31
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/31
 
 # Version 3.1.1
 * Issues with legacy Extension:Cite conflicts have been resolved in the Cite extension and this in turn breaks DynamicPageList for MediaWiki 1.29.  FoXFTW removed the now unnecessary code.
-	* https://github.com/Alexia/DynamicPageList/pull/42
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/42
 * Now requires a wfLoadExtension() entry point.
 
 # Version 3.1.2
 * Fixed issues with ordermethod conflicting with the title parameter and creating artificially limited output.
-	* https://github.com/Alexia/DynamicPageList/pull/32
-	* https://github.com/Alexia/DynamicPageList/issues/44
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/32
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/44
 * Fixed an E_NOTICE for the addauthor parameter.
-	* https://github.com/Alexia/DynamicPageList/issues/45
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/45
 * Fixed sortByPriority not applying correctly in some cases.
 
 # Version 3.1.3
@@ -644,24 +644,24 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.2.0
 * Various fixes and updates for PHP 7.2 support.
-	* https://github.com/Alexia/DynamicPageList/issues/55
-	* https://github.com/Alexia/DynamicPageList/pull/59
-	* https://github.com/Alexia/DynamicPageList/pull/60
-	* https://github.com/Alexia/DynamicPageList/pull/61
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/55
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/59
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/60
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/61
 * Remove wfProfileIn() and wfProfileOut() that were removed from MediaWiki 1.31.
-	* https://github.com/Alexia/DynamicPageList/issues/57
-	* https://github.com/Alexia/DynamicPageList/pull/58
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/57
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/58
 * Use LoggedUpdateMaintenance to create Template
-	* https://github.com/Alexia/DynamicPageList/pull/56
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/56
 * Remove deprecated legacy extension entry point.
 
 # Version 3.2.1
 * Eliminate parameter was broken.
-	* https://github.com/Alexia/DynamicPageList/issues/64
-	* https://github.com/Alexia/DynamicPageList/issues/65
-	* https://github.com/Alexia/DynamicPageList/pull/66
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/64
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues/65
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/66
 * Fix for PHP 7.2 support and a non-countable variable.
-	* https://github.com/Alexia/DynamicPageList/pull/62
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/62
 
 # Version 3.2.2
 * Minor bug fix for the category parameter to stop producing a warning.

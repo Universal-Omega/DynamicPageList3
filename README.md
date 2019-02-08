@@ -9,13 +9,13 @@ This extension is invoked with the parser function <code>{{#dpl: .... }}</code> 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [DPL:Parameters: Other Parameters](http://help.gamepedia.com/DPL:Parameters:_Other_Parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
 * Manual and Complete Documentation: [Documentation at Gamepedia Help Wiki](http://help.gamepedia.com/DPL:Manual)
-* Source Code: [Source code at Github](https://github.com/Alexia/DynamicPageList)
-* Bugs and Feature Requests: [Issues at Github](https://github.com/Alexia/DynamicPageList/issues)
+* Source Code: [Source code at Gitlab](https://gitlab.com/hydrawiki/extensions/DynamicPageList)
+* Bugs and Feature Requests: [Issues at Gitlab](https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues)
 * Licensing: DynamicPageList3 is released under [GNU General Public License, version 2](https://opensource.org/licenses/GPL-2.0).
 
 
 ## Installation
-Please see the [releases page](https://github.com/Alexia/DynamicPageList/releases) for the latest releases.
+Please see the [releases page](https://gitlab.com/hydrawiki/extensions/DynamicPageList/releases) for the latest releases.
 
 ## Configuration
 These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the **[Source and Installation](http://help.gamepedia.com/DPL:Source_and_Installation#Configuration)** manual page.

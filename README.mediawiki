@@ -9,7 +9,7 @@
 |update      = 2018-09-19
 |mediawiki   = 1.27+
 |php         = 5.6+
-|download    = {{TNT|GithubDownload|Alexia|DynamicPageList}}
+|download    = {{TNT|GitlabDownload|HydraWiki/Extensions|DynamicPageList}}
 |hook1       = ParserFirstCallInit
 |description = '''Create lists''' of other articles based on their ''category, namespace, title, references'' or ''template usage'' and '''include contents''' or arguments of template calls of those articles into your page.  
 |license     = GPL-2.0+
@@ -27,15 +27,15 @@ This extension is invoked with the parser function <code>{{#dpl: .... }}</code> 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [http://help.gamepedia.com/DPL:Parameters:_Other_Parameters#cacheperiod DPL:Parameters: Other Parameters] manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
 ;Manual and Complete Documentation: [http://help.gamepedia.com/DPL:Manual Documentation at Gamepedia Help Wiki]
-;Source Code: [https://github.com/Alexia/DynamicPageList Source code at Github]
-;Bugs and Feature Requests: [https://github.com/Alexia/DynamicPageList/issues Issues at Github]
+;Source Code: [https://gitlab.com/hydrawiki/extensions/DynamicPageList Source code at Gitlab]
+;Bugs and Feature Requests: [https://gitlab.com/hydrawiki/extensions/DynamicPageList/issues Issues at Gitlab]
 ;Licensing: DynamicPageList3 is released under [https://opensource.org/licenses/GPL-2.0 GNU General Public License, version 2].
 
 
 == Installation ==
 {{TNT|ExtensionInstall
 |DynamicPageList
-|download-link=[https://github.com/Alexia/DynamicPageList/archive/3.3.2.zip Download, extract]
+|download-link=[https://gitlab.com/hydrawiki/extensions/DynamicPageList/-/archive/3.3.2/DynamicPageList-3.3.2.tar.bz2 Download, extract]
 |custom-steps=* [[#Configuration|If necessary configure as required.]]
 |registration=required
 }}
