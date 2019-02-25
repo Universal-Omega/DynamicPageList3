@@ -1439,7 +1439,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _maxrevisions($option) {
-		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page = {$this->tableNames['page']}.page_id) <= {$iMaxRevisions})");
+		$this->addWhere("((SELECT count(rev_aux3.rev_page) FROM {$this->tableNames['revision']} AS rev_aux3 WHERE rev_aux3.rev_page = {$this->tableNames['page']}.page_id) <= {$option})");
 	}
 
 	/**
