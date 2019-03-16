@@ -646,7 +646,7 @@ class Lister {
 	 * @return	string	Item HTML
 	 */
 	public function formatItem(Article $article, $pageText = null) {
-		global $wgLang;
+		global $wgContLang, $wgLang;
 
 		$item = '';
 		//DPL Article, not MediaWiki.
