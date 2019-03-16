@@ -36,5 +36,7 @@
     "dpl_description": "A flexible report generator for MediaWiki. See [http://semeb.com/dpldemo] for the manual and examples",
 	"action-dpl_param_update_rules": "to use the parameter 'updaterules'",
 	"action-dpl_param_delete_rules": "to use the parameter 'deleterules'",
-	"dpl_query_error": "The DPL extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DPL or an error which you made; especially when using parameters like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>Error message was:<br/><tt>$2</tt>"
+	"dpl_query_error": "The DPL extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DPL or an error which you made; especially when using parameters like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>Error message was:<br/><tt>$2</tt>",
+	"right-dpl_param_delete_rules": "Mass deletion of pages using DPL",
+	"right-dpl_param_update_rules": "Mass update of pages using DPL"
 }
