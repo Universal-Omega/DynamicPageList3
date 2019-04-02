@@ -212,8 +212,9 @@ class Article {
 		if ($parameters->getParameter('shownamespace') === true) {
 			$titleText = $title->getPrefixedText();
 		}
-		if ($parameters->getParameter('replaceintitle') !== null) {
-			$titleText = preg_replace($parameters->getParameter('replaceintitle')[0], $parameters->getParameter('replaceintitle')[1], $titleText);
+		$replaceInTitle = $parameters->getParameter('replaceintitle');
+		if (is_array($replaceInTitle) && count($replaceInTitle) === 2) {
+			$titleText = preg_replace($replaceInTitle[0], $replaceInTitle[1], $titleText);
 		}
 
 		//Chop off title if longer than the 'titlemaxlen' parameter.
