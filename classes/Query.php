@@ -156,7 +156,7 @@ class Query {
 
 		$this->tableNames = self::getTableNames();
 
-		$this->DB = wfGetDB(DB_REPLICA);
+		$this->DB = wfGetDB(DB_REPLICA, 'dpl');
 	}
 
 	/**
@@ -349,7 +349,7 @@ class Query {
 	 * @return	array	Prepared table names.
 	 */
 	public static function getTableNames() {
-		$DB = wfGetDB(DB_REPLICA);
+		$DB = wfGetDB(DB_REPLICA, 'dpl');
 		$tables = [
 			'categorylinks',
 			'dpl_clview',
@@ -591,7 +591,7 @@ class Query {
 	 * @return	array	Subcategories
 	 */
 	public static function getSubcategories($categoryName, $depth = 1) {
-		$DB = wfGetDB(DB_REPLICA);
+		$DB = wfGetDB(DB_REPLICA, 'dpl');
 
 		if ($depth > 2) {
 			//Hard constrain depth because lots of recursion is bad.
