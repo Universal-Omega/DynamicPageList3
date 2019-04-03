@@ -106,7 +106,7 @@ class Parse {
 	public function __construct() {
 		global $wgRequest;
 
-		$this->DB			= wfGetDB(DB_REPLICA);
+		$this->DB			= wfGetDB(DB_REPLICA, 'dpl');
 		$this->parameters	= new Parameters();
 		$this->logger		= new Logger($this->parameters->getData('debug')['default']);
 		$this->tableNames	= Query::getTableNames();
