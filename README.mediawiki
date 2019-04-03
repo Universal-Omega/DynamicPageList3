@@ -35,7 +35,7 @@ Complex look ups can result in computationally expensive database queries.  Howe
 == Installation ==
 {{TNT|ExtensionInstall
 |DynamicPageList
-|download-link=[https://gitlab.com/hydrawiki/extensions/DynamicPageList/-/archive/3.3.2/DynamicPageList-3.3.2.tar.bz2 Download, extract]
+|download-link=[https://gitlab.com/hydrawiki/extensions/DynamicPageList/-/archive/3.3.3/DynamicPageList-3.3.3.tar.bz2 Download, extract]
 |custom-steps=* [[#Configuration|If necessary configure as required.]]
 |registration=required
 }}
