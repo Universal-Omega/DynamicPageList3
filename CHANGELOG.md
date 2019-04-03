@@ -679,3 +679,16 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed UserFormat improperly using sprintf on list start which sometimes would break output.
 * Fixed instances of formatItem() declaration being slightly incorrect.
 * Fixed $article->mContrib passing a rounded float to function expecting an integer.
+
+# Version 3.3.3
+* Thank you to Jack Phoenix and PCJ for numerous fixes in this release.
+* Add 'dpl' query group to database replication connections to allow them to be grouped to specific servers.
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/92
+* Fixed undefined array offsets in Article class.
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/91
+* Add missing user rights descriptions in language files.
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/90
+* Fixed the Lister::formatItem function using an undeclared object.
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/89
+* The maxrevisions parameter was broken entirely at the query generation step.
+	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/88
