@@ -1316,7 +1316,7 @@ class Parameters extends ParametersData {
 					$boolean = ($argument == 'all' ? true : false);
 					$values = array_diff($values, ['all', 'none']);
 					$eliminate = array_flip($values);
-					foreach ($reset as $value => $key) {
+					foreach ($eliminate as $value => $key) {
 						$eliminate[$value] = $boolean;
 					}
 				} else {
