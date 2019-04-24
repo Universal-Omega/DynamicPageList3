@@ -1451,7 +1451,8 @@ class Query {
 	 */
 	private function _minoredits($option) {
 		if (isset($option) && $option == 'exclude') {
-			$this->addWhere("rev_minor_edit = 0");
+			$this->addTable('revision', 'rev');
+			$this->addWhere('rev.rev_minor_edit = 0');
 		}
 	}
 
