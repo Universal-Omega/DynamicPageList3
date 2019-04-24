@@ -1967,7 +1967,6 @@ class Query {
 		}
 		$where = '(' . implode(' OR ', $ors) . ')';
 		$this->addWhere($where);
-		$this->revisionAuxWhereAdded = true;
 	}
 
 	/**
