@@ -1,0 +1,13 @@
+image: valeryan/php-fpm
+
+stages:
+  - test
+
+before_script:
+  - composer self-update
+  - composer install
+  - npm install
+
+job:
+  stage: test
+  script: composer test
