@@ -151,6 +151,7 @@ class DynamicPageListHooks {
 	 */
 	public static function setupMigration(Parser &$parser) {
 		$parser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
+		$parser->addTrackingCategory('dpl-intersection-tracking-category');
 
 		self::init();
 
@@ -226,6 +227,7 @@ class DynamicPageListHooks {
 	 */
 	public static function dplTag($input, array $args, Parser $parser, PPFrame $frame) {
 		self::setLikeIntersection(false);
+		$parser->addTrackingCategory('dpl-tag-tracking-category');
 		return self::executeTag($input, $args, $parser, $frame);
 	}
 
@@ -282,6 +284,8 @@ class DynamicPageListHooks {
 	public static function dplParserFunction(&$parser) {
 		self::setLikeIntersection(false);
 
+		$parser->addTrackingCategory('dpl-parserfunc-tracking-category');
+
 		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
 		$input = "";
 
@@ -316,6 +320,7 @@ class DynamicPageListHooks {
 	 * @return	string	Wiki Text
 	 */
 	public static function dplNumParserFunction(&$parser, $text = '') {
+		$parser->addTrackingCategory('dplnum-parserfunc-tracking-category');
 		$num = str_replace('&#160;', ' ', $text);
 		$num = str_replace('&nbsp;', ' ', $text);
 		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/', '\1,\3', $num);
@@ -334,6 +339,7 @@ class DynamicPageListHooks {
 	}
 
 	public static function dplVarParserFunction(&$parser, $cmd) {
+		$parser->addTrackingCategory('dplvar-parserfunc-tracking-category');
 		$args = func_get_args();
 		if ($cmd == 'set') {
 			return \DPL\Variables::setVar($args);
@@ -361,6 +367,7 @@ class DynamicPageListHooks {
 	}
 
 	public static function dplReplaceParserFunction(&$parser, $text, $pat = '', $repl = '') {
+		$parser->addTrackingCategory('dplreplace-parserfunc-tracking-category');
 		if ($text == '' || $pat == '') {
 			return '';
 		}
@@ -376,11 +383,13 @@ class DynamicPageListHooks {
 	}
 
 	public static function dplChapterParserFunction(&$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false) {
+		$parser->addTrackingCategory('dplchapter-parserfunc-tracking-category');
 		$output = \DPL\LST::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
 		return $output[0];
 	}
 
 	public static function dplMatrixParserFunction(&$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '') {
+		$parser->addTrackingCategory('dplmatrix-parserfunc-tracking-category');
 		$lines   = explode("\n", $matrix);
 		$m       = [];
 		$sources = [];

@@ -37,6 +37,14 @@
 	"action-dpl_param_update_rules": "to use the parameter 'updaterules'",
 	"action-dpl_param_delete_rules": "to use the parameter 'deleterules'",
 	"dpl_query_error": "The DPL extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DPL or an error which you made; especially when using parameters like 'categoryregexp' or 'titleregexp'.  Usage of non-greedy *? matching patterns are not supported.<br/>Error message was:<br/><tt>$2</tt>",
+	"dpl-tag-tracking-category": "Pages using DynamicPageList parser tag",
+	"dpl-intersection-tracking-category": "Pages using DynamicPageList Intersection parser tag",
+	"dpl-parserfunc-tracking-category": "Pages using DynamicPageList parser function",
+	"dplnum-parserfunc-tracking-category": "Pages using DynamicPageList dplnum parser function",
+	"dplvar-parserfunc-tracking-category": "Pages using DynamicPageList dplvar parser function",
+	"dplreplace-parserfunc-tracking-category": "Pages using DynamicPageList dplreplace parser function",
+	"dplchapter-parserfunc-tracking-category": "Pages using DynamicPageList dplchapter parser function",
+	"dplmatrix-parserfunc-tracking-category": "Pages using DynamicPageList dplmatrix parser function",
 	"right-dpl_param_delete_rules": "Mass deletion of pages using DPL",
 	"right-dpl_param_update_rules": "Mass update of pages using DPL"
 }

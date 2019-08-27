@@ -83,6 +83,16 @@
 			"handleSectionTag": false
 		}
 	},
+	"TrackingCategories": [
+		"dpl-tag-tracking-category",
+		"dpl-intersection-tracking-category",
+		"dpl-parserfunc-tracking-category",
+		"dplnum-parserfunc-tracking-category",
+		"dplvar-parserfunc-tracking-category",
+		"dplreplace-parserfunc-tracking-category",
+		"dplchapter-parserfunc-tracking-category",
+		"dplmatrix-parserfunc-tracking-category"
+	],
 	"callback": "DynamicPageListHooks::onRegistration",
 	"manifest_version": 1
 }
