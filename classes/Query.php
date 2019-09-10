@@ -1665,7 +1665,6 @@ class Query {
 						$_clTableAlias = 'cl_head';
 					}
 					$this->addTable($_clTableName, $_clTableAlias);
-					$this->addTable('revision', 'rev');
 					$this->addJoin(
 						$_clTableAlias,
 						[
