@@ -605,19 +605,18 @@ class DynamicPageListHooks {
 	 * Setups and Modifies Database Information
 	 *
 	 * @access	public
-	 * @param	object	[Optional] DatabaseUpdater Object
-	 * @return	boolean	true
+	 * @param	DatabaseUpdater $updater
 	 */
-	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
+	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater) {
 		$extDir = __DIR__;
 
 		$updater->addPostDatabaseUpdateMaintenance('DPL\\DB\\CreateTemplateUpdateMaintenance');
 
-		$db = wfGetDB(DB_MASTER);
+		$db = $updater->getDB();
 		if (!$db->tableExists('dpl_clview')) {
-			$db->query("CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT IFNULL(cl_from, page_id) AS cl_from, IFNULL(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;");
+			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
+			$sqlNullMethod = ($db->getType() === 'postgres' ? 'COALESCE' : 'IFNULL');
+			$db->query("CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;");
 		}
-
-		return true;
 	}
 }
