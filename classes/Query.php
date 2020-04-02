@@ -144,12 +144,13 @@ class Query {
 	 */
 	private $revisionAuxWhereAdded = false;
 
-    /**
-     * Main Constructor
-     *
-     * @access    public
-     * @param  \DPL\Parameters  $parameters
-     */
+	/**
+	 * Main Constructor
+	 *
+	 * @access	public
+	 * @param	\DPL\Parameters	$parameters
+	 * @return	void
+	 */
 	public function __construct(Parameters $parameters) {
 		$this->parameters = $parameters;
 
@@ -180,7 +181,6 @@ class Query {
 			}
 			if ($success === false) {
 				throw new \MWException(__METHOD__ . ": SQL Build Error returned from {$function} for " . serialize($option) . ".");
-				return false;
 			}
 			$this->parametersProcessed[$parameter] = true;
 		}
