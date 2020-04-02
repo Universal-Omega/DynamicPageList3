@@ -148,7 +148,7 @@ class Query {
 	 * Main Constructor
 	 *
 	 * @access	public
-	 * @param	object	Parameters
+	 * @param	\DPL\Parameters	$parameters
 	 * @return	void
 	 */
 	public function __construct(Parameters $parameters) {
@@ -181,7 +181,6 @@ class Query {
 			}
 			if ($success === false) {
 				throw new \MWException(__METHOD__ . ": SQL Build Error returned from {$function} for " . serialize($option) . ".");
-				return;
 			}
 			$this->parametersProcessed[$parameter] = true;
 		}
@@ -362,6 +361,8 @@ class Query {
 			'revision',
 			'templatelinks'
 		];
+
+		$tableNames = [];
 		foreach ($tables as $table) {
 			$tableNames[$table] = $DB->tableName($table);
 		}
@@ -1796,7 +1797,7 @@ class Query {
 					} else {
 						$this->addSelect(
 							[
-								'sortkey' => $replaceConcat . $collation
+								'sortkey' => $replaceConcat . $this->getCollateSQL()
 							]
 						);
 					}
