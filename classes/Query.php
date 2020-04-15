@@ -726,10 +726,18 @@ class Query {
 	 */
 	private function _addcontribution($option) {
 		$this->addTable('recentchanges', 'rc');
+
+		$field = 'rc.rc_user_text';
+		// This is the wrong check since the ActorMigration may be in progress
+		// https://www.mediawiki.org/wiki/Actor_migration
+		if ( class_exists( 'ActorMigration' ) ) {
+			$field = 'rc.rc_actor';
+		}
+
 		$this->addSelect(
 			[
 				'contribution'	=> 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
-				'contributor'	=> 'rc.rc_user_text'
+				'contributor'	=> $field
 			]
 		);
 		$this->addWhere(
