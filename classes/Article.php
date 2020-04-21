@@ -10,6 +10,8 @@
 **/
 namespace DPL;
 
+use User;
+
 class Article {
 	/**
 	 * Title
@@ -304,7 +306,13 @@ class Article {
 			// CONTRIBUTION, CONTRIBUTOR
 			if ($parameters->getParameter('addcontribution')) {
 				$article->mContribution = $row['contribution'];
-				$article->mContributor  = $row['contributor'];
+				// This is the wrong check since the ActorMigration may be in progress
+				// https://www.mediawiki.org/wiki/Actor_migration
+				if ( class_exists( 'ActorMigration' ) ) {
+					$article->mContributor  = User::newFromActorId( $row['contributor'] )->getName();
+				} else {
+					$article->mContributor  = $row['contributor'];
+				}
 				$article->mContrib      = substr('*****************', 0, (int) round(log($row['contribution'])));
 			}
 
