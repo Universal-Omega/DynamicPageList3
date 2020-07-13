@@ -2,7 +2,8 @@
     "@metadata": {
         "authors": [
             "Sp5uhe",
-            "Rail"
+            "Rail",
+            "Frisk"
         ]
     },
     "intersection-desc": "Zwraca listę wypunktowaną najnowszych elementów w kategorii lub grupie kilku kategorii",
