@@ -32,12 +32,12 @@
     "dpl_log_19": "Ostrzeżenie – „debug=$1” nie jest w pierwszej pozycji w elemencie DPL. Nowe ustawienia debugowania nie są aplikowane przed sprawdzeniem i sparsowaniem wszystkich poprzednich parametrów.",
     "dpl_log_20": "Ostrzeżenie – strona „$0” tworzy nieskończoną pętlę transkluzji.",
     "dpl_log_21": "Zapytanie – <code>$0</code>",
-    "dpl_log_22": "Ostrzeżenie – nie podano opcji parametru dla „$1” (bnrakujące „=”).",
+    "dpl_log_22": "Ostrzeżenie – nie podano opcji parametru dla „$1” (brakujący znak „=”).",
     "dpl_articlecount": "W tym nagłówku {{PLURAL:$1|znajduje się jeden artykuł|znajdują się $1 artykuły|znajduje się $1 artykułów}}.",
     "dpl_description": "Wysoce elastyczny generator raportów w MediaWiki. Zobacz http://semeb.com/dpldemo po poradnik i przykłady",
     "action-dpl_param_update_rules": "używania parametru „updaterules”",
     "action-dpl_param_delete_rules": "używania parametru „deleterules”",
-    "dpl_query_error": "Rozszerzenie DPL (wersja $1) wyprodukowało wyrażenie SQL które doprowadziło do błędy bazy danych.<br />Powodem może być wewnętrzny błąd DPL lub problem spowodowany przez Ciebie; szczególnie podczas używania takich parametrów jak „categoryregexp” lub „titleregexp”. Używanie wzorców dopasowywania takich jak *? nie jest wspierane.<br />Komunikat błędu:<br /><code>$2</code>",
+    "dpl_query_error": "Rozszerzenie DPL (wersja $1) wyprodukowało wyrażenie SQL które doprowadziło do błędu bazy danych.<br />Powodem może być wewnętrzny błąd DPL lub problem spowodowany przez Ciebie; szczególnie podczas używania takich parametrów jak „categoryregexp” lub „titleregexp”. Używanie wzorców dopasowywania takich jak *? nie jest wspierane.<br />Komunikat błędu:<br /><code>$2</code>",
     "dpl-tag-tracking-category": "Strony używające znacznika parsera DynamicPageList",
     "dpl-intersection-tracking-category": "Strony używające znacznika parsera DynamicPageList Intersection",
     "dpl-parserfunc-tracking-category": "Strony używające funkcji parsera DynamicPageList",
@@ -46,6 +46,6 @@
     "dplreplace-parserfunc-tracking-category": "Strony używające funkcji parsera DynamicPageList dplreplace",
     "dplchapter-parserfunc-tracking-category": "Strony używające funkcji parsera DynamicPageList dplchapter",
     "dplmatrix-parserfunc-tracking-category": "Strony używające funkcji parsera DynamicPageList dplmatrix",
-    "right-dpl_param_delete_rules": "Masowe usuwanie stron używajacych DPL",
+    "right-dpl_param_delete_rules": "Masowe usuwanie stron używających DPL",
     "right-dpl_param_update_rules": "Masowe aktualizowanie stron używających DPL"
 }
