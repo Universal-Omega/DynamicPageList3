@@ -326,7 +326,7 @@ class ParametersData {
 		 * - 5: <nowiki> tags around the ouput
 		 */
 		'debug' => [
-			'default'	=> 2,
+			'default'	=> 1,
 			'values'	=> [0, 1, 2, 3, 4, 5]
 		],
 
