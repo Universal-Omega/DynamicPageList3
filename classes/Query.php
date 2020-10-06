@@ -303,10 +303,10 @@ class Query {
 			}
 
 			$this->sqlQuery = $sql;
-			$result = $this->DB->query($sql);
+			$result = $this->DB->query($sql, __METHOD__);
 
 			if ($calcRows) {
-				$calcRowsResult = $this->DB->query('SELECT FOUND_ROWS() AS rowcount');
+				$calcRowsResult = $this->DB->query('SELECT FOUND_ROWS() AS rowcount', __METHOD__);
 				$total = $this->DB->fetchRow($calcRowsResult);
 				$this->foundRows = intval($total['rowcount']);
 				$this->DB->freeResult($calcRowsResult);
@@ -2080,7 +2080,8 @@ class Query {
 			$this->addTable('templatelinks', 'tpl');
 			$this->addTable('page', 'tplsrc');
 			$this->addSelect(['tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace']);
-			$where = $this->tableNames['page'] . '.page_title = tpl.tl_title AND tplsrc.page_id = tpl.tl_from AND ';
+			$where = $this->tableNames['page'] . '.page_namespace = tpl.tl_namespace AND ' .
+					 $this->tableNames['page'] . '.page_title = tpl.tl_title AND tplsrc.page_id = tpl.tl_from AND ';
 			$ors = [];
 			foreach ($option as $linkGroup) {
 				foreach ($linkGroup as $link) {
