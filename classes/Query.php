@@ -1046,9 +1046,10 @@ class Query {
 	private function _createdby($option) {
 		$this->addTable('revision', 'creation_rev');
 		$this->_adduser(null, 'creation_rev');
+		$user = new \User;
 		$this->addWhere(
 			[
-				$this->DB->addQuotes($option) . ' = creation_rev.rev_actor',
+				$this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = creation_rev.rev_actor',
 				'creation_rev.rev_page = page_id',
 				'creation_rev.rev_parent_id = 0'
 			]
@@ -1199,7 +1200,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _lastmodifiedby($option) {
-	   $this->addWhere($this->DB->addQuotes($option) . ' = (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
+		$user = new \User;
+		$this->addWhere($this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -1479,7 +1481,8 @@ class Query {
 	 */
 	private function _modifiedby($option) {
 		$this->addTable('revision', 'change_rev');
-		$this->addWhere($this->DB->addQuotes($option) . ' = change_rev.rev_actor AND change_rev.rev_page = page_id');
+		$user = new \User;
+		$this->addWhere($this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = change_rev.rev_actor AND change_rev.rev_page = page_id');
 	}
 
 	/**
@@ -1516,7 +1519,8 @@ class Query {
 	 */
 	private function _notcreatedby($option) {
 		$this->addTable('revision', 'no_creation_rev');
-		$this->addWhere($this->DB->addQuotes($option) . ' != no_creation_rev.rev_actor AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0');
+		$user = new \User;
+		$this->addWhere($this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' != no_creation_rev.rev_actor AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0');
 	}
 
 	/**
@@ -1527,7 +1531,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _notlastmodifiedby($option) {
-		$this->addWhere($this->DB->addQuotes($option) . ' != (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
+		$user = new \User;
+		$this->addWhere($this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' != (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -1538,7 +1543,8 @@ class Query {
 	 * @return	void
 	 */
 	private function _notmodifiedby($option) {
-		$this->addWhere('NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id AND ' . $this->tableNames['revision'] . '.rev_actor = ' . $this->DB->addQuotes($option) . ' LIMIT 1)');
+		$user = new \User;
+		$this->addWhere('NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id AND ' . $this->tableNames['revision'] . '.rev_actor = ' . $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' LIMIT 1)');
 	}
 
 	/**
@@ -1834,7 +1840,8 @@ class Query {
 					}
 					break;
 				case 'user':
-					$this->addOrderBy('rev.rev_actor');
+					$user = new \User;
+					$this->addOrderBy( $user->newFromName( 'rev.rev_actor' )->getActorId() );
 					$this->addTable('revision', 'rev');
 					$this->_adduser(null, 'rev');
 					break;
