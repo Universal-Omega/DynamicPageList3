@@ -207,11 +207,9 @@ class Article {
 	 */
 	public static function newFromRow($row, Parameters $parameters, \Title $title, $pageNamespace, $pageTitle) {
 		global $wgLang, $wgContLang;
-
-		$article = new Article($title, $pageNamespace);
-		$revActorName = User::newFromActorId( $row['revactor_actor'] )->getName();
-		
+		$article = new Article($title, $pageNamespace);		
 		$titleText = $title->getText();
+
 		if ($parameters->getParameter('shownamespace') === true) {
 			$titleText = $title->getPrefixedText();
 		}
@@ -279,7 +277,7 @@ class Article {
 			//REVISION SPECIFIED
 			if ($parameters->getParameter('lastrevisionbefore') || $parameters->getParameter('allrevisionsbefore') || $parameters->getParameter('firstrevisionsince') || $parameters->getParameter('allrevisionssince')) {
 				$article->mRevision = $row['revactor_rev'];
-				$article->mUser     = $revActorName;
+				$article->mUser     = User::newFromActorId( $row['revactor_actor'] )->getName();
 				$article->mDate     = $row['revactor_timestamp'];
 			}
 
@@ -314,8 +312,8 @@ class Article {
 			// because we are going to do a recursive parse at the end of the output phase
 			// we have to generate wiki syntax for linking to a user´s homepage
 			if ($parameters->getParameter('adduser') || $parameters->getParameter('addauthor') || $parameters->getParameter('addlasteditor')) {
-				$article->mUserLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
-				$article->mUser     = $revActorName;
+				$article->mUserLink = '[[User:' . User::newFromActorId( $row['revactor_actor'] )->getName() . '|' . User::newFromActorId( $row['revactor_actor'] )->getName() . ']]';
+				$article->mUser     = User::newFromActorId( $row['revactor_actor'] )->getName();
 			}
 
 			//CATEGORY LINKS FROM CURRENT PAGE
@@ -340,11 +338,11 @@ class Article {
 						}
 						break;
 					case 'user':
-						self::$headings[$revActorName] = (isset(self::$headings[$revActorName]) ? self::$headings[$revActorName] + 1 : 1);
+						self::$headings[User::newFromActorId( $row['revactor_actor'] )->getName()] = (isset(self::$headings[User::newFromActorId( $row['revactor_actor'] )->getName()]) ? self::$headings[User::newFromActorId( $row['revactor_actor'] )->getName()] + 1 : 1);
 						if ($row['revactor_actor'] == 0) { //anonymous user
-							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+							$article->mParentHLink = '[[User:' . User::newFromActorId( $row['revactor_actor'] )->getName() . '|' . User::newFromActorId( $row['revactor_actor'] )->getName() . ']]';
 						} else {
-							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+							$article->mParentHLink = '[[User:' . User::newFromActorId( $row['revactor_actor'] )->getName() . '|' . User::newFromActorId( $row['revactor_actor'] )->getName() . ']]';
 						}
 						break;
 				}
