@@ -3,7 +3,7 @@
  * DynamicPageList3
  * DPL Variables Class
  *
- * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
+ * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith, Universal Omega
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
