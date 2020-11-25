@@ -209,8 +209,12 @@ class Article {
 		global $wgLang, $wgContLang;
 
 		$article = new Article($title, $pageNamespace);
-		$revActorName = User::newFromActorId( $row['revactor_actor'] )->getName();
-		
+
+		$revActorName = null;
+		if( isset( $row['revactor_actor'] ) ) {
+			$revActorName = User::newFromActorId( $row['revactor_actor'] )->getName();
+		}
+
 		$titleText = $title->getText();
 		if ($parameters->getParameter('shownamespace') === true) {
 			$titleText = $title->getPrefixedText();
