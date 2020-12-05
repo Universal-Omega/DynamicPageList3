@@ -887,7 +887,7 @@ class Query {
 				'rev.revactor_timestamp'
 			]
 		);
-		$this->addOrderBy('rev.rev_id');
+		$this->addOrderBy('rev.revactor_rev');
 		$this->setOrderDir('DESC');
 		$this->addWhere(
 			[
