@@ -1181,9 +1181,6 @@ class Parameters extends ParametersData {
 				$sectionSeparators[2 * $i + 1]	= '';
 				if (is_array($sectionLabels[$i]) && $sectionLabels[$i][0] == '#') {
 					$multiSectionSeparators[$i] = "\n----\n";
-				}
-				if ($sectionLabels[$i][0] == '#') {
-					$multiSectionSeparators[$i] = "\n----\n";
 				} else {
 					$multiSectionSeparators[$i] = "<br/>\n";
 				}
