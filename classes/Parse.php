@@ -881,7 +881,7 @@ class Parse {
 	private function triggerEndResets($output, &$reset, &$eliminate, $isParserTag) {
 		global $wgHooks;
 
-		$localParser = new \Parser();
+		$localParser = \MediaWiki\MediaWikiServices::getInstance()->getParserFactory()->create();
 		$parserOutput = $localParser->parse($output, $this->parser->mTitle, $this->parser->mOptions);
 
 		if (!is_array($reset)) {
