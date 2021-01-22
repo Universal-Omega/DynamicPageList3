@@ -15,6 +15,13 @@ use Title;
 use WikiPage;
 use ContentHandler;
 
+
+$IP = getenv( 'MW_INSTALL_PATH' );
+if ( $IP === false ) {
+	$IP = __DIR__ . '/../../../..';
+}
+require_once "$IP/maintenance/Maintenance.php";
+
 /*
  * Creates the DPL template when updating.
  */
@@ -50,3 +57,6 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 		return 'dynamic-page-list-create-template';
 	}
 }
+
+$maintClass = CreateTemplateUpdateMaintenance::class;
+require_once RUN_MAINTENANCE_IF_MAIN;
