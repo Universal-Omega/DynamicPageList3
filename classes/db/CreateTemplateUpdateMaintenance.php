@@ -54,7 +54,6 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 	/**
 	 * Handle inserting DPL's necessary template for content inclusion.
 	 *
-	 * @access protected
 	 * @return bool|void
 	 */
 	protected function doDBUpdates() {
@@ -69,9 +68,9 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 				$title,
 				EDIT_NEW | EDIT_FORCE_BOT
 			);
-
-			return true;
 		}
+
+		return true;
 	}
 }
 
