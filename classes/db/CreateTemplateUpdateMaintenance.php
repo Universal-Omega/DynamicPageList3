@@ -12,8 +12,8 @@ namespace DPL\DB;
 
 use CommentStoreComment;
 use LoggedUpdateMaintenance;
-use RevisionRecord;
-use SlotRecord;
+use Revision\RevisionRecord;
+use Revision\SlotRecord;
 use Title;
 use User;
 use WikiPage;
