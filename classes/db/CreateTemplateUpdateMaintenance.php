@@ -62,7 +62,7 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 		$title = Title::newFromText( 'Extension DPL', NS_TEMPLATE );
 
 		// Make sure template does not already exist
-		if ( !$title->exists() ) {
+		if ( !$title->isKnown() ) {
 			$wikipage = WikiPage::factory( $title );
 			$updater = $wikipage->newPageUpdater( User::newSystemUser( 'DynamicPageList3 Extension' ) );
 			$content = $wikipage->getContentHandler()->makeContent( '<noinclude>This page was automatically created.  It serves as an anchor page for all \'\'\'[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]\'\'\' of [https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3 Extension:DynamicPageList3].</noinclude>', $title );
