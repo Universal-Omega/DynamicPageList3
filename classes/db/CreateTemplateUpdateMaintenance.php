@@ -3,8 +3,8 @@
  * DynamicPageList3
  * CreateTemplateUpdateMaintenance
  *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
+ * @license GPL-2.0-or-later
+ * @package DynamicPageList3
  *
  **/
 
@@ -36,8 +36,7 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 	/**
 	 * Get the unique update key for this logged update.
 	 *
-	 * @access	protected
-	 * @return	string	Unique Key
+	 * @return string
 	 */
 	protected function getUpdateKey() {
 		return 'dynamic-page-list-create-template';
