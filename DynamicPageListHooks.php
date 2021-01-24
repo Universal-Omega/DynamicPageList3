@@ -45,7 +45,7 @@ class DynamicPageListHooks {
 
 	const FATAL_NOTPROTECTED = 1023;
 
-	const FATAL_SQLBUILDERROR = 1024;
+	const FATAL_SQLBUILDERROR = 1024; sh
 
 	// ERROR
 
