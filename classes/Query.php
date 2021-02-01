@@ -908,7 +908,7 @@ class Query {
 		$this->addTable('revision_actor_temp', 'rev');
 		$this->addSelect(
 			[
-				'rev.rev_rev',
+				'rev.revactor_rev',
 				'rev.revactor_timestamp'
 			]
 		);
