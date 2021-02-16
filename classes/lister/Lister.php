@@ -510,8 +510,8 @@ class Lister {
 	 * @param	array	[Optional] Array of section separators.
 	 * @return	void
 	 */
-	public function setSectionSeparators(array $separators = []) {
-		$this->sectionSeparators = (array)$separators;
+	public function setSectionSeparators(?array $separators) {
+		$this->sectionSeparators = (array)$separators ?? [];
 	}
 
 	/**
@@ -521,8 +521,8 @@ class Lister {
 	 * @param	array	[Optional] Array of section separators.
 	 * @return	void
 	 */
-	public function setMultiSectionSeparators(array $separators = []) {
-		$this->multiSectionSeparators = (array)$separators;
+	public function setMultiSectionSeparators(?array $separators) {
+		$this->multiSectionSeparators = (array)$separators ?? [];
 	}
 
 	/**
