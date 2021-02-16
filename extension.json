@@ -68,22 +68,20 @@
 		]
 	},
 	"config": {
-		"DplSettings": {
-			"allowedNamespaces": null,
-			"allowUnlimitedCategories": false,
-			"allowUnlimitedResults": false,
-			"behavingLikeIntersection": false,
-			"categoryStyleListCutoff": 6,
-			"fixedCategories": [],
-			"functionalRichness": 3,
-			"maxCategoryCount": 4,
-			"minCategoryCount": 0,
-			"maxResultCount": 500,
-			"recursiveTagParse": false,
-			"runFromProtectedPagesOnly": false,
-			"handleSectionTag": false,
-			"alwaysCacheResults": false
-		}
+		"DplAllowedNamespaces": null,
+		"DplAllowUnlimitedCategories": false,
+		"DplAllowUnlimitedResults": false,
+		"DplBehavingLikeIntersection": false,
+		"DplCategoryStyleListCutoff": 6,
+		"DplFixedCategories": [],
+		"DplFunctionalRichness": 3,
+		"DplMaxCategoryCount": 4,
+		"DplMinCategoryCount": 0,
+		"DplMaxResultCount": 500,
+		"DplRecursiveTagParse": false,
+		"DplRunFromProtectedPagesOnly": false,
+		"DplHandleSectionTag": false,
+		"DplAlwaysCacheResults": false
 	},
 	"TrackingCategories": [
 		"dpl-tag-tracking-category",
