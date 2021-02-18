@@ -1227,7 +1227,7 @@ class Query {
 		$this->addWhere(
 			[
 				$this->tableNames['page'] . '.page_id = rev.revactor_page',
-				'rev.revactor_timestamp = (SELECT MAX(rev_aux_bef.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_bef WHERE rev_aux_bef.revactor_page=rev.revacor_page AND rev_aux_bef.revactor_timestamp < ' . $this->convertTimestamp($option) . ')'
+				'rev.revactor_timestamp = (SELECT MAX(rev_aux_bef.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_bef WHERE rev_aux_bef.revactor_page=rev.revactor_page AND rev_aux_bef.revactor_timestamp < ' . $this->convertTimestamp($option) . ')'
 			]
 		);
 	}
