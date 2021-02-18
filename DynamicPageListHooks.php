@@ -3,7 +3,7 @@
  *
  * @file
  * @ingroup Extensions
- * @link		http://www.mediawiki.org/wiki/Extension:DynamicPageList_(third-party)	Documentation
+ * @link		http://www.mediawiki.org/wiki/Extension:DynamicPageList3 Documentation
  * @author		n:en:User:IlyaHaykinson
  * @author		n:en:User:Amgine
  * @author		w:de:Benutzer:Unendlich
@@ -111,7 +111,7 @@ class DynamicPageListHooks {
 	 */
 	public static function onRegistration() {
 		if (!defined('DPL_VERSION')) {
-			define('DPL_VERSION', '3.3.3');
+			define('DPL_VERSION', '3.3.4');
 		}
 	}
 
@@ -127,17 +127,17 @@ class DynamicPageListHooks {
 
 		//DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
 		if (\DPL\Config::getSetting('handleSectionTag')) {
-			$parser->setHook('section',			[__CLASS__, 'dplTag']);
+			$parser->setHook('section', [__CLASS__, 'dplTag']);
 		}
-		$parser->setHook('DPL',					[__CLASS__, 'dplTag']);
-		$parser->setHook('DynamicPageList',		[__CLASS__, 'intersectionTag']);
+		$parser->setHook('DPL', [__CLASS__, 'dplTag']);
+		$parser->setHook('DynamicPageList', [__CLASS__, 'intersectionTag']);
 
-		$parser->setFunctionHook('dpl',			[__CLASS__, 'dplParserFunction']);
-		$parser->setFunctionHook('dplnum',		[__CLASS__, 'dplNumParserFunction']);
-		$parser->setFunctionHook('dplvar',		[__CLASS__, 'dplVarParserFunction']);
-		$parser->setFunctionHook('dplreplace',	[__CLASS__, 'dplReplaceParserFunction']);
-		$parser->setFunctionHook('dplchapter',	[__CLASS__, 'dplChapterParserFunction']);
-		$parser->setFunctionHook('dplmatrix',	[__CLASS__, 'dplMatrixParserFunction']);
+		$parser->setFunctionHook('dpl', [__CLASS__, 'dplParserFunction']);
+		$parser->setFunctionHook('dplnum', [__CLASS__, 'dplNumParserFunction']);
+		$parser->setFunctionHook('dplvar', [__CLASS__, 'dplVarParserFunction']);
+		$parser->setFunctionHook('dplreplace', [__CLASS__, 'dplReplaceParserFunction']);
+		$parser->setFunctionHook('dplchapter', [__CLASS__, 'dplChapterParserFunction']);
+		$parser->setFunctionHook('dplmatrix', [__CLASS__, 'dplMatrixParserFunction']);
 
 		return true;
 	}
@@ -169,12 +169,12 @@ class DynamicPageListHooks {
 
 		if (!isset(self::$createdLinks)) {
 			self::$createdLinks = [
-				'resetLinks'		=> false,
-				'resetTemplates'	=> false,
-				'resetCategories'	=> false,
-				'resetImages'		=> false,
-				'resetdone'			=> false,
-				'elimdone'			=> false
+				'resetLinks' => false,
+				'resetTemplates' => false,
+				'resetCategories' => false,
+				'resetImages' => false,
+				'resetdone' => false,
+				'elimdone' => false
 			];
 		}
 	}
