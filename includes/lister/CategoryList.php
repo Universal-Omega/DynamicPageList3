@@ -6,7 +6,7 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 
 namespace DPL\Lister;
 
@@ -17,7 +17,7 @@ class CategoryList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	public $style = parent::LIST_CATEGORY;
 
@@ -30,9 +30,9 @@ class CategoryList extends Lister {
 	 * @param	integer	Total objects from the array to process.
 	 * @return	string	Formatted list.
 	 */
-	public function formatList($articles, $start, $count) {
+	public function formatList( $articles, $start, $count ) {
 		$filteredCount = 0;
-		for ($i = $start; $i < $start + $count; $i++) {
+		for ( $i = $start; $i < $start + $count; $i++ ) {
 			$articleLinks[] = $articles[$i]->mLink;
 			$articleStartChars[] = $articles[$i]->mStartChar;
 			$filteredCount = $filteredCount + 1;
@@ -40,11 +40,11 @@ class CategoryList extends Lister {
 
 		$this->rowCount = $filteredCount;
 
-		if (count($articleLinks) > Config::getSetting('categoryStyleListCutoff')) {
-			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::columnList($articleLinks, $articleStartChars);
-		} elseif (count($articleLinks) > 0) {
+		if ( count( $articleLinks ) > Config::getSetting( 'categoryStyleListCutoff' ) ) {
+			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::columnList( $articleLinks, $articleStartChars );
+		} elseif ( count( $articleLinks ) > 0 ) {
 			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::shortList($articleLinks, $articleStartChars);
+			return "__NOTOC____NOEDITSECTION__" . \CategoryViewer::shortList( $articleLinks, $articleStartChars );
 		}
 		return '';
 	}
@@ -57,7 +57,7 @@ class CategoryList extends Lister {
 	 * @param	string	[Optional] Page text to include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem(Article $article, $pageText = null) {
+	public function formatItem( Article $article, $pageText = null ) {
 		return '';
 	}
 }

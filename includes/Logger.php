@@ -7,14 +7,14 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 namespace DPL;
 
 class Logger {
 	/**
 	 * Buffer of debug messages.
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $buffer = [];
 
@@ -24,10 +24,10 @@ class Logger {
 	 * @access	public
 	 * @return	void
 	 */
-	public function addMessage($errorId) {
+	public function addMessage( $errorId ) {
 		$args = func_get_args();
-		$args = array_map('htmlspecialchars', $args);
-		return call_user_func_array([$this, 'msg'], $args);
+		$args = array_map( 'htmlspecialchars', $args );
+		return call_user_func_array( [ $this, 'msg' ], $args );
 	}
 
 	/**
@@ -37,9 +37,9 @@ class Logger {
 	 * @param	boolean	[Optional] Clear the message buffer.
 	 * @return	array	Messages in the order added.
 	 */
-	public function getMessages($clearBuffer = true) {
+	public function getMessages( $clearBuffer = true ) {
 		$buffer = $this->buffer;
-		if ($clearBuffer === true) {
+		if ( $clearBuffer === true ) {
 			$this->buffer = [];
 		}
 		return $buffer;
@@ -55,23 +55,23 @@ class Logger {
 	 */
 	public function msg() {
 		$args = func_get_args();
-		$errorId = array_shift($args);
-		$errorLevel = floor($errorId / 1000);
+		$errorId = array_shift( $args );
+		$errorLevel = floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
-		if (\DynamicPageListHooks::getDebugLevel() >= $errorLevel) {
-			if (\DynamicPageListHooks::isLikeIntersection()) {
-				if ($errorId == \DynamicPageListHooks::FATAL_TOOMANYCATS) {
-					$text = wfMessage('intersection_toomanycats', $args)->text();
-				} elseif ($errorId == \DynamicPageListHooks::FATAL_TOOFEWCATS) {
-					$text = wfMessage('intersection_toofewcats', $args)->text();
-				} elseif ($errorId == \DynamicPageListHooks::WARN_NORESULTS) {
-					$text = wfMessage('intersection_noresults', $args)->text();
-				} elseif ($errorId == \DynamicPageListHooks::FATAL_NOSELECTION) {
-					$text = wfMessage('intersection_noincludecats', $args)->text();
+		if ( \DynamicPageListHooks::getDebugLevel() >= $errorLevel ) {
+			if ( \DynamicPageListHooks::isLikeIntersection() ) {
+				if ( $errorId == \DynamicPageListHooks::FATAL_TOOMANYCATS ) {
+					$text = wfMessage( 'intersection_toomanycats', $args )->text();
+				} elseif ( $errorId == \DynamicPageListHooks::FATAL_TOOFEWCATS ) {
+					$text = wfMessage( 'intersection_toofewcats', $args )->text();
+				} elseif ( $errorId == \DynamicPageListHooks::WARN_NORESULTS ) {
+					$text = wfMessage( 'intersection_noresults', $args )->text();
+				} elseif ( $errorId == \DynamicPageListHooks::FATAL_NOSELECTION ) {
+					$text = wfMessage( 'intersection_noincludecats', $args )->text();
 				}
 			}
-			if (empty($text)) {
-				$text = wfMessage('dpl_log_' . $errorMessageId, $args)->text();
+			if ( empty( $text ) ) {
+				$text = wfMessage( 'dpl_log_' . $errorMessageId, $args )->text();
 			}
 			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DPL_VERSION . ': ' . $text . '</p>';
 		}

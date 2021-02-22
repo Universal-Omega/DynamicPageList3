@@ -83,7 +83,7 @@ class DynamicPageListHooks {
 															// Output formatting
 															// $1: number of articles
 
-	static public $fixedCategories = [];
+	public static $fixedCategories = [];
 
 	public static $createdLinks; // the links created by DPL are collected here;
 								 // they can be removed during the final ouput
@@ -92,16 +92,16 @@ class DynamicPageListHooks {
 	/**
 	 * DPL acting like Extension:Intersection
 	 *
-	 * @var		boolean
+	 * @var bool
 	 */
-	static private $likeIntersection = false;
+	private static $likeIntersection = false;
 
 	/**
 	 * Debugging Level
 	 *
-	 * @var		integer
+	 * @var int
 	 */
-	static private $debugLevel = 0;
+	private static $debugLevel = 0;
 
 	/**
 	 * Handle special on extension registration bits.
@@ -110,8 +110,8 @@ class DynamicPageListHooks {
 	 * @return	void
 	 */
 	public static function onRegistration() {
-		if (!defined('DPL_VERSION')) {
-			define('DPL_VERSION', '3.3.4');
+		if ( !defined( 'DPL_VERSION' ) ) {
+			define( 'DPL_VERSION', '3.3.4' );
 		}
 	}
 
@@ -122,22 +122,22 @@ class DynamicPageListHooks {
 	 * @param	object	Parser object passed as a reference.
 	 * @return	boolean	true
 	 */
-	public static function onParserFirstCallInit(Parser &$parser) {
+	public static function onParserFirstCallInit( Parser &$parser ) {
 		self::init();
 
 		//DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
-		if (\DPL\Config::getSetting('handleSectionTag')) {
-			$parser->setHook('section', [__CLASS__, 'dplTag']);
+		if ( \DPL\Config::getSetting( 'handleSectionTag' ) ) {
+			$parser->setHook( 'section', [ __CLASS__, 'dplTag' ] );
 		}
-		$parser->setHook('DPL', [__CLASS__, 'dplTag']);
-		$parser->setHook('DynamicPageList', [__CLASS__, 'intersectionTag']);
+		$parser->setHook( 'DPL', [ __CLASS__, 'dplTag' ] );
+		$parser->setHook( 'DynamicPageList', [ __CLASS__, 'intersectionTag' ] );
 
-		$parser->setFunctionHook('dpl', [__CLASS__, 'dplParserFunction']);
-		$parser->setFunctionHook('dplnum', [__CLASS__, 'dplNumParserFunction']);
-		$parser->setFunctionHook('dplvar', [__CLASS__, 'dplVarParserFunction']);
-		$parser->setFunctionHook('dplreplace', [__CLASS__, 'dplReplaceParserFunction']);
-		$parser->setFunctionHook('dplchapter', [__CLASS__, 'dplChapterParserFunction']);
-		$parser->setFunctionHook('dplmatrix', [__CLASS__, 'dplMatrixParserFunction']);
+		$parser->setFunctionHook( 'dpl', [ __CLASS__, 'dplParserFunction' ] );
+		$parser->setFunctionHook( 'dplnum', [ __CLASS__, 'dplNumParserFunction' ] );
+		$parser->setFunctionHook( 'dplvar', [ __CLASS__, 'dplVarParserFunction' ] );
+		$parser->setFunctionHook( 'dplreplace', [ __CLASS__, 'dplReplaceParserFunction' ] );
+		$parser->setFunctionHook( 'dplchapter', [ __CLASS__, 'dplChapterParserFunction' ] );
+		$parser->setFunctionHook( 'dplmatrix', [ __CLASS__, 'dplMatrixParserFunction' ] );
 
 		return true;
 	}
@@ -149,9 +149,9 @@ class DynamicPageListHooks {
 	 * @param	object	Parser object passed as a reference.
 	 * @return	boolean	true
 	 */
-	public static function setupMigration(Parser &$parser) {
-		$parser->setHook('Intersection', [__CLASS__, 'intersectionTag']);
-		$parser->addTrackingCategory('dpl-intersection-tracking-category');
+	public static function setupMigration( Parser &$parser ) {
+		$parser->setHook( 'Intersection', [ __CLASS__, 'intersectionTag' ] );
+		$parser->addTrackingCategory( 'dpl-intersection-tracking-category' );
 
 		self::init();
 
@@ -161,13 +161,13 @@ class DynamicPageListHooks {
 	/**
 	 * Common initializer for usage from parser entry points.
 	 *
-	 * @access	private
+	 * @private
 	 * @return	void
 	 */
 	private static function init() {
 		\DPL\Config::init();
 
-		if (!isset(self::$createdLinks)) {
+		if ( !isset( self::$createdLinks ) ) {
 			self::$createdLinks = [
 				'resetLinks' => false,
 				'resetTemplates' => false,
@@ -182,11 +182,11 @@ class DynamicPageListHooks {
 	/**
 	 * Set to behave like intersection.
 	 *
-	 * @access	private
+	 * @private
 	 * @param	boolean	Behave Like Intersection
 	 * @return	void
 	 */
-	private static function setLikeIntersection($mode = false) {
+	private static function setLikeIntersection( $mode = false ) {
 		self::$likeIntersection = $mode;
 	}
 
@@ -210,9 +210,9 @@ class DynamicPageListHooks {
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	public static function intersectionTag($input, array $args, Parser $parser, PPFrame $frame) {
-		self::setLikeIntersection(true);
-		return self::executeTag($input, $args, $parser, $frame);
+	public static function intersectionTag( $input, array $args, Parser $parser, PPFrame $frame ) {
+		self::setLikeIntersection( true );
+		return self::executeTag( $input, $args, $parser, $frame );
 	}
 
 	/**
@@ -225,10 +225,10 @@ class DynamicPageListHooks {
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	public static function dplTag($input, array $args, Parser $parser, PPFrame $frame) {
-		self::setLikeIntersection(false);
-		$parser->addTrackingCategory('dpl-tag-tracking-category');
-		return self::executeTag($input, $args, $parser, $frame);
+	public static function dplTag( $input, array $args, Parser $parser, PPFrame $frame ) {
+		self::setLikeIntersection( false );
+		$parser->addTrackingCategory( 'dpl-tag-tracking-category' );
+		return self::executeTag( $input, $args, $parser, $frame );
 	}
 
 	/**
@@ -241,33 +241,33 @@ class DynamicPageListHooks {
 	 * @param	object	PPFrame object.
 	 * @return	string	HTML
 	 */
-	private static function executeTag($input, array $args, Parser $parser, PPFrame $frame) {
+	private static function executeTag( $input, array $args, Parser $parser, PPFrame $frame ) {
 		// entry point for user tag <dpl>  or  <DynamicPageList>
 		// create list and do a recursive parse of the output
 
 		$parse = new \DPL\Parse();
-		if (\DPL\Config::getSetting('recursiveTagParse')) {
-			$input = $parser->recursiveTagParse($input, $frame);
+		if ( \DPL\Config::getSetting( 'recursiveTagParse' ) ) {
+			$input = $parser->recursiveTagParse( $input, $frame );
 		}
-		$text = $parse->parse($input, $parser, $reset, $eliminate, true);
+		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
 
-		if (isset($reset['templates']) && $reset['templates']) {	// we can remove the templates by save/restore
+		if ( isset( $reset['templates'] ) && $reset['templates'] ) {	// we can remove the templates by save/restore
 			$saveTemplates = $parser->mOutput->mTemplates;
 		}
-		if (isset($reset['categories']) && $reset['categories']) {	// we can remove the categories by save/restore
+		if ( isset( $reset['categories'] ) && $reset['categories'] ) {	// we can remove the categories by save/restore
 			$saveCategories = $parser->mOutput->mCategories;
 		}
-		if (isset($reset['images']) && $reset['images']) {	// we can remove the images by save/restore
+		if ( isset( $reset['images'] ) && $reset['images'] ) {	// we can remove the images by save/restore
 			$saveImages = $parser->mOutput->mImages;
 		}
-		$parsedDPL = $parser->recursiveTagParse($text);
-		if (isset($reset['templates']) && $reset['templates']) {
+		$parsedDPL = $parser->recursiveTagParse( $text );
+		if ( isset( $reset['templates'] ) && $reset['templates'] ) {
 			$parser->mOutput->mTemplates = $saveTemplates;
 		}
-		if (isset($reset['categories']) && $reset['categories']) {
+		if ( isset( $reset['categories'] ) && $reset['categories'] ) {
 			$parser->mOutput->mCategories = $saveCategories;
 		}
-		if (isset($reset['images']) && $reset['images']) {
+		if ( isset( $reset['images'] ) && $reset['images'] ) {
 			$parser->mOutput->mImages = $saveImages;
 		}
 
@@ -281,31 +281,31 @@ class DynamicPageListHooks {
 	 * @param	object	Parser object passed as a reference.
 	 * @return	string	Wiki Text
 	 */
-	public static function dplParserFunction(&$parser) {
-		self::setLikeIntersection(false);
+	public static function dplParserFunction( &$parser ) {
+		self::setLikeIntersection( false );
 
-		$parser->addTrackingCategory('dpl-parserfunc-tracking-category');
+		$parser->addTrackingCategory( 'dpl-parserfunc-tracking-category' );
 
 		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
 		$input = "";
 
 		$numargs = func_num_args();
-		if ($numargs < 2) {
+		if ( $numargs < 2 ) {
 			$input = "#dpl: no arguments specified";
-			return str_replace('§', '<', '§pre>§nowiki>' . $input . '§/nowiki>§/pre>');
+			return str_replace( '§', '<', '§pre>§nowiki>' . $input . '§/nowiki>§/pre>' );
 		}
 
 		// fetch all user-provided arguments (skipping $parser)
 		$arg_list = func_get_args();
-		for ($i = 1; $i < $numargs; $i++) {
+		for ( $i = 1; $i < $numargs; $i++ ) {
 			$p1 = $arg_list[$i];
-			$input .= str_replace("\n", "", $p1) . "\n";
+			$input .= str_replace( "\n", "", $p1 ) . "\n";
 		}
 
 		$parse = new \DPL\Parse();
-		$dplresult = $parse->parse($input, $parser, $reset, $eliminate, false);
+		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false );
 		return [ // parser needs to be coaxed to do further recursive processing
-			$parser->getPreprocessor()->preprocessToObj($dplresult, Parser::PTD_FOR_INCLUSION),
+			$parser->getPreprocessor()->preprocessToObj( $dplresult, Parser::PTD_FOR_INCLUSION ),
 			'isLocalObj' => true,
 			'title' => $parser->getTitle()
 		];
@@ -319,117 +319,117 @@ class DynamicPageListHooks {
 	 * @param	object	Parser object passed as a reference.
 	 * @return	string	Wiki Text
 	 */
-	public static function dplNumParserFunction(&$parser, $text = '') {
-		$parser->addTrackingCategory('dplnum-parserfunc-tracking-category');
-		$num = str_replace('&#160;', ' ', $text);
-		$num = str_replace('&nbsp;', ' ', $text);
-		$num = preg_replace('/([0-9])([.])([0-9][0-9]?[^0-9,])/', '\1,\3', $num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/', '\1\2 000000 ', $num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mrd/', '\1\2 0000000 ', $num);
-		$num = preg_replace('/([0-9.]+),([0-9])\s*Mrd/', '\1\2 00000000 ', $num);
-		$num = preg_replace('/\s*Mrd/', '000000000 ', $num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9][0-9])\s*Mio/', '\1\2 000 ', $num);
-		$num = preg_replace('/([0-9.]+),([0-9][0-9])\s*Mio/', '\1\2 0000 ', $num);
-		$num = preg_replace('/([0-9.]+),([0-9])\s*Mio/', '\1\2 00000 ', $num);
-		$num = preg_replace('/\s*Mio/', '000000 ', $num);
-		$num = preg_replace('/[. ]/', '', $num);
-		$num = preg_replace('/^[^0-9]+/', '', $num);
-		$num = preg_replace('/[^0-9].*/', '', $num);
+	public static function dplNumParserFunction( &$parser, $text = '' ) {
+		$parser->addTrackingCategory( 'dplnum-parserfunc-tracking-category' );
+		$num = str_replace( '&#160;', ' ', $text );
+		$num = str_replace( '&nbsp;', ' ', $text );
+		$num = preg_replace( '/([0-9])([.])([0-9][0-9]?[^0-9,])/', '\1,\3', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/', '\1\2 000000 ', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9][0-9])\s*Mrd/', '\1\2 0000000 ', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9])\s*Mrd/', '\1\2 00000000 ', $num );
+		$num = preg_replace( '/\s*Mrd/', '000000000 ', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9][0-9][0-9])\s*Mio/', '\1\2 000 ', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9][0-9])\s*Mio/', '\1\2 0000 ', $num );
+		$num = preg_replace( '/([0-9.]+),([0-9])\s*Mio/', '\1\2 00000 ', $num );
+		$num = preg_replace( '/\s*Mio/', '000000 ', $num );
+		$num = preg_replace( '/[. ]/', '', $num );
+		$num = preg_replace( '/^[^0-9]+/', '', $num );
+		$num = preg_replace( '/[^0-9].*/', '', $num );
 		return $num;
 	}
 
-	public static function dplVarParserFunction(&$parser, $cmd) {
-		$parser->addTrackingCategory('dplvar-parserfunc-tracking-category');
+	public static function dplVarParserFunction( &$parser, $cmd ) {
+		$parser->addTrackingCategory( 'dplvar-parserfunc-tracking-category' );
 		$args = func_get_args();
-		if ($cmd == 'set') {
-			return \DPL\Variables::setVar($args);
-		} elseif ($cmd == 'default') {
-			return \DPL\Variables::setVarDefault($args);
+		if ( $cmd == 'set' ) {
+			return \DPL\Variables::setVar( $args );
+		} elseif ( $cmd == 'default' ) {
+			return \DPL\Variables::setVarDefault( $args );
 		}
-		return \DPL\Variables::getVar($cmd);
+		return \DPL\Variables::getVar( $cmd );
 	}
 
-	private static function isRegexp($needle) {
-		if (strlen($needle) < 3) {
+	private static function isRegexp( $needle ) {
+		if ( strlen( $needle ) < 3 ) {
 			return false;
 		}
-		if (ctype_alnum($needle[0])) {
+		if ( ctype_alnum( $needle[0] ) ) {
 			return false;
 		}
-		$nettoNeedle = preg_replace('/[ismu]*$/', '', $needle);
-		if (strlen($nettoNeedle) < 2) {
+		$nettoNeedle = preg_replace( '/[ismu]*$/', '', $needle );
+		if ( strlen( $nettoNeedle ) < 2 ) {
 			return false;
 		}
-		if ($needle[0] == $nettoNeedle[strlen($nettoNeedle) - 1]) {
+		if ( $needle[0] == $nettoNeedle[strlen( $nettoNeedle ) - 1] ) {
 			return true;
 		}
 		return false;
 	}
 
-	public static function dplReplaceParserFunction(&$parser, $text, $pat = '', $repl = '') {
-		$parser->addTrackingCategory('dplreplace-parserfunc-tracking-category');
-		if ($text == '' || $pat == '') {
+	public static function dplReplaceParserFunction( &$parser, $text, $pat = '', $repl = '' ) {
+		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
+		if ( $text == '' || $pat == '' ) {
 			return '';
 		}
 		# convert \n to a real newline character
-		$repl = str_replace('\n', "\n", $repl);
+		$repl = str_replace( '\n', "\n", $repl );
 
 		# replace
-		if (!self::isRegexp($pat)) {
-			$pat = '`' . str_replace('`', '\`', $pat) . '`';
+		if ( !self::isRegexp( $pat ) ) {
+			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
-		return @preg_replace($pat, $repl, $text);
+		return @preg_replace( $pat, $repl, $text );
 	}
 
-	public static function dplChapterParserFunction(&$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false) {
-		$parser->addTrackingCategory('dplchapter-parserfunc-tracking-category');
-		$output = \DPL\LST::extractHeadingFromText($parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim);
+	public static function dplChapterParserFunction( &$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false ) {
+		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
+		$output = \DPL\LST::extractHeadingFromText( $parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim );
 		return $output[0];
 	}
 
-	public static function dplMatrixParserFunction(&$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '') {
-		$parser->addTrackingCategory('dplmatrix-parserfunc-tracking-category');
-		$lines   = explode("\n", $matrix);
+	public static function dplMatrixParserFunction( &$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '' ) {
+		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
+		$lines   = explode( "\n", $matrix );
 		$m       = [];
 		$sources = [];
 		$targets = [];
 		$from    = '';
 		$to      = '';
-		if ($flip == '' | $flip == 'normal') {
+		if ( $flip == '' | $flip == 'normal' ) {
 			$flip = false;
 		} else {
 			$flip = true;
 		}
-		if ($name == '') {
+		if ( $name == '' ) {
 			$name = '&#160;';
 		}
-		if ($yes == '') {
+		if ( $yes == '' ) {
 			$yes = ' x ';
 		}
-		if ($no == '') {
+		if ( $no == '' ) {
 			$no = '&#160;';
 		}
-		if ($no[0] == '-') {
+		if ( $no[0] == '-' ) {
 			$no = " $no ";
 		}
-		foreach ($lines as $line) {
-			if (strlen($line) <= 0) {
+		foreach ( $lines as $line ) {
+			if ( strlen( $line ) <= 0 ) {
 				continue;
 			}
-			if ($line[0] != ' ') {
-				$from = preg_split(' *\~\~ *', trim($line), 2);
-				if (!array_key_exists($from[0], $sources)) {
-					if (count($from) < 2 || $from[1] == '') {
+			if ( $line[0] != ' ' ) {
+				$from = preg_split( ' *\~\~ *', trim( $line ), 2 );
+				if ( !array_key_exists( $from[0], $sources ) ) {
+					if ( count( $from ) < 2 || $from[1] == '' ) {
 						$sources[$from[0]] = $from[0];
 					} else {
 						$sources[$from[0]] = $from[1];
 					}
 					$m[$from[0]] = [];
 				}
-			} elseif (trim($line) != '') {
-				$to = preg_split(' *\~\~ *', trim($line), 2);
-				if (count($to) < 2 || $to[1] == '') {
+			} elseif ( trim( $line ) != '' ) {
+				$to = preg_split( ' *\~\~ *', trim( $line ), 2 );
+				if ( count( $to ) < 2 || $to[1] == '' ) {
 					$targets[$to[0]] = $to[0];
 				} else {
 					$targets[$to[0]] = $to[1];
@@ -437,18 +437,18 @@ class DynamicPageListHooks {
 				$m[$from[0]][$to[0]] = true;
 			}
 		}
-		ksort($targets);
+		ksort( $targets );
 
 		$header = "\n";
 
-		if ($flip) {
-			foreach ($sources as $from => $fromName) {
+		if ( $flip ) {
+			foreach ( $sources as $from => $fromName ) {
 				$header .= "![[$from|" . $fromName . "]]\n";
 			}
-			foreach ($targets as $to => $toName) {
+			foreach ( $targets as $to => $toName ) {
 				$targets[$to] = "[[$to|$toName]]";
-				foreach ($sources as $from => $fromName) {
-					if (array_key_exists($to, $m[$from])) {
+				foreach ( $sources as $from => $fromName ) {
+					if ( array_key_exists( $to, $m[$from] ) ) {
 						$targets[$to] .= "\n|$yes";
 					} else {
 						$targets[$to] .= "\n|$no";
@@ -456,15 +456,15 @@ class DynamicPageListHooks {
 				}
 				$targets[$to] .= "\n|--\n";
 			}
-			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode("\n!", $targets) . "\n|}";
+			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode( "\n!", $targets ) . "\n|}";
 		} else {
-			foreach ($targets as $to => $toName) {
+			foreach ( $targets as $to => $toName ) {
 				$header .= "![[$to|" . $toName . "]]\n";
 			}
-			foreach ($sources as $from => $fromName) {
+			foreach ( $sources as $from => $fromName ) {
 				$sources[$from] = "[[$from|$fromName]]";
-				foreach ($targets as $to => $toName) {
-					if (array_key_exists($to, $m[$from])) {
+				foreach ( $targets as $to => $toName ) {
+					if ( array_key_exists( $to, $m[$from] ) ) {
 						$sources[$from] .= "\n|$yes";
 					} else {
 						$sources[$from] .= "\n|$no";
@@ -472,35 +472,35 @@ class DynamicPageListHooks {
 				}
 				$sources[$from] .= "\n|--\n";
 			}
-			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode("\n!", $sources) . "\n|}";
+			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode( "\n!", $sources ) . "\n|}";
 		}
 	}
 
-	private static function dumpParsedRefs($parser, $label) {
+	private static function dumpParsedRefs( $parser, $label ) {
 		//if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
 		echo '<pre>parser mLinks: ';
 		ob_start();
-		var_dump($parser->mOutput->mLinks);
+		var_dump( $parser->mOutput->mLinks );
 		$a = ob_get_contents();
 		ob_end_clean();
-		echo htmlspecialchars($a, ENT_QUOTES);
+		echo htmlspecialchars( $a, ENT_QUOTES );
 		echo '</pre>';
 		echo '<pre>parser mTemplates: ';
 		ob_start();
-		var_dump($parser->mOutput->mTemplates);
+		var_dump( $parser->mOutput->mTemplates );
 		$a = ob_get_contents();
 		ob_end_clean();
-		echo htmlspecialchars($a, ENT_QUOTES);
+		echo htmlspecialchars( $a, ENT_QUOTES );
 		echo '</pre>';
 	}
 
 	//remove section markers in case the LabeledSectionTransclusion extension is not installed.
-	public static function removeSectionMarkers($in, $assocArgs = [], $parser = null) {
+	public static function removeSectionMarkers( $in, $assocArgs = [], $parser = null ) {
 		return '';
 	}
 
-	public static function fixCategory($cat) {
-		if ($cat != '') {
+	public static function fixCategory( $cat ) {
+		if ( $cat != '' ) {
 			self::$fixedCategories[$cat] = 1;
 		}
 	}
@@ -512,8 +512,8 @@ class DynamicPageListHooks {
 	 * @param	integer	Debug Level
 	 * @return	void
 	 */
-	public static function setDebugLevel($level) {
-		self::$debugLevel = intval($level);
+	public static function setDebugLevel( $level ) {
+		self::$debugLevel = intval( $level );
 	}
 
 	/**
@@ -527,25 +527,25 @@ class DynamicPageListHooks {
 	}
 
 	// reset everything; some categories may have been fixed, however via  fixcategory=
-	public static function endReset(&$parser, $text) {
-		if (!self::$createdLinks['resetdone']) {
+	public static function endReset( &$parser, $text ) {
+		if ( !self::$createdLinks['resetdone'] ) {
 			self::$createdLinks['resetdone'] = true;
-			foreach ($parser->mOutput->mCategories as $key => $val) {
-				if (array_key_exists($key, self::$fixedCategories)) {
+			foreach ( $parser->mOutput->mCategories as $key => $val ) {
+				if ( array_key_exists( $key, self::$fixedCategories ) ) {
 					self::$fixedCategories[$key] = $val;
 				}
 			}
 			// $text .= self::dumpParsedRefs($parser,"before final reset");
-			if (self::$createdLinks['resetLinks']) {
+			if ( self::$createdLinks['resetLinks'] ) {
 				$parser->mOutput->mLinks = [];
 			}
-			if (self::$createdLinks['resetCategories']) {
+			if ( self::$createdLinks['resetCategories'] ) {
 				$parser->mOutput->mCategories = self::$fixedCategories;
 			}
-			if (self::$createdLinks['resetTemplates']) {
+			if ( self::$createdLinks['resetTemplates'] ) {
 				$parser->mOutput->mTemplates = [];
 			}
-			if (self::$createdLinks['resetImages']) {
+			if ( self::$createdLinks['resetImages'] ) {
 				$parser->mOutput->mImages = [];
 			}
 			// $text .= self::dumpParsedRefs($parser,"after final reset");
@@ -554,43 +554,43 @@ class DynamicPageListHooks {
 		return true;
 	}
 
-	public static function endEliminate(&$parser, &$text) {
+	public static function endEliminate( &$parser, &$text ) {
 		// called during the final output phase; removes links created by DPL
-		if (isset(self::$createdLinks)) {
+		if ( isset( self::$createdLinks ) ) {
 			// self::dumpParsedRefs($parser,"before final eliminate");
-			if (array_key_exists(0, self::$createdLinks)) {
-				foreach ($parser->mOutput->getLinks() as $nsp => $link) {
-					if (!array_key_exists($nsp, self::$createdLinks[0])) {
+			if ( array_key_exists( 0, self::$createdLinks ) ) {
+				foreach ( $parser->mOutput->getLinks() as $nsp => $link ) {
+					if ( !array_key_exists( $nsp, self::$createdLinks[0] ) ) {
 						continue;
 					}
 					// echo ("<pre> elim: created Links [$nsp] = ". count(DynamicPageListHooks::$createdLinks[0][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Links [$nsp] = ". count($parser->mOutput->mLinks[$nsp])			 ."</pre>\n");
-					$parser->mOutput->mLinks[$nsp] = array_diff_assoc($parser->mOutput->mLinks[$nsp], self::$createdLinks[0][$nsp]);
+					$parser->mOutput->mLinks[$nsp] = array_diff_assoc( $parser->mOutput->mLinks[$nsp], self::$createdLinks[0][$nsp] );
 					// echo ("<pre> elim: parser  Links [$nsp] nachher = ". count($parser->mOutput->mLinks[$nsp])	  ."</pre>\n");
-					if (count($parser->mOutput->mLinks[$nsp]) == 0) {
-						unset($parser->mOutput->mLinks[$nsp]);
+					if ( count( $parser->mOutput->mLinks[$nsp] ) == 0 ) {
+						unset( $parser->mOutput->mLinks[$nsp] );
 					}
 				}
 			}
-			if (isset(self::$createdLinks) && array_key_exists(1, self::$createdLinks)) {
-				foreach ($parser->mOutput->mTemplates as $nsp => $tpl) {
-					if (!array_key_exists($nsp, self::$createdLinks[1])) {
+			if ( isset( self::$createdLinks ) && array_key_exists( 1, self::$createdLinks ) ) {
+				foreach ( $parser->mOutput->mTemplates as $nsp => $tpl ) {
+					if ( !array_key_exists( $nsp, self::$createdLinks[1] ) ) {
 						continue;
 					}
 					// echo ("<pre> elim: created Tpls [$nsp] = ". count(DynamicPageListHooks::$createdLinks[1][$nsp])."</pre>\n");
 					// echo ("<pre> elim: parser  Tpls [$nsp] = ". count($parser->mOutput->mTemplates[$nsp])			."</pre>\n");
-					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc($parser->mOutput->mTemplates[$nsp], self::$createdLinks[1][$nsp]);
+					$parser->mOutput->mTemplates[$nsp] = array_diff_assoc( $parser->mOutput->mTemplates[$nsp], self::$createdLinks[1][$nsp] );
 					// echo ("<pre> elim: parser  Tpls [$nsp] nachher = ". count($parser->mOutput->mTemplates[$nsp])	 ."</pre>\n");
-					if (count($parser->mOutput->mTemplates[$nsp]) == 0) {
-						unset($parser->mOutput->mTemplates[$nsp]);
+					if ( count( $parser->mOutput->mTemplates[$nsp] ) == 0 ) {
+						unset( $parser->mOutput->mTemplates[$nsp] );
 					}
 				}
 			}
-			if (isset(self::$createdLinks) && array_key_exists(2, self::$createdLinks)) {
-				$parser->mOutput->mCategories = array_diff_assoc($parser->mOutput->mCategories, self::$createdLinks[2]);
+			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
+				$parser->mOutput->mCategories = array_diff_assoc( $parser->mOutput->mCategories, self::$createdLinks[2] );
 			}
-			if (isset(self::$createdLinks) && array_key_exists(3, self::$createdLinks)) {
-				$parser->mOutput->mImages = array_diff_assoc($parser->mOutput->mImages, self::$createdLinks[3]);
+			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
+				$parser->mOutput->mImages = array_diff_assoc( $parser->mOutput->mImages, self::$createdLinks[3] );
 			}
 			// $text .= self::dumpParsedRefs($parser,"after final eliminate".$parser->mTitle->getText());
 		}
@@ -607,16 +607,16 @@ class DynamicPageListHooks {
 	 * @access	public
 	 * @param	DatabaseUpdater $updater
 	 */
-	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater) {
+	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
 		$extDir = __DIR__;
 
-		$updater->addPostDatabaseUpdateMaintenance('DPL\\DB\\CreateTemplateUpdateMaintenance');
+		$updater->addPostDatabaseUpdateMaintenance( 'DPL\\DB\\CreateTemplateUpdateMaintenance' );
 
 		$db = $updater->getDB();
-		if (!$db->tableExists('dpl_clview')) {
+		if ( !$db->tableExists( 'dpl_clview' ) ) {
 			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
-			$sqlNullMethod = ($db->getType() === 'postgres' ? 'COALESCE' : 'IFNULL');
-			$db->query("CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;");
+			$sqlNullMethod = ( $db->getType() === 'postgres' ? 'COALESCE' : 'IFNULL' );
+			$db->query( "CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;" );
 		}
 	}
 }
