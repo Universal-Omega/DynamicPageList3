@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="MediaWiki">
-    <rule ref="./vendor/hydrawiki/hydrawiki-codesniffer/HydraWiki">
+<ruleset>
+    <rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
 		<exclude name="Generic.Files.LineLength" />
 		<exclude name="MediaWiki.Commenting.FunctionComment" />
 		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName" />
@@ -11,6 +11,6 @@
 		<severity>3</severity>
 	</rule>
     <file>.</file>
-    <arg name="encoding" value="utf8"/>
-    <arg name="extensions" value="php"/>
+    <arg name="extensions" value="php,php5,inc"/>
+    <arg name="encoding" value="UTF-8"/>
 </ruleset>
