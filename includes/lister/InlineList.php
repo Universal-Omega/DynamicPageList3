@@ -6,7 +6,7 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 
 namespace DPL\Lister;
 
@@ -14,56 +14,56 @@ class InlineList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	public $style = parent::LIST_INLINE;
 
 	/**
 	 * Heading Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headingStart = '';
 
 	/**
 	 * Heading End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headingEnd = '';
 
 	/**
 	 * List(Section) Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listStart = '<div%s>';
 
 	/**
 	 * List(Section) End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listEnd = '</div>';
 
 	/**
 	 * Item Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemStart = '<span%s>';
 
 	/**
 	 * Item End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemEnd = '</span>';
 
 	/**
 	 * Inline item text separator.
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	protected $textSeparator = '';
 
@@ -75,9 +75,9 @@ class InlineList extends Lister {
 	 * @param	object	MediaWiki \Parser
 	 * @return	void
 	 */
-	public function __construct(\DPL\Parameters $parameters, \Parser $parser) {
-		parent::__construct($parameters, $parser);
-		$this->textSeparator = $parameters->getParameter('inlinetext');
+	public function __construct( \DPL\Parameters $parameters, \Parser $parser ) {
+		parent::__construct( $parameters, $parser );
+		$this->textSeparator = $parameters->getParameter( 'inlinetext' );
 	}
 
 	/**
@@ -87,7 +87,7 @@ class InlineList extends Lister {
 	 * @param	array	Items as formatted by formatItem().
 	 * @return	string	Imploded items.
 	 */
-	protected function implodeItems($items) {
-		return implode($this->textSeparator, $items);
+	protected function implodeItems( $items ) {
+		return implode( $this->textSeparator, $items );
 	}
 }

@@ -7,7 +7,7 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 namespace DPL;
 
 class ParametersData {
@@ -15,16 +15,16 @@ class ParametersData {
 	 * Parameter Richness
 	 * The level of parameters that is accesible for the user.
 	 *
-	 * @var		integer
+	 * @var int
 	 */
 	private $parameterRichness = 0;
 
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
 	 *
-	 * @var		array
+	 * @var array
 	 */
-	static private $parametersForRichnessLevel = [
+	private static $parametersForRichnessLevel = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
@@ -162,7 +162,7 @@ class ParametersData {
 	 * A 'values' key is the set of possible values.
 	 * For some options (e.g. 'namespace'), possible values are not yet defined, but will be if necessary (for debugging).
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $data = [
 		'addauthor' => [
@@ -266,7 +266,7 @@ class ParametersData {
 		 */
 		'hiddencategories' => [
 			'default'	=> 'include',
-			'values'	=> ['include', 'exclude', 'only']
+			'values'	=> [ 'include', 'exclude', 'only' ]
 		],
 		/**
 		 * Perform the command and do not query the database.
@@ -302,7 +302,7 @@ class ParametersData {
 		 */
 		'distinct' => [
 			'default'	=> true,
-			'values'	=> ['strict']
+			'values'	=> [ 'strict' ]
 		],
 		'cacheperiod' => [
 			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
@@ -327,7 +327,7 @@ class ParametersData {
 		 */
 		'debug' => [
 			'default'	=> 1,
-			'values'	=> [0, 1, 2, 3, 4, 5]
+			'values'	=> [ 0, 1, 2, 3, 4, 5 ]
 		],
 
 		/**
@@ -591,9 +591,9 @@ class ParametersData {
 			'set_criteria_found'	=> true
 		],
 		 /**
-		 * this parameter restricts the output to images which are used (contained) by one of the specified pages.
-		 * Examples:   imagecontainer=my article|your article
-		 */
+		  * this parameter restricts the output to images which are used (contained) by one of the specified pages.
+		  * Examples:   imagecontainer=my article|your article
+		  */
 		'imagecontainer' => [
 			'default'				=> null,
 			'open_ref_conflict'		=> false,
@@ -757,21 +757,21 @@ class ParametersData {
 		 * [Special value] NsX='' (empty string without quotes) means Main namespace
 		 * Means pages have to be NEITHER in namespace Ns1 NOR Ns2 NOR...
 		 * Magic words allowed.
-		*/
+		 */
 		'notnamespace' => [
 			'default'	=> null,
 		],
 		/**
 		 * title is the exact name of a page; this is useful if you want to use DPL
 		 * just for contents inclusion; mode=userformat is automatically implied with title=
-		*/
+		 */
 		'title' => [
 			'default'	=> null,
 		],
 		/**
 		 * titlematch is a (SQL-LIKE-expression) pattern
 		 * which restricts the result to pages matching that pattern
-		*/
+		 */
 		'titlelt' => [
 			'default'				=> null,
 			'db_format'				=> true,
@@ -808,7 +808,7 @@ class ParametersData {
 		/**
 		 * nottitlematch is a (SQL-LIKE-expression) pattern
 		 * which excludes pages matching that pattern from the result
-		*/
+		 */
 		'nottitlematch' => [
 			'default'	=> null
 		],
@@ -817,11 +817,11 @@ class ParametersData {
 		],
 		'order' => [
 			'default'	=> 'ascending',
-			'values'	=> ['ascending', 'descending', 'asc', 'desc']
+			'values'	=> [ 'ascending', 'descending', 'asc', 'desc' ]
 		],
 		/**
 		 * we can specify something like "latin1_swedish_ci" for case insensitive sorting
-		*/
+		 */
 		'ordercollation' => [
 			'default' => null
 		],
@@ -830,7 +830,7 @@ class ParametersData {
 		 * @todo: add 'ordermethod=category,categoryadd' (for each category CAT, pages ordered by date when page was added to CAT).
 		 */
 		'ordermethod' => [
-			'default'	=> ['none'],
+			'default'	=> [ 'none' ],
 			'values'	=> [
 				'counter',
 				'size',
@@ -854,7 +854,7 @@ class ParametersData {
 		 */
 		'minoredits' => [
 			'default'			=> null,
-			'values'			=> ['include', 'exclude'],
+			'values'			=> [ 'include', 'exclude' ],
 			'open_ref_conflict'	=> true
 		],
 		/**
@@ -950,7 +950,7 @@ class ParametersData {
 		 */
 		'redirects' => [
 			'default'	=> 'exclude',
-			'values'	=> ['include', 'exclude', 'only']
+			'values'	=> [ 'include', 'exclude', 'only' ]
 		],
 		/**
 		 * stablepages =...
@@ -960,7 +960,7 @@ class ParametersData {
 		 */
 		'stablepages' => [
 			'default'	=> null,
-			'values'	=> ['exclude', 'only']
+			'values'	=> [ 'exclude', 'only' ]
 		],
 		/**
 		 * qualitypages =...
@@ -970,7 +970,7 @@ class ParametersData {
 		 */
 		'qualitypages' => [
 			'default'	=> null,
-			'values'	=> ['exclude', 'only']
+			'values'	=> [ 'exclude', 'only' ]
 		],
 		/**
 		 * resultsheader / footer is some wiki text which will be output before / after the result list
@@ -1122,9 +1122,9 @@ class ParametersData {
 	 * @return	void
 	 */
 	public function __construct() {
-		$this->setRichness(Config::getSetting('functionalRichness'));
+		$this->setRichness( Config::getSetting( 'functionalRichness' ) );
 
-		if (\DynamicPageListHooks::isLikeIntersection()) {
+		if ( \DynamicPageListHooks::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
 				'default'	=> 'categoryadd',
 				'values'	=> [
@@ -1162,8 +1162,8 @@ class ParametersData {
 	 * @param	string	Parameter name.
 	 * @return	boolean	Exists
 	 */
-	public function exists($parameter) {
-		return array_key_exists($parameter, $this->data);
+	public function exists( $parameter ) {
+		return array_key_exists( $parameter, $this->data );
 	}
 
 	/**
@@ -1173,8 +1173,8 @@ class ParametersData {
 	 * @param	string	Parameter name.
 	 * @return	mixed	Parameter array or false if it does not exist.
 	 */
-	public function getData($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
+	public function getData( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
 			return $this->data[$parameter];
 		} else {
 			return false;
@@ -1188,8 +1188,8 @@ class ParametersData {
 	 * @param	integer	Integer level.
 	 * @return	void
 	 */
-	public function setRichness($level) {
-		$this->parameterRichness = intval($level);
+	public function setRichness( $level ) {
+		$this->parameterRichness = intval( $level );
 	}
 
 	/**
@@ -1209,10 +1209,10 @@ class ParametersData {
 	 * @param	string	Function to test.
 	 * @return	boolean	Valid for this functional richness level.
 	 */
-	public function testRichness($function) {
+	public function testRichness( $function ) {
 		$valid = false;
-		for ($i = 0; $i <= $this->getRichness(); $i++) {
-			if (in_array($function, self::$parametersForRichnessLevel[$i])) {
+		for ( $i = 0; $i <= $this->getRichness(); $i++ ) {
+			if ( in_array( $function, self::$parametersForRichnessLevel[$i] ) ) {
 				$valid = true;
 				break;
 			}
@@ -1227,16 +1227,16 @@ class ParametersData {
 	 * @param	integer	[Optional] Maximum richness level
 	 * @return	array	The functional richness parameters list.
 	 */
-	public function getParametersForRichness($level = null) {
-		if ($level === null) {
+	public function getParametersForRichness( $level = null ) {
+		if ( $level === null ) {
 			$level = $this->getRichness();
 		}
 
 		$parameters = [];
-		for ($i = 0; $i <= $level; $i++) {
-			$parameters = array_merge($parameters, self::$parametersForRichnessLevel[$i]);
+		for ( $i = 0; $i <= $level; $i++ ) {
+			$parameters = array_merge( $parameters, self::$parametersForRichnessLevel[$i] );
 		}
-		sort($parameters);
+		sort( $parameters );
 
 		return $parameters;
 	}
@@ -1248,14 +1248,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	mixed
 	 */
-	public function getDefault($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('default', $this->data[$parameter])) {
+	public function getDefault( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'default', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['default'];
 			}
 			return null;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1265,14 +1265,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	mixed	Array of allowed values or false that the parameter allows any.
 	 */
-	public function getValues($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('values', $this->data[$parameter])) {
+	public function getValues( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'values', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['values'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1282,14 +1282,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function setsCriteriaFound($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('set_criteria_found', $this->data[$parameter])) {
+	public function setsCriteriaFound( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'set_criteria_found', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['set_criteria_found'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1299,14 +1299,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function isOpenReferenceConflict($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('open_ref_conflict', $this->data[$parameter])) {
+	public function isOpenReferenceConflict( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'open_ref_conflict', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['open_ref_conflict'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1316,14 +1316,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function shouldPreserveCase($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('preserve_case', $this->data[$parameter])) {
+	public function shouldPreserveCase( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'preserve_case', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['preserve_case'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1333,14 +1333,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function isPageNameList($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('page_name_list', $this->data[$parameter])) {
+	public function isPageNameList( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'page_name_list', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['page_name_list'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1350,14 +1350,14 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function isBoolean($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('boolean', $this->data[$parameter])) {
+	public function isBoolean( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'boolean', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['boolean'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 
 	/**
@@ -1367,13 +1367,13 @@ class ParametersData {
 	 * @param	string	Parameter Name
 	 * @return	bool
 	 */
-	public function isTimestamp($parameter) {
-		if (array_key_exists($parameter, $this->data)) {
-			if (array_key_exists('timestamp', $this->data[$parameter])) {
+	public function isTimestamp( $parameter ) {
+		if ( array_key_exists( $parameter, $this->data ) ) {
+			if ( array_key_exists( 'timestamp', $this->data[$parameter] ) ) {
 				return (bool)$this->data[$parameter]['timestamp'];
 			}
 			return false;
 		}
-		throw new MWException(__METHOD__ . ": Attempted to load a parameter that does not exist.");
+		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
 	}
 }

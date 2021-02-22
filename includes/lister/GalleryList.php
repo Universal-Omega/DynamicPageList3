@@ -6,7 +6,7 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 
 namespace DPL\Lister;
 
@@ -16,35 +16,35 @@ class GalleryList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	public $style = parent::LIST_GALLERY;
 
 	/**
 	 * List(Section) Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listStart = '<gallery%s>';
 
 	/**
 	 * List(Section) End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listEnd = '</gallery>';
 
 	/**
 	 * Item Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemStart = "\n";
 
 	/**
 	 * Item End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemEnd = "|";
 
@@ -56,17 +56,17 @@ class GalleryList extends Lister {
 	 * @param	string	[Optional] Page text to include.include.
 	 * @return	string	Item HTML
 	 */
-	public function formatItem(Article $article, $pageText = null) {
+	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle;
 
-		if ($pageText !== null) {
+		if ( $pageText !== null ) {
 			//Include parsed/processed wiki markup content after each item before the closing tag.
 			$item .= $pageText;
 		}
 
 		$item = $this->getItemStart() . $item . $this->itemEnd;
 
-		$item = $this->replaceTagParameters($item, $article);
+		$item = $this->replaceTagParameters( $item, $article );
 
 		return $item;
 	}
