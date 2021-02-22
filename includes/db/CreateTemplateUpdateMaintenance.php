@@ -6,7 +6,7 @@
  * @license GPL-2.0-or-later
  * @package DynamicPageList3
  *
- **/
+ */
 
 namespace DPL\DB;
 

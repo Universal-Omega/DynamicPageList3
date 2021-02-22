@@ -6,7 +6,7 @@
  * @license		GPL-2.0-or-later
  * @package		DynamicPageList3
  *
- **/
+ */
 
 namespace DPL\Lister;
 
@@ -14,7 +14,7 @@ class DefinitionList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	public $style = parent::LIST_DEFINITION;
 
@@ -22,14 +22,14 @@ class DefinitionList extends Lister {
 	 * Heading List Start
 	 * Use %s for attribute placement.  Example: <div%s>
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headListStart = '<dt%s>';
 
 	/**
 	 * Heading List End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headListEnd = '</dt>';
 
@@ -37,42 +37,42 @@ class DefinitionList extends Lister {
 	 * Heading List Start
 	 * Use %s for attribute placement.  Example: <div%s>
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headItemStart = '';
 
 	/**
 	 * Heading List End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $headItemEnd = '';
 
 	/**
 	 * List(Section) Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listStart = '<dl%s>';
 
 	/**
 	 * List(Section) End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $listEnd = '</dl>';
 
 	/**
 	 * Item Start
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemStart = '<dd%s>';
 
 	/**
 	 * Item End
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	public $itemEnd = '</dd>';
 }
