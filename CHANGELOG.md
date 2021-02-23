@@ -692,3 +692,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/89
 * The maxrevisions parameter was broken entirely at the query generation step.
 	* https://gitlab.com/hydrawiki/extensions/DynamicPageList/merge_requests/88
+# Version 3.3.4
+* Initial fork release
+* 1.35/actor support
+* numorous bug fixes
+* phpcs cleanup
