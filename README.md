@@ -4,7 +4,7 @@ The **DynamicPageList3** extension is a reporting tool for MediaWiki, listing ca
 
 When invoked with a basic set of selection parameters DPL displays a list of pages in one or more categories.  Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles.  Output takes a variety of forms, some of which incorporate elements of selected articles.
 
-This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code><DPL></code>.  A [Wikimedia](https://www.mediawiki.org/wiki/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
+This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code>&lt;DPL&gt;</nowiki></code>.  A [Wikimedia](https://www.mediawiki.org/wiki/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
 
 Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [DPL:Parameters: Other Parameters](https://help.gamepedia.com/Extension:DPL3/Parameters:_Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
