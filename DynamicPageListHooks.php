@@ -3,13 +3,13 @@
  *
  * @file
  * @ingroup Extensions
- * @link		http://www.mediawiki.org/wiki/Extension:DynamicPageList3 Documentation
- * @author		n:en:User:IlyaHaykinson
- * @author		n:en:User:Amgine
- * @author		w:de:Benutzer:Unendlich
- * @author		m:User:Dangerman <cyril.dangerville@gmail.com>
- * @author		m:User:Algorithmix <gero.scholz@gmx.de>
- * @license		GPL-2.0-or-later
+ * @link http://www.mediawiki.org/wiki/Extension:DynamicPageList3 Documentation
+ * @author n:en:User:IlyaHaykinson
+ * @author n:en:User:Amgine
+ * @author w:de:Benutzer:Unendlich
+ * @author m:User:Dangerman <cyril.dangerville@gmail.com>
+ * @author m:User:Algorithmix <gero.scholz@gmx.de>
+ * @license GPL-2.0-or-later
  *
  */
 
@@ -106,8 +106,7 @@ class DynamicPageListHooks {
 	/**
 	 * Handle special on extension registration bits.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @return void
 	 */
 	public static function onRegistration() {
 		if ( !defined( 'DPL_VERSION' ) ) {
@@ -118,9 +117,8 @@ class DynamicPageListHooks {
 	/**
 	 * Sets up this extension's parser functions.
 	 *
-	 * @access	public
-	 * @param	object	Parser object passed as a reference.
-	 * @return	boolean	true
+	 * @param object Parser object passed as a reference.
+	 * @return bool	true
 	 */
 	public static function onParserFirstCallInit( Parser &$parser ) {
 		self::init();
@@ -129,6 +127,7 @@ class DynamicPageListHooks {
 		if ( \DPL\Config::getSetting( 'handleSectionTag' ) ) {
 			$parser->setHook( 'section', [ __CLASS__, 'dplTag' ] );
 		}
+
 		$parser->setHook( 'DPL', [ __CLASS__, 'dplTag' ] );
 		$parser->setHook( 'DynamicPageList', [ __CLASS__, 'intersectionTag' ] );
 
@@ -145,9 +144,8 @@ class DynamicPageListHooks {
 	/**
 	 * Sets up this extension's parser functions for migration from Intersection.
 	 *
-	 * @access	public
-	 * @param	object	Parser object passed as a reference.
-	 * @return	boolean	true
+	 * @param object Parser object passed as a reference.
+	 * @returnbool true
 	 */
 	public static function setupMigration( Parser &$parser ) {
 		$parser->setHook( 'Intersection', [ __CLASS__, 'intersectionTag' ] );
@@ -162,7 +160,7 @@ class DynamicPageListHooks {
 	 * Common initializer for usage from parser entry points.
 	 *
 	 * @private
-	 * @return	void
+	 * @return void
 	 */
 	private static function init() {
 		\DPL\Config::init();
@@ -183,8 +181,8 @@ class DynamicPageListHooks {
 	 * Set to behave like intersection.
 	 *
 	 * @private
-	 * @param	boolean	Behave Like Intersection
-	 * @return	void
+	 * @param bool	Behave Like Intersection
+	 * @return void
 	 */
 	private static function setLikeIntersection( $mode = false ) {
 		self::$likeIntersection = $mode;
@@ -193,8 +191,7 @@ class DynamicPageListHooks {
 	/**
 	 * Is like intersection?
 	 *
-	 * @access	public
-	 * @return	boolean	Behaving Like Intersection
+	 * @return bool	Behaving Like Intersection
 	 */
 	public static function isLikeIntersection() {
 		return (bool)self::$likeIntersection;
@@ -203,12 +200,11 @@ class DynamicPageListHooks {
 	/**
 	 * Tag <section> entry point.
 	 *
-	 * @access	public
-	 * @param	string	Raw User Input
-	 * @param	array	Arguments on the tag.
-	 * @param	object	Parser object.
-	 * @param	object	PPFrame object.
-	 * @return	string	HTML
+	 * @param string Raw User Input
+	 * @param array Arguments on the tag.
+	 * @param object Parser object.
+	 * @param object PPFrame object.
+	 * @return string HTML
 	 */
 	public static function intersectionTag( $input, array $args, Parser $parser, PPFrame $frame ) {
 		self::setLikeIntersection( true );
@@ -218,12 +214,11 @@ class DynamicPageListHooks {
 	/**
 	 * Tag <dpl> entry point.
 	 *
-	 * @access	public
-	 * @param	string	Raw User Input
-	 * @param	array	Arguments on the tag.
-	 * @param	object	Parser object.
-	 * @param	object	PPFrame object.
-	 * @return	string	HTML
+	 * @param string Raw User Input
+	 * @param array Arguments on the tag.
+	 * @param object Parser object.
+	 * @param object PPFrame object.
+	 * @return string HTML
 	 */
 	public static function dplTag( $input, array $args, Parser $parser, PPFrame $frame ) {
 		self::setLikeIntersection( false );
@@ -234,12 +229,11 @@ class DynamicPageListHooks {
 	/**
 	 * The callback function wrapper for converting the input text to HTML output
 	 *
-	 * @access	public
-	 * @param	string	Raw User Input
-	 * @param	array	Arguments on the tag.(While not used, it is left here for future compatibility.)
-	 * @param	object	Parser object.
-	 * @param	object	PPFrame object.
-	 * @return	string	HTML
+	 * @param string Raw User Input
+	 * @param array Arguments on the tag.(While not used, it is left here for future compatibility.)
+	 * @param object Parser object.
+	 * @param object PPFrame object.
+	 * @return string HTML
 	 */
 	private static function executeTag( $input, array $args, Parser $parser, PPFrame $frame ) {
 		// entry point for user tag <dpl>  or  <DynamicPageList>
@@ -249,6 +243,7 @@ class DynamicPageListHooks {
 		if ( \DPL\Config::getSetting( 'recursiveTagParse' ) ) {
 			$input = $parser->recursiveTagParse( $input, $frame );
 		}
+
 		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
 
 		if ( isset( $reset['templates'] ) && $reset['templates'] ) {	// we can remove the templates by save/restore
@@ -277,9 +272,8 @@ class DynamicPageListHooks {
 	/**
 	 * The #dpl parser tag entry point.
 	 *
-	 * @access	public
-	 * @param	object	Parser object passed as a reference.
-	 * @return	string	Wiki Text
+	 * @param object Parser object passed as a reference.
+	 * @return string Wiki Text
 	 */
 	public static function dplParserFunction( &$parser ) {
 		self::setLikeIntersection( false );
@@ -315,9 +309,8 @@ class DynamicPageListHooks {
 	 * The #dplnum parser tag entry point.
 	 * From the old documentation: "Tries to guess a number that is buried in the text.  Uses a set of heuristic rules which may work or not.  The idea is to extract the number so that it can be used as a sorting value in the column of a DPL table output."
 	 *
-	 * @access	public
-	 * @param	object	Parser object passed as a reference.
-	 * @return	string	Wiki Text
+	 * @param object Parser object passed as a reference.
+	 * @return string Wiki Text
 	 */
 	public static function dplNumParserFunction( &$parser, $text = '' ) {
 		$parser->addTrackingCategory( 'dplnum-parserfunc-tracking-category' );
@@ -417,6 +410,7 @@ class DynamicPageListHooks {
 			if ( strlen( $line ) <= 0 ) {
 				continue;
 			}
+
 			if ( $line[0] != ' ' ) {
 				$from = preg_split( ' *\~\~ *', trim( $line ), 2 );
 				if ( !array_key_exists( $from[0], $sources ) ) {
@@ -477,7 +471,7 @@ class DynamicPageListHooks {
 	}
 
 	private static function dumpParsedRefs( $parser, $label ) {
-		//if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
+		// if (!preg_match("/Query Q/",$parser->mTitle->getText())) return '';
 		echo '<pre>parser mLinks: ';
 		ob_start();
 		var_dump( $parser->mOutput->mLinks );
@@ -494,7 +488,7 @@ class DynamicPageListHooks {
 		echo '</pre>';
 	}
 
-	//remove section markers in case the LabeledSectionTransclusion extension is not installed.
+	// remove section markers in case the LabeledSectionTransclusion extension is not installed.
 	public static function removeSectionMarkers( $in, $assocArgs = [], $parser = null ) {
 		return '';
 	}
@@ -548,7 +542,7 @@ class DynamicPageListHooks {
 			if ( self::$createdLinks['resetImages'] ) {
 				$parser->mOutput->mImages = [];
 			}
-			// $text .= self::dumpParsedRefs($parser,"after final reset");
+			// $text .= self::dumpParsedRefs( $parser, 'after final reset' );
 			self::$fixedCategories = [];
 		}
 		return true;
@@ -595,17 +589,17 @@ class DynamicPageListHooks {
 			// $text .= self::dumpParsedRefs($parser,"after final eliminate".$parser->mTitle->getText());
 		}
 
-		//self::$createdLinks=array(
-		//		  'resetLinks'=> false, 'resetTemplates' => false,
-		//		  'resetCategories' => false, 'resetImages' => false, 'resetdone' => false );
+		/* self::$createdLinks = [
+				'resetLinks'=> false, 'resetTemplates' => false,
+				'resetCategories' => false, 'resetImages' => false, 'resetdone' => false
+		]; */
 		return true;
 	}
 
 	/**
 	 * Setups and Modifies Database Information
 	 *
-	 * @access	public
-	 * @param	DatabaseUpdater $updater
+	 * @param DatabaseUpdater $updater
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
 		$extDir = __DIR__;
