@@ -1,14 +1,14 @@
 <?php
 /**
  * DynamicPageList3
- * CreateTemplateUpdateMaintenance
+ * CreateTemplate
  *
  * @license GPL-2.0-or-later
  * @package DynamicPageList3
  *
  */
 
-namespace DPL\DB;
+namespace DPL\maintenance;
 
 use CommentStoreComment;
 use LoggedUpdateMaintenance;
@@ -27,7 +27,7 @@ require_once "$IP/maintenance/Maintenance.php";
 /*
  * Creates the DPL template when updating.
  */
-class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
+class CreateTemplate extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
@@ -77,5 +77,5 @@ class CreateTemplateUpdateMaintenance extends LoggedUpdateMaintenance {
 	}
 }
 
-$maintClass = CreateTemplateUpdateMaintenance::class;
+$maintClass = CreateTemplate::class;
 require_once RUN_MAINTENANCE_IF_MAIN;
