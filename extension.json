@@ -34,7 +34,6 @@
 	"AutoloadClasses": {
 		"DPL\\Article": "includes/Article.php",
 		"DPL\\Config": "includes/Config.php",
-		"DPL\\DB\\CreateTemplateUpdateMaintenance": "includes/db/CreateTemplateUpdateMaintenance.php",
 		"DPL\\Heading\\DefinitionHeading": "includes/heading/DefinitionHeading.php",
 		"DPL\\Heading\\Heading": "includes/heading/Heading.php",
 		"DPL\\Heading\\OrderedHeading": "includes/heading/OrderedHeading.php",
@@ -51,6 +50,7 @@
 		"DPL\\Lister\\UserFormatList": "includes/lister/UserFormatList.php",
 		"DPL\\Logger": "includes/Logger.php",
 		"DPL\\LST": "includes/LST.php",
+		"DPL\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php",
 		"DPL\\Parameters": "includes/Parameters.php",
 		"DPL\\ParametersData": "includes/ParametersData.php",
 		"DPL\\Parse": "includes/Parse.php",
