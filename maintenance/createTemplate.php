@@ -8,7 +8,7 @@
  *
  */
 
-namespace DPL\maintenance;
+namespace DPL\Maintenance;
 
 use CommentStoreComment;
 use LoggedUpdateMaintenance;
