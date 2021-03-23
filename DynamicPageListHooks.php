@@ -604,7 +604,7 @@ class DynamicPageListHooks {
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
 		$extDir = __DIR__;
 
-		$updater->addPostDatabaseUpdateMaintenance( 'DPL\\DB\\CreateTemplateUpdateMaintenance' );
+		$updater->addPostDatabaseUpdateMaintenance( 'DPL\\Maintenance\\CreateTemplate' );
 
 		$db = $updater->getDB();
 		if ( !$db->tableExists( 'dpl_clview' ) ) {
