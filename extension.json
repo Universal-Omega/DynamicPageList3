@@ -55,7 +55,6 @@
 		"DPL\\ParametersData": "includes/ParametersData.php",
 		"DPL\\Parse": "includes/Parse.php",
 		"DPL\\Query": "includes/Query.php",
-		"DPL\\UpdateArticle": "includes/UpdateArticle.php",
 		"DPL\\Variables": "includes/Variables.php",
 		"DynamicPageListHooks": "DynamicPageListHooks.php"
 	},
