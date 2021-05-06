@@ -12,7 +12,6 @@ namespace DPL\Lister;
 
 use DPL\Article;
 use DPL\LST;
-use DPL\UpdateArticle;
 
 class Lister {
 	const LIST_DEFINITION = 1;
@@ -1039,29 +1038,16 @@ class Lister {
 				}
 				$filteredCount = $filteredCount + 1;
 
-				// update article if include=* and updaterules are given
-				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
-				$deleteRules = $this->getParameters()->getParameter( 'deleterules' );
-				if ( !empty( $updateRules ) ) {
-					$ruleOutput = UpdateArticle::updateArticleByRule( $title, $text, $updateRules );
-					// append update message to output
-					$pageText .= $ruleOutput;
-				} elseif ( !empty( $deleteRules ) ) {
-					$ruleOutput = UpdateArticle::deleteArticleByRule( $title, $text, $deleteRules );
-					// append delete message to output
-					$pageText .= $ruleOutput;
+				// append full text to output
+				if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
+					$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
+					$pieces = [
+						0 => $text
+					];
+					$this->replaceTagTableRow( $pieces, 0, $article );
+					$pageText .= $pieces[0];
 				} else {
-					// append full text to output
-					if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
-						$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
-						$pieces = [
-							0 => $text
-						];
-						$this->replaceTagTableRow( $pieces, 0, $article );
-						$pageText .= $pieces[0];
-					} else {
-						$pageText .= $text;
-					}
+					$pageText .= $text;
 				}
 			} else {
 				return '';
