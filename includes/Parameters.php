@@ -899,13 +899,16 @@ class Parameters extends ParametersData {
 	 */
 	public function _nottitlematch( $option ) {
 		$data = $this->getParameter( 'nottitle' );
-		if ( !is_array( $data['like'] ) ) {
+
+		if ( !isset( $data['like'] ) || !is_array( $data['like'] ) ) {
 			$data['like'] = [];
 		}
+
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
 		$data['like'] = array_merge( $data['like'], $newMatches );
 		$this->setParameter( 'nottitle', $data );
 		$this->setSelectionCriteriaFound( true );
+
 		return true;
 	}
 
