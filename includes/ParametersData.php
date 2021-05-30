@@ -305,7 +305,7 @@ class ParametersData {
 			'values'	=> [ 'strict' ]
 		],
 		'cacheperiod' => [
-			'default'	=> 86400, //Number of seconds, default one day at 86400 seconds.
+			'default'	=> 3600, // Number of seconds, default one day at 86400 seconds.
 			'integer'	=> true
 		],
 		/**

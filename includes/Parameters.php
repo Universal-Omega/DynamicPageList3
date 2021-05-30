@@ -8,7 +8,10 @@
  * @package DynamicPageList3
  *
  */
+
 namespace DPL;
+
+use MediaWiki\MediaWikiServices;
 
 class Parameters extends ParametersData {
 	/**
@@ -622,11 +625,12 @@ class Parameters extends ParametersData {
 	 * @return bool	Success
 	 */
 	public function _namespace( $option ) {
-		global $wgContLang;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
-			$namespaceId = $wgContLang->getNsIndex( $parameter );
+			$namespaceId = $contLang->getNsIndex( $parameter );
 			if ( $namespaceId === false || ( is_array( Config::getSetting( 'allowedNamespaces' ) ) && !in_array( $parameter, Config::getSetting( 'allowedNamespaces' ) ) ) ) {
 				//Let the user know this namespace is not allowed or does not exist.
 				return false;
@@ -647,11 +651,12 @@ class Parameters extends ParametersData {
 	 * @return bool	Success
 	 */
 	public function _notnamespace( $option ) {
-		global $wgContLang;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
-			$namespaceId = $wgContLang->getNsIndex( $parameter );
+			$namespaceId = $contLang->getNsIndex( $parameter );
 			if ( $namespaceId === false ) {
 				//Let the user know this namespace is not allowed or does not exist.
 				return false;

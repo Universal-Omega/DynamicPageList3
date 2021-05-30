@@ -13,6 +13,7 @@ namespace DPL\Lister;
 use DPL\Article;
 use DPL\LST;
 use DPL\UpdateArticle;
+use MediaWiki\MediaWikiServices;
 
 class Lister {
 	const LIST_DEFINITION = 1;
@@ -646,10 +647,11 @@ class Lister {
 	 * @return	string	Item HTML
 	 */
 	public function formatItem( Article $article, $pageText = null ) {
-		global $wgContLang, $wgLang;
+		global $wgLang;
 
 		$item = '';
-		//DPL Article, not MediaWiki.
+
+		// DPL Article, not MediaWiki.
 		$date = $article->getDate();
 		if ( $date !== null ) {
 			$item .= $date . ' ';
@@ -670,7 +672,9 @@ class Lister {
 		}
 
 		if ( $article->mCounter !== null ) {
-			$item .= ' ' . $wgContLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $wgLang->formatNum( $article->mCounter ) )->escaped() . ')';
+			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+
+			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $wgLang->formatNum( $article->mCounter ) )->escaped() . ')';
 		}
 
 		if ( $article->mUserLink !== null ) {
@@ -784,9 +788,9 @@ class Lister {
 	 * @return	string	Text with replacements performed.
 	 */
 	protected function replaceTagParameters( $tag, Article $article ) {
-		global $wgContLang;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
-		$namespaces = $wgContLang->getNamespaces();
+		$namespaces = $contLang->getNamespaces();
 
 		if ( strpos( $tag, '%' ) === false ) {
 			return $tag;
