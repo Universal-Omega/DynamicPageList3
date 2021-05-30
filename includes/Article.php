@@ -8,8 +8,10 @@
  * @package		DynamicPageList3
  *
  */
+
 namespace DPL;
 
+use MediaWiki\MediaWikiServices;
 use User;
 
 class Article {
@@ -206,7 +208,7 @@ class Article {
 	 * @return	object	\DPL\Article Object
 	 */
 	public static function newFromRow( $row, Parameters $parameters, \Title $title, $pageNamespace, $pageTitle ) {
-		global $wgLang, $wgContLang;
+		global $wgLang;
 
 		$article = new Article( $title, $pageNamespace );
 
@@ -235,12 +237,13 @@ class Article {
 		}
 
 		$article->mLink = $articleLink;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 		//get first char used for category-style output
 		if ( isset( $row['sortkey'] ) ) {
-			$article->mStartChar = $wgContLang->convert( $wgContLang->firstChar( $row['sortkey'] ) );
+			$article->mStartChar = $contLang->convert( $contLang->firstChar( $row['sortkey'] ) );
 		} else {
-			$article->mStartChar = $wgContLang->convert( $wgContLang->firstChar( $pageTitle ) );
+			$article->mStartChar = $contLang->convert( $contLang->firstChar( $pageTitle ) );
 		}
 
 		$article->mID = intval( $row['page_id'] );
