@@ -24,9 +24,11 @@
  * Thanks to Steve for his great work!
  * -- Algorithmix
  */
+
 namespace DPL;
 
 use DPL\Lister\Lister;
+use MediaWiki\MediaWikiServices;
 
 class LST {
 	##############################################################
@@ -531,8 +533,9 @@ class LST {
 			// we accept plain text as a template name, space or underscore are the same
 			// the localized name for "Template:" may preceed the template name
 			// the name may start with a different namespace for the surrogate template, followed by ::
-			global $wgContLang;
-			$nsNames = $wgContLang->getNamespaces();
+			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+
+			$nsNames = $contLang->getNamespaces();
 			$tCalls  = preg_split( '/\{\{\s*(Template:|' . $nsNames[10] . ':)?' . self::spaceOrUnderscore( preg_quote( $template1, '/' ) ) . '\s*[|}]/i', ' ' . $text );
 			// We restore the first separator symbol (we had to include that symbol into the SPLIT, because we must make
 			// sure that we only accept exact matches of the complete template name
