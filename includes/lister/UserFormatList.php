@@ -114,11 +114,7 @@ class UserFormatList extends Lister {
 					}
 				}
 			}
-			if ( $sortColumn < 0 ) {
-				arsort( $rowsKey );
-			} else {
-				asort( $rowsKey );
-			}
+			$this->sort($rowsKey, $sortColumn);
 			$newItems = [];
 			foreach ( $rowsKey as $index => $val ) {
 				$newItems[] = $items[$index];
@@ -127,6 +123,43 @@ class UserFormatList extends Lister {
 		}
 
 		return $this->listStart . $this->implodeItems( $items ) . $this->listEnd;
+	}
+
+	/**
+	 * Sort the data of a table column in place. Preserves array keys.
+	 *
+	 * @access	public
+	 * @param	array	Table column data
+	 * @param	int		Index of the column to sort
+	 * @return	void
+	 */
+	protected function sort(&$rowsKey, $sortColumn) {
+		$sortMethod = $this->getTableSortMethod();
+	
+		if ($sortColumn < 0) {
+			switch ($sortMethod) {
+				case 'natural':
+				// Reverse natsort()
+				   uasort($rowsKey, function($a, $b) {
+				   return strnatcmp($b, $a);
+				});
+				break;
+				case 'standard':
+				default:
+					arsort($rowsKey);
+					break;
+			}
+		} else {
+			switch ($sortMethod) {
+				case 'natural':
+				natsort($rowsKey);
+				break;
+			case 'standard':
+			default:
+				asort($rowsKey);
+				break;
+			}
+		}
 	}
 
 	/**

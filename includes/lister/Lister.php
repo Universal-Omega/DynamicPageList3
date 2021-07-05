@@ -256,6 +256,7 @@ class Lister {
 		$this->setTemplateSuffix( $parameters->getParameter( 'defaulttemplatesuffix' ) );
 		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
 		$this->setTableSortColumn( $parameters->getParameter( 'tablesortcol' ) );
+		$this->setTableSortMethod($parameters->getParameter('tablesortmethod'));
 		$this->setTitleMaxLength( $parameters->getParameter( 'titlemaxlen' ) );
 		$this->setEscapeLinks( $parameters->getParameter( 'escapelinks' ) );
 		$this->setSectionSeparators( $parameters->getParameter( 'secseparators' ) );
@@ -481,6 +482,27 @@ class Lister {
 	 */
 	public function getTableSortColumn() {
 		return $this->tableSortColumn;
+	}
+
+	/**
+	 * Set the algorithm for table sorting
+	 *
+	 * @access	public
+	 * @param	string	Algorithm name
+	 * @return	void
+	 */
+	public function setTableSortMethod($method = null) {
+		$this->tableSortMethod = $method === null ? 'standard' : $method;
+	}
+
+	/**
+	 * Get the algorithm for table sorting
+	 *
+	 * @access	public
+	 * @return	string	Algorithm name
+	 */
+	public function getTableSortMethod() {
+		return $this->tableSortMethod;
 	}
 
 	/**
