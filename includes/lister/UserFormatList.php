@@ -139,11 +139,11 @@ class UserFormatList extends Lister {
 		if ($sortColumn < 0) {
 			switch ($sortMethod) {
 				case 'natural':
-				// Reverse natsort()
-				   uasort($rowsKey, function($a, $b) {
-				   return strnatcmp($b, $a);
-				});
-				break;
+					// Reverse natsort()
+                    uasort($rowsKey, function($first, $second) {
+                    	return strnatcmp($second, $first);
+					});
+					break;
 				case 'standard':
 				default:
 					arsort($rowsKey);
