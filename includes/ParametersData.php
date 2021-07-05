@@ -127,6 +127,7 @@ class ParametersData {
 			'table',
 			'tablerow',
 			'tablesortcol',
+			'tablesortmethod',
 			'titlematch',
 			'usedby',
 			'uses'
@@ -1103,6 +1104,16 @@ class ParametersData {
 		'tablesortcol' => [
 			'default'	=> null,
 			'integer'	=> true
+		],
+		/**
+		 * The sorting algorithm for table columns when 'tablesortcol'
+		 * is used.
+		 * - standard: Use PHP asort() and arsort()
+		 * - natural: Use PHP natsort()
+		 */
+		'tablesortmethod' => [
+			'default'	=> null,
+			'values'	=> ['standard', 'natural']
 		],
 		/**
 		 * Max # characters of page title to display.
