@@ -9,6 +9,7 @@ use ExtVariables;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use Parser;
+use Title;
 use Wikimedia\Rdbms\IDatabase;
 
 class Parse {
