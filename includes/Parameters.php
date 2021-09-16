@@ -832,7 +832,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _titleregexp( $option ) {
 		$data = $this->getParameter( 'title' );
-		if ( !is_array( $data['regexp'] ) ) {
+		if ( !isset( $data['regexp'] ) || !is_array( $data['regexp'] ) ) {
 			$data['regexp'] = [];
 		}
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
