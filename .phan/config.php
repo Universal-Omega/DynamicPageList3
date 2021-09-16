@@ -18,6 +18,7 @@ $cfg['suppress_issue_types'] = [
 	'PhanUnextractableAnnotationElementName',
 	'PhanPossiblyNullTypeMismatchProperty',
 	'PhanTypeMismatchArgumentInternal',
+	'SecurityCheck-LikelyFalsePositive',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
