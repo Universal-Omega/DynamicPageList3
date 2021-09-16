@@ -951,7 +951,7 @@ class Lister {
 	 * @param	boolean	Is this the first time this function was called in this context?
 	 * @param	integer	Maximum text length allowed.
 	 * @param	object	\DPL\Article
-	 * @return	strig	Formatted text.
+	 * @return	string	Formatted text.
 	 */
 	public function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxLength, Article $article ) {
 		$tableFormat = $this->getParameters()->getParameter( 'tablerow' );
