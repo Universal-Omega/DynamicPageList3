@@ -8,10 +8,10 @@
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
 	"descriptionmsg": "dpl-desc",
-	"license-name": "GPL-2.0-or-later",
+	"license-name": "GPL-3.0-or-later",
 	"type": "parserhook",
 	"requires": {
-		"MediaWiki": ">= 1.35.0"
+		"MediaWiki": ">= 1.36.0"
 	},
 	"GroupPermissions": {
 		"sysop": {
