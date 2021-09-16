@@ -197,7 +197,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticleOtherCategoryWithInfobox' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
-				'createdby' => 'FANDOM',
+				'createdby' => 'DPLTestSystemUser',
 			] ),
 			true
 		);
@@ -241,7 +241,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticleMultipleCategories' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
-				'notcreatedby' => 'FANDOM',
+				'notcreatedby' => 'DPLTestSystemUser',
 			] ),
 			true
 		);
