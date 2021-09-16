@@ -39,11 +39,16 @@ class LST {
 
 	/**
 	 * Register what we're working on in the parser, so we don't fall into a trap.
+	 *
 	 * @param Parser $parser
 	 * @param $part1
 	 * @return bool
 	 */
 	public static function open( $parser, $part1 ) {
+		if ( !isset( $parser->mTemplatePath ) ) {
+			$parser->mTemplatePath = [];
+		}
+
 		// Infinite loop test
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
@@ -56,11 +61,15 @@ class LST {
 
 	/**
 	 * Finish processing the function.
+	 *
 	 * @param $parser Parser
 	 * @param $part1
-	 * @return bool
 	 */
 	public static function close( $parser, $part1 ) {
+		if ( !isset( $parser->mTemplatePath ) ) {
+			$parser->mTemplatePath = [];
+		}
+
 		// Infinite loop test
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			unset( $parser->mTemplatePath[$part1] );
