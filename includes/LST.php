@@ -29,6 +29,7 @@ namespace DPL;
 
 use DPL\Lister\Lister;
 use MediaWiki\MediaWikiServices;
+use Parser;
 
 class LST {
 	##############################################################
@@ -38,7 +39,7 @@ class LST {
 
 	/**
 	 * Register what we're working on in the parser, so we don't fall into a trap.
-	 * @param $parser Parser
+	 * @param Parser $parser
 	 * @param $part1
 	 * @return bool
 	 */
@@ -84,9 +85,9 @@ class LST {
 
 		if ( self::open( $parser, $part1 ) ) {
 
-			//Handle recursion here, so we can break cycles.
+			// Handle recursion here, so we can break cycles.
 			if ( $recursionCheck == false ) {
-				$text = $parser->preprocess( $text, $parser->mTitle, $parser->mOptions );
+				$text = $parser->preprocess( $text, $parser->getTitle(), $parser->getOptions() );
 				self::close( $parser, $part1 );
 			}
 
@@ -186,7 +187,7 @@ class LST {
 			$text = $parser->fetchTemplateAndTitle( $title )[0];
 		}
 
-		//if article doesn't exist, return a red link.
+		// if article doesn't exist, return a red link.
 		if ( $text == false ) {
 			$text = "[[" . $title->getPrefixedText() . "]]";
 			return false;
@@ -225,10 +226,12 @@ class LST {
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... it is cut at a word boundary (white space) if possible
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
-	 * @param  $lim     limit of character count for the result
-	 * @param  $text    the wikitext to be truncated
-	 * @param  $link    an optional link which will be appended to the text if it was truncatedt
-	 * @return the truncated text;
+	 *
+	 * @param $limit limit of character count for the result
+	 * @param $text the wikitext to be truncated
+	 * @param $link an optional link which will be appended to the text if it was truncated
+	 *
+	 * @return string the truncated text;
 	 *         note that the returned text may be longer than the limit if this is necessary
 	 *         to return something at all. We do not want to return an empty string if the input is not empty
 	 *         if the text is already shorter than the limit, the text
@@ -497,7 +500,7 @@ class LST {
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
-		$page  = $article->mTitle->getPrefixedText();
+		$page  = $article->getTitle()->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
 		$title = \Title::newFromText( $page );
@@ -573,7 +576,7 @@ class LST {
 				}
 			} else {
 				// put a red link into the output
-				$output[0] = $parser->preprocess( '{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->mTitle, $parser->mOptions );
+				$output[0] = $parser->preprocess( '{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->getTitle(), $parser->getOptions() );
 			}
 			unset( $title );
 			return $output;
@@ -613,7 +616,7 @@ class LST {
 								$argChain .= "|%CATLIST%=$catlist";
 							}
 							$argChain .= '|%DATE%=' . $date . '|%USER%=' . $user . '|%ARGS%=' . str_replace( '|', '§', preg_replace( '/[}]+/', '}', preg_replace( '/[{]+/', '{', substr( $invocation, strlen( $template2 ) + 2 ) ) ) ) . '}}';
-							$output[++$n] = $parser->preprocess( $argChain, $parser->mTitle, $parser->mOptions );
+							$output[++$n] = $parser->preprocess( $argChain, $parser->getTitle(), $parser->getOptions() );
 						}
 						break;
 					}
