@@ -16,6 +16,8 @@ $cfg['suppress_issue_types'] = [
 	'PhanImpossibleTypeComparison',
 	'PhanTypeMismatchArgument',
 	'PhanUnextractableAnnotationElementName',
+	'PhanPossiblyNullTypeMismatchProperty',
+	'PhanTypeMismatchArgumentInternal',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
