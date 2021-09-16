@@ -21,13 +21,6 @@ class Parse {
 	private $DB = null;
 
 	/**
-	 * Mediawiki Parser Object
-	 *
-	 * @var Parser
-	 */
-	private $parser = null;
-
-	/**
 	 * Parameters Object
 	 *
 	 * @var Parameters
@@ -83,6 +76,8 @@ class Parse {
 	 */
 	private $replacementVariables = [];
 
+	private $request;
+
 	/**
 	 * Array of possible URL arguments.
 	 *
@@ -103,7 +98,7 @@ class Parse {
 		$this->parameters = new Parameters();
 		$this->logger = new Logger();
 		$this->tableNames = Query::getTableNames();
-		$this->wgRequest = $wgRequest;
+		$this->request = $wgRequest;
 	}
 
 	/**
@@ -118,26 +113,25 @@ class Parse {
 	 */
 	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
-		$this->parser = $parser;
 
 		// Reset headings when being ran more than once in the same page load.
 		Article::resetHeadings();
 
-		if ( !isset( $this->parser->mTemplatePath ) ) {
-			$this->parser->mTemplatePath = [];
+		if ( !isset( $parser->mTemplatePath ) ) {
+			$parser->mTemplatePath = [];
 		}
 
 		// Check that we are not in an infinite transclusion loop
-		if ( isset( $this->parser->mTemplatePath[$this->parser->getTitle()->getPrefixedText()] ) ) {
-			$this->logger->addMessage( DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $this->parser->getTitle()->getPrefixedText() );
+		if ( isset( $parser->mTemplatePath[$parser->getTitle()->getPrefixedText()] ) ) {
+			$this->logger->addMessage( DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $parser->getTitle()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
 
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$this->parser->getTitle()->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getTitle()->isProtected( 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage( DynamicPageListHooks::FATAL_NOTPROTECTED, $this->parser->getTitle()->getPrefixedText() );
+			$this->logger->addMessage( DynamicPageListHooks::FATAL_NOTPROTECTED, $parser->getTitle()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
@@ -150,10 +144,11 @@ class Parse {
 				$this->urlArguments[] = 'DPL_arg' . $i;
 			}
 		}
-		$input = $this->resolveUrlArguments( $input, $this->urlArguments );
-		$this->getUrlArgs( $this->parser );
 
-		$this->parameters->setParameter( 'offset', $this->wgRequest->getInt( 'DPL_offset', $this->parameters->getData( 'offset' )['default'] ) );
+		$input = $this->resolveUrlArguments( $input, $this->urlArguments );
+		$this->getUrlArgs( $parser );
+
+		$this->parameters->setParameter( 'offset', $this->request->getInt( 'DPL_offset', $this->parameters->getData( 'offset' )['default'] ) );
 		$offset = $this->parameters->getParameter( 'offset' );
 
 		/***************************************/
@@ -219,19 +214,19 @@ class Parse {
 		try {
 			$actorMigration = ActorMigration::newMigration();
 			$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-			$this->query = new Query( $this->parameters, $actorMigration, $commentStore );
-			$result = $this->query->buildAndSelect( $calcRows );
+			$query = new Query( $this->parameters, $actorMigration, $commentStore );
+			$result = $query->buildAndSelect( $calcRows );
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
 
 		$numRows = $this->DB->numRows( $result );
-		$articles = $this->processQueryResults( $result );
+		$articles = $this->processQueryResults( $result, $parser );
 
 		global $wgDebugDumpSql;
 		if ( DynamicPageListHooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
-			$this->addOutput( $this->query->getSqlQuery() . "\n" );
+			$this->addOutput( $query->getSqlQuery() . "\n" );
 		}
 
 		$this->addOutput( '{{Extension DPL}}' );
@@ -252,7 +247,7 @@ class Parse {
 
 		$foundRows = null;
 		if ( $calcRows ) {
-			$foundRows = $this->query->getFoundRows();
+			$foundRows = $query->getFoundRows();
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.
@@ -268,7 +263,7 @@ class Parse {
 		/*******************/
 		/* Generate Output */
 		/*******************/
-		$lister = Lister::newFromStyle( $this->parameters->getParameter( 'mode' ), $this->parameters, $this->parser );
+		$lister = Lister::newFromStyle( $this->parameters->getParameter( 'mode' ), $this->parameters, $parser );
 		$heading = Heading::newFromStyle( $this->parameters->getParameter( 'headingmode' ), $this->parameters );
 		if ( $heading !== null ) {
 			$this->addOutput( $heading->format( $articles, $lister ) );
@@ -322,17 +317,17 @@ class Parse {
 			'DPL_pages' => $lister->getRowCount()
 		];
 
-		$this->defineScrollVariables( $scrollVariables );
+		$this->defineScrollVariables( $scrollVariables, $parser );
 
 		if ( $this->parameters->getParameter( 'allowcachedresults' ) || Config::getSetting( 'alwaysCacheResults' ) ) {
-			$this->parser->getOutput()->updateCacheExpiry( $this->parameters->getParameter( 'cacheperiod' ) ?? 3600 );
+			$parser->getOutput()->updateCacheExpiry( $this->parameters->getParameter( 'cacheperiod' ) ?? 3600 );
 		} else {
-			$this->parser->getOutput()->updateCacheExpiry( 0 );
+			$parser->getOutput()->updateCacheExpiry( 0 );
 		}
 
 		$finalOutput = $this->getFullOutput( $foundRows, false );
 
-		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag );
+		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
 
 		return $finalOutput;
 	}
@@ -341,9 +336,10 @@ class Parse {
 	 * Process Query Results
 	 *
 	 * @param $result
+	 * @param Parser $parser
 	 * @return array
 	 */
-	private function processQueryResults( $result ) {
+	private function processQueryResults( $result, Parser $parser ) {
 		/*******************************/
 		/* Random Count Pick Generator */
 		/*******************************/
@@ -403,7 +399,7 @@ class Parse {
 			}
 
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
-			$thisTitle = $this->parser->getTitle();
+			$thisTitle = $parser->getTitle();
 
 			// Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle->equals( $title ) ) {
@@ -839,7 +835,7 @@ class Parse {
 		$arguments = (array)$arguments;
 
 		foreach ( $arguments as $arg ) {
-			$dplArg = $this->wgRequest->getVal( $arg, '' );
+			$dplArg = $this->request->getVal( $arg, '' );
 
 			if ( $dplArg == '' ) {
 				$input = preg_replace( '/\{%' . $arg . ':(.*)%\}/U', '\1', $input );
@@ -855,9 +851,11 @@ class Parse {
 
 	/**
 	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
+	 *
+	 * @param Parser $parser
 	 */
-	private function getUrlArgs() {
-		$args = $this->wgRequest->getValues();
+	private function getUrlArgs( Parser $parser ) {
+		$args = $this->request->getValues();
 
 		foreach ( $args as $argName => $argValue ) {
 			if ( strpos( $argName, 'DPL_' ) === false ) {
@@ -867,7 +865,7 @@ class Parse {
 			Variables::setVar( [ '', '', $argName, $argValue ] );
 
 			if ( defined( 'ExtVariables::VERSION' ) ) {
-				ExtVariables::get( $this->parser )->setVarValue( $argName, $argValue );
+				ExtVariables::get( $parser )->setVarValue( $argName, $argValue );
 			}
 		}
 	}
@@ -875,16 +873,17 @@ class Parse {
 	/**
 	 * This function uses the Variables extension to provide navigation aids such as DPL_firstTitle, DPL_lastTitle, or DPL_findTitle. These variables can be accessed as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
 	 *
-	 * @param array	$scrollVariables
+	 * @param array $scrollVariables
+	 * @param Parser $parser
 	 */
-	private function defineScrollVariables( $scrollVariables ) {
+	private function defineScrollVariables( $scrollVariables, Parser $parser ) {
 		$scrollVariables = (array)$scrollVariables;
 
 		foreach ( $scrollVariables as $variable => $value ) {
 			Variables::setVar( [ '', '', $variable, $value ] );
 
 			if ( defined( 'ExtVariables::VERSION' ) ) {
-				ExtVariables::get( $this->parser )->setVarValue( $variable, $value );
+				ExtVariables::get( $parser )->setVarValue( $variable, $value );
 			}
 		}
 	}
@@ -893,15 +892,16 @@ class Parse {
 	 * Trigger Resets and Eliminates that run at the end of parsing.
 	 *
 	 * @param string $output
-	 * @param array	&$reset
-	 * @param array	&$eliminate
+	 * @param array &$reset
+	 * @param array &$eliminate
 	 * @param bool $isParserTag
+	 * @param Parser $parser
 	 */
-	private function triggerEndResets( $output, &$reset, &$eliminate, $isParserTag ) {
+	private function triggerEndResets( $output, &$reset, &$eliminate, $isParserTag, Parser $parser ) {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $localParser->parse( $output, $this->parser->getTitle(), $this->parser->getOptions() );
+		$parserOutput = $localParser->parse( $output, $parser->getTitle(), $parser->getOptions() );
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
