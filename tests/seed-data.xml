@@ -34,7 +34,7 @@
 			<id>13</id>
 			<timestamp>2017-09-07T10:45:24Z</timestamp>
 			<contributor>
-				<username>DPLTestAdmin</username>
+				<username>DPLTestSystemUser</username>
 			</contributor>
 			<comment>Test template</comment>
 			<origin>13</origin>
@@ -222,7 +222,7 @@
 			<id>26</id>
 			<timestamp>2021-09-02T14:44:01Z</timestamp>
 			<contributor>
-				<username>DPLTestAdmin</username>
+				<username>DPLTestSystemUser</username>
 			</contributor>
 			<comment>Page with infobox</comment>
 			<origin>25</origin>
@@ -241,7 +241,7 @@
 			<id>27</id>
 			<timestamp>2021-09-04T03:01:00Z</timestamp>
 			<contributor>
-				<username>DPLTestUser</username>
+				<username>DPLTestSystemUser</username>
 			</contributor>
 			<comment>Create test uncategorized page</comment>
 			<origin>27</origin>
