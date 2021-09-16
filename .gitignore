@@ -2,9 +2,3 @@
 /vendor
 /composer.lock
 /.eslintcache
-*.kate-swp
-*~
-.*.swp
-.DS_Store
-.svn
-.idea
