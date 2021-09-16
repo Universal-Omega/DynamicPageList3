@@ -267,7 +267,7 @@ class DynamicPageListHooks {
 		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false );
 
 		return [
-			$parser->getPreprocessor()->preprocessToObj( $dplresult, Parser::PTD_FOR_INCLUSION ),
+			$parser->getPreprocessor()->preprocessToObj( $dplresult, 1 ),
 			'isLocalObj' => true,
 			'title' => $parser->getTitle()
 		];
@@ -368,7 +368,7 @@ class DynamicPageListHooks {
 		$from    = '';
 		$to      = '';
 
-		if ( $flip == '' | $flip == 'normal' ) {
+		if ( $flip == '' || $flip == 'normal' ) {
 			$flip = false;
 		} else {
 			$flip = true;
