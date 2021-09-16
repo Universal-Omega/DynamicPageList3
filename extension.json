@@ -29,7 +29,7 @@
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
+		"DynamicPageListMagic": "includes/DynamicPageListMagic.php"
 	},
 	"AutoloadClasses": {
 		"DPL\\Article": "includes/Article.php",
@@ -59,15 +59,15 @@
 		"DPL\\Variables": "includes/Variables.php",
 		"DPL\\RevisionJoinBuilder": "includes/RevisionJoinBuilder.php",
 		"DPL\\UserQueryBuilder": "includes/UserQueryBuilder.php",
-		"DynamicPageListHooks": "includes/DynamicPageListHooks.php",
+		"DPL\\DynamicPageListHooks": "includes/DynamicPageListHooks.php",
 		"DPL\\DPLIntegrationTestCase": "tests/phpunit/DPLIntegrationTestCase.php"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
-			"DynamicPageListHooks::onParserFirstCallInit"
+			"DPL\\DynamicPageListHooks::onParserFirstCallInit"
 		],
 		"LoadExtensionSchemaUpdates": [
-			"DynamicPageListHooks::onLoadExtensionSchemaUpdates"
+			"DPL\\DynamicPageListHooks::onLoadExtensionSchemaUpdates"
 		]
 	},
 	"config": {
@@ -98,6 +98,6 @@
 		"dplchapter-parserfunc-tracking-category",
 		"dplmatrix-parserfunc-tracking-category"
 	],
-	"callback": "DynamicPageListHooks::onRegistration",
+	"callback": "DPL\\DynamicPageListHooks::onRegistration",
 	"manifest_version": 1
 }
