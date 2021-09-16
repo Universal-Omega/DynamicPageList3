@@ -101,7 +101,7 @@ class Parse {
 
 		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
 		$this->parameters = new Parameters();
-		$this->logger = new Logger( $this->parameters->getData( 'debug' )['default'] );
+		$this->logger = new Logger();
 		$this->tableNames = Query::getTableNames();
 		$this->wgRequest = $wgRequest;
 	}
