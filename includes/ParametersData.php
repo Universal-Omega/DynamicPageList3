@@ -1135,7 +1135,7 @@ class ParametersData {
 	public function __construct() {
 		$this->setRichness( Config::getSetting( 'functionalRichness' ) );
 
-		if ( \DynamicPageListHooks::isLikeIntersection() ) {
+		if ( DynamicPageListHooks::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
 				'default'	=> 'categoryadd',
 				'values'	=> [
