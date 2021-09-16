@@ -58,15 +58,15 @@ class Logger {
 		$errorId = array_shift( $args );
 		$errorLevel = floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
-		if ( \DynamicPageListHooks::getDebugLevel() >= $errorLevel ) {
-			if ( \DynamicPageListHooks::isLikeIntersection() ) {
-				if ( $errorId == \DynamicPageListHooks::FATAL_TOOMANYCATS ) {
+		if ( DynamicPageListHooks::getDebugLevel() >= $errorLevel ) {
+			if ( DynamicPageListHooks::isLikeIntersection() ) {
+				if ( $errorId == DynamicPageListHooks::FATAL_TOOMANYCATS ) {
 					$text = wfMessage( 'intersection_toomanycats', $args )->text();
-				} elseif ( $errorId == \DynamicPageListHooks::FATAL_TOOFEWCATS ) {
+				} elseif ( $errorId == DynamicPageListHooks::FATAL_TOOFEWCATS ) {
 					$text = wfMessage( 'intersection_toofewcats', $args )->text();
-				} elseif ( $errorId == \DynamicPageListHooks::WARN_NORESULTS ) {
+				} elseif ( $errorId == DynamicPageListHooks::WARN_NORESULTS ) {
 					$text = wfMessage( 'intersection_noresults', $args )->text();
-				} elseif ( $errorId == \DynamicPageListHooks::FATAL_NOSELECTION ) {
+				} elseif ( $errorId == DynamicPageListHooks::FATAL_NOSELECTION ) {
 					$text = wfMessage( 'intersection_noincludecats', $args )->text();
 				}
 			}
