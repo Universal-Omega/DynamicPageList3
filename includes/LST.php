@@ -500,7 +500,7 @@ class LST {
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
-		$page  = $article->getTitle()->getPrefixedText();
+		$page  = $article->mTitle->getPrefixedText();
 		$date  = $article->myDate;
 		$user  = $article->mUserLink;
 		$title = \Title::newFromText( $page );
