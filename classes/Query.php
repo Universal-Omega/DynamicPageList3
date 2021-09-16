@@ -727,12 +727,7 @@ class Query {
 	private function _addcontribution($option) {
 		$this->addTable('recentchanges', 'rc');
 
-		$field = 'rc.rc_user_text';
-		// This is the wrong check since the ActorMigration may be in progress
-		// https://www.mediawiki.org/wiki/Actor_migration
-		if ( class_exists( 'ActorMigration' ) ) {
-			$field = 'rc.rc_actor';
-		}
+		$field = 'rc.rc_actor';
 
 		$this->addSelect(
 			[
@@ -871,9 +866,8 @@ class Query {
 		$tableAlias = (!empty($tableAlias) ? $tableAlias . '.' : '');
 		$this->addSelect(
 			[
-				$tableAlias . 'rev_user',
-				$tableAlias . 'rev_user_text',
-				$tableAlias . 'rev_comment'
+				$tableAlias . 'rev_actor',
+				$tableAlias . 'rev_comment_id'
 			]
 		);
 	}
@@ -1054,7 +1048,7 @@ class Query {
 		$this->_adduser(null, 'creation_rev');
 		$this->addWhere(
 			[
-				$this->DB->addQuotes($option) . ' = creation_rev.rev_user_text',
+				$this->DB->addQuotes($option) . ' = creation_rev.rev_actor',
 				'creation_rev.rev_page = page_id',
 				'creation_rev.rev_parent_id = 0'
 			]
@@ -1205,7 +1199,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _lastmodifiedby($option) {
-	   $this->addWhere($this->DB->addQuotes($option) . ' = (SELECT rev_user_text FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
+	   $this->addWhere($this->DB->addQuotes($option) . ' = (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -1485,7 +1479,7 @@ class Query {
 	 */
 	private function _modifiedby($option) {
 		$this->addTable('revision', 'change_rev');
-		$this->addWhere($this->DB->addQuotes($option) . ' = change_rev.rev_user_text AND change_rev.rev_page = page_id');
+		$this->addWhere($this->DB->addQuotes($option) . ' = change_rev.rev_actor AND change_rev.rev_page = page_id');
 	}
 
 	/**
@@ -1522,7 +1516,7 @@ class Query {
 	 */
 	private function _notcreatedby($option) {
 		$this->addTable('revision', 'no_creation_rev');
-		$this->addWhere($this->DB->addQuotes($option) . ' != no_creation_rev.rev_user_text AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0');
+		$this->addWhere($this->DB->addQuotes($option) . ' != no_creation_rev.rev_actor AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0');
 	}
 
 	/**
@@ -1533,7 +1527,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notlastmodifiedby($option) {
-		$this->addWhere($this->DB->addQuotes($option) . ' != (SELECT rev_user_text FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
+		$this->addWhere($this->DB->addQuotes($option) . ' != (SELECT rev_actor FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id ORDER BY ' . $this->tableNames['revision'] . '.rev_timestamp DESC LIMIT 1)');
 	}
 
 	/**
@@ -1544,7 +1538,7 @@ class Query {
 	 * @return	void
 	 */
 	private function _notmodifiedby($option) {
-		$this->addWhere('NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id AND ' . $this->tableNames['revision'] . '.rev_user_text = ' . $this->DB->addQuotes($option) . ' LIMIT 1)');
+		$this->addWhere('NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision'] . ' WHERE ' . $this->tableNames['revision'] . '.rev_page=page_id AND ' . $this->tableNames['revision'] . '.rev_actor = ' . $this->DB->addQuotes($option) . ' LIMIT 1)');
 	}
 
 	/**
@@ -1840,7 +1834,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					$this->addOrderBy('rev.rev_user_text');
+					$this->addOrderBy('rev.rev_actor');
 					$this->addTable('revision', 'rev');
 					$this->_adduser(null, 'rev');
 					break;

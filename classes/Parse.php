@@ -319,10 +319,10 @@ class Parse {
 		];
 		$this->defineScrollVariables($scrollVariables);
 
-		if ($this->parameters->getParameter('allowcachedresults')) {
+		if ($this->parameters->getParameter('allowcachedresults') || Config::getSetting('alwaysCacheResults')) {
 			$this->parser->getOutput()->updateCacheExpiry($this->parameters->getParameter('cacheperiod') ? $this->parameters->getParameter('cacheperiod') : 3600);
 		} else {
-			$this->parser->disableCache();
+			$this->parser->getOutput()->updateCacheExpiry( 0 );
 		}
 
 		$finalOutput = $this->getFullOutput($foundRows, false);

@@ -209,7 +209,8 @@ class Article {
 		global $wgLang, $wgContLang;
 
 		$article = new Article($title, $pageNamespace);
-
+		$revActorName = User::newFromActorId( $row['rev_actor'] )->getName();
+		
 		$titleText = $title->getText();
 		if ($parameters->getParameter('shownamespace') === true) {
 			$titleText = $title->getPrefixedText();
@@ -278,9 +279,9 @@ class Article {
 			//REVISION SPECIFIED
 			if ($parameters->getParameter('lastrevisionbefore') || $parameters->getParameter('allrevisionsbefore') || $parameters->getParameter('firstrevisionsince') || $parameters->getParameter('allrevisionssince')) {
 				$article->mRevision = $row['rev_id'];
-				$article->mUser     = $row['rev_user_text'];
+				$article->mUser     = $revActorName;
 				$article->mDate     = $row['rev_timestamp'];
-				$article->mComment  = $row['rev_comment'];
+				$article->mComment  = $row['rev_comment_id'];
 			}
 
 			//SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
@@ -306,13 +307,7 @@ class Article {
 			// CONTRIBUTION, CONTRIBUTOR
 			if ($parameters->getParameter('addcontribution')) {
 				$article->mContribution = $row['contribution'];
-				// This is the wrong check since the ActorMigration may be in progress
-				// https://www.mediawiki.org/wiki/Actor_migration
-				if ( class_exists( 'ActorMigration' ) ) {
-					$article->mContributor  = User::newFromActorId( $row['contributor'] )->getName();
-				} else {
-					$article->mContributor  = $row['contributor'];
-				}
+				$article->mContributor  = User::newFromActorId( $row['contributor'] )->getName();
 				$article->mContrib      = substr('*****************', 0, (int) round(log($row['contribution'])));
 			}
 
@@ -320,8 +315,8 @@ class Article {
 			// because we are going to do a recursive parse at the end of the output phase
 			// we have to generate wiki syntax for linking to a user´s homepage
 			if ($parameters->getParameter('adduser') || $parameters->getParameter('addauthor') || $parameters->getParameter('addlasteditor')) {
-				$article->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-				$article->mUser     = $row['rev_user_text'];
+				$article->mUserLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+				$article->mUser     = $revActorName;
 			}
 
 			//CATEGORY LINKS FROM CURRENT PAGE
@@ -346,11 +341,11 @@ class Article {
 						}
 						break;
 					case 'user':
-						self::$headings[$row['rev_user_text']] = (isset(self::$headings[$row['rev_user_text']]) ? self::$headings[$row['rev_user_text']] + 1 : 1);
-						if ($row['rev_user'] == 0) { //anonymous user
-							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+						self::$headings[$revActorName] = (isset(self::$headings[$revActorName]) ? self::$headings[$revActorName] + 1 : 1);
+						if ($row['rev_actor'] == 0) { //anonymous user
+							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
 						} else {
-							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
 						}
 						break;
 				}
