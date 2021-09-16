@@ -8,6 +8,7 @@ use DPL\Lister\Lister;
 use DynamicPageListHooks;
 use ExtVariables;
 use MediaWiki\MediaWikiServices;
+use MWException;
 use Parser;
 use Wikimedia\Rdbms\IDatabase;
 
