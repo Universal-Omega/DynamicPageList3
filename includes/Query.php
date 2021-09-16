@@ -6,7 +6,6 @@ use ActorMigration;
 use CommentStore;
 use DateInterval;
 use DateTime;
-use DynamicPageListHooks;
 use Exception;
 use MediaWiki\MediaWikiServices;
 use MWException;
