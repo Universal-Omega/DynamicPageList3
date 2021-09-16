@@ -11,7 +11,7 @@ class Article {
 	 *
 	 * @var Title
 	 */
-	public $mTitle = null;
+	public $mTitle;
 
 	/**
 	 * Namespace ID
@@ -178,7 +178,7 @@ class Article {
 	 * @param Title $title
 	 * @param int $namespace
 	 */
-	public function __construct( $title, $namespace ) {
+	public function __construct( Title $title, $namespace ) {
 		$this->mTitle = $title;
 		$this->mNamespace = $namespace;
 	}
