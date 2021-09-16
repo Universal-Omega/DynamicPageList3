@@ -80,7 +80,8 @@
 			"maxResultCount": 500,
 			"recursiveTagParse": false,
 			"runFromProtectedPagesOnly": false,
-			"handleSectionTag": false
+			"handleSectionTag": false,
+			"alwaysCacheResults": false
 		}
 	},
 	"TrackingCategories": [
