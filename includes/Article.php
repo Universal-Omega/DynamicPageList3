@@ -223,11 +223,15 @@ class Article {
 
 		$article->mLink = $articleLink;
 
+		$languageConverter = MediaWikiServices::getInstance()
+			->getLanguageConverterFactory()
+			->getLanguageConverter();
+
 		// get first char used for category-style output
 		if ( isset( $row['sortkey'] ) ) {
-			$article->mStartChar = $contentLanguage->convert( $contentLanguage->firstChar( $row['sortkey'] ) );
+			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $row['sortkey'] ) );
 		} else {
-			$article->mStartChar = $contentLanguage->convert( $contentLanguage->firstChar( $pageTitle ) );
+			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $pageTitle ) );
 		}
 
 		$article->mID = intval( $row['page_id'] );
@@ -336,11 +340,8 @@ class Article {
 						break;
 					case 'user':
 						self::$headings[$row['rev_user_text']] = ( isset( self::$headings[$row['rev_user_text']] ) ? self::$headings[$row['rev_user_text']] + 1 : 1 );
-						if ( $row['rev_user'] == 0 ) { // anonymous user
-							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-						} else {
-							$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-						}
+
+						$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
 						break;
 				}
 			}
@@ -378,7 +379,7 @@ class Article {
 		if ( $this->myDate !== null ) {
 			return $this->myDate;
 		} elseif ( $this->mDate !== null ) {
-			return $wgLang->timeanddate( $article->mDate, true );
+			return $wgLang->timeanddate( $this->mDate, true );
 		}
 
 		return null;
