@@ -57,7 +57,9 @@
 		"DPL\\Query": "includes/Query.php",
 		"DPL\\UpdateArticle": "includes/UpdateArticle.php",
 		"DPL\\Variables": "includes/Variables.php",
-		"DynamicPageListHooks": "DynamicPageListHooks.php"
+		"DPL\\SeedTestDatabase": "includes/SeedTestDatabase.php",
+		"DynamicPageListHooks": "DynamicPageListHooks.php",
+		"DPL\\DPLIntegrationTestCase": "tests/phpunit/DPLIntegrationTestCase.php"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
