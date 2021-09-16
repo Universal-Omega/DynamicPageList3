@@ -227,8 +227,8 @@ class LST {
 	 * ... it is cut at a word boundary (white space) if possible
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
-	 * @param $limit limit of character count for the result
 	 * @param $text the wikitext to be truncated
+	 * @param $limit limit of character count for the result
 	 * @param $link an optional link which will be appended to the text if it was truncated
 	 *
 	 * @return string the truncated text;
