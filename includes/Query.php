@@ -213,7 +213,7 @@ class Query {
 		if ( $this->limit !== false ) {
 			$options['LIMIT'] = $this->limit;
 		} elseif ( $this->offset !== false && $this->limit === false ) {
-			$options['LIMIT'] = $this->parameters->getData( 'count' )['default'];
+			$options['LIMIT'] = $this->parameters->getParameter( 'count' );
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
