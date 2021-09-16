@@ -124,16 +124,16 @@ class Parse {
 		Article::resetHeadings();
 
 		// Check that we are not in an infinite transclusion loop
-		if ( isset( $this->parser->mTemplatePath[$this->parser->mTitle->getPrefixedText()] ) ) {
-			$this->logger->addMessage( DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $this->parser->mTitle->getPrefixedText() );
+		if ( isset( $this->parser->mTemplatePath[$this->parser->getTitle()->getPrefixedText()] ) ) {
+			$this->logger->addMessage( DynamicPageListHooks::WARN_TRANSCLUSIONLOOP, $this->parser->getTitle()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
 
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$this->parser->mTitle->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$this->parser->getTitle()->isProtected( 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage( DynamicPageListHooks::FATAL_NOTPROTECTED, $this->parser->mTitle->getPrefixedText() );
+			$this->logger->addMessage( DynamicPageListHooks::FATAL_NOTPROTECTED, $this->parser->getTitle()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
@@ -897,7 +897,7 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $localParser->parse( $output, $this->parser->mTitle, $this->parser->mOptions );
+		$parserOutput = $localParser->parse( $output, $this->parser->getTitle(), $this->parser->getOptions() );
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
