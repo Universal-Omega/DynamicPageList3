@@ -560,7 +560,7 @@ class UpdateArticle {
 		return substr( $text, 0, $beginSubst ) . $substitution . substr( $text, $endSubst );
 	}
 
-	public function deleteArticleByRule( $title, $text, $rulesText ) {
+	public static function deleteArticleByRule( $title, $text, $rulesText ) {
 		global $wgUser, $wgOut;
 
 		// return "deletion of articles by DPL is disabled.";
