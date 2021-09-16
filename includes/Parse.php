@@ -5,7 +5,6 @@ namespace DPL;
 use ActorMigration;
 use DPL\Heading\Heading;
 use DPL\Lister\Lister;
-use DynamicPageListHooks;
 use ExtVariables;
 use MediaWiki\MediaWikiServices;
 use MWException;
