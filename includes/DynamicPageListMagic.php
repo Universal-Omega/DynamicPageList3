@@ -1,13 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * Magic Words
- *
- * @author Alexia E. Smith
- * @license GPL-2.0-or-later
- * @package DynamicPageList3
- *
- */
 
 $magicWords = [];
 
