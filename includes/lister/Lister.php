@@ -994,10 +994,10 @@ class Lister {
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
-	 * @private
 	 * @param  $lim     limit of character count for the result
 	 * @param  $text    the wikitext to be truncated
-	 * @return the truncated text; note that in some cases it may be slightly longer than the given limit
+	 *
+	 * @return string the truncated text; note that in some cases it may be slightly longer than the given limit
 	 *         if the text is alread shorter than the limit or if the limit is negative, the text
 	 *         will be returned without any checks for balance of tags
 	 */
@@ -1005,6 +1005,7 @@ class Lister {
 		if ( $lim < 0 ) {
 			return $text;
 		}
+
 		return LST::limitTranscludedText( $text, $lim );
 	}
 
