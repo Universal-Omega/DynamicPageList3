@@ -858,11 +858,9 @@ class Lister {
 	/**
 	 * Format one single item of an entry in the output list (i.e. one occurence of one item from the include parameter).
 	 *
-	 * @private
-	 * @param	array	String pieces to perform replacements on.
-	 * @param	mixed	Index of the table row position.
-	 * @param	object	Article
-	 * @return	void
+	 * @param array &$pieces
+	 * @param mixed $s Index of the table row position.
+	 * @param Article $article
 	 */
 	private function replaceTagTableRow( &$pieces, $s, Article $article ) {
 		$tableFormat = $this->getParameters()->getParameter( 'tablerow' );
@@ -895,14 +893,13 @@ class Lister {
 	/**
 	 * Format one single template argument of one occurence of one item from the include parameter. This is called via a backlink from LST::includeTemplate().
 	 *
-	 * @access	public
-	 * @param	string	Argument to parse and replace.
-	 * @param	mixed	Index of the table row position.
-	 * @param	mixed	Other part of the index of the table row position?
-	 * @param	boolean	Is this the first time this function was called in this context?
-	 * @param	integer	Maximum text length allowed.
-	 * @param	object	Article
-	 * @return	string	Formatted text.
+	 * @param string $arg
+	 * @param mixed	$s Index of the table row position.
+	 * @param mixed $argNr Other part of the index of the table row position?
+	 * @param bool $firstCall
+	 * @param int $maxLength
+	 * @param Article $article
+	 * @return string
 	 */
 	public function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxLength, Article $article ) {
 		$tableFormat = $this->getParameters()->getParameter( 'tablerow' );
@@ -914,6 +911,7 @@ class Lister {
 		// a start of a new row (wiki table syntax)
 		if ( array_key_exists( "$s.$argNr", $tableFormat ) ) {
 			$n = -1;
+
 			if ( $s >= 1 && $argNr == 0 && !$firstCall ) {
 				$n = strpos( $tableFormat["$s.$argNr"], '|' );
 				if ( $n === false || !( strpos( substr( $tableFormat["$s.$argNr"], 0, $n ), '{' ) === false ) || !( strpos( substr( $tableFormat["$s.$argNr"], 0, $n ), '[' ) === false ) ) {
@@ -949,12 +947,12 @@ class Lister {
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
-	 * @param  $lim     limit of character count for the result
-	 * @param  $text    the wikitext to be truncated
+	 * @param int $lim
+	 * @param string $text
 	 *
 	 * @return string the truncated text; note that in some cases it may be slightly longer than the given limit
-	 *         if the text is alread shorter than the limit or if the limit is negative, the text
-	 *         will be returned without any checks for balance of tags
+	 * if the text is alread shorter than the limit or if the limit is negative, the text
+	 * will be returned without any checks for balance of tags
 	 */
 	private function cutAt( $lim, $text ) {
 		if ( $lim < 0 ) {
@@ -967,9 +965,8 @@ class Lister {
 	/**
 	 * Prepends an image name with its hash path.
 	 *
-	 * @protected
-	 * @param 	mixed	Article or string image name of the image (may start with Image: or File:).
-	 * @return	string	Image URL
+	 * @param Article|string $article
+	 * @return string
 	 */
 	protected function parseImageUrlWithPath( $article ) {
 		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
@@ -979,6 +976,7 @@ class Lister {
 			if ( $article->mNamespace == NS_FILE ) {
 				// calculate URL for existing images
 				// $img = Image::newFromName( $article->mTitle->getText() );
+
 				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $article->mTitle->getText() ) );
 				if ( $img && $img->exists() ) {
 					$imageUrl = $img->getURL();
@@ -989,13 +987,15 @@ class Lister {
 			}
 		} else {
 			$title = Title::newfromText( 'File:' . $article );
+
 			if ( $title !== null ) {
-				$fileTitle   = Title::makeTitleSafe( 6, $title->getDBKey() );
+				$fileTitle = Title::makeTitleSafe( 6, $title->getDBKey() );
+
 				$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 			}
 		}
 
-		// @TODO: Check this preg_replace.  Probably only works for stock file repositories.  --Alexia
+		// @TODO: Check this preg_replace. Probably only works for stock file repositories.
 		$imageUrl = preg_replace( '~^.*images/(.*)~', '\1', $imageUrl );
 
 		return $imageUrl;
@@ -1004,20 +1004,22 @@ class Lister {
 	/**
 	 * Transclude a page contents.
 	 *
-	 * @access	public
-	 * @param	object	Article
-	 * @param	integer	Filtered Article Count
-	 * @return	string	Page Text
+	 * @param Article $article
+	 * @param int &$filteredCount
+	 * @return string
 	 */
 	public function transcludePage( Article $article, &$filteredCount ) {
 		$matchFailed = false;
+
 		if ( empty( $this->pageTextMatch ) || $this->pageTextMatch[0] == '*' ) { // include whole article
 			$title = $article->mTitle->getPrefixedText();
+
 			if ( $this->getStyle() == self::LIST_USERFORMAT ) {
 				$pageText = '';
 			} else {
 				$pageText = '<br/>';
 			}
+
 			$text = $this->parser->fetchTemplate( Title::newFromText( $title ) );
 			if ( ( count( $this->pageTextMatchRegex ) <= 0 || $this->pageTextMatchRegex[0] == '' || !( !preg_match( $this->pageTextMatchRegex[0], $text ) ) ) && ( count( $this->pageTextMatchNotRegex ) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match( $this->pageTextMatchNotRegex[0], $text ) == false ) ) {
 				if ( $this->includePageMaxLength > 0 && ( strlen( $text ) > $this->includePageMaxLength ) ) {
@@ -1029,12 +1031,15 @@ class Lister {
 				// update article if include=* and updaterules are given
 				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
 				$deleteRules = $this->getParameters()->getParameter( 'deleterules' );
+
 				if ( !empty( $updateRules ) ) {
 					$ruleOutput = UpdateArticle::updateArticleByRule( $title, $text, $updateRules );
+
 					// append update message to output
 					$pageText .= $ruleOutput;
 				} elseif ( !empty( $deleteRules ) ) {
 					$ruleOutput = UpdateArticle::deleteArticleByRule( $title, $text, $deleteRules );
+
 					// append delete message to output
 					$pageText .= $ruleOutput;
 				} else {
@@ -1044,6 +1049,7 @@ class Lister {
 						$pieces = [
 							0 => $text
 						];
+
 						$this->replaceTagTableRow( $pieces, 0, $article );
 						$pageText .= $pieces[0];
 					} else {
@@ -1055,17 +1061,20 @@ class Lister {
 			}
 		} else {
 			// identify section pieces
-			$secPiece       = [];
+			$secPiece = [];
 			$dominantPieces = false;
+
 			// ONE section can be marked as "dominant"; if this section contains multiple entries
 			// we will create a separate output row for each value of the dominant section
 			// the values of all other columns will be repeated
 
 			foreach ( $this->pageTextMatch as $s => $sSecLabel ) {
 				$sSecLabel = trim( $sSecLabel );
+
 				if ( $sSecLabel == '' ) {
 					break;
 				}
+
 				// if sections are identified by number we have a % at the beginning
 				if ( $sSecLabel[0] == '%' ) {
 					$sSecLabel = '#' . $sSecLabel;
@@ -1078,29 +1087,36 @@ class Lister {
 					$secPieces = [
 						''
 					];
+
 					$this->replaceTagTableRow( $secPieces, $s, $article );
 				} elseif ( $sSecLabel[0] != '{' ) {
-					$limpos      = strpos( $sSecLabel, '[' );
-					$cutLink     = 'default';
+					$limpos = strpos( $sSecLabel, '[' );
+					$cutLink = 'default';
 					$skipPattern = [];
+
 					if ( $limpos > 0 && $sSecLabel[strlen( $sSecLabel ) - 1] == ']' ) {
 						// regular expressions which define a skip pattern may precede the text
 						$fmtSec = explode( '~', substr( $sSecLabel, $limpos + 1, strlen( $sSecLabel ) - $limpos - 2 ) );
 						$sSecLabel = substr( $sSecLabel, 0, $limpos );
-						$cutInfo = explode( " ", $fmtSec[count( $fmtSec ) - 1], 2 );
+						$cutInfo = explode( ' ', $fmtSec[count( $fmtSec ) - 1], 2 );
 						$maxLength = intval( $cutInfo[0] );
+
 						if ( array_key_exists( '1', $cutInfo ) ) {
 							$cutLink = $cutInfo[1];
 						}
+
 						foreach ( $fmtSec as $skipKey => $skipPat ) {
 							if ( $skipKey == count( $fmtSec ) - 1 ) {
 								continue;
 							}
+
 							$skipPattern[] = $skipPat;
 						}
 					}
+
 					if ( $maxLength < 0 ) {
-						$maxLength = -1; // without valid limit include whole section
+						// without valid limit include whole section
+						$maxLength = -1;
 					}
 				}
 
@@ -1110,6 +1126,7 @@ class Lister {
 				} else {
 					$mustMatch = '';
 				}
+
 				if ( is_array( $this->pageTextMatchNotRegex ) && count( $this->pageTextMatchNotRegex ) > $s && !empty( $this->pageTextMatchNotRegex[$s] ) ) {
 					$mustNotMatch = $this->pageTextMatchNotRegex[$s];
 				} else {
@@ -1118,22 +1135,28 @@ class Lister {
 
 				// if chapters are selected by number, text or regexp we get the heading from LST::includeHeading
 				$sectionHeading[0] = '';
+
 				if ( $sSecLabel == '-' ) {
 					$secPiece[$s] = $secPieces[0];
 				} elseif ( $sSecLabel[0] == '#' || $sSecLabel[0] == '@' ) {
 					$sectionHeading[0] = substr( $sSecLabel, 1 );
+
 					// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
 					$secPieces = LST::includeHeading( $this->parser, $article->mTitle->getPrefixedText(), substr( $sSecLabel, 1 ), '', $sectionHeading, false, $maxLength, $cutLink, $this->getTrimIncluded(), $skipPattern );
+
 					if ( $mustMatch != '' || $mustNotMatch != '' ) {
 						$secPiecesTmp = $secPieces;
-						$offset       = 0;
+						$offset = 0;
+
 						foreach ( $secPiecesTmp as $nr => $onePiece ) {
 							if ( ( $mustMatch != '' && preg_match( $mustMatch, $onePiece ) == false ) || ( $mustNotMatch != '' && preg_match( $mustNotMatch, $onePiece ) != false ) ) {
 								array_splice( $secPieces, $nr - $offset, 1 );
+
 								$offset++;
 							}
 						}
 					}
+
 					// if maxlen was 0 we suppress all output; note that for matching we used the full text
 					if ( $maxLength == 0 ) {
 						$secPieces = [
@@ -1150,18 +1173,22 @@ class Lister {
 						}
 						break;
 					}
+
 					$secPiece[$s] = $secPieces[0];
 					for ( $sp = 1; $sp < count( $secPieces ); $sp++ ) {
 						if ( isset( $this->multiSectionSeparators[$s] ) ) {
 							$secPiece[$s] .= str_replace( '%SECTION%', $sectionHeading[$sp], $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) );
 						}
+
 						$secPiece[$s] .= $secPieces[$sp];
 					}
+
 					if ( $this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count( $secPieces ) > 1 ) {
 						$dominantPieces = $secPieces;
 					}
+
 					if ( ( $mustMatch != '' || $mustNotMatch != '' ) && count( $secPieces ) <= 0 ) {
-						$matchFailed = true; // NOTHING MATCHED
+						$matchFailed = true;
 						break;
 					}
 
@@ -1170,28 +1197,34 @@ class Lister {
 					// primary syntax {template}suffix
 					$template1 = trim( substr( $sSecLabel, 1, strpos( $sSecLabel, '}' ) - 1 ) );
 					$template2 = trim( str_replace( '}', '', substr( $sSecLabel, 1 ) ) );
+
 					// alternate syntax: {template|surrogate}
 					if ( $template2 == $template1 && strpos( $template1, '|' ) > 0 ) {
 						$template1 = preg_replace( '/\|.*/', '', $template1 );
 						$template2 = preg_replace( '/^.+\|/', '', $template2 );
 					}
-					//Why the hell was defaultTemplateSuffix be passed all over the place for just fucking here?  --Alexia
-					$secPieces    = LST::includeTemplate( $this->parser, $this, $s, $article, $template1, $template2, $template2 . $this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode( ', ', $article->mCategoryLinks ) );
+
+					// Why was defaultTemplateSuffix passed all over the place for just here?
+					$secPieces = LST::includeTemplate( $this->parser, $this, $s, $article, $template1, $template2, $template2 . $this->getTemplateSuffix(), $mustMatch, $mustNotMatch, $this->includePageParsed, implode( ', ', $article->mCategoryLinks ) );
 					$secPiece[$s] = implode( isset( $this->multiSectionSeparators[$s] ) ? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) : '', $secPieces );
+
 					if ( $this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count( $secPieces ) > 1 ) {
 						$dominantPieces = $secPieces;
 					}
+
 					if ( ( $mustMatch != '' || $mustNotMatch != '' ) && count( $secPieces ) <= 1 && $secPieces[0] == '' ) {
-						$matchFailed = true; // NOTHING MATCHED
+						$matchFailed = true;
 						break;
 					}
 				} else {
 					// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-					$secPieces    = LST::includeSection( $this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern );
+					$secPieces = LST::includeSection( $this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern );
 					$secPiece[$s] = implode( isset( $this->multiSectionSeparators[$s] ) ? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) : '', $secPieces );
+
 					if ( $this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count( $secPieces ) > 1 ) {
 						$dominantPieces = $secPieces;
 					}
+
 					if ( ( $mustMatch != '' && preg_match( $mustMatch, $secPiece[$s] ) == false ) || ( $mustNotMatch != '' && preg_match( $mustNotMatch, $secPiece[$s] ) != false ) ) {
 						$matchFailed = true;
 						break;
@@ -1207,6 +1240,7 @@ class Lister {
 				} else {
 					$septag[$s * 2] = '';
 				}
+
 				if ( isset( $this->sectionSeparators[$s * 2 + 1] ) ) {
 					$septag[$s * 2 + 1] = str_replace( '%SECTION%', $sectionHeading[0], $this->replaceTagCount( $this->sectionSeparators[$s * 2 + 1], $filteredCount ) );
 				} else {
@@ -1223,6 +1257,7 @@ class Lister {
 
 			// assemble parts with separators
 			$pageText = '';
+
 			if ( $dominantPieces != false ) {
 				foreach ( $dominantPieces as $dominantPiece ) {
 					foreach ( $secPiece as $s => $piece ) {
@@ -1246,11 +1281,10 @@ class Lister {
 	/**
 	 * Wrap seciton pieces with start and end tags.
 	 *
-	 * @protected
-	 * @param	string	Piece to be wrapped.
-	 * @param	string	Text to prepend.
-	 * @param	string	Text to append.
-	 * @return	string	Wrapped text.
+	 * @param string $piece
+	 * @param string $start
+	 * @param string $end
+	 * @return string
 	 */
 	protected function joinSectionTagPieces( $piece, $start, $end ) {
 		return $start . $piece . $end;
@@ -1259,8 +1293,7 @@ class Lister {
 	/**
 	 * Get the count of listed items after formatting, transcluding, and such.
 	 *
-	 * @access	public
-	 * @return	integer	Row Count
+	 * @return int
 	 */
 	public function getRowCount() {
 		return $this->rowCount;
