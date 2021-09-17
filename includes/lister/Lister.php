@@ -158,6 +158,11 @@ class Lister {
 	protected $tableSortColumn = null;
 
 	/**
+	 * @var string|null
+	 */
+	protected $tableSortMethod = null;
+
+	/**
 	 * Maximum title length.
 	 *
 	 * @var int|null
@@ -191,6 +196,7 @@ class Lister {
 	 * @var int|null
 	 */
 	protected $includePageMaxLength = null;
+
 
 	/**
 	 * Array of plain text matches for page transclusion. (include)
@@ -536,7 +542,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setSectionSeparators( ?array $separators ) {
-		$this->sectionSeparators = (array)$separators ?? [];
+		$this->sectionSeparators = $separators ?? [];
 	}
 
 	/**
@@ -547,7 +553,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setMultiSectionSeparators( ?array $separators ) {
-		$this->multiSectionSeparators = (array)$separators ?? [];
+		$this->multiSectionSeparators = $separators ?? [];
 	}
 
 	/**
@@ -580,7 +586,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setPageTextMatch( array $pageTextMatch = [] ) {
-		$this->pageTextMatch = (array)$pageTextMatch;
+		$this->pageTextMatch = $pageTextMatch;
 	}
 
 	/**
@@ -591,7 +597,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setPageTextMatchRegex( array $pageTextMatchRegex = [] ) {
-		$this->pageTextMatchRegex = (array)$pageTextMatchRegex;
+		$this->pageTextMatchRegex = $pageTextMatchRegex;
 	}
 
 	/**
@@ -602,7 +608,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setPageTextMatchNotRegex( array $pageTextMatchNotRegex = [] ) {
-		$this->pageTextMatchNotRegex = (array)$pageTextMatchNotRegex;
+		$this->pageTextMatchNotRegex = $pageTextMatchNotRegex;
 	}
 
 	/**
