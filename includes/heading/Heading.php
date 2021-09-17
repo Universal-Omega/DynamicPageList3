@@ -294,7 +294,7 @@ class Heading {
 				} else {
 					$output .= "\n|-\n|\n";
 				}
-				$nstart = $nstart + $nsize;
+				$nstart += $nsize;
 				// if ($rest != 0 && $g+1==$rest) $nsize -= 1;
 				if ( $nstart + $nsize > $count ) {
 					$nsize = $count - $nstart;
@@ -313,7 +313,7 @@ class Heading {
 				}
 				$output .= $lister->formatList( $articles, $nstart, $nsize );
 				$output .= "\n|-\n|\n";
-				$nstart = $nstart + $nsize;
+				$nstart += $nsize;
 				if ( $nstart >= $count ) {
 					break;
 				}
