@@ -34,6 +34,8 @@ $cfg['suppress_issue_types'] = [
 	'PhanPluginMixedKeyNoKey',
 	'PhanAccessMethodInternal',
 	'PhanParamReqAfterOpt',
+	'PhanSuspiciousValueComparison',
+	'PhanPluginLoopVariableReuse',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
