@@ -10,6 +10,8 @@
  */
 namespace DPL;
 
+use MWException;
+
 class ParametersData {
 	/**
 	 * Parameter Richness
