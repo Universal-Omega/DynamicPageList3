@@ -75,12 +75,16 @@ class DynamicPageListHooks {
 	private static $debugLevel = 0;
 
 	/**
-	 * Handle special on extension registration bits.
+	 * @return string
 	 */
-	public static function onRegistration() {
-		if ( !defined( 'DPL_VERSION' ) ) {
-			define( 'DPL_VERSION', '3.3.6' );
+	public static function getVersion(): string {
+		static $version = null;
+
+		if ( $version === null ) {
+			$version = json_decode( file_get_contents( __DIR__ . '/../extension.json' ) )->version;
 		}
+
+		return $version;
 	}
 
 	/**
