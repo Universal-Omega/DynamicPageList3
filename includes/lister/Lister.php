@@ -1061,11 +1061,12 @@ class Lister {
 				$pageText = '<br/>';
 			}
 			$text = $this->parser->fetchTemplate( \Title::newFromText( $title ) );
-			if ( ( count( $this->pageTextMatchRegex ) <= 0 || $this->pageTextMatchRegex[0] == '' || !preg_match( $this->pageTextMatchRegex[0], $text ) == false ) && ( count( $this->pageTextMatchNotRegex ) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match( $this->pageTextMatchNotRegex[0], $text ) == false ) ) {
+			if ( ( count( $this->pageTextMatchRegex ) <= 0 || $this->pageTextMatchRegex[0] == '' || !( !preg_match( $this->pageTextMatchRegex[0], $text ) ) ) && ( count( $this->pageTextMatchNotRegex ) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match( $this->pageTextMatchNotRegex[0], $text ) == false ) ) {
 				if ( $this->includePageMaxLength > 0 && ( strlen( $text ) > $this->includePageMaxLength ) ) {
 					$text = LST::limitTranscludedText( $text, $this->includePageMaxLength, ' [[' . $title . '|..→]]' );
 				}
-				$filteredCount = $filteredCount + 1;
+
+				$filteredCount++;
 
 				// update article if include=* and updaterules are given
 				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
@@ -1259,7 +1260,8 @@ class Lister {
 			if ( $matchFailed ) {
 				return '';
 			}
-			$filteredCount = $filteredCount + 1;
+
+			$filteredCount++;
 
 			// assemble parts with separators
 			$pageText = '';
@@ -1279,6 +1281,7 @@ class Lister {
 				}
 			}
 		}
+
 		return $pageText;
 	}
 
