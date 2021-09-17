@@ -35,7 +35,8 @@ class CategoryList extends Lister {
 		for ( $i = $start; $i < $start + $count; $i++ ) {
 			$articleLinks[] = $articles[$i]->mLink;
 			$articleStartChars[] = $articles[$i]->mStartChar;
-			$filteredCount = $filteredCount + 1;
+
+			$filteredCount++;
 		}
 
 		$this->rowCount = $filteredCount;
