@@ -60,7 +60,7 @@ class Logger {
 				$text = wfMessage( 'dpl_log_' . $errorMessageId, $args )->text();
 			}
 
-			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DPL_VERSION . ': ' . $text . '</p>';
+			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DynamicPageListHooks::getVersion() . ': ' . $text . '</p>';
 		}
 	}
 }
