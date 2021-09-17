@@ -234,7 +234,7 @@ class Parse {
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', 0 );
 		$this->setVariable( 'PAGES', 0 );
-		$this->setVariable( 'VERSION', DPL_VERSION );
+		$this->setVariable( 'VERSION', DynamicPageListHooks::getVersion() );
 
 		/*********************/
 		/* Handle No Results */
