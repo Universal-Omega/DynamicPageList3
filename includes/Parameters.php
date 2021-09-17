@@ -178,7 +178,7 @@ class Parameters extends ParametersData {
 			}
 
 			// If none of the above checks marked this as a failure then set it.
-			if ( $success === true ) {
+			if ( $success ) {
 				$this->setParameter( $parameter, $option );
 
 				//Set that criteria was found for a selection.
@@ -405,7 +405,10 @@ class Parameters extends ParametersData {
 			if ( $forDb ) {
 				$regex = '#' . str_replace( '#', '\#', $regex ) . '#';
 			}
-			//Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
+
+			// Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
+
+			// @phan-suppress-next-line PhanParamSuspiciousOrder
 			if ( @preg_match( $regex, null ) === false ) {
 				return false;
 			}
@@ -1242,7 +1245,7 @@ class Parameters extends ParametersData {
 				return false;
 			} else {
 				if ( $argument == 'all' || $argument == 'none' ) {
-					$boolean = ( $argument == 'all' ? true : false );
+					$boolean = ( $argument == 'all' );
 					$values = array_diff( $values, [ 'all', 'none' ] );
 					$reset = array_flip( $values );
 					foreach ( $reset as $value => $key ) {
@@ -1279,7 +1282,7 @@ class Parameters extends ParametersData {
 				return false;
 			} else {
 				if ( $argument == 'all' || $argument == 'none' ) {
-					$boolean = ( $argument == 'all' ? true : false );
+					$boolean = ( $argument == 'all' );
 					$values = array_diff( $values, [ 'all', 'none' ] );
 					$eliminate = array_flip( $values );
 					foreach ( $eliminate as $value => $key ) {
