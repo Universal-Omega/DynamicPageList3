@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL UpdateArticle Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL;
 
@@ -312,13 +304,16 @@ class UpdateArticle {
 			global $wgScriptPath, $wgRequest;
 			$titleX   = \Title::newFromText( $title );
 			$articleX = new \Article( $titleX );
+
+			$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
+
 			$form     = '<html>
 	<form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode( $title ) . '&action=submit" enctype="multipart/form-data">
 		<input type="hidden" value="" name="wpSection" />
 		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
 		<input type="hidden" value="' . $articleX->getPage()->getTimestamp() . '" name="wpEdittime" />
 		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $wgUser->getIntOption( 'rows' ) . '" cols="' . $wgUser->getIntOption( 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
+		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $userOptionsLookup->getIntOption( $wgUser, 'rows' ) . '" cols="' . $userOptionsLookup->getIntOption( $wgUser, 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
 		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
 		<input name="wpAutoSummary" type="hidden" value="" />
 		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
