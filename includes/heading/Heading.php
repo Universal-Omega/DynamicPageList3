@@ -1,12 +1,5 @@
 <?php
-/**
- * DynamicPageList3
- * DPL List Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
+
 namespace DPL\Heading;
 
 use DPL\Article;
@@ -94,11 +87,11 @@ class Heading {
 	 *
 	 * @access	public
 	 * @param	string	Heading style.
-	 * @param	object	\DPL\Parameters
+	 * @param	object	Parameters
 	 * @param	object	MediaWiki \Parser
 	 * @return	mixed	Heading subclass or null for a bad style.
 	 */
-	public static function newFromStyle( $style, \DPL\Parameters $parameters ) {
+	public static function newFromStyle( $style, Parameters $parameters ) {
 		$style = strtolower( $style );
 		switch ( $style ) {
 			case 'definition':
@@ -129,10 +122,10 @@ class Heading {
 	}
 
 	/**
-	 * Get the \DPL\Parameters object this object was constructed with.
+	 * Get the Parameters object this object was constructed with.
 	 *
 	 * @access	public
-	 * @return	object	\DPL\Parameters
+	 * @return	object	Parameters
 	 */
 	public function getParameters() {
 		return $this->parameters;
@@ -185,8 +178,8 @@ class Heading {
 	 * Format a list of articles into all lists with headings as needed.
 	 *
 	 * @access	public
-	 * @param	array	List of \DPL\Article
-	 * @param	object	List of \DPL\Lister\Lister
+	 * @param	array	List of Article
+	 * @param	object	List of Lister
 	 * @return	string	Formatted list.
 	 */
 	public function format( $articles, Lister $lister ) {
@@ -341,8 +334,8 @@ class Heading {
 	 * @param	integer	Article start index for this heading.
 	 * @param	integer	Article count for this heading.
 	 * @param	string	Heading link/text display.
-	 * @param	array	List of \DPL\Article.
-	 * @param	object	List of \DPL\Lister\Lister
+	 * @param	array	List of Article.
+	 * @param	object	List of Lister
 	 * @return	string	Heading HTML
 	 */
 	public function formatItem( $headingStart, $headingCount, $headingLink, $articles, Lister $lister ) {
