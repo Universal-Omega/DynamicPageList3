@@ -2,7 +2,9 @@
 
 namespace DPL;
 
+use CommentStoreComment;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use ReadOnlyError;
 
 class UpdateArticle {
@@ -337,10 +339,20 @@ class UpdateArticle {
 		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $wgUser, $titleX );
 
 		if ( count( $permission_errors ) == 0 ) {
-			$articleX = \WikiPage::factory( $titleX );
-			$articleXContent = \ContentHandler::makeContent( $text, $titleX );
-			$articleX->doEditContent( $articleXContent, $summary, EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY );
-			$wgOut->redirect( $titleX->getFullUrl( $articleX->isRedirect() ? 'redirect=no' : '' ) );
+			$wikiPageFactory = MediaWikiServices::getInstance()->getWikiPageFactory();
+
+			$page = $wikiPageFactory->newFromTitle( $titleX );
+			$updater = $page->newPageUpdater( $wgUser );
+			$content = $page->getContentHandler()->makeContent( $text, $titleX );
+			$updater->setContent( SlotRecord::MAIN, $content );
+			$comment = CommentStoreComment::newUnsavedComment( $summary );
+			$updater->saveRevision(
+				$comment,
+				EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY
+			);
+
+			$wgOut->redirect( $titleX->getFullUrl( $page->isRedirect() ? 'redirect=no' : '' ) );
+
 			return '';
 		} else {
 			$wgOut->showPermissionsErrorPage( $permission_errors );
