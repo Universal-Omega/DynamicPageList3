@@ -72,7 +72,6 @@ class Parameters extends ParametersData {
 			global $wgUser;
 			if ( !$wgUser->isAllowed( $parameterData['permission'] ) ) {
 				throw new \PermissionsError( $parameterData['permission'] );
-				return;
 			}
 		}
 
