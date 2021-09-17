@@ -431,7 +431,7 @@ class Parse {
 		$input = trim( $input, "\n" );
 		$rawParameters = explode( "\n", $input );
 
-		$parameters = false;
+		$parameters = [];
 		foreach ( $rawParameters as $parameterOption ) {
 			if ( empty( $parameterOption ) ) {
 				// Softly ignore blank lines.
