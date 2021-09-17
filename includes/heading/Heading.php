@@ -93,9 +93,10 @@ class Heading {
 	 */
 	public static function newFromStyle( $style, Parameters $parameters ) {
 		$style = strtolower( $style );
+
 		switch ( $style ) {
 			case 'definition':
-				$class = 'DefinitionHeading';
+				$class = DefinitionHeading::class;
 				break;
 			case 'h1':
 			case 'h2':
@@ -104,19 +105,17 @@ class Heading {
 			case 'h5':
 			case 'h6':
 			case 'header':
-				$class = 'TieredHeading';
+				$class = TieredHeading::class;
 				break;
 			case 'ordered':
-				$class = 'OrderedHeading';
+				$class = OrderedHeading::class;
 				break;
 			case 'unordered':
-				$class = 'UnorderedHeading';
+				$class = UnorderedHeading::class;
 				break;
 			default:
 				return null;
-				break;
 		}
-		$class = '\DPL\Heading\\' . $class;
 
 		return new $class( $parameters );
 	}
