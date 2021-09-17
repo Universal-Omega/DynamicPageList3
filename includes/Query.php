@@ -109,7 +109,7 @@ class Query {
 	/**
 	 * Limit
 	 *
-	 * @var int
+	 * @var int|bool
 	 */
 	private $limit = false;
 
@@ -251,7 +251,7 @@ class Query {
 
 		if ( $this->limit !== false ) {
 			$options['LIMIT'] = $this->limit;
-		} elseif ( $this->offset !== false && $this->limit == false ) {
+		} elseif ( $this->offset !== false ) {
 			$options['LIMIT'] = $this->parameters->getData( 'count' )['default'];
 		}
 
