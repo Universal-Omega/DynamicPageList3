@@ -362,7 +362,7 @@ class Query {
 		}
 
 		if ( $queryError || $result === false ) {
-			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DPL_VERSION, $this->DB->lastError() )->text() );
+			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
 		}
 
 		return $result;
