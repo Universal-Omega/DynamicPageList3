@@ -12,8 +12,10 @@ namespace DPL\Lister;
 
 use DPL\Article;
 use DPL\LST;
+use DPL\Parameters;
 use DPL\UpdateArticle;
 use MediaWiki\MediaWikiServices;
+use Parser;
 
 class Lister {
 	const LIST_DEFINITION = 1;
@@ -28,7 +30,7 @@ class Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int|null
 	 */
 	public $style = null;
 
@@ -97,28 +99,28 @@ class Lister {
 	 *
 	 * @var array
 	 */
-	public $headListAttributes = '';
+	public $headListAttributes = [];
 
 	/**
 	 * Extra head item HTML attributes.
 	 *
 	 * @var array
 	 */
-	public $headItemAttributes = '';
+	public $headItemAttributes = [];
 
 	/**
 	 * Extra list HTML attributes.
 	 *
 	 * @var array
 	 */
-	public $listAttributes = '';
+	public $listAttributes = [];
 
 	/**
 	 * Extra item HTML attributes.
 	 *
 	 * @var array
 	 */
-	public $itemAttributes = '';
+	public $itemAttributes = [];
 
 	/**
 	 * Count tipping point to mark a section as dominant.
@@ -151,14 +153,14 @@ class Lister {
 	/**
 	 * Index of the table column to sort by.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	protected $tableSortColumn = null;
 
 	/**
 	 * Maximum title length.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	protected $titleMaxLength = null;
 
@@ -186,7 +188,7 @@ class Lister {
 	/**
 	 * Maximum length before truncated included wiki text.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	protected $includePageMaxLength = null;
 
@@ -195,21 +197,21 @@ class Lister {
 	 *
 	 * @var array
 	 */
-	protected $pageTextMatch = null;
+	protected $pageTextMatch;
 
 	/**
 	 * Array of regex text matches for page transclusion. (includematch)
 	 *
 	 * @var array
 	 */
-	protected $pageTextMatchRegex = null;
+	protected $pageTextMatchRegex;
 
 	/**
 	 * Array of not regex text matches for page transclusion. (includenotmatch)
 	 *
 	 * @var array
 	 */
-	protected $pageTextMatchNotRegex = null;
+	protected $pageTextMatchNotRegex;
 
 	/**
 	 * Parsed wiki text into HTML before running include/includematch/includenotmatch.
@@ -226,28 +228,28 @@ class Lister {
 	public $rowCount = 0;
 
 	/**
-	 * \DPL\Parameters
+	 * Parameters
 	 *
-	 * @var object
+	 * @var Parameters
 	 */
-	protected $parameters = null;
+	protected $parameters;
 
 	/**
 	 * Parser
 	 *
-	 * @var object
+	 * @var Parser
 	 */
-	protected $parser = null;
+	protected $parser;
 
 	/**
 	 * Main Constructor
 	 *
 	 * @access	public
-	 * @param	object	\DPL\Parameters
-	 * @param	object	MediaWiki \Parser
+	 * @param	Parameters
+	 * @param	Parser
 	 * @return	void
 	 */
-	public function __construct( \DPL\Parameters $parameters, \Parser $parser ) {
+	public function __construct( Parameters $parameters, Parser $parser ) {
 		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) );
 		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) );
 		$this->setListAttributes( $parameters->getParameter( 'listattr' ) );
