@@ -82,7 +82,7 @@ class LST {
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
 	 */
-	private static function parse( $parser, $title, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = [] ) {
+	private static function parse( $parser, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = [] ) {
 		// if someone tries something like<section begin=blah>lst only</section>
 		// text, may as well do the right thing.
 		$text = str_replace( '</section>', '', $text );
@@ -109,7 +109,7 @@ class LST {
 				return $text;
 			}
 		} else {
-			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
+			return "[[" . $parser->getTitle()->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
 		}
 	}
 
@@ -218,7 +218,7 @@ class LST {
 		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
 
 		foreach ( $m[2] as $nr => $piece ) {
-			$piece = self::parse( $parser, $title, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern );
+			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern );
 			if ( $any ) {
 				$output[] = $m[1][$nr] . '::' . $piece;
 			} else {
@@ -419,7 +419,7 @@ class LST {
 			if ( $nr == -2 ) {
 				// output text before first section and done
 				$piece     = substr( $text, 0, $m[1][1] - 1 );
-				$output[0] = self::parse( $parser, $title, $piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 				return $output;
 			}
 
@@ -485,18 +485,18 @@ class LST {
 
 			if ( $nr == 1 ) {
 				// output n-th section and done
-				$output[0] = self::parse( $parser, $title, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 				break;
 			}
 			if ( $nr == -1 ) {
 				if ( !isset( $end_off ) ) {
 					// output last section and done
-					$output[0] = self::parse( $parser, $title, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+					$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 					break;
 				}
 			} else {
 				// output section by name and continue search for another section with the same name
-				$output[$n++] = self::parse( $parser, $title, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[$n++] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 			}
 		} while ( $continueSearch );
 
