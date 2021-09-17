@@ -33,6 +33,7 @@ $cfg['suppress_issue_types'] = [
 	'SecurityCheck-LikelyFalsePositive',
 	'PhanPluginMixedKeyNoKey',
 	'PhanAccessMethodInternal',
+	'PhanParamReqAfterOpt',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
