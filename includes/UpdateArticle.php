@@ -10,6 +10,9 @@
 
 namespace DPL;
 
+use MediaWiki\MediaWikiServices;
+use ReadOnlyError;
+
 class UpdateArticle {
 	/**
 	 * this fucntion hast three tasks (depending on $exec):
@@ -336,7 +339,8 @@ class UpdateArticle {
 		}
 
 		$titleX = \Title::newFromText( $title );
-		$permission_errors = $titleX->getUserPermissionsErrors( 'edit', $wgUser );
+		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $wgUser, $titleX );
+
 		if ( count( $permission_errors ) == 0 ) {
 			$articleX = \WikiPage::factory( $titleX );
 			$articleXContent = \ContentHandler::makeContent( $text, $titleX );
@@ -603,13 +607,13 @@ class UpdateArticle {
 		$titleX = \Title::newFromText( $title );
 		if ( $exec ) {
 			# Check permissions
-			$permission_errors = $titleX->getUserPermissionsErrors( 'delete', $wgUser );
+			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $wgUser, $titleX );
+
 			if ( count( $permission_errors ) > 0 ) {
 				$wgOut->showPermissionsErrorPage( $permission_errors );
 				return 'permission error';
 			} elseif ( wfReadOnly() ) {
-				$wgOut->readOnlyPage();
-				return 'DPL: read only mode';
+				throw new ReadOnlyError;
 			} else {
 				$articleX = new \Article( $titleX );
 				$articleX->doDelete( $reason );
