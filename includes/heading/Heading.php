@@ -47,16 +47,16 @@ class Heading {
 	/**
 	 * Extra list HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $listAttributes = [];
+	public $listAttributes = '';
 
 	/**
 	 * Extra item HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $itemAttributes = [];
+	public $itemAttributes = '';
 
 	/**
 	 * If the article count per heading should be shown.
