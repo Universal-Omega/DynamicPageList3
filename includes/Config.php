@@ -35,7 +35,7 @@ class Config {
 	 * Return a single setting.
 	 *
 	 * @param string $setting
-	 * @return mixed
+	 * @return mixed|null
 	 */
 	public static function getSetting( $setting ) {
 		return ( self::$settings[$setting] ?? null );
