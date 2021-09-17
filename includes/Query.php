@@ -251,7 +251,7 @@ class Query {
 
 		if ( $this->limit !== false ) {
 			$options['LIMIT'] = $this->limit;
-		} elseif ( $this->offset !== false && $this->limit === false ) {
+		} elseif ( $this->offset !== false && $this->limit == false ) {
 			$options['LIMIT'] = $this->parameters->getData( 'count' )['default'];
 		}
 
@@ -361,7 +361,7 @@ class Query {
 			$queryError = true;
 		}
 
-		if ( $queryError == true || $result === false ) {
+		if ( $queryError || $result === false ) {
 			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DPL_VERSION, $this->DB->lastError() )->text() );
 		}
 
@@ -455,7 +455,7 @@ class Query {
 	 * Add a where clause to the output.
 	 * Where clauses get imploded together with AND at the end. Any custom where clauses should be preformed before placed into here.
 	 *
-	 * @param string $where
+	 * @param array|string $where
 	 * @return bool
 	 */
 	public function addWhere( $where ) {
@@ -591,7 +591,7 @@ class Query {
 	/**
 	 * Set the limit.
 	 *
-	 * @param mixed $offset
+	 * @param mixed $limit
 	 * @return bool
 	 */
 	public function setLimit( $limit ) {
@@ -2021,7 +2021,7 @@ class Query {
 
 		if ( substr( $option, 0, 2 ) == '=_' ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title >= ' . $this->DB->addQuotes( substr( $sTitleGE, 2 ) );
+				$where .= 'pl_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
 			} else {
 				$where .= $this->tableNames['page'] . '.page_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
 			}
