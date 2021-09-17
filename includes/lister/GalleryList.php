@@ -38,7 +38,7 @@ class GalleryList extends Lister {
 	 *
 	 * @var string
 	 */
-	public $itemEnd = "|";
+	public $itemEnd = '|';
 
 	/**
 	 * Format an item.
