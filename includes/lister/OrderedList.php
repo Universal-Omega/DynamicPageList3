@@ -14,7 +14,7 @@ class OrderedList extends UnorderedList {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_ORDERED;
 
