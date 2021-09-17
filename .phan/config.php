@@ -31,6 +31,8 @@ $cfg['suppress_issue_types'] = [
 	'PhanPossiblyNullTypeMismatchProperty',
 	'PhanTypeMismatchArgumentInternal',
 	'SecurityCheck-LikelyFalsePositive',
+	'PhanPluginMixedKeyNoKey',
+	'PhanAccessMethodInternal',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
