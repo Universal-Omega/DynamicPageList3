@@ -11,22 +11,20 @@ class UserQueryBuilder {
 	/** @var IDatabase */
 	private $dbr;
 
-	/**
-	 * @var ActorMigration
-	 */
+	/** @var ActorMigration */
 	private $actorMigration;
 
-	/** @var UserIdentity */
-	private $modifiedByConstraints;
+	/** @var UserIdentity|array */
+	private $modifiedByConstraints = [];
 
-	/** @var UserIdentity */
-	private $notModifiedByConstraints;
+	/** @var UserIdentity|array */
+	private $notModifiedByConstraints = [];
 
-	/** @var UserIdentity */
-	private $notCreatedByConstraints;
+	/** @var UserIdentity|array */
+	private $notCreatedByConstraints = [];
 
-	/** @var UserIdentity */
-	private $notLastModifiedByConstraints;
+	/** @var UserIdentity|array */
+	private $notLastModifiedByConstraints = [];
 
 	/** @var UserIdentity */
 	private $createdByConstraint;
