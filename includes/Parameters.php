@@ -46,7 +46,7 @@ class Parameters extends ParametersData {
 	 * Handle simple parameter functions.
 	 *
 	 * @param string $parameter
-	 * @param string $arguments
+	 * @param mixed $arguments
 	 * @return bool
 	 */
 	public function __call( $parameter, $arguments ) {
@@ -384,7 +384,7 @@ class Parameters extends ParametersData {
 	/**
 	 * Check if a regular expression is valid.
 	 *
-	 * @param array|string
+	 * @param array|string $regexes
 	 * @param bool $forDb
 	 * @return bool
 	 */
