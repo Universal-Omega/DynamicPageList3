@@ -464,14 +464,15 @@ class UpdateArticle {
 				if ( $occurence < $call ) {
 					continue;
 				}
+
 				$match = $matchB[0];
 				$start = $matchB[1];
 
 				if ( $match[strlen( $match ) - 1] == '}' ) {
 					// template was called without parameters, add new parameter and value
 					// append parameter and value
-					$beginSubst   = $i;
-					$endSubst     = $i;
+					$beginSubst   = 0;
+					$endSubst     = 0;
 					$substitution = "|$parameter = $value";
 					break;
 				} else {
