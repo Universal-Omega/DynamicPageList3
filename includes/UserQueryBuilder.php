@@ -16,16 +16,16 @@ class UserQueryBuilder {
 	 */
 	private $actorMigration;
 
-	/** @var UserIdentity[] */
+	/** @var UserIdentity|[] */
 	private $modifiedByConstraints = [];
 
-	/** @var UserIdentity[] */
+	/** @var UserIdentity|[] */
 	private $notModifiedByConstraints = [];
 
-	/** @var UserIdentity[] */
+	/** @var UserIdentity|[] */
 	private $notCreatedByConstraints = [];
 
-	/** @var UserIdentity[] */
+	/** @var UserIdentity|[] */
 	private $notLastModifiedByConstraints = [];
 
 	/** @var UserIdentity */
