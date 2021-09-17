@@ -316,7 +316,7 @@ class UpdateArticle {
 	<form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode( $title ) . '&action=submit" enctype="multipart/form-data">
 		<input type="hidden" value="" name="wpSection" />
 		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
-		<input type="hidden" value="' . $articleX->getTimestamp() . '" name="wpEdittime" />
+		<input type="hidden" value="' . $articleX->getPage()->getTimestamp() . '" name="wpEdittime" />
 		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
 		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $wgUser->getIntOption( 'rows' ) . '" cols="' . $wgUser->getIntOption( 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
 		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
