@@ -20,7 +20,7 @@ class Logger {
 	/**
 	 * Return the buffer of messages.
 	 *
-	 * @param bool|true $clearBuffer
+	 * @param bool $clearBuffer
 	 * @return array
 	 */
 	public function getMessages( $clearBuffer = true ) {
