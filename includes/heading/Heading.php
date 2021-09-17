@@ -17,7 +17,7 @@ class Heading {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int|null
 	 */
 	public $style = null;
 
@@ -56,14 +56,14 @@ class Heading {
 	 *
 	 * @var array
 	 */
-	public $listAttributes = '';
+	public $listAttributes = [];
 
 	/**
 	 * Extra item HTML attributes.
 	 *
 	 * @var array
 	 */
-	public $itemAttributes = '';
+	public $itemAttributes = [];
 
 	/**
 	 * If the article count per heading should be shown.
@@ -73,18 +73,14 @@ class Heading {
 	protected $showHeadingCount = false;
 
 	/**
-	 * \DPL\Parameters
+	 * Parameters
 	 *
-	 * @var object
+	 * @var Parameters
 	 */
-	protected $parameters = null;
+	protected $parameters;
 
 	/**
-	 * Main Constructor
-	 *
-	 * @access	public
-	 * @param	object	\DPL\Parameters
-	 * @return	void
+	 * @param Parameters
 	 */
 	public function __construct( Parameters $parameters ) {
 		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) );
