@@ -12,6 +12,7 @@
 namespace DPL;
 
 use MediaWiki\MediaWikiServices;
+use MWException;
 
 class Parameters extends ParametersData {
 	/**
@@ -204,7 +205,7 @@ class Parameters extends ParametersData {
 	 */
 	public static function sortByPriority( $parameters ) {
 		if ( !is_array( $parameters ) ) {
-			throw new \MWException( __METHOD__ . ': A non-array was passed.' );
+			throw new MWException( __METHOD__ . ': A non-array was passed.' );
 		}
 		//'category' to get category headings first for ordermethod.
 		//'include'/'includepage' to make sure section labels are ready for 'table'.
