@@ -30,6 +30,7 @@ namespace DPL;
 use DPL\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use Parser;
+use Title;
 
 class LST {
 	##############################################################
@@ -52,9 +53,11 @@ class LST {
 		// Infinite loop test
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
+
 			return false;
 		} else {
 			$parser->mTemplatePath[$part1] = 1;
+
 			return true;
 		}
 	}
@@ -62,7 +65,7 @@ class LST {
 	/**
 	 * Finish processing the function.
 	 *
-	 * @param $parser Parser
+	 * @param Parser $parser
 	 * @param $part1
 	 */
 	public static function close( $parser, $part1 ) {
@@ -124,16 +127,17 @@ class LST {
 	 * @param string $in
 	 * @param array $assocArgs
 	 * @param Parser $parser
-	 * @return string HTML output
+	 * @return string
 	 */
 	private static function noop( $in, $assocArgs = [], $parser = null ) {
 		return '';
 	}
 
-	///Generate a regex to match the section(s) we're interested in.
+	// Generate a regex to match the section(s) we're interested in.
 	private static function createSectionPattern( $sec, $to, &$any ) {
-		$any    = false;
+		$any = false;
 		$to_sec = ( $to == '' ) ? $sec : $to;
+
 		if ( $sec[0] == '*' ) {
 			$any = true;
 			if ( $sec == '**' ) {
@@ -144,6 +148,7 @@ class LST {
 		} else {
 			$sec = preg_quote( $sec, '/' );
 		}
+
 		if ( $to_sec[0] == '*' ) {
 			if ( $to_sec == '**' ) {
 				$to_sec = '[^\/>"' . "']+";
@@ -153,20 +158,21 @@ class LST {
 		} else {
 			$to_sec = preg_quote( $to_sec, '/' );
 		}
-		$ws = "(?:\s+[^>]+)?"; //was like $ws="\s*"
+
+		$ws = "(?:\s+[^>]+)?";
+
 		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" . "['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" . "['\"]?\\1['\"]?" . "$ws\/?>/s";
 	}
 
 	/**
 	 * Count headings in skipped text.
 	 *
-	 * Count skipped headings, so parser (as of r18218) can skip them, to
-	 * prevent wrong heading links (see bug 6563).
+	 * Count skipped headings, so parser can skip them, to
+	 * prevent wrong heading links.
 	 *
 	 * @param string $text
-	 * @param int $limit Cutoff point in the text to stop searching
-	 * @return int Number of matches
-	 * @private
+	 * @param int $limit
+	 * @return int
 	 */
 	private static function countHeadings( $text, $limit ) {
 		$pat = '^(={1,6}).+\1\s*$()';
@@ -174,6 +180,7 @@ class LST {
 		$count = 0;
 		$offset = 0;
 		$m = [];
+
 		while ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
 			if ( $m[2][1] > $limit ) {
 				break;
@@ -187,7 +194,7 @@ class LST {
 	}
 
 	public static function text( $parser, $page, &$title, &$text ) {
-		$title = \Title::newFromText( $page );
+		$title = Title::newFromText( $page );
 
 		if ( $title === null ) {
 			$text = '';
@@ -205,13 +212,15 @@ class LST {
 		}
 	}
 
-	///section inclusion - include all matching sections
+	// section inclusion - include all matching sections
 	public static function includeSection( $parser, $page = '', $sec = '', $to = '', $recursionCheck = true, $trim = false, $skipPattern = [] ) {
 		$output = [];
+
 		if ( self::text( $parser, $page, $title, $text ) == false ) {
 			$output[] = $text;
 			return $output;
 		}
+
 		$any = false;
 		$pat = self::createSectionPattern( $sec, $to, $any );
 
@@ -219,12 +228,14 @@ class LST {
 
 		foreach ( $m[2] as $nr => $piece ) {
 			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern );
+
 			if ( $any ) {
 				$output[] = $m[1][$nr] . '::' . $piece;
 			} else {
 				$output[] = $piece;
 			}
 		}
+
 		return $output;
 	}
 
@@ -261,24 +272,29 @@ class LST {
 		// search latest position with balanced brackets/braces
 		// store also the position of the last preceding space
 
-		$brackets  = 0;
+		$brackets = 0;
 		$cbrackets = 0;
-		$n0        = -1;
-		$nb        = 0;
+		$n0 = -1;
+		$nb = 0;
+
 		for ( $i = 0; $i < $limit; $i++ ) {
 			$c = $text[$i];
 			if ( $c == '[' ) {
 				$brackets++;
 			}
+
 			if ( $c == ']' ) {
 				$brackets--;
 			}
+
 			if ( $c == '{' ) {
 				$cbrackets++;
 			}
+
 			if ( $c == '}' ) {
 				$cbrackets--;
 			}
+
 			// we store the position if it is valid in terms of parentheses balancing
 			if ( $brackets == 0 && $cbrackets == 0 ) {
 				$n0 = $i;
@@ -294,6 +310,7 @@ class LST {
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
+
 			$cut = substr( $text, 0, $n0 + 1 );
 
 			// an open html comment would be fatal, but this should not happen as we already have
@@ -305,9 +322,9 @@ class LST {
 			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
 			// This simple approach may fail in some cases ...
 
-			$matches   = [];
+			$matches = [];
 			$noMatches = preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-			$tags      = [
+			$tags = [
 				'ref' => 0,
 				'pre' => 0,
 				'nowiki' => 0
@@ -322,6 +339,7 @@ class LST {
 						$tags[$mm]++;
 					}
 				}
+
 				// append missing closing tags - should the tags be ordered by precedence ?
 				foreach ( $tags as $tagName => $level ) {
 					while ( $level > 0 ) {
@@ -331,10 +349,12 @@ class LST {
 						} else {
 							$cut .= '</' . $tagName . '>';
 						}
+
 						$level--;
 					}
 				}
 			}
+
 			return $cut . $link;
 		} elseif ( $limit == 0 ) {
 			return $link;
@@ -348,42 +368,50 @@ class LST {
 
 	public static function includeHeading( $parser, $page = '', $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $link = 'default', $trim = false, $skipPattern = [] ) {
 		$output = [];
+
 		if ( self::text( $parser, $page, $title, $text ) == false ) {
 			$output[0] = $text;
+
 			return $output;
 		}
-		/* throw away comments */
+
+		// throw away comments
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
+
 		return self::extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 	}
 
 	//section inclusion - include all matching sections (return array)
 	public static function extractHeadingFromText( $parser, $page, $title, $text, $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $cLink = 'default', $trim = false, $skipPattern = [] ) {
 		$continueSearch = true;
-		$n              = 0;
-		$output[$n]     = '';
-		$nr             = 0;
+		$n = 0;
+		$output[$n] = '';
+		$nr = 0;
+
 		// check if we are going to fetch the n-th section
 		if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
 			$nr = substr( $sec, 1 );
 		}
+
 		if ( preg_match( '/^%0$/', $sec ) ) {
 			$nr = -2; // transclude text before the first section
 		}
 
 		// if the section name starts with a # or with a @ we use it as regexp, otherwise as plain string
 		$isPlain = true;
+
 		if ( $sec != '' && ( $sec[0] == '#' || $sec[0] == '@' ) ) {
-			$sec     = substr( $sec, 1 );
+			$sec = substr( $sec, 1 );
 			$isPlain = false;
 		}
+
 		do {
 			//Generate a regex to match the === classical heading section(s) === we're
 			//interested in.
 			$headLine = '';
 			if ( $sec == '' ) {
 				$begin_off = 0;
-				$head_len  = 6;
+				$head_len = 6;
 			} else {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)';
@@ -392,12 +420,13 @@ class LST {
 				} else {
 					$pat = '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)';
 				}
+
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$mata           = [];
+					$mata = [];
 					$no_parenthesis = preg_match_all( '/\(/', $pat, $mata );
-					$begin_off      = $m[$no_parenthesis][1];
-					$head_len       = strlen( $m[1][0] );
-					$headLine       = trim( $m[0][0], "\n =\t" );
+					$begin_off = $m[$no_parenthesis][1];
+					$head_len = strlen( $m[1][0] );
+					$headLine = trim( $m[0][0], "\n =\t" );
 				} elseif ( $nr == -2 ) {
 					$m[1][1] = strlen( $text ) + 1; // take whole article if no heading found
 				} else {
@@ -405,6 +434,7 @@ class LST {
 					return $output;
 				}
 			}
+
 			// create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
 			$link = $cLink;
 			if ( $link == 'default' ) {
@@ -416,33 +446,39 @@ class LST {
 			} else {
 				$link = str_replace( '%SECTION%', $page . '#' . $headLine, $link );
 			}
+
 			if ( $nr == -2 ) {
 				// output text before first section and done
-				$piece     = substr( $text, 0, $m[1][1] - 1 );
+				$piece = substr( $text, 0, $m[1][1] - 1 );
 				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+
 				return $output;
 			}
 
 			if ( isset( $end_off ) ) {
 				unset( $end_off );
 			}
+
 			if ( $to != '' ) {
-				//if $to is supplied, try and match it.  If we don't match, just ignore it.
+				//if $to is supplied, try and match it. If we don't match, just ignore it.
 				if ( $isPlain ) {
 					$pat = '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$';
 				} else {
 					$pat = '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
 				}
+
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
 					$end_off = $mm[0][1] - 1;
 				}
 			}
+
 			if ( !isset( $end_off ) ) {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
 					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
 				}
+
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
 					$end_off = $mm[0][1] - 1;
 				} elseif ( $sec == '' ) {
@@ -451,12 +487,14 @@ class LST {
 			}
 
 			$nhead = self::countHeadings( $text, $begin_off );
+
 			wfDebug( "LSTH: head offset = $nhead" );
 
 			if ( isset( $end_off ) ) {
 				if ( $end_off == -1 ) {
 					return $output;
 				}
+
 				$piece = substr( $text, $begin_off, $end_off - $begin_off );
 				if ( $sec == '' ) {
 					$continueSearch = false;
@@ -464,7 +502,7 @@ class LST {
 					$text = substr( $text, $end_off );
 				}
 			} else {
-				$piece          = substr( $text, $begin_off );
+				$piece = substr( $text, $begin_off );
 				$continueSearch = false;
 			}
 
@@ -476,10 +514,7 @@ class LST {
 
 			if ( isset( $m[0][0] ) ) {
 				$sectionHeading[$n] = $headLine;
-				//$sectionHeading[$n]=preg_replace("/^=+\s*/","",$m[0][0]);
-				//$sectionHeading[$n]=preg_replace("/\s*=+\s*$/","",$sectionHeading[$n]);
 			} else {
-				// $sectionHeading[$n] = '';
 				$sectionHeading[0] = $headLine;
 			}
 
@@ -488,6 +523,7 @@ class LST {
 				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 				break;
 			}
+
 			if ( $nr == -1 ) {
 				if ( !isset( $end_off ) ) {
 					// output last section and done
@@ -509,21 +545,24 @@ class LST {
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
-		$page  = $article->mTitle->getPrefixedText();
-		$date  = $article->myDate;
-		$user  = $article->mUserLink;
-		$title = \Title::newFromText( $page );
-		/* get text and throw away html comments */
+		$page = $article->mTitle->getPrefixedText();
+		$date = $article->myDate;
+		$user = $article->mUserLink;
+		$title = Title::newFromText( $page );
+
+		// get text and throw away html comments
 		$text = preg_replace( '/<!--.*?-->/s', '', $parser->fetchTemplateAndTitle( $title )[0] );
 
 		if ( $template1 != '' && $template1[0] == '#' ) {
 			// --------------------------------------------- looking for a parser function call
-			$template1       = substr( $template1, 1 );
-			$template2       = substr( $template2, 1 );
+			$template1 = substr( $template1, 1 );
+			$template2 = substr( $template2, 1 );
 			$defaultTemplate = substr( $defaultTemplate, 1 );
+
 			// when looking for parser function calls we accept regexp search patterns
-			$text2           = preg_replace( "/\{\{\s*#(" . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=\1\2|', $text );
-			$tCalls          = preg_split( '/°³²/', ' ' . $text2 );
+			$text2 = preg_replace( "/\{\{\s*#(" . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=\1\2|', $text );
+			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
+
 			foreach ( $tCalls as $i => $tCall ) {
 				if ( ( $n = strpos( $tCall, ':' ) ) !== false ) {
 					$tCalls[$i][$n] = ' ';
@@ -531,12 +570,14 @@ class LST {
 			}
 		} elseif ( $template1 != '' && $template1[0] == '~' ) {
 			// --------------------------------------------- looking for an xml-tag extension call
-			$template1       = substr( $template1, 1 );
-			$template2       = substr( $template2, 1 );
+			$template1 = substr( $template1, 1 );
+			$template2 = substr( $template2, 1 );
 			$defaultTemplate = substr( $defaultTemplate, 1 );
+
 			// looking for tags
-			$text2           = preg_replace( '/\<\s*(' . $template1 . ')\s*\>/i', '°³²|%TAG%=\1|%TAGBODY%=', $text );
-			$tCalls          = preg_split( '/°³²/', ' ' . $text2 );
+			$text2 = preg_replace( '/\<\s*(' . $template1 . ')\s*\>/i', '°³²|%TAG%=\1|%TAGBODY%=', $text );
+			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
+
 			foreach ( $tCalls as $i => $tCall ) {
 				$tCalls[$i] = preg_replace( '/\<\s*\/' . $template1 . '\s*\>.*/is', '}}', $tCall );
 			}
@@ -548,7 +589,8 @@ class LST {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 			$nsNames = $contLang->getNamespaces();
-			$tCalls  = preg_split( '/\{\{\s*(Template:|' . $nsNames[10] . ':)?' . self::spaceOrUnderscore( preg_quote( $template1, '/' ) ) . '\s*[|}]/i', ' ' . $text );
+			$tCalls = preg_split( '/\{\{\s*(Template:|' . $nsNames[10] . ':)?' . self::spaceOrUnderscore( preg_quote( $template1, '/' ) ) . '\s*[|}]/i', ' ' . $text );
+
 			// We restore the first separator symbol (we had to include that symbol into the SPLIT, because we must make
 			// sure that we only accept exact matches of the complete template name
 			// (e.g. when looking for "foo" we must not accept "foo xyz")
@@ -561,7 +603,7 @@ class LST {
 			}
 		}
 
-		$output      = [];
+		$output = [];
 		$extractParm = [];
 
 		// check if we want to extract parameters directly from the call
@@ -577,6 +619,7 @@ class LST {
 				// if parameters are required directly: return empty columns
 				if ( count( $extractParm ) > 1 ) {
 					$output[0] = $lister->formatTemplateArg( '', $dplNr, 0, true, -1, $article );
+
 					for ( $i = 1; $i < count( $extractParm ); $i++ ) {
 						$output[0] .= "\n|" . $lister->formatTemplateArg( '', $dplNr, $i, true, -1, $article );
 					}
@@ -587,43 +630,52 @@ class LST {
 				// put a red link into the output
 				$output[0] = $parser->preprocess( '{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->getTitle(), $parser->getOptions() );
 			}
+
 			unset( $title );
+
 			return $output;
 		}
 
 		$output[0] = '';
-		$n         = -2;
+		$n = -2;
+
 		// loop for all template invocations
 		$firstCall = true;
+
 		foreach ( $tCalls as $iii => $tCall ) {
 			if ( $n == -2 ) {
 				$n++;
 				continue;
 			}
+
 			$c = $tCall[0];
 			// normally we construct a call for template2 with the parameters of template1
 			if ( count( $extractParm ) == 0 ) {
 				// find the end of the call: bracket level must be zero
-				$cbrackets    = 0;
+				$cbrackets = 0;
 				$templateCall = '{{' . $template2 . $tCall;
-				$size         = strlen( $templateCall );
+				$size = strlen( $templateCall );
 
 				for ( $i = 0; $i < $size; $i++ ) {
 					$c = $templateCall[$i];
 					if ( $c == '{' ) {
 						$cbrackets++;
 					}
+
 					if ( $c == '}' ) {
 						$cbrackets--;
 					}
+
 					if ( $cbrackets == 0 ) {
 						// if we must match a condition: test against it
 						if ( ( $mustMatch == '' || preg_match( $mustMatch, substr( $templateCall, 0, $i - 1 ) ) ) && ( $mustNotMatch == '' || !preg_match( $mustNotMatch, substr( $templateCall, 0, $i - 1 ) ) ) ) {
 							$invocation = substr( $templateCall, 0, $i - 1 );
-							$argChain   = $invocation . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText();
+							$argChain = $invocation . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText();
+
 							if ( $catlist != '' ) {
 								$argChain .= "|%CATLIST%=$catlist";
 							}
+
 							$argChain .= '|%DATE%=' . $date . '|%USER%=' . $user . '|%ARGS%=' . str_replace( '|', '§', preg_replace( '/[}]+/', '}', preg_replace( '/[{]+/', '{', substr( $invocation, strlen( $template2 ) + 2 ) ) ) ) . '}}';
 							$output[++$n] = $parser->preprocess( $argChain, $parser->getTitle(), $parser->getOptions() );
 						}
@@ -632,87 +684,107 @@ class LST {
 				}
 			} else {
 				// if the user wants parameters directly from the call line of template1 we return just those
-				$cbrackets    = 2;
+				$cbrackets = 2;
 				$templateCall = $tCall;
-				$size         = strlen( $templateCall );
-				$parms        = [];
-				$parm         = '';
-				$hasParm      = false;
+				$size = strlen( $templateCall );
+				$parms = [];
+				$parm = '';
+				$hasParm = false;
 
 				for ( $i = 0; $i < $size; $i++ ) {
 					$c = $templateCall[$i];
+
 					if ( $c == '{' || $c == '[' ) {
 						$cbrackets++; // we count both types of brackets
 					}
+
 					if ( $c == '}' || $c == ']' ) {
 						$cbrackets--;
 					}
+
 					if ( $cbrackets == 2 && $c == '|' ) {
 						$parms[] = trim( $parm );
 						$hasParm = true;
-						$parm    = '';
+						$parm = '';
 					} else {
 						$parm .= $c;
 					}
+
 					if ( $cbrackets == 0 ) {
 						if ( $hasParm ) {
 							$parms[] = trim( substr( $parm, 0, strlen( $parm ) - 2 ) );
 						}
-						array_splice( $parms, 0, 1 ); // remove artifact;
+
+						array_splice( $parms, 0, 1 );
 						// if we must match a condition: test against it
 						$callText = substr( $templateCall, 0, $i - 1 );
+
 						if ( ( $mustMatch == '' || ( ( $matchParsed && preg_match( $mustMatch, $parser->recursiveTagParse( $callText ) ) ) || ( !$matchParsed && preg_match( $mustMatch, $callText ) ) ) ) && ( $mustNotMatch == '' || ( ( $matchParsed && !preg_match( $mustNotMatch, $parser->recursiveTagParse( $callText ) ) ) || ( !$matchParsed && !preg_match( $mustNotMatch, $callText ) ) ) ) ) {
 							$output[++$n] = '';
-							$second       = false;
+							$second = false;
+
 							foreach ( $extractParm as $exParmKey => $exParm ) {
 								$maxlen = -1;
 								if ( ( $limpos = strpos( $exParm, '[' ) ) > 0 && $exParm[strlen( $exParm ) - 1] == ']' ) {
 									$maxlen = intval( substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 ) );
 									$exParm = substr( $exParm, 0, $limpos );
 								}
+
 								if ( $second ) {
 									if ( $output[$n] == '' || $output[$n][strlen( $output[$n] ) - 1] != "\n" ) {
 										$output[$n] .= "\n";
 									}
+
 									$output[$n] .= "|"; // \n";
 								}
+
 								$found = false;
+
 								// % in parameter name
 								if ( strpos( $exParm, '%' ) !== false ) {
 									// %% is a short form for inclusion of %PAGE% and %TITLE%
 									$found = true;
 									$output[$n] .= $lister->formatTemplateArg( $exParm, $dplNr, $exParmKey, $firstCall, $maxlen, $article );
 								}
+
 								if ( !$found ) {
 									// named parameter
 									$exParmQuote = str_replace( '/', '\/', $exParm );
+
 									foreach ( $parms as $parm ) {
 										if ( !preg_match( "/^\s*$exParmQuote\s*=/", $parm ) ) {
 											continue;
 										}
+
 										$found = true;
 										$output[$n] .= $lister->formatTemplateArg( preg_replace( "/^$exParmQuote\s*=\s*/", "", $parm ), $dplNr, $exParmKey, $firstCall, $maxlen, $article );
 										break;
 									}
 								}
+
 								if ( !$found && is_numeric( $exParm ) && intval( $exParm ) == $exParm ) {
 									// numeric parameter
 									$np = 0;
+
 									foreach ( $parms as $parm ) {
 										if ( strstr( $parm, '=' ) === false ) {
 											++$np;
 										}
+
 										if ( $np != $exParm ) {
 											continue;
 										}
+
 										$found = true;
 										$output[$n] .= $lister->formatTemplateArg( $parm, $dplNr, $exParmKey, $firstCall, $maxlen, $article );
 										break;
 									}
 								}
+
 								if ( !$found ) {
 									$output[$n] .= $lister->formatTemplateArg( '', $dplNr, $exParmKey, $firstCall, $maxlen, $article );
 								}
+
 								$second = true;
 							}
 						}
@@ -720,6 +792,7 @@ class LST {
 					}
 				}
 			}
+
 			$firstCall = false;
 		}
 
