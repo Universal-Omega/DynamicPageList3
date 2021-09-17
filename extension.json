@@ -98,6 +98,5 @@
 		"dplchapter-parserfunc-tracking-category",
 		"dplmatrix-parserfunc-tracking-category"
 	],
-	"callback": "DPL\\DynamicPageListHooks::onRegistration",
 	"manifest_version": 1
 }
