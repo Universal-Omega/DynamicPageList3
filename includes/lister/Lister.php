@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL List Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Lister;
 
@@ -16,16 +8,25 @@ use DPL\Parameters;
 use DPL\UpdateArticle;
 use MediaWiki\MediaWikiServices;
 use Parser;
+use Sanitizer;
+use Title;
 
 class Lister {
-	const LIST_DEFINITION = 1;
-	const LIST_GALLERY = 2;
-	const LIST_HEADING = 3;
-	const LIST_INLINE = 4;
-	const LIST_ORDERED = 5;
-	const LIST_UNORDERED = 6;
-	const LIST_CATEGORY = 7;
-	const LIST_USERFORMAT = 8;
+	public const LIST_DEFINITION = 1;
+
+	public const LIST_GALLERY = 2;
+
+	public const LIST_HEADING = 3;
+
+	public const LIST_INLINE = 4;
+
+	public const LIST_ORDERED = 5;
+
+	public const LIST_UNORDERED = 6;
+
+	public const LIST_CATEGORY = 7;
+
+	public const LIST_USERFORMAT = 8;
 
 	/**
 	 * Listing style for this class.
@@ -284,49 +285,48 @@ class Lister {
 	 *
 	 * @access	public
 	 * @param	string	List style.
-	 * @param	object	\DPL\Parameters
-	 * @param	object	MediaWiki \Parser
+	 * @param	object	Parameters
+	 * @param	object	Parser
 	 * @return	object	Lister subclass.
 	 */
-	public static function newFromStyle( $style, \DPL\Parameters $parameters, \Parser $parser ) {
+	public static function newFromStyle( $style, Parameters $parameters, Parser $parser ) {
 		$style = strtolower( $style );
 		switch ( $style ) {
 			case 'category':
-				$class = 'CategoryList';
+				$class = CategoryList::class;
 				break;
 			case 'definition':
-				$class = 'DefinitionList';
+				$class = DefinitionList::class;
 				break;
 			case 'gallery':
-				$class = 'GalleryList';
+				$class = GalleryList::class;
 				break;
 			case 'inline':
-				$class = 'InlineList';
+				$class = InlineList::class;
 				break;
 			case 'ordered':
-				$class = 'OrderedList';
+				$class = OrderedList::class;
 				break;
 			case 'subpage':
-				$class = 'SubPageList';
+				$class = SubPageList::class;
 				break;
 			default:
 			case 'unordered':
-				$class = 'UnorderedList';
+				$class = UnorderedList::class;
 				break;
 			case 'userformat':
-				$class = 'UserFormatList';
+				$class = UserFormatList::class;
 				break;
 		}
-		$class = '\DPL\Lister\\' . $class;
 
 		return new $class( $parameters, $parser );
 	}
 
 	/**
-	 * Get the \DPL\Parameters object this object was constructed with.
+	 * Get the Parameters object this object was constructed with.
 	 *
 	 * @access	public
-	 * @return	object	\DPL\Parameters
+	 * @return	object	Parameters
 	 */
 	public function getParameters() {
 		return $this->parameters;
@@ -340,7 +340,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setHeadListAttributes( $attributes ) {
-		$this->headListAttributes = \Sanitizer::fixTagAttributes( $attributes, 'ul' );
+		$this->headListAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
 	}
 
 	/**
@@ -351,7 +351,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setHeadItemAttributes( $attributes ) {
-		$this->headItemAttributes = \Sanitizer::fixTagAttributes( $attributes, 'li' );
+		$this->headItemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
 	}
 
 	/**
@@ -362,7 +362,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setListAttributes( $attributes ) {
-		$this->listAttributes = \Sanitizer::fixTagAttributes( $attributes, 'ul' );
+		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
 	}
 
 	/**
@@ -373,7 +373,7 @@ class Lister {
 	 * @return	void
 	 */
 	public function setItemAttributes( $attributes ) {
-		$this->itemAttributes = \Sanitizer::fixTagAttributes( $attributes, 'li' );
+		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
 	}
 
 	/**
@@ -626,7 +626,7 @@ class Lister {
 	 * Shortcut to format all articles into a single formatted list.
 	 *
 	 * @access	public
-	 * @param	array	List of \DPL\Article
+	 * @param	array	List of Article
 	 * @return	string	Formatted list.
 	 */
 	public function format( $articles ) {
@@ -637,7 +637,7 @@ class Lister {
 	 * Format a list of articles into a singular list.
 	 *
 	 * @access	public
-	 * @param	array	List of \DPL\Article
+	 * @param	array	List of Article
 	 * @param	integer	Start position of the array to process.
 	 * @param	integer	Total objects from the array to process.
 	 * @return	string	Formatted list.
@@ -672,7 +672,7 @@ class Lister {
 	 * Format a single item.
 	 *
 	 * @access	public
-	 * @param	object	DPL\Article
+	 * @param	object	Article
 	 * @param	string	[Optional] Page text to include.
 	 * @return	string	Item HTML
 	 */
@@ -814,7 +814,7 @@ class Lister {
 	 *
 	 * @protected
 	 * @param	string	Text to perform replacements on.
-	 * @param	object	\DPL\Article
+	 * @param	object	Article
 	 * @return	string	Text with replacements performed.
 	 */
 	protected function replaceTagParameters( $tag, Article $article ) {
@@ -883,7 +883,7 @@ class Lister {
 	 *
 	 * @protected
 	 * @param	string	Text to perform replacements on.
-	 * @param	object	\DPL\Article
+	 * @param	object	Article
 	 * @return	string	Text with replacements performed.
 	 */
 	protected function replaceTagCategory( $tag, Article $article ) {
@@ -921,7 +921,7 @@ class Lister {
 	 * @private
 	 * @param	array	String pieces to perform replacements on.
 	 * @param	mixed	Index of the table row position.
-	 * @param	object	\DPL\Article
+	 * @param	object	Article
 	 * @return	void
 	 */
 	private function replaceTagTableRow( &$pieces, $s, Article $article ) {
@@ -958,7 +958,7 @@ class Lister {
 	 * @param	mixed	Other part of the index of the table row position?
 	 * @param	boolean	Is this the first time this function was called in this context?
 	 * @param	integer	Maximum text length allowed.
-	 * @param	object	\DPL\Article
+	 * @param	object	Article
 	 * @return	string	Formatted text.
 	 */
 	public function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxLength, Article $article ) {
@@ -1019,28 +1019,30 @@ class Lister {
 	 * Prepends an image name with its hash path.
 	 *
 	 * @protected
-	 * @param 	mixed	\DPL\Article or string image name of the image (may start with Image: or File:).
+	 * @param 	mixed	Article or string image name of the image (may start with Image: or File:).
 	 * @return	string	Image URL
 	 */
 	protected function parseImageUrlWithPath( $article ) {
+		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
+
 		$imageUrl = '';
-		if ( $article instanceof \DPL\Article ) {
+		if ( $article instanceof Article ) {
 			if ( $article->mNamespace == NS_FILE ) {
 				// calculate URL for existing images
-				// $img = Image::newFromName($article->mTitle->getText());
-				$img = wfFindFile( \Title::makeTitle( NS_FILE, $article->mTitle->getText() ) );
+				// $img = Image::newFromName( $article->mTitle->getText() );
+				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $article->mTitle->getText() ) );
 				if ( $img && $img->exists() ) {
 					$imageUrl = $img->getURL();
 				} else {
-					$fileTitle = \Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
-					$imageUrl = \RepoGroup::singleton()->getLocalRepo()->newFile( $fileTitle )->getPath();
+					$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
+					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
 			}
 		} else {
-			$title = \Title::newfromText( 'File:' . $article );
+			$title = Title::newfromText( 'File:' . $article );
 			if ( $title !== null ) {
-				$fileTitle   = \Title::makeTitleSafe( 6, $title->getDBKey() );
-				$imageUrl = \RepoGroup::singleton()->getLocalRepo()->newFile( $fileTitle )->getPath();
+				$fileTitle   = Title::makeTitleSafe( 6, $title->getDBKey() );
+				$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 			}
 		}
 
@@ -1054,7 +1056,7 @@ class Lister {
 	 * Transclude a page contents.
 	 *
 	 * @access	public
-	 * @param	object	\DPL\Article
+	 * @param	object	Article
 	 * @param	integer	Filtered Article Count
 	 * @return	string	Page Text
 	 */
@@ -1067,7 +1069,7 @@ class Lister {
 			} else {
 				$pageText = '<br/>';
 			}
-			$text = $this->parser->fetchTemplate( \Title::newFromText( $title ) );
+			$text = $this->parser->fetchTemplate( Title::newFromText( $title ) );
 			if ( ( count( $this->pageTextMatchRegex ) <= 0 || $this->pageTextMatchRegex[0] == '' || !( !preg_match( $this->pageTextMatchRegex[0], $text ) ) ) && ( count( $this->pageTextMatchNotRegex ) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match( $this->pageTextMatchNotRegex[0], $text ) == false ) ) {
 				if ( $this->includePageMaxLength > 0 && ( strlen( $text ) > $this->includePageMaxLength ) ) {
 					$text = LST::limitTranscludedText( $text, $this->includePageMaxLength, ' [[' . $title . '|..→]]' );
