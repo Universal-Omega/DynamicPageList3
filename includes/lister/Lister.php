@@ -97,30 +97,30 @@ class Lister {
 	/**
 	 * Extra head list HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $headListAttributes = [];
+	public $headListAttributes = '';
 
 	/**
 	 * Extra head item HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $headItemAttributes = [];
+	public $headItemAttributes = '';
 
 	/**
 	 * Extra list HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $listAttributes = [];
+	public $listAttributes = '';
 
 	/**
 	 * Extra item HTML attributes.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $itemAttributes = [];
+	public $itemAttributes = '';
 
 	/**
 	 * Count tipping point to mark a section as dominant.
