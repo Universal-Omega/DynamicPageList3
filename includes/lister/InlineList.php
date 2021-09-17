@@ -14,7 +14,7 @@ class InlineList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_INLINE;
 
