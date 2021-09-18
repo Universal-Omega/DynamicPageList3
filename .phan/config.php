@@ -34,6 +34,7 @@ $cfg['suppress_issue_types'] = [
 	'PhanParamReqAfterOpt',
 	'PhanSuspiciousValueComparison',
 	'PhanPluginLoopVariableReuse',
+	'SecurityCheck-ReDoS',
 ];
 
 $cfg['scalar_implicit_cast'] = true;
