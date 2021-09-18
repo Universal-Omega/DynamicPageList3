@@ -1020,7 +1020,7 @@ class Lister {
 				$pageText = '<br/>';
 			}
 
-			$text = $this->parser->fetchTemplate( Title::newFromText( $title ) );
+			$text = $this->parser->fetchTemplateAndTitle( Title::newFromText( $title ) )[0];
 			if ( ( count( $this->pageTextMatchRegex ) <= 0 || $this->pageTextMatchRegex[0] == '' || !( !preg_match( $this->pageTextMatchRegex[0], $text ) ) ) && ( count( $this->pageTextMatchNotRegex ) <= 0 || $this->pageTextMatchNotRegex[0] == '' || preg_match( $this->pageTextMatchNotRegex[0], $text ) == false ) ) {
 				if ( $this->includePageMaxLength > 0 && ( strlen( $text ) > $this->includePageMaxLength ) ) {
 					$text = LST::limitTranscludedText( $text, $this->includePageMaxLength, ' [[' . $title . '|..→]]' );
