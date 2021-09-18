@@ -110,16 +110,14 @@ class Parse {
 	 * @param array	&$eliminate
 	 * @param bool $isParserTag
 	 * @return string
+	 *
+	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
 
 		// Reset headings when being ran more than once in the same page load.
 		Article::resetHeadings();
-
-		if ( !isset( $parser->mTemplatePath ) ) {
-			$parser->mTemplatePath = [];
-		}
 
 		// Check that we are not in an infinite transclusion loop
 		if ( isset( $parser->mTemplatePath[$parser->getTitle()->getPrefixedText()] ) ) {
