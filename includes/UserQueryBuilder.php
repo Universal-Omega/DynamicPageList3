@@ -3,8 +3,9 @@
 namespace DPL;
 
 use ActorMigration;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
-use User;
 use Wikimedia\Rdbms\IDatabase;
 
 class UserQueryBuilder {
@@ -101,7 +102,9 @@ class UserQueryBuilder {
 	}
 
 	private function getUserForQuery( string $userName ): ?UserIdentity {
-		return User::newFromName( $userName, false ) ?: null;
+		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
+
+		return $userFactory->newFromName( $userName, UserFactory::RIGOR_NONE ) ?: null;
 	}
 
 	/**
