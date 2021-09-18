@@ -65,12 +65,10 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param $part1
+	 *
+	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public static function close( $parser, $part1 ) {
-		if ( !isset( $parser->mTemplatePath ) ) {
-			$parser->mTemplatePath = [];
-		}
-
 		// Infinite loop test
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			unset( $parser->mTemplatePath[$part1] );
