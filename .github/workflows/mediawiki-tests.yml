@@ -401,7 +401,7 @@ jobs:
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
               --skip-zuul \
               --packages-source composer \
-              --run "${{ matrix.stage }}" \
+              --run "${{ matrix.stage }}"
             fi
 
       - name: Upload coverage to Codecov
