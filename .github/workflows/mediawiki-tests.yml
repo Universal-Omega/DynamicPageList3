@@ -402,7 +402,6 @@ jobs:
               --skip-zuul \
               --packages-source composer \
               --run "${{ matrix.stage }}" \
-              $DEPENDENCIES
             fi
 
       - name: Upload coverage to Codecov
