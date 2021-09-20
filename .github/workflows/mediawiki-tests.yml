@@ -351,7 +351,9 @@ jobs:
       - name: Composer install
         if: ${{ matrix.stage == 'phan' }}
         run: |
-          composer install --prefer-dist --no-progress --no-interaction # $GITHUB_WORKSPACE
+          if [ -e composer.json ]; then
+            composer install --prefer-dist --no-progress --no-interaction
+          fi
 
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
@@ -383,7 +385,7 @@ jobs:
               -v "$(pwd)"/src:/mediawiki \
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
               --color
-          elif [ "${{ matrix.stage }}" == 'coverage' ]; then
+          elif [ "${{ matrix.stage }}" == 'coverage' ] && [ -d src/extensions/"${{ github.event.repository.name }}"/tests/phpunit ]; then
             docker run \
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
@@ -393,7 +395,7 @@ jobs:
               --skip-zuul \
               --skip-deps \
               -c mwext-phpunit-coverage
-          else
+          elif [ "${{ matrix.stage }}" != 'coverage' ]; then
             docker run \
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
@@ -401,7 +403,8 @@ jobs:
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
               --skip-zuul \
               --packages-source composer \
-              --run "${{ matrix.stage }}"
+              --run "${{ matrix.stage }}" \
+              $DEPENDENCIES
             fi
 
       - name: Upload coverage to Codecov
