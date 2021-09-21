@@ -1,6 +1,6 @@
 ---
 Variables:
-  - branch: master
+  - branch: 0
   - path: Variables
 ManageWiki:
   - path: ManageWiki
