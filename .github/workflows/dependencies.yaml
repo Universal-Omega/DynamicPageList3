@@ -1,7 +1,7 @@
 ---
 Variables:
   - path: Variables
-ManageWiki
+ManageWiki:
   - path: ManageWiki
   - repo: https://github.com/miraheze/ManageWiki
   - branch: master
