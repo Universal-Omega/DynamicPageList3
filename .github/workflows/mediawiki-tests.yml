@@ -261,7 +261,7 @@ jobs:
       # /home/runner/src/                                 Mediawiki installation
       # /home/runner/src/extensions/EXTENSION_NAME/       Clone of the extension repository
       # /home/runner/docker-images/                       Docker images which exported with docker-save command
-      # $GITHUB_WORKSPACE/.github/workflows/dependencies  Used by actions/cache
+      # $GITHUB_WORKSPACE/.github/workflows/dependencies.yaml  Used by actions/cache
       - name: Set up
         run: |
           echo MEDIAWIKI_VERSION="${{ matrix.mw }}" >> $GITHUB_ENV
@@ -321,7 +321,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/src
-          key: ${{ runner.os }}-${{ env.MEDIAWIKI_VERSION }}-${{ hashFiles('.github/workflows/dependencies') }}
+          key: ${{ runner.os }}-${{ env.MEDIAWIKI_VERSION }}-${{ hashFiles('.github/workflows/dependencies.yaml') }}
 
       - name: Download MediaWiki and extensions
         run: |
