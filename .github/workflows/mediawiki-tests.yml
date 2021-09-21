@@ -330,9 +330,9 @@ jobs:
             git clone -b "${MEDIAWIKI_VERSION}" --depth 1 https://gerrit.wikimedia.org/r/mediawiki/core src
             git clone --recurse-submodules -b "${MEDIAWIKI_VERSION}" --depth 1 https://gerrit.wikimedia.org/r/mediawiki/skins/Vector src/skins/Vector
             for dep in $DEPENDENCIES; do
-              part1=$(echo $dep | cut -sd'|' -f1)
-              part2=$(echo $dep | cut -d'|' -f2)
-              git clone --recurse-submodules -b "${MEDIAWIKI_VERSION}" --depth 1 "${part1:-https://gerrit.wikimedia.org/r/${dep}}" src/"$(echo $part2 | cut -d'/' -f2,3)"
+              part1=$(echo $dep | cut -d'|' -f1)
+              part2=$(echo $dep | cut -sd'|' -f2)
+              git clone --recurse-submodules -b "${MEDIAWIKI_VERSION}" --depth 1 "${part2:-https://gerrit.wikimedia.org/r/${dep}}" src/"$(echo $part1 | cut -d'/' -f2,3)"
             done
           fi
           git -C src/ log -n 1 --format="%H"
