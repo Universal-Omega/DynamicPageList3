@@ -261,7 +261,7 @@ jobs:
       # /home/runner/src/                                 Mediawiki installation
       # /home/runner/src/extensions/EXTENSION_NAME/       Clone of the extension repository
       # /home/runner/docker-images/                       Docker images which exported with docker-save command
-      # $GITHUB_WORKSPACE/.github/workflows/dependencies.yaml  Used by actions/cache
+      # $GITHUB_WORKSPACE/.github/workflows/dependencies  Used by actions/cache
       - name: Set up
         run: |
           echo MEDIAWIKI_VERSION="${{ matrix.mw }}" >> $GITHUB_ENV
@@ -287,7 +287,7 @@ jobs:
           fi
 
           # Resolve dependencies
-          if [ -e .github/workflows/dependencies.yaml ]; then
+          if [ -e .github/workflows/dependencies ]; then
             cd .github/workflows
             curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/master/zuul/parameter_functions.py -o pf.py
             curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/beta/resolve_dependencies.py -o rd.py
@@ -321,7 +321,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/src
-          key: ${{ runner.os }}-${{ env.MEDIAWIKI_VERSION }}-${{ hashFiles('.github/workflows/dependencies.yaml') }}
+          key: ${{ runner.os }}-${{ env.MEDIAWIKI_VERSION }}-${{ hashFiles('.github/workflows/dependencies') }}
 
       - name: Download MediaWiki and extensions
         run: |
