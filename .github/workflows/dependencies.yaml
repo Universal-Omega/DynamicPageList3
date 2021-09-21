@@ -1,8 +1,8 @@
 ---
 Variables:
-  branch: 'master'
-  path: 'Variables'
+    branch: 'master'
+    path: 'Variables'
 ManageWiki:
-  path: 'ManageWiki'
-  repo: 'https://github.com/miraheze/ManageWiki'
-  branch: 'master'
+    path: 'ManageWiki'
+    repo: 'https://github.com/miraheze/ManageWiki'
+    branch: 'master'
