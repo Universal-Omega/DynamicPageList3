@@ -1,5 +1,5 @@
 ---
-MediaWiki/extensions/Variables:
+Variables:
   - branch: master
   - path: Variables
 ManageWiki:
