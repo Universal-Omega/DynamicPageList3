@@ -1,6 +1,5 @@
----
 Variables:
-  - branch: 'master'
+  branch: master
 ManageWiki:
-  - branch: 'master'
-    repo: 'https://github.com/miraheze/ManageWiki'
+  branch: master
+  repo: https://github.com/miraheze/ManageWiki
