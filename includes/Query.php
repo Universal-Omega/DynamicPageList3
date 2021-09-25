@@ -251,7 +251,7 @@ class Query {
 
 		if ( $this->limit !== false ) {
 			$options['LIMIT'] = $this->limit;
-		} elseif ( $this->offset !== false && $this->limit === false ) {
+		} elseif ( $this->offset !== false ) {
 			$options['LIMIT'] = $this->parameters->getParameter( 'count' );
 		}
 
