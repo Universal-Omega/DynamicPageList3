@@ -56,22 +56,16 @@ class DynamicPageListHooks {
 
 	public const DEBUG_QUERY = 3021;
 
+	/** @var array */
 	public static $fixedCategories = [];
 
+	/** @var array */
 	public static $createdLinks;
 
-	/**
-	 * DPL acting like Extension:Intersection
-	 *
-	 * @var bool
-	 */
+	/** @var bool */
 	private static $likeIntersection = false;
 
-	/**
-	 * Debugging Level
-	 *
-	 * @var int
-	 */
+	/** @var int */
 	private static $debugLevel = 0;
 
 	/**
@@ -354,6 +348,7 @@ class DynamicPageListHooks {
 			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
+		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		return @preg_replace( $pat, $repl, $text );
 	}
 
