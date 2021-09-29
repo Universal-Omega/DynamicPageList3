@@ -18,14 +18,14 @@ jobs:
           - mw: 'REL1_36'
             php: 7.3
             php-docker: 73
-            experimental: false
+            experimental: true
             stage: phan
 
           # Latest stable MediaWiki - PHP 7.4 (phan)
           - mw: 'REL1_36'
             php: 7.4
             php-docker: 74
-            experimental: false
+            experimental: true
             stage: phan
 
           # Latest MediaWiki release branch - PHP 7.3 (phan)
