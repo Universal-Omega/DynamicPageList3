@@ -10,6 +10,7 @@ use MediaWiki\MediaWikiServices;
 use MWException;
 use Parser;
 use Title;
+use WebRequest;
 use Wikimedia\Rdbms\IDatabase;
 
 class Parse {
@@ -76,6 +77,11 @@ class Parse {
 	 */
 	private $replacementVariables = [];
 
+	/**
+	 * WebRequest object
+	 *
+	 * @var WebRequest
+	 */
 	private $request;
 
 	/**
@@ -287,7 +293,8 @@ class Parse {
 		$this->setVariable( 'DPLTIME', $dplTime );
 
 		// Replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
-		if ( ( $n = count( $articles ) ) > 0 ) {
+		$n = count( $articles );
+		if ( $n > 0 ) {
 			$firstNamespaceFound = str_replace( ' ', '_', $articles[0]->mTitle->getNamespace() );
 			$firstTitleFound = str_replace( ' ', '_', $articles[0]->mTitle->getText() );
 			$lastNamespaceFound = str_replace( ' ', '_', $articles[$n - 1]->mTitle->getNamespace() );
