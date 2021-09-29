@@ -346,7 +346,7 @@ class UpdateArticle {
 		}
 
 		if ( $exec == 'set' ) {
-			return self::updateArticle( $title, $text, $summary );
+			return self::doUpdateArticle( $title, $text, $summary );
 		} elseif ( $exec == 'preview' ) {
 			global $wgScriptPath, $wgRequest;
 
@@ -374,7 +374,7 @@ class UpdateArticle {
 		return "exec must be one of the following: edit, preview, set";
 	}
 
-	private static function updateArticle( $title, $text, $summary ) {
+	private static function doUpdateArticle( $title, $text, $summary ) {
 		global $wgUser, $wgRequest, $wgOut;
 
 		if ( !$wgUser->matchEditToken( $wgRequest->getVal( 'wpEditToken' ) ) ) {
