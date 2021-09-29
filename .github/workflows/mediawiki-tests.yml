@@ -203,6 +203,13 @@ jobs:
             experimental: false
             stage: qunit
 
+          # Latest stable MediaWiki - PHP 7.3 (composer-test)
+          - mw: 'REL1_36'
+            php: 7.3
+            php-docker: 73
+            experimental: false
+            stage: composer-test
+
     runs-on: ubuntu-latest
 
     env:
