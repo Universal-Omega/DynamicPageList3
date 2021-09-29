@@ -7,6 +7,7 @@ use DOMXPath;
 use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserFactory;
 use MediaWikiTestCase;
 use ParserOptions;
 use RequestContext;
@@ -98,7 +99,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 	private function newUserFromName( string $name ): ?User {
 		$services = MediaWikiServices::getInstance();
 
-		return $services->getUserFactory()->newFromName( $name, $factory::RIGOR_CREATABLE );
+		return $services->getUserFactory()->newFromName( $name, UserFactory::RIGOR_CREATABLE );
 	}
 
 	/**
