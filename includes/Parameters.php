@@ -1234,7 +1234,7 @@ class Parameters extends ParametersData {
 
 		for ( $i = 0; $i < count( $sectionLabels ); $i++ ) {
 			if ( $i == 0 ) {
-				$sectionSeparators[0] = "\n|-\n|" . $withHLink; //."\n";
+				$sectionSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
 				$sectionSeparators[1] = '';
 				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
 			} else {

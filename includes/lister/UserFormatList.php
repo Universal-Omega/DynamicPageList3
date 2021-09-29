@@ -145,7 +145,7 @@ class UserFormatList extends Lister {
 			switch ( $sortMethod ) {
 				case 'natural':
 					// Reverse natsort()
-					uasort( $rowsKey, function( $first, $second ) {
+					uasort( $rowsKey, static function ( $first, $second ) {
 						return strnatcmp( $second, $first );
 					} );
 					break;

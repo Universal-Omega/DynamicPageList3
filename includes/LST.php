@@ -33,7 +33,7 @@ use Parser;
 use Title;
 
 class LST {
-	##############################################################
+	# #############################################################
 	# To do transclusion from an extension, we need to interact with the parser
 	# at a low level. This is the general transclusion functionality
 	##############################################################
@@ -112,7 +112,7 @@ class LST {
 		}
 	}
 
-	##############################################################
+	# #############################################################
 	# And now, the labeled section transclusion
 	##############################################################
 
@@ -377,7 +377,7 @@ class LST {
 		return self::extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 	}
 
-	//section inclusion - include all matching sections (return array)
+	// section inclusion - include all matching sections (return array)
 	public static function extractHeadingFromText( $parser, $page, $title, $text, $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $cLink = 'default', $trim = false, $skipPattern = [] ) {
 		$continueSearch = true;
 		$n = 0;
@@ -402,7 +402,7 @@ class LST {
 		}
 
 		do {
-			//Generate a regex to match the === classical heading section(s) === we're
+			// Generate a regex to match the === classical heading section(s) === we're
 			//interested in.
 			$headLine = '';
 			if ( $sec == '' ) {
@@ -456,7 +456,7 @@ class LST {
 			}
 
 			if ( $to != '' ) {
-				//if $to is supplied, try and match it. If we don't match, just ignore it.
+				// if $to is supplied, try and match it. If we don't match, just ignore it.
 				if ( $isPlain ) {
 					$pat = '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$';
 				} else {

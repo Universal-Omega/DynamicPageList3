@@ -198,7 +198,6 @@ class Lister {
 	 */
 	protected $includePageMaxLength = null;
 
-
 	/**
 	 * Array of plain text matches for page transclusion. (include)
 	 *
@@ -428,7 +427,7 @@ class Lister {
 
 	/**
 	 * Set if links should be escaped?
-	 * @TODO The naming of this parameter is weird and I am not sure what it does.
+	 * @todo The naming of this parameter is weird and I am not sure what it does.
 	 *
 	 * @param bool $escape
 	 */
