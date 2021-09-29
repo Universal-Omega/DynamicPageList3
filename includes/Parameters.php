@@ -402,10 +402,13 @@ class Parameters extends ParametersData {
 				$regex = '#' . str_replace( '#', '\#', $regex ) . '#';
 			}
 
-			// Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
-
-			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			// @phan-suppress-next-line PhanParamSuspiciousOrder
+			/**
+			 * Purposely silencing the errors here since we are testing if preg_match
+			 * would throw an error due to a bad regex from user input.
+			 *
+			 * @phan-suppress-next-line PhanParamSuspiciousOrder
+			 * @phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+			 */
 			if ( @preg_match( $regex, null ) === false ) {
 				return false;
 			}
