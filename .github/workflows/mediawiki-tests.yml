@@ -18,14 +18,14 @@ jobs:
           - mw: 'REL1_36'
             php: 7.3
             php-docker: 73
-            experimental: true
+            experimental: false
             stage: phan
 
           # Latest stable MediaWiki - PHP 7.4 (phan)
           - mw: 'REL1_36'
             php: 7.4
             php-docker: 74
-            experimental: true
+            experimental: false
             stage: phan
 
           # Latest MediaWiki release branch - PHP 7.3 (phan)
@@ -251,7 +251,7 @@ jobs:
           fi
 
           # Resolve dependencies
-          if [ -e .github/workflows/dependencies ]; then
+          if [ -e .github/workflows/dependencies ] && [ "${{ matrix.stage }}" == 'phan' ]; then
             cd .github/workflows
             curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/master/zuul/parameter_functions.py -o pf.py
             curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/resolve_dependencies.py -o rd.py
