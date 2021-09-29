@@ -2,6 +2,10 @@
 
 namespace DPL;
 
+/**
+ * @group DynamicPageList3
+ * @group Database
+ */
 class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesInCategory(): void {
