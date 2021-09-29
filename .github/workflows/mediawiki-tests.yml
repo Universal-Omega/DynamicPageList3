@@ -317,12 +317,6 @@ jobs:
           docker load -i /home/runner/docker-images/"${QUIBBLE_DOCKER_IMAGE}" || \
             docker pull "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:${QUIBBLE_DOCKER_LATEST_TAG}"
 
-      - name: Cache MediaWiki installation
-        uses: actions/cache@v2
-        with:
-          path: /home/runner/src
-          key: ${{ runner.os }}-${{ env.MEDIAWIKI_VERSION }}-${{ hashFiles('.github/workflows/dependencies') }}
-
       - name: Download MediaWiki and extensions
         run: |
           cd /home/runner
