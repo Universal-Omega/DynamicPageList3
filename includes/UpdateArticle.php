@@ -7,6 +7,7 @@ use CommentStoreComment;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use ReadOnlyError;
+use RequestContext;
 use Title;
 
 class UpdateArticle {
@@ -217,7 +218,9 @@ class UpdateArticle {
 
 		// deal with template parameters =================================================
 
-		global $wgRequest, $wgUser;
+		global $wgRequest;
+
+		$user = RequestContext::getMain()->getUser();
 
 		if ( $template != '' ) {
 			if ( $exec == 'edit' ) {
@@ -226,8 +229,9 @@ class UpdateArticle {
 
 				if ( $legendPage != '' ) {
 					$legendTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
+
+					$parser = clone MediaWikiServices::getInstance()->getParser();
+
 					LST::text( $parser, $legendPage, $legendTitle, $legendText );
 					$legendText = preg_replace( '/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s', '', $legendText );
 					$legendText = preg_replace( '/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText );
@@ -238,8 +242,9 @@ class UpdateArticle {
 
 				if ( $instructionPage != '' ) {
 					$instructionTitle = '';
-					global $wgParser, $wgUser;
-					$parser = clone $wgParser;
+
+					$parser = clone MediaWikiServices::getInstance()->getParser();
+
 					LST::text( $parser, $instructionPage, $instructionTitle, $instructionText );
 					$instructions = self::getTemplateParmValues( $instructionText, 'Template field' );
 				}
@@ -304,7 +309,7 @@ class UpdateArticle {
 					$form .= "<input type='hidden' " . $hide . " />";
 				}
 
-				$form .= "<input type='hidden' name='wpEditToken' value='{$wgUser->getEditToken()}'/>";
+				$form .= "<input type='hidden' name='wpEditToken' value='{$user->getEditToken()}'/>";
 				foreach ( $preview as $prev ) {
 					$form .= "<input type='submit' " . $prev . " /> ";
 				}
@@ -361,7 +366,7 @@ class UpdateArticle {
 		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
 		<input type="hidden" value="' . $articleX->getPage()->getTimestamp() . '" name="wpEdittime" />
 		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $userOptionsLookup->getIntOption( $wgUser, 'rows' ) . '" cols="' . $userOptionsLookup->getIntOption( $wgUser, 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
+		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $userOptionsLookup->getIntOption( $user, 'rows' ) . '" cols="' . $userOptionsLookup->getIntOption( $user, 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
 		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
 		<input name="wpAutoSummary" type="hidden" value="" />
 		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
@@ -375,22 +380,24 @@ class UpdateArticle {
 	}
 
 	private static function doUpdateArticle( $title, $text, $summary ) {
-		global $wgUser, $wgRequest, $wgOut;
+		global $wgRequest, $wgOut;
 
-		if ( !$wgUser->matchEditToken( $wgRequest->getVal( 'wpEditToken' ) ) ) {
+		$user = RequestContext::getMain()->getUser();
+
+		if ( !$user->matchEditToken( $wgRequest->getVal( 'wpEditToken' ) ) ) {
 			$wgOut->addWikiMsg( 'sessionfailure' );
 
 			return 'session failure';
 		}
 
 		$titleX = Title::newFromText( $title );
-		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $wgUser, $titleX );
+		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $user, $titleX );
 
 		if ( count( $permission_errors ) == 0 ) {
 			$wikiPageFactory = MediaWikiServices::getInstance()->getWikiPageFactory();
 
 			$page = $wikiPageFactory->newFromTitle( $titleX );
-			$updater = $page->newPageUpdater( $wgUser );
+			$updater = $page->newPageUpdater( $user );
 			$content = $page->getContentHandler()->makeContent( $text, $titleX );
 			$updater->setContent( SlotRecord::MAIN, $content );
 			$comment = CommentStoreComment::newUnsavedComment( $summary );
@@ -651,7 +658,7 @@ class UpdateArticle {
 	}
 
 	public static function deleteArticleByRule( $title, $text, $rulesText ) {
-		global $wgUser, $wgOut;
+		global $wgOut;
 
 		// return "deletion of articles by DPL is disabled.";
 
@@ -696,8 +703,10 @@ class UpdateArticle {
 		$titleX = Title::newFromText( $title );
 
 		if ( $exec ) {
+			$user = RequestContext::getMain()->getUser();
+
 			# Check permissions
-			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $wgUser, $titleX );
+			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $user, $titleX );
 
 			if ( count( $permission_errors ) > 0 ) {
 				$wgOut->showPermissionsErrorPage( $permission_errors );
