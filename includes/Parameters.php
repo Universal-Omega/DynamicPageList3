@@ -628,7 +628,7 @@ class Parameters extends ParametersData {
 	public function _notcategorymatch( $option ) {
 		$data = $this->getParameter( 'notcategory' );
 
-		if ( !isset( $data['like'] ) || !is_array( $data['like'] ) ) {
+		if ( !is_array( $data['like'] ?? false ) ) {
 			$data['like'] = [];
 		}
 
@@ -893,7 +893,7 @@ class Parameters extends ParametersData {
 	public function _titleregexp( $option ) {
 		$data = $this->getParameter( 'title' );
 
-		if ( !isset( $data['regexp'] ) || !is_array( $data['regexp'] ) ) {
+		if ( !is_array( $data['regexp'] ?? false ) ) {
 			$data['regexp'] = [];
 		}
 
@@ -920,7 +920,7 @@ class Parameters extends ParametersData {
 	public function _titlematch( $option ) {
 		$data = $this->getParameter( 'title' );
 
-		if ( !isset( $data['like'] ) || !is_array( $data['like'] ) ) {
+		if ( !is_array( $data['like'] ?? false ) ) {
 			$data['like'] = [];
 		}
 
@@ -968,7 +968,7 @@ class Parameters extends ParametersData {
 	public function _nottitlematch( $option ) {
 		$data = $this->getParameter( 'nottitle' );
 
-		if ( !isset( $data['like'] ) || !is_array( $data['like'] ) ) {
+		if ( !is_array( $data['like'] ?? false ) ) {
 			$data['like'] = [];
 		}
 
