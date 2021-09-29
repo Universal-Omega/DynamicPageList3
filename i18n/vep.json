@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "authors": [
+            "Игорь Бродский"
+        ]
+    },
+    "intersection_toomanycats": "Error: äjahk kategorijoid!",
+    "intersection_toofewcats": "Error: Vähähk kategorijoid!",
+    "intersection_noresults": "Error: Ei ole rezul'tatoid!"
+}
