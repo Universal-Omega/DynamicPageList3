@@ -1,0 +1,9 @@
+{
+    "@metadata": {
+        "authors": [
+            "Xil"
+        ]
+    },
+    "intersection_toomanycats": "Kļūda: pārāk daudz kategoriju!",
+    "intersection_toofewcats": "Kļūda: pārāk maz kategoriju!"
+}
