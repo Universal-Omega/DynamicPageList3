@@ -161,48 +161,6 @@ jobs:
             experimental: false
             stage: phpunit
 
-          # Latest stable MediaWiki - PHP 7.3 (phpunit-standalone)
-#          - mw: 'REL1_36'
-#            php: 7.3
-#            php-docker: 73
-#            experimental: false
-#            stage: phpunit-standalone
-
-          # Latest stable MediaWiki - PHP 7.4 (phpunit-standalone)
-#          - mw: 'REL1_36'
-#            php: 7.4
-#            php-docker: 74
-#            experimental: false
-#            stage: phpunit-standalone
-
-          # Latest MediaWiki release branch - PHP 7.3 (phpunit-standalone)
-#          - mw: 'REL1_37'
-#            php: 7.3
-#            php-docker: 73
-#            experimental: false
-#            stage: phpunit-standalone
-
-          # Latest MediaWiki release branch - PHP 7.4 (phpunit-standalone)
-#          - mw: 'REL1_37'
-#            php: 7.4
-#            php-docker: 74
-#            experimental: false
-#            stage: phpunit-standalone
-
-          # Latest MediaWiki master - PHP 7.3 (phpunit-standalone)
-#          - mw: 'master'
-#            php: 7.3
-#            php-docker: 73
-#            experimental: false
-#            stage: phpunit-standalone
-
-          # Latest MediaWiki master - PHP 7.4 (phpunit-standalone)
-#          - mw: 'master'
-#            php: 7.4
-#            php-docker: 74
-#            experimental: false
-#            stage: phpunit-standalone
-
           # Latest stable MediaWiki - PHP 7.3 (selenium)
           - mw: 'REL1_36'
             php: 7.3
@@ -255,13 +213,19 @@ jobs:
       PHAN_DOCKER_IMAGE: mediawiki-phan-php${{ matrix.php-docker }}
 
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
       - uses: actions/checkout@v2
 
       # /home/runner/cache/                               Cache
       # /home/runner/src/                                 Mediawiki installation
       # /home/runner/src/extensions/EXTENSION_NAME/       Clone of the extension repository
       # /home/runner/docker-images/                       Docker images which exported with docker-save command
-      # $GITHUB_WORKSPACE/.github/workflows/dependencies  Used by actions/cache
+      # $GITHUB_WORKSPACE/.github/workflows/dependencies  Necessary dependencies - YAML syntax
+      # $GITHUB_WORKSPACE/.github/workflows/globals.php   Add global configuration options for MediaWiki
       - name: Set up
         run: |
           echo MEDIAWIKI_VERSION="${{ matrix.mw }}" >> $GITHUB_ENV
@@ -326,10 +290,30 @@ jobs:
             for dep in $DEPENDENCIES; do
               dependency=$(echo $dep | cut -d'|' -f1)
               repository=$(echo $dep | cut -sd'|' -f2)
-              branch=$(echo $dep | cut -sd'|' -f3)
-              git clone --recurse-submodules -b "${branch:-${MEDIAWIKI_VERSION}}" --depth 1 "${repository:-https://gerrit.wikimedia.org/r/${dep}}" src/"$(echo $dependency | cut -d'/' -f2,3)"
+              branch=$(echo $dep | rev | cut -sd'|' -f1 | rev)
+
+              if [ $repository == $branch ]; then
+                repository=""
+              fi
+
+              git clone --recurse-submodules -b "${branch:-${MEDIAWIKI_VERSION}}" --depth 1 "${repository:-https://gerrit.wikimedia.org/r/${dependency}}" src/"$(echo $dependency | cut -d'/' -f2,3)"
             done
           fi
+
+          # REPLACE SETUP.PHP FOR CREATEWIKI DEPENDANT EXTENSIONS ON REL1_36.
+          # FIXES A BUG PRESENT ON REL1_36, WHEN DOING DATABASE STUFF BEFORE THIS WAS DONE, REQUEST INFO WAS ALREADY SET FOR DBLoadBalancerFactory,
+          # RESULTING IN "LogicException: ChronologyProtector already initialized". THIS HACK REMOVES
+          # MediaWikiServices::getInstance()->getDBLoadBalancerFactory()->setRequestInfo(). THIS IS ALREADY FIXED FOR REL1_37 AND LATER.
+          # WITH https://github.com/wikimedia/mediawiki/commit/29827d
+
+          if [ -d src/extensions/CreateWiki ] || [ "${{ github.event.repository.name }}" == 'CreateWiki' ] && [ "${MEDIAWIKI_VERSION}" == 'REL1_36' ]; then
+            curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/hacks/Setup-REL1_36.php > src/includes/Setup.php
+          fi
+
+          if [ -e "$GITHUB_WORKSPACE"/.github/workflows/globals.php ]; then
+            echo 'require_once __DIR__ . "/../extensions/${{ github.event.repository.name }}/.github/workflows/globals.php";' >> src/includes/DevelopmentSettings.php
+          fi
+
           git -C src/ log -n 1 --format="%H"
 
       - name: Cache dependencies (composer and npm)
@@ -350,6 +334,28 @@ jobs:
         run: |
           if [ -e composer.json ]; then
             composer install --prefer-dist --no-progress --no-interaction
+          fi
+
+      - name: Fix PHPCS violations
+        continue-on-error: true
+        if: ${{ github.event_name == 'pull_request' && matrix.stage == 'composer-test' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -e composer.json ]; then
+            composer install --prefer-dist --no-progress --no-interaction
+            composer fix
+
+            rm composer.lock
+
+            git config --global user.name "github-actions"
+            git config --global user.email "github-actions@users.noreply.github.com"
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git checkout -b ${GITHUB_HEAD_REF}
+            git add .
+            git commit -am "CI: lint code to MediaWiki standards" -m "Check commit and GitHub actions for more details" || echo "No changes to commit"
+            git pull origin ${GITHUB_HEAD_REF} --rebase
+            git push --set-upstream origin ${GITHUB_HEAD_REF}
           fi
 
       - name: Main Test
