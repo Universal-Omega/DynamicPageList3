@@ -58,9 +58,9 @@ class Parameters extends ParametersData {
 
 		// Check permission to use this parameter.
 		if ( array_key_exists( 'permission', $parameterData ) ) {
-			global $wgUser;
+			$user = RequestContext::getMain()->getUser();
 
-			if ( !$wgUser->isAllowed( $parameterData['permission'] ) ) {
+			if ( !$user->isAllowed( $parameterData['permission'] ) ) {
 				throw new PermissionsError( $parameterData['permission'] );
 			}
 		}
@@ -404,6 +404,7 @@ class Parameters extends ParametersData {
 
 			// Purposely silencing the errors here since we are testing if preg_match would throw an error due to a bad regex from user input.
 
+			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			// @phan-suppress-next-line PhanParamSuspiciousOrder
 			if ( @preg_match( $regex, null ) === false ) {
 				return false;
