@@ -21,7 +21,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 	 */
 	private static $wasSeedDataImported = false;
 
-	public function addDBDataOnce() {
+	public function addDBData() {
 		if ( self::$wasSeedDataImported ) {
 			return;
 		}
@@ -86,35 +86,19 @@ abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
 		$source = new ImportStreamSource( $seedDataFile );
 		$services = MediaWikiServices::getInstance();
 
-		if ( $services->hasService( 'WikiImporterFactory' ) ) {
-			return $services->getWikiImporterFactory()->getWikiImporter( $source );
-		}
-
-		// MW 1.33
-		return new WikiImporter( $source, $services->getMainConfig() );
+		return $services->getWikiImporterFactory()->getWikiImporter( $source );
 	}
 
 	private function getAuthManager(): AuthManager {
 		$services = MediaWikiServices::getInstance();
-		if ( $services->hasService( 'AuthManager' ) ) {
-			return $services->getAuthManager();
-		}
 
-		// MW 1.33
-		return AuthManager::singleton();
+		return $services->getAuthManager();
 	}
 
 	private function newUserFromName( string $name ): ?User {
 		$services = MediaWikiServices::getInstance();
 
-		if ( $services->hasService( 'UserFactory' ) ) {
-			$factory = $services->getUserFactory();
-			return $factory->newFromName( $name, $factory::RIGOR_CREATABLE );
-		}
-
-		// MW 1.33
-		$user = User::newFromName( $name );
-		return $user ?: null;
+		return $services->getUserFactory()->newFromName( $name, $factory::RIGOR_CREATABLE );
 	}
 
 	/**
