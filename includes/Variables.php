@@ -95,7 +95,7 @@ class Variables {
 			return;
 		}
 
-		if ( 0 !== strpos( $delimiter, '/' ) || ( strlen( $delimiter ) - 1 ) !== strrpos( $delimiter, '/' ) ) {
+		if ( strpos( $delimiter, '/' ) !== 0 || ( strlen( $delimiter ) - 1 ) !== strrpos( $delimiter, '/' ) ) {
 			$delimiter = '/\s*' . $delimiter . '\s*/';
 		}
 
