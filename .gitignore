@@ -1,2 +1,4 @@
-/vendor
 /composer.lock
+/vendor
+/node_modules
+.github/*
