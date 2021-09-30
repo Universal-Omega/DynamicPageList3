@@ -197,7 +197,7 @@ class Heading {
 					$iGroup = $rows;
 				}
 
-				$nsize = floor( $count / $iGroup );
+				$nsize = (int)floor( $count / $iGroup );
 				$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
 
 				if ( $rest > 0 ) {
