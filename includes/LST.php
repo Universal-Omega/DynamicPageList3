@@ -303,7 +303,8 @@ class LST {
 		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
 		if ( $n0 >= 0 ) {
 			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			if ( $nb + 15 > $n0 ) {
+			// @phan-suppress-next-line PhanSuspiciousValueComparison
+			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
 
@@ -479,7 +480,7 @@ class LST {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
-					$pat = '^(={1,' . $head_len ?? 0 . '})(?!=)\s*.*?\1\s*$';
+					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
 				}
 
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
@@ -736,6 +737,7 @@ class LST {
 								}
 
 								if ( $second ) {
+									// @phan-suppress-next-line PhanTypeInvalidDimOffset
 									if ( $output[$n] == '' || $output[$n][strlen( $output[$n] ) - 1] != "\n" ) {
 										$output[$n] .= "\n";
 									}
