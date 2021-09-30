@@ -148,6 +148,7 @@ class Variables {
 		}
 
 		return [
+			// @phan-suppress-next-line PhanPluginMixedKeyNoKey
 			implode( $delimiter, $rendered_values ),
 			'noparse' => false,
 			'isHTML' => false
