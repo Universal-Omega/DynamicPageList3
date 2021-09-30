@@ -340,7 +340,7 @@ class UpdateArticle {
 							$myAfterParm = $afterparm[$nr];
 						}
 
-						$text = self::updateTemplateCall( $matchCount, $text, $template, $call, $parm, $myValue, $myAfterParm, $myOptional );
+						$text = self::updateTemplateCall( $matchCount, $text, $template, $call, $parm, $myValue ?? '', $myAfterParm, $myOptional );
 					}
 
 					if ( $exec == 'set' ) {
