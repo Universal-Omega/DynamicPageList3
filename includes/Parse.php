@@ -185,7 +185,7 @@ class Parse {
 		if ( $this->parameters->getParameter( 'execandexit' ) !== null ) {
 			// The keyword "geturlargs" is used to return the Url arguments and do nothing else.
 			if ( $this->parameters->getParameter( 'execandexit' ) == 'geturlargs' ) {
-				return;
+				return '';
 			}
 
 			// In all other cases we return the value of the argument which may contain parser function calls.
@@ -236,8 +236,8 @@ class Parse {
 		$this->addOutput( '{{Extension DPL}}' );
 
 		// Preset these to defaults.
-		$this->setVariable( 'TOTALPAGES', 0 );
-		$this->setVariable( 'PAGES', 0 );
+		$this->setVariable( 'TOTALPAGES', '0' );
+		$this->setVariable( 'PAGES', '0' );
 		$this->setVariable( 'VERSION', DynamicPageListHooks::getVersion() );
 
 		/*********************/
@@ -246,7 +246,7 @@ class Parse {
 		if ( $numRows <= 0 || empty( $articles ) ) {
 			// Shortcut out since there is no processing to do.
 			$this->DB->freeResult( $result );
-			return $this->getFullOutput( 0, false );
+			return $this->getFullOutput( false, false );
 		}
 
 		$foundRows = null;
@@ -283,7 +283,7 @@ class Parse {
 		/*******************************/
 		/* Replacement Variables       */
 		/*******************************/
-		$this->setVariable( 'TOTALPAGES', $foundRows ); // Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
+		$this->setVariable( 'TOTALPAGES', (string)$foundRows ); // Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
 		$this->setVariable( 'PAGES', $lister->getRowCount() ); // This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
 
 		//Replace %DPLTIME% by execution time and timestamp in header and footer
@@ -291,6 +291,11 @@ class Parse {
 		$dplElapsedTime = sprintf( '%.3f sec.', microtime( true ) - $dplStartTime );
 		$dplTime = "{$dplElapsedTime} ({$nowTimeStamp})";
 		$this->setVariable( 'DPLTIME', $dplTime );
+
+		$firstNamespaceFound = '';
+		$firstTitleFound = '';
+		$lastNamespaceFound = '';
+		$lastTitleFound = '';
 
 		// Replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
 		$n = count( $articles );
@@ -330,7 +335,7 @@ class Parse {
 			$parser->getOutput()->updateCacheExpiry( 0 );
 		}
 
-		$finalOutput = $this->getFullOutput( $foundRows, false );
+		$finalOutput = $this->getFullOutput( (string)$foundRows, false );
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
 
@@ -358,7 +363,7 @@ class Parse {
 			}
 
 			// This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
-			//Generate pick numbers for results.
+			// Generate pick numbers for results.
 			$pick = range( 1, $nResults );
 			// Shuffle the pick numbers.
 			shuffle( $pick );
@@ -376,7 +381,7 @@ class Parse {
 			$i++;
 
 			// In random mode skip articles which were not chosen.
-			if ( $randomCount > 0 && !in_array( $i, $pick ) ) {
+			if ( $randomCount > 0 && !in_array( $i, $pick ?? [] ) ) {
 				continue;
 			}
 
@@ -515,12 +520,12 @@ class Parse {
 			$footer = '';
 
 			// Only override header and footers if specified.
-			$_headerType = $this->getHeaderFooterType( 'header', $totalResults );
+			$_headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
 			if ( $_headerType !== false ) {
 				$header = $this->parameters->getParameter( $_headerType );
 			}
 
-			$_footerType = $this->getHeaderFooterType( 'footer', $totalResults );
+			$_footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
 			if ( $_footerType !== false ) {
 				$footer = $this->parameters->getParameter( $_footerType );
 			}
@@ -1041,6 +1046,8 @@ class Parse {
 		}
 
 		asort( $sortKeys );
+
+		$sortedArticles = [];
 
 		foreach ( $sortKeys as $oldKey => $newKey ) {
 			$sortedArticles[] = $articles[$oldKey];
