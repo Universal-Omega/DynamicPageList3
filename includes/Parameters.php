@@ -328,7 +328,7 @@ class Parameters extends ParametersData {
 	/**
 	 * Filter a standard boolean like value into an actual boolean.
 	 *
-	 * @param int|string $boolean
+	 * @param int|string|bool $boolean
 	 * @return bool
 	 */
 	public function filterBoolean( $boolean ) {
@@ -1223,9 +1223,7 @@ class Parameters extends ParametersData {
 		$listSeparators[1] = '';
 
 		// the user may have specified the third parameter of 'format' to add meta attributes of articles to the table
-		if ( !array_key_exists( 2, $listSeparators ) ) {
-			$listSeparators[2] = '';
-		}
+		$listSeparators[2] = '';
 
 		$listSeparators[3] = "\n|}";
 
