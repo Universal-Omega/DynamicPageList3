@@ -89,7 +89,7 @@ class DynamicPageListHooks {
 	public static function onParserFirstCallInit( Parser $parser ) {
 		self::init();
 
-		// DPL offers the same functionality as Intersection.  So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
+		// DPL offers the same functionality as Intersection. So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
 		if ( Config::getSetting( 'handleSectionTag' ) ) {
 			$parser->setHook( 'section', [ __CLASS__, 'dplTag' ] );
 		}
@@ -194,7 +194,7 @@ class DynamicPageListHooks {
 	 * @return string
 	 */
 	private static function executeTag( $input, array $args, Parser $parser, PPFrame $frame ) {
-		// entry point for user tag <dpl>  or  <DynamicPageList>
+		// entry point for user tag <dpl> or <DynamicPageList>
 		// create list and do a recursive parse of the output
 
 		$parse = new Parse();
@@ -204,29 +204,29 @@ class DynamicPageListHooks {
 
 		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
 
-		if ( isset( $reset['templates'] ) && $reset['templates'] ) {	// we can remove the templates by save/restore
+		if ( $reset['templates'] ?? false ) { // we can remove the templates by save/restore
 			$saveTemplates = $parser->getOutput()->mTemplates;
 		}
 
-		if ( isset( $reset['categories'] ) && $reset['categories'] ) {	// we can remove the categories by save/restore
+		if ( $reset['categories'] ?? false ) { // we can remove the categories by save/restore
 			$saveCategories = $parser->getOutput()->mCategories;
 		}
 
-		if ( isset( $reset['images'] ) && $reset['images'] ) {	// we can remove the images by save/restore
+		if ( $reset['images'] ?? false ) { // we can remove the images by save/restore
 			$saveImages = $parser->getOutput()->mImages;
 		}
 
 		$parsedDPL = $parser->recursiveTagParse( $text );
-		if ( isset( $reset['templates'] ) && $reset['templates'] ) {
-			$parser->getOutput()->mTemplates = $saveTemplates;
+		if ( $reset['templates'] ?? false ) {
+			$parser->getOutput()->mTemplates = $saveTemplates ?? [];
 		}
 
-		if ( isset( $reset['categories'] ) && $reset['categories'] ) {
-			$parser->getOutput()->mCategories = $saveCategories;
+		if ( $reset['categories'] ?? false ) {
+			$parser->getOutput()->mCategories = $saveCategories ?? [];
 		}
 
-		if ( isset( $reset['images'] ) && $reset['images'] ) {
-			$parser->getOutput()->mImages = $saveImages;
+		if ( $reset['images'] ?? false ) {
+			$parser->getOutput()->mImages = $saveImages ?? [];
 		}
 
 		return $parsedDPL;
@@ -243,7 +243,7 @@ class DynamicPageListHooks {
 
 		$parser->addTrackingCategory( 'dpl-parserfunc-tracking-category' );
 
-		// callback for the parser function {{#dpl:	  or   {{DynamicPageList::
+		// callback for the parser function {{#dpl: or {{DynamicPageList::
 		$input = "";
 
 		$numargs = func_num_args();
@@ -265,6 +265,7 @@ class DynamicPageListHooks {
 		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false );
 
 		return [
+			// @phan-suppress-next-line PhanPluginMixedKeyNoKey
 			$parser->getPreprocessor()->preprocessToObj( $dplresult, 1 ),
 			'isLocalObj' => true,
 			'title' => $parser->getTitle()
@@ -273,7 +274,7 @@ class DynamicPageListHooks {
 
 	/**
 	 * The #dplnum parser tag entry point.
-	 * From the old documentation: "Tries to guess a number that is buried in the text.  Uses a set of heuristic rules which may work or not.  The idea is to extract the number so that it can be used as a sorting value in the column of a DPL table output."
+	 * From the old documentation: "Tries to guess a number that is buried in the text. Uses a set of heuristic rules which may work or not. The idea is to extract the number so that it can be used as a sorting value in the column of a DPL table output."
 	 *
 	 * @param Parser $parser
 	 * @param string $text
@@ -360,12 +361,12 @@ class DynamicPageListHooks {
 
 	public static function dplMatrixParserFunction( &$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '' ) {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
-		$lines   = explode( "\n", $matrix );
-		$m       = [];
+		$lines = explode( "\n", $matrix );
+		$m = [];
 		$sources = [];
 		$targets = [];
-		$from    = '';
-		$to      = '';
+		$from = '';
+		$to = '';
 
 		if ( $flip == '' || $flip == 'normal' ) {
 			$flip = false;
@@ -414,7 +415,7 @@ class DynamicPageListHooks {
 					$targets[$to[0]] = $to[1];
 				}
 
-				$m[$from[0]][$to[0]] = true;
+				$m[ $from[0] ?? $to[0] ][$to[0]] = true;
 			}
 		}
 
@@ -496,7 +497,7 @@ class DynamicPageListHooks {
 	/**
 	 * Set Debugging Level
 	 *
-	 * @param int $level
+	 * @param int|string $level
 	 */
 	public static function setDebugLevel( $level ) {
 		self::$debugLevel = intval( $level );
@@ -511,7 +512,7 @@ class DynamicPageListHooks {
 		return self::$debugLevel;
 	}
 
-	// reset everything; some categories may have been fixed, however via  fixcategory=
+	// reset everything; some categories may have been fixed, however via fixcategory=
 	public static function endReset( $parser, $text ) {
 		if ( !self::$createdLinks['resetdone'] ) {
 			self::$createdLinks['resetdone'] = true;
