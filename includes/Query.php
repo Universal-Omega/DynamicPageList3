@@ -116,7 +116,7 @@ class Query {
 	/**
 	 * Offset
 	 *
-	 * @var int
+	 * @var int|bool
 	 */
 	private $offset = false;
 
@@ -137,7 +137,7 @@ class Query {
 	/**
 	 * Character Set Collation
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	private $collation = false;
 
@@ -318,23 +318,25 @@ class Query {
 					$this->join
 				);
 
+				$pageIds = [];
+
 				while ( $row = $result->fetchRow() ) {
 					$pageIds[] = $row['page_id'];
 				}
 
 				$sql = $this->DB->selectSQLText(
 					[
-						'clgoal'	=> 'categorylinks'
+						'clgoal' => 'categorylinks'
 					],
 					[
 						'clgoal.cl_to'
 					],
 					[
-						'clgoal.cl_from'	=> $pageIds
+						'clgoal.cl_from' => $pageIds
 					],
 					__METHOD__,
 					[
-						'ORDER BY'	=> 'clgoal.cl_to ' . $this->direction
+						'ORDER BY' => 'clgoal.cl_to ' . $this->direction
 					]
 				);
 			} else {
@@ -644,7 +646,7 @@ class Query {
 	/**
 	 * Return SQL prefixed collation.
 	 *
-	 * @return string
+	 * @return string|null
 	 */
 	public function getCollateSQL() {
 		return ( $this->collation !== false ? 'COLLATE ' . $this->collation : null );
@@ -700,7 +702,7 @@ class Query {
 	 * Helper method to handle relative timestamps.
 	 *
 	 * @param mixed $inputDate
-	 * @return int
+	 * @return int|string
 	 */
 	private function convertTimestamp( $inputDate ) {
 		$timestamp = $inputDate;
@@ -1130,6 +1132,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _imagecontainer( $option ) {
+		$where = [];
+
 		$this->addTable( 'imagelinks', 'ic' );
 		$this->addSelect(
 			[
@@ -1165,6 +1169,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _imageused( $option ) {
+		$where = [];
+
 		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
 			$this->addGroupBy( 'page_title' );
 		}
