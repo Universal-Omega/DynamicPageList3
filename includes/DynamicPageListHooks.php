@@ -415,7 +415,8 @@ class DynamicPageListHooks {
 					$targets[$to[0]] = $to[1];
 				}
 
-				$m[ $from[0] ?? $to[0] ][$to[0]] = true;
+				// @phan-suppress-next-line PhanTypeInvalidDimOffset
+				$m[$from[0]][$to[0]] = true;
 			}
 		}
 
