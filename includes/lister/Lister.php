@@ -775,7 +775,7 @@ class Lister {
 		}
 
 		$tag = str_replace( '%PAGE%', $pagename, $tag );
-		$tag = str_replace( '%PAGEID%', $article->mID, $tag );
+		$tag = str_replace( '%PAGEID%', (string)$article->mID, $tag );
 		$tag = str_replace( '%NAMESPACE%', $namespaces[$article->mNamespace], $tag );
 		$tag = str_replace( '%IMAGE%', $imageUrl, $tag );
 		$tag = str_replace( '%EXTERNALLINK%', $article->mExternalLink, $tag );
@@ -1178,7 +1178,7 @@ class Lister {
 					$secPiece[$s] = $secPieces[0];
 					for ( $sp = 1; $sp < count( $secPieces ); $sp++ ) {
 						if ( isset( $this->multiSectionSeparators[$s] ) ) {
-							$secPiece[$s] .= str_replace( '%SECTION%', $sectionHeading[$sp], $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) );
+							$secPiece[$s] .= str_replace( '%SECTION%', $sectionHeading[$sp] ?? '', $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) );
 						}
 
 						$secPiece[$s] .= $secPieces[$sp];
