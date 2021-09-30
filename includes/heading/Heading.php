@@ -197,7 +197,7 @@ class Heading {
 					$iGroup = $rows;
 				}
 
-				$nsize = (int)floor( $count / $iGroup );
+				$nsize = floor( $count / $iGroup );
 				$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
 
 				if ( $rest > 0 ) {
@@ -329,7 +329,7 @@ class Heading {
 					$nsize = $count - $nstart;
 				}
 
-				$output .= $lister->formatList( $articles, $nstart, $nsize );
+				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
 				$output .= "\n|-\n|\n";
 				$nstart += $nsize;
 				if ( $nstart >= $count ) {
