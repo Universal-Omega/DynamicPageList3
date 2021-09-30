@@ -301,7 +301,7 @@ class Heading {
 			$output .= "{|" . $rowColFormat . "\n|\n";
 
 			for ( $g = 0; $g < $iGroup; $g++ ) {
-				$output .= $lister->formatList( $articles, $nstart, $nsize );
+				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
 
 				if ( $columns != 1 ) {
 					$output .= "\n|valign=top|\n";
