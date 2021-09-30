@@ -15,7 +15,7 @@ $cfg['exclude_analysis_directory_list'] = array_merge(
 );
 
 $cfg['suppress_issue_types'] = [
-//	'PhanPossiblyUndeclaredVariable',
+// 'PhanPossiblyUndeclaredVariable',
 //	'PhanTypePossiblyInvalidDimOffset',
 //	'PhanTypeInvalidDimOffset',
 //	'PhanTypeMismatchReturnNullable',
@@ -28,7 +28,7 @@ $cfg['suppress_issue_types'] = [
 //	'PhanTypeMismatchArgumentInternal',
 	'SecurityCheck-LikelyFalsePositive',
 	'PhanAccessMethodInternal',
-//	'PhanParamReqAfterOpt',
+// 'PhanParamReqAfterOpt',
 //	'PhanSuspiciousValueComparison',
 //	'PhanPluginLoopVariableReuse',
 ];
