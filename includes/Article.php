@@ -107,7 +107,7 @@ class Article {
 	/**
 	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
 	 *
-	 * @var string
+	 * @var string|int
 	 */
 	public $mDate = null;
 
