@@ -15,28 +15,24 @@ $cfg['exclude_analysis_directory_list'] = array_merge(
 );
 
 $cfg['suppress_issue_types'] = [
-	'PhanUndeclaredTypeReturnType',
-	'PhanPossiblyUndeclaredVariable',
-	'PhanTypePossiblyInvalidDimOffset',
-	'PhanTypeInvalidDimOffset',
-	'PhanTypeMismatchReturnNullable',
-	'PhanImpossibleCondition',
-	'PhanTypeArraySuspiciousNullable',
-	'PhanTypeMismatchReturnProbablyReal',
-	'PhanUndeclaredVariableDim',
-	'PhanImpossibleTypeComparison',
-	'PhanTypeMismatchArgument',
-	'PhanPossiblyNullTypeMismatchProperty',
-	'PhanTypeMismatchArgumentInternal',
+//	'PhanPossiblyUndeclaredVariable',
+//	'PhanTypePossiblyInvalidDimOffset',
+//	'PhanTypeInvalidDimOffset',
+//	'PhanTypeMismatchReturnNullable',
+//	'PhanTypeArraySuspiciousNullable',
+//	'PhanTypeMismatchReturnProbablyReal',
+//	'PhanUndeclaredVariableDim',
+//	'PhanImpossibleTypeComparison',
+//	'PhanTypeMismatchArgument',
+//	'PhanPossiblyNullTypeMismatchProperty',
+//	'PhanTypeMismatchArgumentInternal',
 	'SecurityCheck-LikelyFalsePositive',
-	'PhanPluginMixedKeyNoKey',
 	'PhanAccessMethodInternal',
-	'PhanParamReqAfterOpt',
-	'PhanSuspiciousValueComparison',
-	'PhanPluginLoopVariableReuse',
-	'SecurityCheck-ReDoS',
+//	'PhanParamReqAfterOpt',
+//	'PhanSuspiciousValueComparison',
+//	'PhanPluginLoopVariableReuse',
 ];
 
-$cfg['scalar_implicit_cast'] = true;
+// $cfg['scalar_implicit_cast'] = true;
 
 return $cfg;
