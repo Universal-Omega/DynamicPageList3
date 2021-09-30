@@ -27,10 +27,10 @@ class UserQueryBuilder {
 	/** @var UserIdentity|array */
 	private $notLastModifiedByConstraints = [];
 
-	/** @var UserIdentity */
+	/** @var UserIdentity|null */
 	private $createdByConstraint;
 
-	/** @var UserIdentity */
+	/** @var UserIdentity|null */
 	private $lastModifiedByConstraint;
 
 	public function __construct( IDatabase $dbr, ActorMigration $actorMigration ) {
@@ -155,7 +155,7 @@ class UserQueryBuilder {
 			$conds,
 			__METHOD__,
 			[],
-			$constraintActorQuery['joins'] + $notConstraintActorQuery['joins']
+			(array)$constraintActorQuery['joins'] + (array)$notConstraintActorQuery['joins']
 		);
 	}
 }
