@@ -480,6 +480,7 @@ class LST {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
+					// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
 				}
 
