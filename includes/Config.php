@@ -21,7 +21,7 @@ class Config {
 		if ( $settings === false ) {
 			global $wgDplSettings;
 
-			$settings = $wgDplSettings;
+			$settings = $wgDplSettings ?? false;
 		}
 
 		if ( !is_array( $settings ) ) {
