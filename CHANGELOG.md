@@ -705,5 +705,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.3.6
 * Major code cleanup
+* Numerous bug fixes
 * Now requires MediaWiki 1.36.0 or later
 * 1.37.0 support
