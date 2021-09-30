@@ -246,7 +246,7 @@ class Parse {
 		if ( $numRows <= 0 || empty( $articles ) ) {
 			// Shortcut out since there is no processing to do.
 			$this->DB->freeResult( $result );
-			return $this->getFullOutput( false, false );
+			return $this->getFullOutput( 0, false );
 		}
 
 		$foundRows = null;
@@ -335,7 +335,7 @@ class Parse {
 			$parser->getOutput()->updateCacheExpiry( 0 );
 		}
 
-		$finalOutput = $this->getFullOutput( (string)$foundRows, false );
+		$finalOutput = $this->getFullOutput( $foundRows, false );
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
 
@@ -510,7 +510,7 @@ class Parse {
 	/**
 	 * Return output optionally including header and footer.
 	 *
-	 * @param bool $totalResults
+	 * @param bool|int $totalResults
 	 * @param bool $skipHeaderFooter
 	 * @return string
 	 */
