@@ -303,7 +303,7 @@ class LST {
 		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
 		if ( $n0 >= 0 ) {
 			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			if ( $nb > 0 && $nb + 15 > $n0 ) {
+			if ( $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
 
@@ -338,6 +338,7 @@ class LST {
 
 				// append missing closing tags - should the tags be ordered by precedence ?
 				foreach ( $tags as $tagName => $level ) {
+					// @phan-suppress-next-line PhanPluginLoopVariableReuse
 					while ( $level > 0 ) {
 						// avoid empty ref tag
 						if ( $tagName == 'ref' && substr( $cut, strlen( $cut ) - 5 ) == '<ref>' ) {
@@ -363,6 +364,8 @@ class LST {
 	}
 
 	public static function includeHeading( $parser, $page = '', $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $link = 'default', $trim = false, $skipPattern = [] ) {
+		// @phan-suppress-previous-line PhanParamReqAfterOpt
+
 		$output = [];
 
 		if ( self::text( $parser, $page, $title, $text ) == false ) {
@@ -379,7 +382,11 @@ class LST {
 
 	// section inclusion - include all matching sections (return array)
 	public static function extractHeadingFromText( $parser, $page, $title, $text, $sec = '', $to = '', &$sectionHeading, $recursionCheck = true, $maxLength = -1, $cLink = 'default', $trim = false, $skipPattern = [] ) {
+		// @phan-suppress-previous-line PhanParamReqAfterOpt
+
 		$continueSearch = true;
+		$output = [];
+
 		$n = 0;
 		$output[$n] = '';
 		$nr = 0;
@@ -405,8 +412,8 @@ class LST {
 			// Generate a regex to match the === classical heading section(s) === we're
 			//interested in.
 			$headLine = '';
+			$begin_off = 0;
 			if ( $sec == '' ) {
-				$begin_off = 0;
 				$head_len = 6;
 			} else {
 				if ( $nr != 0 ) {
@@ -472,7 +479,7 @@ class LST {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
-					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
+					$pat = '^(={1,' . $head_len ?? 0 . '})(?!=)\s*.*?\1\s*$';
 				}
 
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
@@ -541,6 +548,8 @@ class LST {
 	// and do NOT match the condition "$mustNotMatch" (if specified)
 	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1 = '', $template2 = '', $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
+		// @phan-suppress-previous-line PhanParamReqAfterOpt
+
 		$page = $article->mTitle->getPrefixedText();
 		$date = $article->myDate;
 		$user = $article->mUserLink;
