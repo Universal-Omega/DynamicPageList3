@@ -23,6 +23,9 @@ class CategoryList extends Lister {
 	 * @return string Formatted list.
 	 */
 	public function formatList( $articles, $start, $count ) {
+		$articleLinks = [];
+		$articleStartChars = [];
+
 		$filteredCount = 0;
 
 		for ( $i = $start; $i < $start + $count; $i++ ) {
