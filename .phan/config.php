@@ -15,24 +15,9 @@ $cfg['exclude_analysis_directory_list'] = array_merge(
 );
 
 $cfg['suppress_issue_types'] = [
-// 'PhanPossiblyUndeclaredVariable',
-//	'PhanTypePossiblyInvalidDimOffset',
-//	'PhanTypeInvalidDimOffset',
-//	'PhanTypeMismatchReturnNullable',
-//	'PhanTypeArraySuspiciousNullable',
-//	'PhanTypeMismatchReturnProbablyReal',
-//	'PhanUndeclaredVariableDim',
-//	'PhanImpossibleTypeComparison',
-//	'PhanTypeMismatchArgument',
-//	'PhanPossiblyNullTypeMismatchProperty',
-//	'PhanTypeMismatchArgumentInternal',
+	'SecurityCheck-ReDoS',
 	'SecurityCheck-LikelyFalsePositive',
 	'PhanAccessMethodInternal',
-// 'PhanParamReqAfterOpt',
-//	'PhanSuspiciousValueComparison',
-//	'PhanPluginLoopVariableReuse',
 ];
-
-// $cfg['scalar_implicit_cast'] = true;
 
 return $cfg;
