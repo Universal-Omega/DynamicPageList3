@@ -1423,7 +1423,7 @@ class Query {
 			$where .= '(' . implode( ' OR ', $ors ) . '))';
 		}
 
-		$this->addWhere( $where );
+		$this->addWhere( $where ?? '' );
 	}
 
 	/**
