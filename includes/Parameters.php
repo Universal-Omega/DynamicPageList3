@@ -408,7 +408,7 @@ class Parameters extends ParametersData {
 
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			if ( @preg_match( $regex, null ) === false ) {
-				// @phan-suppress-previous-line PhanParamSuspiciousOrder
+				// @phan-suppress-previous-line PhanParamSuspiciousOrder, PhanTypeMismatchArgumentInternalProbablyReal
 				return false;
 			}
 		}
@@ -644,7 +644,7 @@ class Parameters extends ParametersData {
 	/**
 	 * Clean and test 'count' parameter.
 	 *
-	 * @param string $option
+	 * @param string|int $option
 	 * @return bool
 	 */
 	public function _count( $option ) {
@@ -1197,6 +1197,7 @@ class Parameters extends ParametersData {
 		$this->setParameter( 'inlinetext', '' );
 
 		$withHLink = "[[%PAGE%|%TITLE%]]\n|";
+		$listSeparators = [];
 
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
 			if ( $tabnr == 0 ) {
@@ -1284,7 +1285,7 @@ class Parameters extends ParametersData {
 	 * This function is necessary for the custom 'yes+warn' option that sets 'warncachedresults'.
 	 *
 	 * @param string $option
-	 * @return bool
+	 * @return bool|int|string
 	 */
 	public function _allowcachedresults( $option ) {
 		// If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
