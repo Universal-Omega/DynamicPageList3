@@ -1239,6 +1239,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _linksfrom( $option ) {
+		$where = [];
+
 		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
 			$this->addGroupBy( 'page_title' );
 		}
@@ -2159,6 +2161,6 @@ class Query {
 			$where .= implode( ' OR ', $ors ) . '))';
 		}
 
-		$this->addWhere( $where );
+		$this->addWhere( $where ?? '' );
 	}
 }
