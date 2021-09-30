@@ -64,6 +64,7 @@ class RevisionJoinBuilder {
 				'first_rev',
 				$this->firstRevisionFields,
 				[
+					// @phan-suppress-next-line PhanPluginMixedKeyNoKey
 					'rev_page=page_id',
 					'rev_parent_id' => 0,
 				]
