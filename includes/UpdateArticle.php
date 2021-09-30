@@ -707,11 +707,12 @@ class UpdateArticle {
 
 			# Check permissions
 			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $user, $titleX );
+			$isReadOnly = MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly();
 
 			if ( count( $permission_errors ) > 0 ) {
 				$wgOut->showPermissionsErrorPage( $permission_errors );
 				return 'permission error';
-			} elseif ( wfReadOnly() ) {
+			} elseif ( $isReadOnly ) {
 				throw new ReadOnlyError;
 			} else {
 				$articleX = new Article( $titleX );
