@@ -298,7 +298,7 @@ class Article {
 
 			if ( $article->mDate && $parameters->getParameter( 'userdateformat' ) ) {
 				// Apply the userdateformat
-				$article->myDate = gmdate( $parameters->getParameter( 'userdateformat' ), wfTimeStamp( TS_UNIX, $article->mDate ) );
+				$article->myDate = gmdate( $parameters->getParameter( 'userdateformat' ), (int)wfTimestamp( TS_UNIX, $article->mDate ) );
 			}
 
 			// CONTRIBUTION, CONTRIBUTOR
