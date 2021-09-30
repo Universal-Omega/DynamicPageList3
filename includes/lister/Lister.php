@@ -795,14 +795,14 @@ class Lister {
 
 		$tag = str_replace( '%TITLE%', $title, $tag );
 
-		$tag = str_replace( '%COUNT%', $article->mCounter, $tag );
-		$tag = str_replace( '%COUNTFS%', floor( log( $article->mCounter ) * 0.7 ), $tag );
-		$tag = str_replace( '%COUNTFS2%', floor( sqrt( log( $article->mCounter ) ) ), $tag );
-		$tag = str_replace( '%SIZE%', $article->mSize, $tag );
-		$tag = str_replace( '%SIZEFS%', floor( sqrt( log( $article->mSize ) ) * 2.5 - 5 ), $tag );
+		$tag = str_replace( '%COUNT%', (string)$article->mCounter, $tag );
+		$tag = str_replace( '%COUNTFS%', (string)( floor( log( $article->mCounter ) * 0.7 ) ), $tag );
+		$tag = str_replace( '%COUNTFS2%', (string)( floor( sqrt( log( $article->mCounter ) ) ) ), $tag );
+		$tag = str_replace( '%SIZE%', (string)$article->mSize, $tag );
+		$tag = str_replace( '%SIZEFS%', (string)( floor( sqrt( log( $article->mSize ) ) * 2.5 - 5 ) ), $tag );
 		$tag = str_replace( '%DATE%', $article->getDate(), $tag );
-		$tag = str_replace( '%REVISION%', $article->mRevision, $tag );
-		$tag = str_replace( '%CONTRIBUTION%', $article->mContribution, $tag );
+		$tag = str_replace( '%REVISION%', (string)$article->mRevision, $tag );
+		$tag = str_replace( '%CONTRIBUTION%', (string)$article->mContribution, $tag );
 		$tag = str_replace( '%CONTRIB%', $article->mContrib, $tag );
 		$tag = str_replace( '%CONTRIBUTOR%', $article->mContributor, $tag );
 		$tag = str_replace( '%USER%', $article->mUser, $tag );
@@ -851,7 +851,7 @@ class Lister {
 	 * @return string
 	 */
 	protected function replaceTagCount( $tag, $nr ) {
-		return str_replace( '%NR%', $nr, $tag );
+		return str_replace( '%NR%', (string)$nr, $tag );
 	}
 
 	/**
@@ -1009,6 +1009,7 @@ class Lister {
 	 */
 	public function transcludePage( Article $article, &$filteredCount ) {
 		$matchFailed = false;
+		$septag = [];
 
 		if ( empty( $this->pageTextMatch ) || $this->pageTextMatch[0] == '*' ) { // include whole article
 			$title = $article->mTitle->getPrefixedText();
@@ -1133,6 +1134,7 @@ class Lister {
 				}
 
 				// if chapters are selected by number, text or regexp we get the heading from LST::includeHeading
+				$sectionHeading = [];
 				$sectionHeading[0] = '';
 
 				if ( $sSecLabel == '-' ) {
@@ -1141,7 +1143,7 @@ class Lister {
 					$sectionHeading[0] = substr( $sSecLabel, 1 );
 
 					// Uses LST::includeHeading() from LabeledSectionTransclusion extension to include headings from the page
-					$secPieces = LST::includeHeading( $this->parser, $article->mTitle->getPrefixedText(), substr( $sSecLabel, 1 ), '', $sectionHeading, false, $maxLength, $cutLink, $this->getTrimIncluded(), $skipPattern );
+					$secPieces = LST::includeHeading( $this->parser, $article->mTitle->getPrefixedText(), substr( $sSecLabel, 1 ), '', $sectionHeading, false, $maxLength, $cutLink ?? 'default', $this->getTrimIncluded(), $skipPattern ?? [] );
 
 					if ( $mustMatch != '' || $mustNotMatch != '' ) {
 						$secPiecesTmp = $secPieces;
@@ -1217,7 +1219,7 @@ class Lister {
 					}
 				} else {
 					// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-					$secPieces = LST::includeSection( $this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern );
+					$secPieces = LST::includeSection( $this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern ?? [] );
 					$secPiece[$s] = implode( isset( $this->multiSectionSeparators[$s] ) ? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) : '', $secPieces );
 
 					if ( $this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count( $secPieces ) > 1 ) {
