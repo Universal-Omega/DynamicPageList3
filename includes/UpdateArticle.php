@@ -654,7 +654,7 @@ class UpdateArticle {
 			return $text;
 		}
 
-		return substr( $text, 0, $beginSubst ) . $substitution . substr( $text, $endSubst );
+		return substr( $text, 0, $beginSubst ) . ( $substitution ?? '' ) . substr( $text, $endSubst );
 	}
 
 	public static function deleteArticleByRule( $title, $text, $rulesText ) {
