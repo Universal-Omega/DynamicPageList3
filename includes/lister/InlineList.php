@@ -1,20 +1,15 @@
 <?php
-/**
- * DynamicPageList3
- * DPL InlineList Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Lister;
+
+use DPL\Parameters;
+use Parser;
 
 class InlineList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_INLINE;
 
@@ -68,24 +63,20 @@ class InlineList extends Lister {
 	protected $textSeparator = '';
 
 	/**
-	 * Main Constructor
-	 *
-	 * @access	public
-	 * @param	object	\DPL\Parameters
-	 * @param	object	MediaWiki \Parser
-	 * @return	void
+	 * @param Parameters $parameters
+	 * @param Parser $parser
 	 */
-	public function __construct( \DPL\Parameters $parameters, \Parser $parser ) {
+	public function __construct( Parameters $parameters, Parser $parser ) {
 		parent::__construct( $parameters, $parser );
+
 		$this->textSeparator = $parameters->getParameter( 'inlinetext' );
 	}
 
 	/**
 	 * Join together items after being processed by formatItem().
 	 *
-	 * @access	public
-	 * @param	array	Items as formatted by formatItem().
-	 * @return	string	Imploded items.
+	 * @param array $items
+	 * @return string
 	 */
 	protected function implodeItems( $items ) {
 		return implode( $this->textSeparator, $items );

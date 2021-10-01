@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 <ruleset>
-    <rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
-		<exclude name="Generic.Files.LineLength" />
+	<file>.</file>
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
+		<exclude name="Generic.Files.LineLength.TooLong" />
 		<exclude name="MediaWiki.Commenting.FunctionComment" />
-		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName" />
-		<exclude name="MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment" />
+		<exclude name="MediaWiki.Commenting.MissingCovers.MissingCovers" />
+		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName" />
+		<exclude name="MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment" />
 		<exclude name="PSR2.Methods.MethodDeclaration.Underscore" />
+		<exclude name="MediaWiki.ControlStructures.AssignmentInControlStructures.AssignmentInControlStructures" />
+		<exclude name="PEAR.Functions.ValidDefaultValue.NotAtEnd" />
 	</rule>
-	<rule ref="Generic.NamingConventions.ConstructorName">
-		<severity>3</severity>
-	</rule>
-    <file>.</file>
-    <arg name="extensions" value="php,php5,inc"/>
-    <arg name="encoding" value="UTF-8"/>
+	<arg name="bootstrap" value="./vendor/mediawiki/mediawiki-codesniffer/utils/bootstrap-ci.php"/>
+	<arg name="extensions" value="php"/>
+	<arg name="encoding" value="UTF-8"/>
 </ruleset>

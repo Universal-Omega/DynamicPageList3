@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL SubPageList Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Lister;
 
@@ -14,7 +6,7 @@ class SubPageList extends UnorderedList {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_UNORDERED;
 
@@ -49,17 +41,18 @@ class SubPageList extends UnorderedList {
 	/**
 	 * Format a list of articles into a singular list.
 	 *
-	 * @access	public
-	 * @param	array	List of \DPL\Article
-	 * @param	integer	Start position of the array to process.
-	 * @param	integer	Total objects from the array to process.
-	 * @return	string	Formatted list.
+	 * @param array $articles
+	 * @param int $start
+	 * @param int $count
+	 * @return string
 	 */
 	public function formatList( $articles, $start, $count ) {
 		$filteredCount = 0;
 		$items = [];
+
 		for ( $i = $start; $i < $start + $count; $i++ ) {
 			$article = $articles[$i];
+
 			if ( empty( $article ) || empty( $article->mTitle ) ) {
 				continue;
 			}
@@ -84,22 +77,26 @@ class SubPageList extends UnorderedList {
 	/**
 	 * Nest items down to the proper level.
 	 *
-	 * @private
-	 * @param	array	Part levels to nest down to.
-	 * @param	array	Items holder to nest the item into.
-	 * @param	string	Formatted Item
-	 * @return	array	Nest Items
+	 * @param array &$parts
+	 * @param array $items
+	 * @param string $item
+	 * @return array
 	 */
 	private function nestItem( &$parts, $items, $item ) {
 		$firstPart = reset( $parts );
+
 		if ( count( $parts ) > 1 ) {
 			array_shift( $parts );
+
 			if ( !isset( $items[$firstPart] ) ) {
 				$items[$firstPart] = [];
 			}
+
 			$items[$firstPart] = $this->nestItem( $parts, $items[$firstPart], $item );
+
 			return $items;
 		}
+
 		$items[$firstPart][] = $item;
 
 		return $items;
@@ -108,21 +105,23 @@ class SubPageList extends UnorderedList {
 	/**
 	 * Join together items after being processed by formatItem().
 	 *
-	 * @protected
-	 * @param	array	Items as formatted by formatItem().
-	 * @return	string	Imploded items.
+	 * @param array $items
+	 * @return string
 	 */
 	protected function implodeItems( $items ) {
 		$list = '';
+
 		foreach ( $items as $key => $item ) {
 			if ( is_string( $item ) ) {
 				$list .= $item;
 				continue;
 			}
+
 			if ( is_array( $item ) ) {
 				$list .= $this->getItemStart() . $key . $this->getListStart() . $this->implodeItems( $item ) . $this->listEnd . $this->getItemEnd();
 			}
 		}
+
 		return $list;
 	}
 }

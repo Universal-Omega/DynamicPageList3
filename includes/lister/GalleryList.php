@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL GalleryList Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Lister;
 
@@ -16,7 +8,7 @@ class GalleryList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_GALLERY;
 
@@ -46,21 +38,20 @@ class GalleryList extends Lister {
 	 *
 	 * @var string
 	 */
-	public $itemEnd = "|";
+	public $itemEnd = '|';
 
 	/**
 	 * Format an item.
 	 *
-	 * @access	public
-	 * @param	object	DPL\Article
-	 * @param	string	[Optional] Page text to include.include.
-	 * @return	string	Item HTML
+	 * @param Article $article
+	 * @param string|null $pageText
+	 * @return string
 	 */
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle;
 
 		if ( $pageText !== null ) {
-			//Include parsed/processed wiki markup content after each item before the closing tag.
+			// Include parsed/processed wiki markup content after each item before the closing tag.
 			$item .= $pageText;
 		}
 

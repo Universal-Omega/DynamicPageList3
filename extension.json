@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.3.5",
+	"version": "3.3.6",
 	"author": [
 		"Alexia E. Smith",
 		"[https://meta.miraheze.org/wiki/User:Universal_Omega Universal Omega]",
@@ -8,10 +8,10 @@
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
 	"descriptionmsg": "dpl-desc",
-	"license-name": "GPL-2.0-or-later",
+	"license-name": "GPL-3.0-or-later",
 	"type": "parserhook",
 	"requires": {
-		"MediaWiki": ">= 1.35.0"
+		"MediaWiki": ">= 1.36.0"
 	},
 	"GroupPermissions": {
 		"sysop": {
@@ -29,7 +29,7 @@
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageListMagic": "DynamicPageList.i18n.magic.php"
+		"DynamicPageListMagic": "includes/DynamicPageListMagic.php"
 	},
 	"AutoloadClasses": {
 		"DPL\\Article": "includes/Article.php",
@@ -57,14 +57,17 @@
 		"DPL\\Query": "includes/Query.php",
 		"DPL\\UpdateArticle": "includes/UpdateArticle.php",
 		"DPL\\Variables": "includes/Variables.php",
-		"DynamicPageListHooks": "DynamicPageListHooks.php"
+		"DPL\\RevisionJoinBuilder": "includes/RevisionJoinBuilder.php",
+		"DPL\\UserQueryBuilder": "includes/UserQueryBuilder.php",
+		"DPL\\DynamicPageListHooks": "includes/DynamicPageListHooks.php",
+		"DPL\\DPLIntegrationTestCase": "tests/phpunit/DPLIntegrationTestCase.php"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
-			"DynamicPageListHooks::onParserFirstCallInit"
+			"DPL\\DynamicPageListHooks::onParserFirstCallInit"
 		],
 		"LoadExtensionSchemaUpdates": [
-			"DynamicPageListHooks::onLoadExtensionSchemaUpdates"
+			"DPL\\DynamicPageListHooks::onLoadExtensionSchemaUpdates"
 		]
 	},
 	"config": {
@@ -95,6 +98,5 @@
 		"dplchapter-parserfunc-tracking-category",
 		"dplmatrix-parserfunc-tracking-category"
 	],
-	"callback": "DynamicPageListHooks::onRegistration",
 	"manifest_version": 1
 }

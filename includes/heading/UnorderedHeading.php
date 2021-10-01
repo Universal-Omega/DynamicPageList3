@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL UnorderedHeading Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Heading;
 

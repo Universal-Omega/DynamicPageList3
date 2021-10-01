@@ -1,14 +1,8 @@
 <?php
-/**
- * DynamicPageList3
- * DPL Config Class
- *
- * @author		IlyaHaykinson, Unendlich, Dangerville, Algorithmix, Theaitetos, Alexia E. Smith
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
+
 namespace DPL;
+
+use MWException;
 
 class Config {
 	/**
@@ -21,15 +15,13 @@ class Config {
 	/**
 	 * Initialize the static object with settings.
 	 *
-	 * @access	public
-	 * @param	array	Settings to initialize for DPL.
-	 * @return	void
+	 * @param array|false $settings
 	 */
 	public static function init( $settings = false ) {
 		if ( $settings === false ) {
 			global $wgDplSettings;
 
-			$settings = $wgDplSettings;
+			$settings = $wgDplSettings ?? false;
 		}
 
 		if ( !is_array( $settings ) ) {
@@ -42,19 +34,17 @@ class Config {
 	/**
 	 * Return a single setting.
 	 *
-	 * @access	public
-	 * @param	string	Setting Key
-	 * @return	mixed	The setting's actual setting or null if it does not exist.
+	 * @param string $setting
+	 * @return mixed|null
 	 */
 	public static function getSetting( $setting ) {
-		return ( array_key_exists( $setting, self::$settings ) ? self::$settings[$setting] : null );
+		return ( self::$settings[$setting] ?? null );
 	}
 
 	/**
 	 * Return a all settings.
 	 *
-	 * @access	public
-	 * @return	array	All settings
+	 * @return array
 	 */
 	public static function getAllSettings() {
 		return self::$settings;
@@ -63,15 +53,14 @@ class Config {
 	/**
 	 * Set a single setting.
 	 *
-	 * @access	public
-	 * @param	string	Setting Key
-	 * @param	mixed	[Optional] Appropriate value for the setting key.
-	 * @return	void
+	 * @param string $setting
+	 * @param mixed|null $value
 	 */
 	public static function setSetting( $setting, $value = null ) {
 		if ( empty( $setting ) || !is_string( $setting ) ) {
 			throw new MWException( __METHOD__ . ": Setting keys can not be blank." );
 		}
+
 		self::$settings[$setting] = $value;
 	}
 }

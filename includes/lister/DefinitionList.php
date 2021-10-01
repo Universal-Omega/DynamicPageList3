@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL DefinitionList Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Lister;
 
@@ -14,7 +6,7 @@ class DefinitionList extends Lister {
 	/**
 	 * Listing style for this class.
 	 *
-	 * @var constant
+	 * @var int
 	 */
 	public $style = parent::LIST_DEFINITION;
 

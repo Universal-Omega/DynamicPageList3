@@ -3,7 +3,7 @@
 	"type": "mediawiki-extension",
 	"description": "The DynamicPageList3 extension allows creating lists of other articles based on their category, namespace, title, references or template usage and include contents or arguments of template calls of those articles into your page.",
 	"homepage": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
-	"license": "GPL-2.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"require": {
 		"composer/installers": ">=1.0.1"
 	},
@@ -12,22 +12,23 @@
 		"optimize-autoloader": true
 	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "35.0.0",
-		"mediawiki/mediawiki-phan-config": "0.10.6",
+		"mediawiki/mediawiki-codesniffer": "37.0.0",
+		"mediawiki/mediawiki-phan-config": "0.11.0",
 		"mediawiki/minus-x": "1.1.1",
 		"php-parallel-lint/php-console-highlighter": "0.5.0",
-		"php-parallel-lint/php-parallel-lint": "1.2.0"
+		"php-parallel-lint/php-parallel-lint": "1.3.1"
 	},
 	"scripts": {
-		"test": [
-			"parallel-lint . --exclude vendor --exclude node_modules",
-			"minus-x check .",
-			"phpcs -p -s"
-		],
 		"fix": [
 			"minus-x fix .",
-			"phpcbf"
+			"phpcbf; if [ $? -eq 1 ]; then exit 0; fi"
 		],
-		"phan": "phan -d . --long-progress-bar"
+		"test": [
+			"parallel-lint . --exclude node_modules --exclude vendor",
+			"minus-x check .",
+			"@phpcs"
+		],
+		"phan": "phan -d . --long-progress-bar",
+		"phpcs": "phpcs -sp --cache"
 	}
 }

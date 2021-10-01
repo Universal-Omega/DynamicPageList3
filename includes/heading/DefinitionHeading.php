@@ -1,12 +1,4 @@
 <?php
-/**
- * DynamicPageList3
- * DPL DefinitionHeading Class
- *
- * @license		GPL-2.0-or-later
- * @package		DynamicPageList3
- *
- */
 
 namespace DPL\Heading;
 
@@ -74,21 +66,22 @@ class DefinitionHeading extends Heading {
 	/**
 	 * Format a heading group.
 	 *
-	 * @access	public
-	 * @param	integer	Article start index for this heading.
-	 * @param	integer	Article count for this heading.
-	 * @param	string	Heading link/text display.
-	 * @param	array	List of \DPL\Article.
-	 * @param	object	List of \DPL\Lister\Lister
-	 * @return	string	Heading HTML
+	 * @param int $headingStart
+	 * @param int $headingCount
+	 * @param string $headingLink
+	 * @param array $articles
+	 * @param Lister $lister
+	 * @return string
 	 */
 	public function formatItem( $headingStart, $headingCount, $headingLink, $articles, Lister $lister ) {
 		$item = '';
 
 		$item .= $this->headListStart . $headingLink;
+
 		if ( $this->showHeadingCount ) {
 			$item .= $this->articleCountMessage( $headingCount );
 		}
+
 		$item .= $this->headListEnd;
 		$item .= $this->getItemStart() . $lister->formatList( $articles, $headingStart, $headingCount ) . $this->getItemEnd();
 
