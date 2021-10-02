@@ -961,15 +961,15 @@ class Parse {
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endReset';
+			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'DPL\\DynamicPageListHooks::endReset', $wgHooks['ParserAfterTidy'] ) ) {
+				$wgHooks['ParserAfterTidy'][] = 'DPL\\DynamicPageListHooks::endReset';
 			}
 		}
 
 		if ( array_sum( $eliminate ) ) {
 			// Register a hook to reset links which were produced during parsing DPL output
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'DynamicPageListHooks::endEliminate';
+			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'DPL\\DynamicPageListHooks::endEliminate', $wgHooks['ParserAfterTidy'] ) ) {
+				$wgHooks['ParserAfterTidy'][] = 'DPL\\DynamicPageListHooks::endEliminate';
 			}
 
 			if ( isset( $eliminate['links'] ) && $eliminate['links'] ) {
