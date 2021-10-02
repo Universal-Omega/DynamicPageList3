@@ -59,7 +59,10 @@ class DynamicPageListHooks {
 	/** @var array */
 	public static $fixedCategories = [];
 
-	/** @var array */
+	/**
+	 * @var array
+	 * @phan-var array<mixed,mixed>
+	 */
 	public static $createdLinks;
 
 	/** @var bool */
