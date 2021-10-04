@@ -57,7 +57,8 @@ class Logger {
 			}
 
 			if ( empty( $text ) ) {
-				$text = wfMessage( 'dpl_log_' . $errorMessageId, $args )->text();
+				$message = wfMessage( 'dpl_log_' . $errorMessageId, $args );
+				$text = $message->exists() ? $message->text() : $args;
 			}
 
 			$this->buffer[] = '<p>Extension:DynamicPageList (DPL), version ' . DynamicPageListHooks::getVersion() . ': ' . $text . '</p>';
