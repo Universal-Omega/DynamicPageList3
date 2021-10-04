@@ -324,7 +324,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'ordermethod' => 'lastedit',
 			'order' => 'descending',
 			'adduser' => 'true',
-			'createdby' => 'DPLTestAdmin'
+			'createdby' => 'DPLTestAdmin',
+			'debug' => '4'
 		], '%PAGE% %USER%' );
 
 		$this->assertEquals( [
