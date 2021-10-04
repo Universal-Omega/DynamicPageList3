@@ -1748,11 +1748,12 @@ class Query {
 						$this->revisionJoinBuilder->addFieldsFromFirst( [
 							'first_rev_timestamp' => 'rev_timestamp'
 						] );
+
+						$this->addOrderBy( 'first_rev_timestamp' );
 					}
 
 					$this->revisionAuxWhereAdded = true;
 
-					$this->addOrderBy( 'first_rev_timestamp' );
 					break;
 				case 'lastedit':
 					if ( DynamicPageListHooks::isLikeIntersection() ) {
@@ -1767,11 +1768,11 @@ class Query {
 							$this->revisionJoinBuilder->addFieldsFromLast( [
 								'latest_rev_timestamp' => 'rev_timestamp'
 							] );
+
+							$this->addOrderBy( 'latest_rev_timestamp' );
 						}
 
 						$this->revisionAuxWhereAdded = true;
-
-						$this->addOrderBy( 'latest_rev_timestamp' );
 					}
 					break;
 				case 'pagesel':
