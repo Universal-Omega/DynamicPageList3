@@ -898,11 +898,10 @@ class Query {
 	 */
 	private function _adduser( $option ) {
 		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
-		$sortField = $actorQuery['fields']['rev_actor'] !== 'NULL' ? 'rev_actor' : 'rev_user_text';
 		$this->addTable( 'revision', 'rev' );
 		$this->addSelect(
 			[
-				$actorQuery['fields']['rev_actor'],
+				'rev_actor' => $actorQuery['fields']['rev_user_text'],
 			]
 		);
 	}
