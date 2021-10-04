@@ -228,8 +228,7 @@ class Parse {
 		$numRows = $this->DB->numRows( $result );
 		$articles = $this->processQueryResults( $result, $parser );
 
-		global $wgDebugDumpSql;
-		if ( DynamicPageListHooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+		if ( DynamicPageListHooks::getDebugLevel() >= 4 ) {
 			$this->addOutput( $query->getSqlQuery() . "\n" );
 		}
 
