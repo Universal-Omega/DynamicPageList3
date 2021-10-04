@@ -1744,9 +1744,13 @@ class Query {
 					}
 					break;
 				case 'firstedit':
-					$this->revisionJoinBuilder->addFieldsFromFirst( [
-						'first_rev_timestamp' => 'rev_timestamp'
-					] );
+					if ( !$this->revisionAuxWhereAdded ) {
+						$this->revisionJoinBuilder->addFieldsFromFirst( [
+							'first_rev_timestamp' => 'rev_timestamp'
+						] );
+					}
+
+					$this->revisionAuxWhereAdded = true;
 
 					$this->addOrderBy( 'first_rev_timestamp' );
 					break;
@@ -1759,9 +1763,13 @@ class Query {
 							]
 						);
 					} else {
-						$this->revisionJoinBuilder->addFieldsFromLast( [
-							'latest_rev_timestamp' => 'rev_timestamp'
-						] );
+						if ( !$this->revisionAuxWhereAdded ) {
+							$this->revisionJoinBuilder->addFieldsFromLast( [
+								'latest_rev_timestamp' => 'rev_timestamp'
+							] );
+						}
+
+						$this->revisionAuxWhereAdded = true;
 
 						$this->addOrderBy( 'latest_rev_timestamp' );
 					}
