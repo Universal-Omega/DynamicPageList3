@@ -220,18 +220,16 @@ class Query {
 			}
 		}
 
-		foreach ( $revQueryInfo['joins'] as $joinTarget => $joinConds ) {
-			$this->addJoin( $joinTarget, $joinConds );
-		}
+		$this->addJoins( $revQueryInfo['joins'] );
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
 			$this->addTable( 'page', $this->tableNames['page'] );
 			$this->addSelect(
 				[
-					'page_namespace'	=> $this->tableNames['page'] . '.page_namespace',
-					'page_id'			=> $this->tableNames['page'] . '.page_id',
-					'page_title'		=> $this->tableNames['page'] . '.page_title'
+					'page_namespace' => $this->tableNames['page'] . '.page_namespace',
+					'page_id' => $this->tableNames['page'] . '.page_id',
+					'page_title' => $this->tableNames['page'] . '.page_title'
 				]
 			);
 		}
@@ -259,7 +257,7 @@ class Query {
 			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
 				// $sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
 				$tables = [
-					'ic'	=> 'imagelinks'
+					'ic' => 'imagelinks'
 				];
 			} else {
 				// $sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
@@ -672,8 +670,8 @@ class Query {
 			[ 'page', 'categorylinks' ],
 			[ 'page_title' ],
 			[
-				'page_namespace'		=> intval( NS_CATEGORY ),
-				'categorylinks.cl_to'	=> str_replace( ' ', '_', $categoryName )
+				'page_namespace' => intval( NS_CATEGORY ),
+				'categorylinks.cl_to' => str_replace( ' ', '_', $categoryName )
 			],
 			__METHOD__,
 			[ 'DISTINCT' ],
@@ -824,7 +822,7 @@ class Query {
 		// @TODO: This should be programmatically determining which categorylink table to use instead of assuming the first one.
 		$this->addSelect(
 			[
-				'cl_timestamp'	=> "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
+				'cl_timestamp' => "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
 			]
 		);
 	}
@@ -851,7 +849,7 @@ class Query {
 			$this->addTable( 'hit_counter', 'hit_counter' );
 			$this->addSelect(
 				[
-					"page_counter"	=> "hit_counter.page_counter"
+					"page_counter" => "hit_counter.page_counter"
 				]
 			);
 
@@ -875,7 +873,7 @@ class Query {
 	private function _addpagesize( $option ) {
 		$this->addSelect(
 			[
-				"page_len"	=> "{$this->tableNames['page']}.page_len"
+				"page_len" => "{$this->tableNames['page']}.page_len"
 			]
 		);
 	}
@@ -888,7 +886,21 @@ class Query {
 	private function _addpagetoucheddate( $option ) {
 		$this->addSelect(
 			[
-				"page_touched"	=> "{$this->tableNames['page']}.page_touched"
+				"page_touched" => "{$this->tableNames['page']}.page_touched"
+			]
+		);
+	}
+
+	/**
+	 * Set SQL for 'adduser' parameter.
+	 *
+	 * @param mixed $option
+	 */
+	private function _adduser( $option ) {
+		$this->addTable( 'revision', 'rev' );
+		$this->addSelect(
+			[
+				'rev.rev_actor',
 			]
 		);
 	}
@@ -1046,7 +1058,7 @@ class Query {
 
 				$this->addWhere(
 					[
-						"{$tableAlias}.cl_to"	=> null
+						"{$tableAlias}.cl_to" => null
 					]
 				);
 			}
@@ -1137,7 +1149,7 @@ class Query {
 		$this->addTable( 'imagelinks', 'ic' );
 		$this->addSelect(
 			[
-				'sortkey'	=> 'ic.il_to'
+				'sortkey' => 'ic.il_to'
 			]
 		);
 
@@ -1178,7 +1190,7 @@ class Query {
 		$this->addTable( 'imagelinks', 'il' );
 		$this->addSelect(
 			[
-				'image_sel_title'	=> 'il.il_to'
+				'image_sel_title' => 'il.il_to'
 			]
 		);
 
@@ -1516,13 +1528,13 @@ class Query {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$this->addWhere(
 					[
-						"{$this->tableNames['pagelinks']}.pl_namespace"	=> $option
+						"{$this->tableNames['pagelinks']}.pl_namespace" => $option
 					]
 				);
 			} else {
 				$this->addWhere(
 					[
-						"{$this->tableNames['page']}.page_namespace"	=> $option
+						"{$this->tableNames['page']}.page_namespace" => $option
 					]
 				);
 			}
@@ -1694,7 +1706,7 @@ class Query {
 					if ( is_array( $this->parameters->getParameter( 'catheadings' ) ) && count( $this->parameters->getParameter( 'catheadings' ) ) ) {
 						$this->addWhere(
 							[
-								"cl_head.cl_to"	=> $this->parameters->getParameter( 'catheadings' )
+								"cl_head.cl_to" => $this->parameters->getParameter( 'catheadings' )
 							]
 						);
 					}
@@ -1874,14 +1886,14 @@ class Query {
 				case 'only':
 					$this->addWhere(
 						[
-							$this->tableNames['page'] . ".page_is_redirect"	=> 1
+							$this->tableNames['page'] . ".page_is_redirect" => 1
 						]
 					);
 					break;
 				case 'exclude':
 					$this->addWhere(
 						[
-							$this->tableNames['page'] . ".page_is_redirect"	=> 0
+							$this->tableNames['page'] . ".page_is_redirect" => 0
 						]
 					);
 					break;
@@ -1918,7 +1930,7 @@ class Query {
 				case 'exclude':
 					$this->addWhere(
 						[
-							'fp_stable'	=> null
+							'fp_stable' => null
 						]
 					);
 					break;
