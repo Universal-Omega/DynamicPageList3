@@ -898,12 +898,14 @@ class Query {
 	 * @param string $tableAlias
 	 */
 	private function _adduser( $option, $tableAlias = 'revision_actor_temp' ) {
-		$this->addTable( 'revision_actor_temp', 'revision_actor_temp' );
+		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
+
+
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
 			[
-				 'rev_user_text' => 'rev_actor',
+				 'rev_user_text' => $actorQuery['fields']['rev_actor'],
 			]
 		);
 	}
