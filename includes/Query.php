@@ -7,6 +7,7 @@ use DateTime;
 use Exception;
 use MediaWiki\MediaWikiServices;
 use MWException;
+use User;
 use Wikimedia\Rdbms\IDatabase;
 
 class Query {
@@ -1063,7 +1064,7 @@ class Query {
 		$this->addTable( 'revision_actor_temp', 'creation_rev_actor' );
 		$this->_adduser( null, 'creation_rev_actor' );
 
-		$user = new \User;
+		$user = new User;
 
 		$this->addWhere(
 			[
