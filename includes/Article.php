@@ -4,7 +4,6 @@ namespace DPL;
 
 use MediaWiki\MediaWikiServices;
 use Title;
-use User;
 
 class Article {
 	/**
@@ -136,7 +135,7 @@ class Article {
 	/**
 	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $mUser = null;
 
@@ -197,13 +196,16 @@ class Article {
 	public static function newFromRow( $row, Parameters $parameters, Title $title, $pageNamespace, $pageTitle ) {
 		global $wgLang;
 
-		$contentLanguage = MediaWikiServices::getInstance()->getContentLanguage();
+		$services = MediaWikiServices::getInstance();
+
+		$contentLanguage = $services->getContentLanguage();
+		$userFactory = $services->getUserFactory();
 
 		$article = new Article( $title, $pageNamespace );
 
 		$revActorName = null;
 		if ( isset( $row['revactor_actor'] ) ) {
-			$revActorName = User::newFromActorId( $row['revactor_actor'] )->getName();
+			$revActorName = $userFactory->newFromActorId( $row['revactor_actor'] )->getName();
 		}
 
 		$titleText = $title->getText();
@@ -310,7 +312,7 @@ class Article {
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
 				$article->mContribution = $row['contribution'];
 
-				$article->mContributor = User::newFromActorId( $row['contributor'] )->getName();
+				$article->mContributor = $userFactory->newFromActorId( $row['contributor'] )->getName();
 
 				$article->mContrib = substr( '*****************', 0, (int)round( log( $row['contribution'] ) ) );
 			}
@@ -344,11 +346,15 @@ class Article {
 						} else {
 							$article->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace( '_', ' ', $row['cl_to'] ) . ']]';
 						}
+
 						break;
 					case 'user':
-						self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
+						if ( $revActorName ) {
+							self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
 
-						$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+						}
+
 						break;
 				}
 			}
