@@ -902,7 +902,7 @@ class Query {
 		$this->addTables( [ 'rev' => 'revision' ] + $actorQuery['tables'] );
 		$this->addSelect(
 			[
-				$actorQuery['fields']['rev_user_text'],
+				'rev.' . $actorQuery['fields']['rev_user_text'],
 			]
 		);
 	}
