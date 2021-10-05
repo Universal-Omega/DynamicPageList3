@@ -898,6 +898,7 @@ class Query {
 	 * @param string $tableAlias
 	 */
 	private function _adduser( $option, $tableAlias = '' ) {
+		$this->addTable( 'revision_actor_temp', 'rev' );
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
