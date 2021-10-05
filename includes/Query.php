@@ -6,8 +6,8 @@ use DateInterval;
 use DateTime;
 use Exception;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserFactory;
 use MWException;
-use UserFactory;
 use Wikimedia\Rdbms\IDatabase;
 
 class Query {
