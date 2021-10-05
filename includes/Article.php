@@ -4,6 +4,7 @@ namespace DPL;
 
 use MediaWiki\MediaWikiServices;
 use Title;
+use User;
 
 class Article {
 	/**
