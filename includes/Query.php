@@ -898,7 +898,7 @@ class Query {
 	 * @param string $tableAlias
 	 */
 	private function _adduser( $option, $tableAlias = '' ) {
-		$this->addTable( 'revision_actor_temp', 'rev' );
+		$this->addTable( 'revision_actor_temp', 'revision_actor_temp' );
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
@@ -1880,7 +1880,7 @@ class Query {
 
 						$this->addOrderBy( 'last_rev_actor' );
 					}*/
-					$this->_adduser( null, 'rev' );
+					$this->_adduser( null, 'revision_actor_temp' );
 					break;
 				case 'none':
 					break;
