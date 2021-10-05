@@ -902,7 +902,7 @@ class Query {
 
 		$this->addSelect(
 			[
-				'rev_user_text' => $alias . 'revactor_actor',
+				$alias . 'revactor_actor',
 			]
 		);
 	}
