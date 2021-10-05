@@ -144,7 +144,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mComment = null;
+	public $mComment = '';
 
 	/**
 	 * Number of bytes changed.
@@ -285,6 +285,8 @@ class Article {
 				$article->mRevision = $row['revactor_rev'];
 				$article->mUser = $revActorName;
 				$article->mDate = $row['revactor_timestamp'];
+
+				// $article->mComment = $row['rev_comment'];
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
