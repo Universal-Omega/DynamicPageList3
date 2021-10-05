@@ -201,6 +201,11 @@ class Article {
 
 		$article = new Article( $title, $pageNamespace );
 
+		$revActorName = null;
+		if ( isset( $row['revactor_actor'] ) ) {
+			$revActorName = User::newFromActorId( $row['revactor_actor'] )->getName();
+		}
+
 		$titleText = $title->getText();
 		if ( $parameters->getParameter( 'shownamespace' ) === true ) {
 			$titleText = $title->getPrefixedText();
@@ -275,10 +280,9 @@ class Article {
 		if ( $parameters->getParameter( 'goal' ) != 'categories' ) {
 			// REVISION SPECIFIED
 			if ( $parameters->getParameter( 'lastrevisionbefore' ) || $parameters->getParameter( 'allrevisionsbefore' ) || $parameters->getParameter( 'firstrevisionsince' ) || $parameters->getParameter( 'allrevisionssince' ) ) {
-				$article->mRevision = $row['rev_id'];
-				$article->mUser = $row['rev_user_text'];
-				$article->mDate = $row['rev_timestamp'];
-				$article->mComment = $row['rev_comment'];
+				$article->mRevision = $row['revactor_rev'];
+				$article->mUser = $revActorName;
+				$article->mDate = $row['revactor_timestamp'];
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
@@ -286,8 +290,8 @@ class Article {
 				$article->mDate = $row['page_touched'];
 			} elseif ( $parameters->getParameter( 'addfirstcategorydate' ) ) {
 				$article->mDate = $row['cl_timestamp'];
-			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row['rev_timestamp'] ) ) {
-				$article->mDate = $row['rev_timestamp'];
+			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row['revactor_timestamp'] ) ) {
+				$article->mDate = $row['revactor_timestamp'];
 			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row['page_touched'] ) ) {
 				$article->mDate = $row['page_touched'];
 			}
@@ -306,13 +310,7 @@ class Article {
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
 				$article->mContribution = $row['contribution'];
 
-				// This is the wrong check since the ActorMigration may be in progress
-				// https://www.mediawiki.org/wiki/Actor_migration
-				if ( class_exists( 'ActorMigration' ) ) {
-					$article->mContributor = User::newFromActorId( $row['contributor'] )->getName();
-				} else {
-					$article->mContributor = $row['contributor'];
-				}
+				$article->mContributor = User::newFromActorId( $row['contributor'] )->getName();
 
 				$article->mContrib = substr( '*****************', 0, (int)round( log( $row['contribution'] ) ) );
 			}
@@ -321,8 +319,8 @@ class Article {
 			// because we are going to do a recursive parse at the end of the output phase
 			// we have to generate wiki syntax for linking to a user´s homepage
 			if ( $parameters->getParameter( 'adduser' ) || $parameters->getParameter( 'addauthor' ) || $parameters->getParameter( 'addlasteditor' ) ) {
-				$article->mUserLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
-				$article->mUser = $row['rev_user_text'];
+				$article->mUserLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+				$article->mUser = $revActorName;
 			}
 
 			// CATEGORY LINKS FROM CURRENT PAGE
@@ -348,9 +346,9 @@ class Article {
 						}
 						break;
 					case 'user':
-						self::$headings[$row['rev_user_text']] = ( isset( self::$headings[$row['rev_user_text']] ) ? self::$headings[$row['rev_user_text']] + 1 : 1 );
+						self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
 
-						$article->mParentHLink = '[[User:' . $row['rev_user_text'] . '|' . $row['rev_user_text'] . ']]';
+						$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
 						break;
 				}
 			}
