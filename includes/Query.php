@@ -900,7 +900,6 @@ class Query {
 	private function _adduser( $option, $tableAlias = 'revision_actor_temp' ) {
 		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
 
-
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
