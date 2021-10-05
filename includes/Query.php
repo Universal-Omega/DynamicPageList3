@@ -899,6 +899,7 @@ class Query {
 	 */
 	private function _adduser( $option, $tableAlias = 'revision_actor_temp' ) {
 		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
+		$this->addTables( $actorQuery['tables'] );
 
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
