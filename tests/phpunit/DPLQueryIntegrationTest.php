@@ -301,10 +301,10 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
-	public function testOrderByLastEditAndUser(): void {
+	public function testOrderByLastEditWithUser(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
-			'ordermethod' => 'lastedit,user',
+			'ordermethod' => 'lastedit',
 			'order' => 'descending',
 			'adduser' => 'true',
 			'createdby' => 'DPLTestAdmin'
