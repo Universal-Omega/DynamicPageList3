@@ -897,7 +897,7 @@ class Query {
 	 * @param mixed $option
 	 * @param string $tableAlias
 	 */
-	private function _adduser( $option, $tableAlias = '' ) {
+	private function _adduser( $option, $tableAlias = 'revision_actor_temp' ) {
 		$this->addTable( 'revision_actor_temp', 'revision_actor_temp' );
 		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
