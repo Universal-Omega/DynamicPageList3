@@ -898,7 +898,8 @@ class Query {
 	 */
 	private function _adduser( $option ) {
 		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
-		$this->addTable( 'revision', 'rev' );
+
+		$this->addTables( [ 'rev' => 'revision' ] + $actorQuery['tables'] );
 		$this->addSelect(
 			[
 				'rev_actor' => $actorQuery['fields']['rev_user_text'],
