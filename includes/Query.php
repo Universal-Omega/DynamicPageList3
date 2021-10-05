@@ -902,7 +902,7 @@ class Query {
 		$this->addTables( [ 'rev' => 'revision' ] + $actorQuery['tables'] );
 		$this->addSelect(
 			[
-				'user' => $actorQuery['fields']['rev_user_text'],
+				'rev_actor' => $actorQuery['fields']['rev_user_text'],
 			]
 		);
 	}
@@ -1862,7 +1862,7 @@ class Query {
 					$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
 					$sortField = $actorQuery['fields']['rev_actor'] !== 'NULL' ? 'rev_actor' : 'rev_user_text';
 
-					if ( $willOrderByFirstEdit ) {
+					/*if ( $willOrderByFirstEdit ) {
 						$this->revisionJoinBuilder->addFieldsFromFirst( [
 							'rev_user_text' => 'rev_user_text',
 							'first_rev_actor' => $sortField
@@ -1878,7 +1878,8 @@ class Query {
 						] );
 
 						$this->addOrderBy( 'last_rev_actor' );
-					}
+					}*/
+					$this->_adduser( null );
 					break;
 				case 'none':
 					break;
