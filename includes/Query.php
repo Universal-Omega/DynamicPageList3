@@ -895,13 +895,10 @@ class Query {
 	 * Set SQL for 'adduser' parameter.
 	 *
 	 * @param mixed $option
-	 * @param string $tableAlias
 	 */
-	private function _adduser( $option, $tableAlias = 'revision_actor_temp' ) {
+	private function _adduser( $option ) {
 		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
 		$this->addTables( $actorQuery['tables'] );
-
-		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
 			[
@@ -1862,7 +1859,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					/*$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
+					$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
 					$sortField = $actorQuery['fields']['rev_actor'] !== 'NULL' ? 'rev_actor' : 'rev_user_text';
 
 					if ( $willOrderByFirstEdit ) {
@@ -1881,8 +1878,7 @@ class Query {
 						] );
 
 						$this->addOrderBy( 'last_rev_actor' );
-					}*/
-					$this->_adduser( null, 'revision_actor_temp' );
+					}
 					break;
 				case 'none':
 					break;
