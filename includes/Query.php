@@ -1861,7 +1861,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
+					/*$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
 					$sortField = $actorQuery['fields']['rev_actor'] !== 'NULL' ? 'rev_actor' : 'rev_user_text';
 
 					if ( $willOrderByFirstEdit ) {
@@ -1880,7 +1880,8 @@ class Query {
 						] );
 
 						$this->addOrderBy( 'last_rev_actor' );
-					}
+					}*/
+					$this->_adduser( null );
 					break;
 				case 'none':
 					break;
