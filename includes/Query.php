@@ -904,7 +904,7 @@ class Query {
 
 		$this->addSelect(
 			[
-				'rev.' . $actorQuery['fields']['rev_user_text'],
+				'rev_user_text' => $actorQuery['fields']['rev_user_text'],
 			]
 		);
 	}
