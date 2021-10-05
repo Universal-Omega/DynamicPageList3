@@ -895,15 +895,14 @@ class Query {
 	 * Set SQL for 'adduser' parameter.
 	 *
 	 * @param mixed $option
+	 * @param string $tableAlias
 	 */
-	private function _adduser( $option ) {
-		$actorQuery = $this->actorMigration->getJoin( 'rev_user' );
-
-		print_r( $actorQuery['fields']['rev_user_text'] );
+	private function _adduser( $option, $tableAlias = '' ) {
+		$alias = ( $tableAlias ? $tableAlias . '.' : '' );
 
 		$this->addSelect(
 			[
-				'rev_user_text' => $actorQuery['fields']['rev_user_text'],
+				'rev_user_text' => $alias . 'revactor_actor',
 			]
 		);
 	}
@@ -1880,7 +1879,7 @@ class Query {
 
 						$this->addOrderBy( 'last_rev_actor' );
 					}*/
-					$this->_adduser( null );
+					$this->_adduser( null, 'rev' );
 					break;
 				case 'none':
 					break;
