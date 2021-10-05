@@ -7,7 +7,7 @@ use DateTime;
 use Exception;
 use MediaWiki\MediaWikiServices;
 use MWException;
-use User;
+use UserFactory;
 use Wikimedia\Rdbms\IDatabase;
 
 class Query {
@@ -145,6 +145,13 @@ class Query {
 	private $revisionAuxWhereAdded = false;
 
 	/**
+	 * UserFactory object
+	 *
+	 * @var UserFactory
+	 */
+	private $userFactory;
+
+	/**
 	 * @param Parameters $parameters
 	 */
 	public function __construct( Parameters $parameters ) {
@@ -153,6 +160,8 @@ class Query {
 		$this->tableNames = self::getTableNames();
 
 		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
+
+		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
 	/**
@@ -1064,11 +1073,9 @@ class Query {
 		$this->addTable( 'revision_actor_temp', 'creation_rev_actor' );
 		$this->_adduser( null, 'creation_rev_actor' );
 
-		$user = new User;
-
 		$this->addWhere(
 			[
-				$this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.revactor_actor',
+				$this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.revactor_actor',
 				'creation_rev_actor.revactor_page = page_id',
 				'creation_rev.rev_parent_id = 0'
 			]
@@ -1218,9 +1225,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _lastmodifiedby( $option ) {
-		$user = new User;
-
-		$this->addWhere( $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
+		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
 	}
 
 	/**
@@ -1519,9 +1524,8 @@ class Query {
 	 */
 	private function _modifiedby( $option ) {
 		$this->addTable( 'revision_actor_temp', 'change_rev' );
-		$user = new User;
 
-		$this->addWhere( $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' = change_rev.revactor_actor AND change_rev.revactor_page = page_id' );
+		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = change_rev.revactor_actor AND change_rev.revactor_page = page_id' );
 	}
 
 	/**
@@ -1556,9 +1560,7 @@ class Query {
 		$this->addTable( 'revision', 'no_creation_rev' );
 		$this->addTable( 'revision_actor_temp', 'no_creation_rev_actor' );
 
-		$user = new User;
-
-		$this->addWhere( $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' != no_creation_rev_actor.revactor_actor AND no_creation_rev_actor.revactor_page = page_id AND no_creation_rev.rev_parent_id = 0' );
+		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != no_creation_rev_actor.revactor_actor AND no_creation_rev_actor.revactor_page = page_id AND no_creation_rev.rev_parent_id = 0' );
 	}
 
 	/**
@@ -1567,9 +1569,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notlastmodifiedby( $option ) {
-		$user = new User;
-
-		$this->addWhere( $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' != (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
+		$this->addWhere( $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != (SELECT revactor_actor FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id ORDER BY ' . $this->tableNames['revision_actor_temp'] . '.revactor_timestamp DESC LIMIT 1)' );
 	}
 
 	/**
@@ -1578,9 +1578,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notmodifiedby( $option ) {
-		$user = new User;
-
-		$this->addWhere( 'NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id AND ' . $this->tableNames['revision_actor_temp'] . '.revactor_actor = ' . $this->DB->addQuotes( $user->newFromName( $option )->getActorId() ) . ' LIMIT 1)' );
+		$this->addWhere( 'NOT EXISTS (SELECT 1 FROM ' . $this->tableNames['revision_actor_temp'] . ' WHERE ' . $this->tableNames['revision_actor_temp'] . '.revactor_page=page_id AND ' . $this->tableNames['revision_actor_temp'] . '.revactor_actor = ' . $this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' LIMIT 1)' );
 	}
 
 	/**
@@ -1883,8 +1881,7 @@ class Query {
 					}
 					break;
 				case 'user':
-					$user = new User;
-					$this->addOrderBy( $user->newFromName( 'rev.revactor_actor' )->getActorId() );
+					$this->addOrderBy( 'rev.revactor_actor' );
 					$this->addTable( 'revision_actor_temp', 'rev' );
 
 					$this->_adduser( null, 'rev' );
