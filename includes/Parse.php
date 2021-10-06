@@ -2,7 +2,6 @@
 
 namespace DPL;
 
-use ActorMigration;
 use DPL\Heading\Heading;
 use DPL\Lister\Lister;
 use ExtVariables;
@@ -216,9 +215,7 @@ class Parse {
 		/* Query */
 		/*********/
 		try {
-			$actorMigration = ActorMigration::newMigration();
-			$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-			$query = new Query( $this->parameters, $actorMigration, $commentStore );
+			$query = new Query( $this->parameters );
 			$result = $query->buildAndSelect( $calcRows );
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage() );

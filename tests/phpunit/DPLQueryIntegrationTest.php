@@ -301,23 +301,6 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
-	public function testOrderByLastEditAndUser(): void {
-		$results = $this->getDPLQueryResults( [
-			'category' => 'DPLTestCategory',
-			'ordermethod' => 'lastedit,user',
-			'order' => 'descending',
-			'adduser' => 'true',
-			'createdby' => 'DPLTestAdmin'
-		], '%PAGE% %USER%' );
-
-		$this->assertEquals( [
-			'DPLTestArticle 3 DPLTestAdmin',
-			'DPLTestArticle 2 DPLTestAdmin',
-			'DPLTestArticleMultipleCategories DPLTestAdmin',
-			'DPLTestArticle 1 DPLTestUser',
-		], $results );
-	}
-
 	public function testGetPageAuthors(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',

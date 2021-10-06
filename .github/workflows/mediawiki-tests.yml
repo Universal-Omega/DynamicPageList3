@@ -206,7 +206,7 @@ jobs:
           - mw: 'REL1_36'
             php: 7.3
             php-docker: 73
-            experimental: false
+            experimental: true
             stage: composer-test
 
     runs-on: ubuntu-latest

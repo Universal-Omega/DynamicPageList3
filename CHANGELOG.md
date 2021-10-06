@@ -708,3 +708,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Numerous bug fixes
 * Now requires MediaWiki 1.36.0 or later
 * 1.37.0 support
+
+# Version 3.3.7
+* Revert helper classes added in version 3.3.6, as it had negative performance impact
+* Fix adduser

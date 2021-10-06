@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.3.6",
+	"version": "3.3.7",
 	"author": [
 		"Alexia E. Smith",
 		"[https://meta.miraheze.org/wiki/User:Universal_Omega Universal Omega]",
@@ -57,8 +57,6 @@
 		"DPL\\Query": "includes/Query.php",
 		"DPL\\UpdateArticle": "includes/UpdateArticle.php",
 		"DPL\\Variables": "includes/Variables.php",
-		"DPL\\RevisionJoinBuilder": "includes/RevisionJoinBuilder.php",
-		"DPL\\UserQueryBuilder": "includes/UserQueryBuilder.php",
 		"DPL\\DynamicPageListHooks": "includes/DynamicPageListHooks.php",
 		"DPL\\DPLIntegrationTestCase": "tests/phpunit/DPLIntegrationTestCase.php"
 	},
