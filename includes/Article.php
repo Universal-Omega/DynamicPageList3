@@ -3,6 +3,7 @@
 namespace DPL;
 
 use MediaWiki\MediaWikiServices;
+use RequestContext;
 use Title;
 
 class Article {
@@ -74,7 +75,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mParentHLink = ''; // heading (link to the associated page) that page belongs to in the list (default '' means no heading)
+	public $mParentHLink = '';
 
 	/**
 	 * Category links on the page.
@@ -194,8 +195,6 @@ class Article {
 	 * @return Article
 	 */
 	public static function newFromRow( $row, Parameters $parameters, Title $title, $pageNamespace, $pageTitle ) {
-		global $wgLang;
-
 		$services = MediaWikiServices::getInstance();
 
 		$contentLanguage = $services->getContentLanguage();
@@ -302,7 +301,9 @@ class Article {
 
 			// Time zone adjustment
 			if ( $article->mDate ) {
-				$article->mDate = $wgLang->userAdjust( $article->mDate );
+				$lang = RequestContext::getMain()->getLanguage();
+
+				$article->mDate = $lang->userAdjust( $article->mDate );
 			}
 
 			if ( $article->mDate && $parameters->getParameter( 'userdateformat' ) ) {
@@ -377,7 +378,6 @@ class Article {
 	/**
 	 * Reset the headings to their initial state.
 	 * Ideally this Article class should not exist and be handled by the built in MediaWiki class.
-	 * Bug: https://jira/browse/HYD-913
 	 */
 	public static function resetHeadings() {
 		self::$headings = [];
@@ -389,12 +389,12 @@ class Article {
 	 * @return mixed Formatted string or null for none set.
 	 */
 	public function getDate() {
-		global $wgLang;
-
 		if ( $this->myDate !== null ) {
 			return $this->myDate;
 		} elseif ( $this->mDate !== null ) {
-			return $wgLang->timeanddate( $this->mDate, true );
+			$lang = RequestContext::getMain()->getLanguage();
+
+			return $lang->timeanddate( $this->mDate, true );
 		}
 
 		return null;
