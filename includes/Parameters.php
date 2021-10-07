@@ -996,22 +996,22 @@ class Parameters extends ParametersData {
 			global $wgRequest;
 
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
-			$titlegt = $wgRequest->getVal( 'DPL_findTitle', '' );
+			$titlegt = $wgRequest->getVal( 'DPL_findTitle', '%space%' );
 
 			if ( !empty( $titlegt ) ) {
 				$titlegt = '=_' . ucfirst( $titlegt );
 			} else {
-				$titlegt = $wgRequest->getVal( 'DPL_fromTitle', '' );
+				$titlegt = $wgRequest->getVal( 'DPL_fromTitle', '%space%' );
 				$titlegt = ucfirst( $titlegt );
 			}
 
-			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
+			$this->setParameter( 'titlegt', str_replace( '%space%', ' ', str_replace( ' ', '_', $titlegt ) ) );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '' );
+			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '%space%' );
 			$titlelt = ucfirst( $titlelt );
 
-			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
+			$this->setParameter( 'titlelt', str_replace( '%space%', ' ', str_replace( ' ', '_', $titlelt ) ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the Variables extension and in the header/footer replacements.
 			$this->setParameter( 'scrolldir', $wgRequest->getVal( 'DPL_scrollDir', '' ) );
