@@ -207,15 +207,18 @@ class DynamicPageListHooks {
 
 		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
 
-		if ( $reset['templates'] ?? false ) { // we can remove the templates by save/restore
+		// we can remove the templates by save/restore
+		if ( $reset['templates'] ?? false ) {
 			$saveTemplates = $parser->getOutput()->mTemplates;
 		}
 
-		if ( $reset['categories'] ?? false ) { // we can remove the categories by save/restore
+		// we can remove the categories by save/restore
+		if ( $reset['categories'] ?? false ) {
 			$saveCategories = $parser->getOutput()->mCategories;
 		}
 
-		if ( $reset['images'] ?? false ) { // we can remove the images by save/restore
+		// we can remove the images by save/restore
+		if ( $reset['images'] ?? false ) {
 			$saveImages = $parser->getOutput()->mImages;
 		}
 
