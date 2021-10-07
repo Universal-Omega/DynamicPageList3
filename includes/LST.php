@@ -398,7 +398,8 @@ class LST {
 		}
 
 		if ( preg_match( '/^%0$/', $sec ) ) {
-			$nr = -2; // transclude text before the first section
+			// transclude text before the first section
+			$nr = -2;
 		}
 
 		// if the section name starts with a # or with a @ we use it as regexp, otherwise as plain string
@@ -432,7 +433,8 @@ class LST {
 					$head_len = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], "\n =\t" );
 				} elseif ( $nr == -2 ) {
-					$m[1][1] = strlen( $text ) + 1; // take whole article if no heading found
+					// take whole article if no heading found
+					$m[1][1] = strlen( $text ) + 1;
 				} else {
 					// match failed
 					return $output;
@@ -702,7 +704,8 @@ class LST {
 					$c = $templateCall[$i];
 
 					if ( $c == '{' || $c == '[' ) {
-						$cbrackets++; // we count both types of brackets
+						// we count both types of brackets
+						$cbrackets++;
 					}
 
 					if ( $c == '}' || $c == ']' ) {
@@ -743,7 +746,7 @@ class LST {
 										$output[$n] .= "\n";
 									}
 
-									$output[$n] .= "|"; // \n";
+									$output[$n] .= "|";
 								}
 
 								$found = false;
