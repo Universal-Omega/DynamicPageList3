@@ -8,14 +8,14 @@ use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
-use MediaWikiTestCase;
+use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
 use Title;
 use User;
 use WikiImporter;
 
-abstract class DPLIntegrationTestCase extends MediaWikiTestCase {
+abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	/**
 	 * Guard condition to ensure we only import seed data once per test suite run.
 	 * @var bool

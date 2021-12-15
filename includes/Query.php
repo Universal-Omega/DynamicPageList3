@@ -218,7 +218,7 @@ class Query {
 
 		if ( $this->limit !== false ) {
 			$options['LIMIT'] = $this->limit;
-		} elseif ( $this->offset !== false ) {
+		} elseif ( $this->offset !== false && !Config::getSetting( 'allowUnlimitedResults' ) ) {
 			$options['LIMIT'] = $this->parameters->getParameter( 'count' );
 		}
 
