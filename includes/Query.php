@@ -607,14 +607,14 @@ class Query {
 			[ 'page_title' ],
 			[
 				'page_namespace'		=> intval( NS_CATEGORY ),
-				'categorylinks.cl_to'	=> str_replace( ' ', '_', $categoryName )
+				'cl_to'	=> str_replace( ' ', '_', $categoryName )
 			],
 			__METHOD__,
 			[ 'DISTINCT' ],
 			[
 				'categorylinks' => [
 					'INNER JOIN',
-					'page.page_id = categorylinks.cl_from'
+					'page_id = cl_from'
 				]
 			]
 		);
