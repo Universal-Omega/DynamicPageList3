@@ -1,0 +1,15 @@
+name: Backport
+on:
+  pull_request_target:
+    types: [opened, closed, labeled, unlabeled, synchronize]
+
+jobs:
+  backport:
+    name: Backport Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backport
+        uses: sqren/backport-github-action@v1
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+          backport_label_pattern: '^backport-to-(.*)$'
