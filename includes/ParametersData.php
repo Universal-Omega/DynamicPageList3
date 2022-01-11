@@ -141,9 +141,6 @@ class ParametersData {
 			'openreferences'
 		],
 		4 => [
-			'deleterules',
-			'goal',
-			'updaterules',
 			'replaceintitle',
 			'includematch',
 			'includematchparsed',
@@ -153,6 +150,11 @@ class ParametersData {
 			'notcategoryregexp',
 			'nottitleregexp',
 			'titleregexp'
+		],
+		5 => [
+			'deleterules',
+			'goal',
+			'updaterules'
 		]
 	];
 
