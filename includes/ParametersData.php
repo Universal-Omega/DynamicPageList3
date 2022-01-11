@@ -122,7 +122,6 @@ class ParametersData {
 			'table',
 			'tablerow',
 			'tablesortcol',
-			'tablesortmethod',
 			'titlematch',
 			'usedby',
 			'uses'
