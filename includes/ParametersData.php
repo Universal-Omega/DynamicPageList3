@@ -60,7 +60,6 @@ class ParametersData {
 			'noresultsfooter',
 			'noresultsheader',
 			'randomcount',
-			'replaceintitle',
 			'resultsfooter',
 			'resultsheader',
 			'rowcolformat',
@@ -98,11 +97,7 @@ class ParametersData {
 			'imagecontainer',
 			'imageused',
 			'include',
-			'includematch',
-			'includematchparsed',
 			'includemaxlength',
-			'includenotmatch',
-			'includenotmatchparsed',
 			'includepage',
 			'includesubpages',
 			'includetrim',
@@ -127,6 +122,7 @@ class ParametersData {
 			'table',
 			'tablerow',
 			'tablesortcol',
+			'tablesortmethod',
 			'titlematch',
 			'usedby',
 			'uses'
@@ -136,22 +132,27 @@ class ParametersData {
 			'allrevisionssince',
 			'articlecategory',
 			'categorymatch',
-			'categoryregexp',
 			'firstrevisionsince',
 			'lastrevisionbefore',
 			'maxrevisions',
 			'minrevisions',
 			'notcategorymatch',
-			'notcategoryregexp',
 			'nottitlematch',
-			'nottitleregexp',
-			'openreferences',
-			'titleregexp'
+			'openreferences'
 		],
 		4 => [
 			'deleterules',
 			'goal',
-			'updaterules'
+			'updaterules',
+			'replaceintitle',
+			'includematch',
+			'includematchparsed',
+			'includenotmatch',
+			'includenotmatchparsed',
+			'categoryregexp',
+			'notcategoryregexp',
+			'nottitleregexp',
+			'titleregexp'
 		]
 	];
 
