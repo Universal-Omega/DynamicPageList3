@@ -50,7 +50,8 @@ DynamicPageList has many features which are unlocked based on the maximum functi
 * <code>$wgDplSettings['functionalRichness'] = 1</code> adds additional formatting parameters
 * <code>$wgDplSettings['functionalRichness'] = 2</code> adds performance equivalent features for templates and pagelinks
 * <code>$wgDplSettings['functionalRichness'] = 3</code> allows more-expensive page inclusion features and regular expression queries.
-* <code>$wgDplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites.  Includes debugging parameters for testing and development.
+* <code>$wgDplSettings['functionalRichness'] = 4</code> allows regular expression queries. (See GHSA-8f24-q75c-jhf4)
+* <code>$wgDplSettings['functionalRichness'] = 5</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites.  Includes debugging parameters for testing and development.
 
 
 ## Usage
