@@ -394,9 +394,16 @@ class UpdateArticle {
 		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $user, $titleX );
 
 		if ( count( $permission_errors ) == 0 ) {
-			$wikiPageFactory = MediaWikiServices::getInstance()->getWikiPageFactory();
+			$services = MediaWikiServices::getInstance();
+			// MW 1.36+
+			if ( method_exists( $services, 'getWikiPageFactory' ) ) {
+				$wikiPageFactory = $services->getWikiPageFactory();
+				$page = $wikiPageFactory->newFromTitle( $titleX );
+			}
+			else {
+				$page = \WikiPage::factory( $titleX );
+			}
 
-			$page = $wikiPageFactory->newFromTitle( $titleX );
 			$updater = $page->newPageUpdater( $user );
 			$content = $page->getContentHandler()->makeContent( $text, $titleX );
 			$updater->setContent( SlotRecord::MAIN, $content );
