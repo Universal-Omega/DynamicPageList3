@@ -876,7 +876,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _nottitleregexp( $option ) {
 		$data = $this->getParameter( 'nottitle' );
-		if ( !is_array( $data['regexp'] ) ) {
+		if ( !isset( $data['regexp'] ) || !is_array( $data['regexp'] ) ) {
 			$data['regexp'] = [];
 		}
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
