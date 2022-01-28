@@ -407,7 +407,7 @@ class Parameters extends ParametersData {
 			// would throw an error due to a bad regex from user input.
 
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			if ( @preg_match( $regex, null ) === false ) {
+			if ( @preg_match( $regex, '' ) === false ) {
 				// @phan-suppress-previous-line PhanParamSuspiciousOrder, PhanTypeMismatchArgumentInternalProbablyReal
 				return false;
 			}
