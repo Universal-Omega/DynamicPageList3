@@ -935,8 +935,7 @@ class ParametersData {
 		 * - missing: includes only pages which do not exist -- this conflicts with some other options
 		 */
 		'openreferences' => [
-			'default' => false,
-			'boolean' => true
+			'default' => false
 		],
 		/**
 		 * redirects =...
