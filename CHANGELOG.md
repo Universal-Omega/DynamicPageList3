@@ -712,3 +712,13 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 # Version 3.3.7
 * Revert helper classes added in version 3.3.6, as it had negative performance impact
 * Fix adduser
+
+# Version 3.3.8
+* Cleanup
+* Fix allowUnlimitedResults + fix tests on 1.38.0+
+* Fix getSubcategories
+* Fix up a few minor things which were annoying
+* Remove unused 'dpl_description' i18n message
+* Restore MediaWiki 1.35 compatibility
+* Fix path to `Maintenance.php`
+* Fix second param to `preg_match`
