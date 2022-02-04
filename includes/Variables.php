@@ -3,6 +3,7 @@
 namespace DPL;
 
 class Variables {
+
 	/**
 	 * Memory storage for variables.
 	 *
