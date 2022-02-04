@@ -408,7 +408,7 @@ class Parameters extends ParametersData {
 
 			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			if ( @preg_match( $regex, '' ) === false ) {
-				// @phan-suppress-previous-line PhanParamSuspiciousOrder, PhanTypeMismatchArgumentInternalProbablyReal
+				// @phan-suppress-previous-line PhanParamSuspiciousOrder
 				return false;
 			}
 		}
