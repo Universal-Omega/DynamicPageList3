@@ -9,6 +9,7 @@ use MediaWiki\Revision\SlotRecord;
 use ReadOnlyError;
 use RequestContext;
 use Title;
+use WikiPage;
 
 class UpdateArticle {
 	/**
@@ -400,7 +401,8 @@ class UpdateArticle {
 				$wikiPageFactory = $services->getWikiPageFactory();
 				$page = $wikiPageFactory->newFromTitle( $titleX );
 			} else {
-				$page = \WikiPage::factory( $titleX );
+				// @phan-suppress-next-line PhanDeprecatedFunction
+				$page = WikiPage::factory( $titleX );
 			}
 
 			$updater = $page->newPageUpdater( $user );
