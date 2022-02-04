@@ -394,6 +394,13 @@ class Parse {
 					$pageNamespace = $row['pl_namespace'];
 					$pageTitle = $row['pl_title'];
 				}
+
+				if (
+					$this->parameters->getParameter( 'openreferences' ) === 'missing' &&
+					Title::makeTitle( $pageNamespace, $pageTitle )->exists()
+				) {
+					continue;
+				}
 			} else {
 				// Existing PAGE TITLE
 				$pageNamespace = $row['page_namespace'];
