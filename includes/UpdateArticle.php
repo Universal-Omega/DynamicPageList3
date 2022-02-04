@@ -399,8 +399,7 @@ class UpdateArticle {
 			if ( method_exists( $services, 'getWikiPageFactory' ) ) {
 				$wikiPageFactory = $services->getWikiPageFactory();
 				$page = $wikiPageFactory->newFromTitle( $titleX );
-			}
-			else {
+			} else {
 				$page = \WikiPage::factory( $titleX );
 			}
 
