@@ -222,7 +222,7 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
-		$numRows = $this->DB->numRows( $result );
+		$numRows = $result->numRows();
 		$articles = $this->processQueryResults( $result, $parser );
 
 		global $wgDebugDumpSql;
@@ -352,7 +352,7 @@ class Parse {
 		/*******************************/
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
 		if ( $randomCount > 0 ) {
-			$nResults = $this->DB->numRows( $result );
+			$nResults = $result->numRows();
 			// mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
 			//Constrain the total amount of random results to not be greater than the total results.
 			if ( $randomCount > $nResults ) {
