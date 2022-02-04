@@ -286,7 +286,7 @@ class Parameters extends ParametersData {
 
 		$parameters = $this->getParametersForRichness();
 		foreach ( $parameters as $parameter ) {
-			if ( $this->getData( $parameter )['default'] !== null && !( $this->getData( $parameter )['default'] === false && $this->getData( $parameter )['boolean'] === true ) ) {
+			if ( $this->getData( $parameter )['default'] !== null && !( $this->getData( $parameter )['default'] === false && ( $this->getData( $parameter )['boolean'] ?? false ) === true ) ) {
 				if ( $parameter == 'debug' ) {
 					DynamicPageListHooks::setDebugLevel( $this->getData( $parameter )['default'] );
 				}
