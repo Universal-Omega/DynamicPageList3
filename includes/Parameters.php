@@ -724,7 +724,9 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _openreferences( $option ) {
-		$option = $this->filterBoolean( $option );
+		if ( $option !== 'missing' ) {
+			$option = $this->filterBoolean( $option );
+		}
 
 		if ( $option === null ) {
 			return false;
