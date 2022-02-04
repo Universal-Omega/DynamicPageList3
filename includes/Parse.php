@@ -242,7 +242,7 @@ class Parse {
 		/*********************/
 		if ( $numRows <= 0 || empty( $articles ) ) {
 			// Shortcut out since there is no processing to do.
-			$this->DB->freeResult( $result );
+			$result->free();
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -423,7 +423,7 @@ class Parse {
 			$articles[] = Article::newFromRow( $row, $this->parameters, $title, $pageNamespace, $pageTitle );
 		}
 
-		$this->DB->freeResult( $result );
+		$result->free();
 
 		return $articles;
 	}
