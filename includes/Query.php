@@ -2052,23 +2052,25 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _titlegt( $option ) {
-		$where = '(';
-
+		$operator = '>';
 		if ( substr( $option, 0, 2 ) == '=_' ) {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title >= ' . $this->DB->addQuotes( substr( $option, 2 ) );
-			}
-		} else {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$where .= 'pl_title > ' . $this->DB->addQuotes( $option );
-			} else {
-				$where .= $this->tableNames['page'] . '.page_title > ' . $this->DB->addQuotes( $option );
-			}
+			$option = substr( $option, 2 );
+			$operator = '>=';
 		}
 
-		$where .= ')';
+		if ( $option === '' ) {
+			$operator = 'LIKE';
+			$option = '%';
+		} else {
+			$option = $this->DB->addQuotes( $option );
+		}
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$where = "(pl_title {$operator} {$option})";
+		} else {
+			$where = "({$this->tableNames['page']}.page_title {$operator} {$option})";
+		}
+
 		$this->addWhere( $where );
 	}
 
@@ -2084,7 +2086,7 @@ class Query {
 			$operator = '<=';
 		}
 
-		if ( $option === '~' ) {
+		if ( $option === '' ) {
 			$operator = 'LIKE';
 			$option = '%';
 		} else {
