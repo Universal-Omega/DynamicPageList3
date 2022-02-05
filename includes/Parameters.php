@@ -1014,14 +1014,10 @@ class Parameters extends ParametersData {
 			$this->setParameter( 'titlegt', $titlegt );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = $wgRequest->getVal( 'DPL_toTitle', ' ' );
+			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '~' );
 			$titlelt = ucfirst( $titlelt );
 
-			if ( $titlelt !== ' ' ) {
-				$titlelt = str_replace( ' ', '_', $titlelt );
-			}
-
-			$this->setParameter( 'titlelt', $titlelt );
+			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the Variables extension and in the header/footer replacements.
 			$this->setParameter( 'scrolldir', $wgRequest->getVal( 'DPL_scrollDir', '' ) );
