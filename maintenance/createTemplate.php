@@ -60,8 +60,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 			if ( method_exists( $services, 'getWikiPageFactory' ) ) {
 				$wikiPageFactory = $services->getWikiPageFactory();
 				$page = $wikiPageFactory->newFromTitle( $title );
-			}
-			else {
+			} else {
 				$page = \WikiPage::factory( $title );
 			}
 			$updater = $page->newPageUpdater( User::newSystemUser( 'DynamicPageList3 extension' ) );
