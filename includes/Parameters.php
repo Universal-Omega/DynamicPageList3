@@ -1003,15 +1003,11 @@ class Parameters extends ParametersData {
 			if ( !empty( $titlegt ) ) {
 				$titlegt = '=_' . ucfirst( $titlegt );
 			} else {
-				$titlegt = $wgRequest->getVal( 'DPL_fromTitle', ' ' );
+				$titlegt = $wgRequest->getVal( 'DPL_fromTitle', '' );
 				$titlegt = ucfirst( $titlegt );
 			}
 
-			if ( $titlegt !== ' ' ) {
-				$titlegt = str_replace( ' ', '_', $titlegt );
-			}
-
-			$this->setParameter( 'titlegt', $titlegt );
+			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
 
 			// Lets get the 'toTitle' argument.
 			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '' );
