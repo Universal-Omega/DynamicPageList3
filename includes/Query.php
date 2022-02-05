@@ -2053,7 +2053,7 @@ class Query {
 	 */
 	private function _titlegt( $option ) {
 		$operator = '>';
-		if ( substr( $option, 0, 2 ) == '=_' ) {
+		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
 			$operator = '>=';
 		}
@@ -2081,7 +2081,7 @@ class Query {
 	 */
 	private function _titlelt( $option ) {
 		$operator = '<';
-		if ( substr( $option, 0, 2 ) == '=_' ) {
+		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
 			$operator = '<=';
 		}
