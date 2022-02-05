@@ -322,9 +322,9 @@ class Query {
 
 			if ( $calcRows ) {
 				$calcRowsResult = $this->DB->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
-				$total = $this->DB->fetchRow( $calcRowsResult );
+				$total = $calcRowsResult->fetchRow();
 				$this->foundRows = intval( $total['rowcount'] );
-				$this->DB->freeResult( $calcRowsResult );
+				$calcRowsResult->free();
 			}
 		} catch ( Exception $e ) {
 			$queryError = true;
@@ -661,7 +661,7 @@ class Query {
 		}
 
 		$categories = array_unique( $categories );
-		$DB->freeResult( $result );
+		$result->free();
 
 		return $categories;
 	}
