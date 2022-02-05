@@ -222,7 +222,7 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
-		$numRows = $this->DB->numRows( $result );
+		$numRows = $result->numRows();
 		$articles = $this->processQueryResults( $result, $parser );
 
 		global $wgDebugDumpSql;
@@ -242,7 +242,7 @@ class Parse {
 		/*********************/
 		if ( $numRows <= 0 || empty( $articles ) ) {
 			// Shortcut out since there is no processing to do.
-			$this->DB->freeResult( $result );
+			$result->free();
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -352,7 +352,7 @@ class Parse {
 		/*******************************/
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
 		if ( $randomCount > 0 ) {
-			$nResults = $this->DB->numRows( $result );
+			$nResults = $result->numRows();
 			// mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
 			//Constrain the total amount of random results to not be greater than the total results.
 			if ( $randomCount > $nResults ) {
@@ -394,6 +394,13 @@ class Parse {
 					$pageNamespace = $row['pl_namespace'];
 					$pageTitle = $row['pl_title'];
 				}
+
+				if (
+					$this->parameters->getParameter( 'openreferences' ) === 'missing' &&
+					Title::makeTitle( $pageNamespace, $pageTitle )->exists()
+				) {
+					continue;
+				}
 			} else {
 				// Existing PAGE TITLE
 				$pageNamespace = $row['page_namespace'];
@@ -416,7 +423,7 @@ class Parse {
 			$articles[] = Article::newFromRow( $row, $this->parameters, $title, $pageNamespace, $pageTitle );
 		}
 
-		$this->DB->freeResult( $result );
+		$result->free();
 
 		return $articles;
 	}
