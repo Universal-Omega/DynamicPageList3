@@ -2085,8 +2085,8 @@ class Query {
 		}
 
 		if ( $option === '~' ) {
-			$operator = '=';
-			$option = 0;
+			$operator = 'LIKE';
+			$option = '%';
 		} else {
 			$option = $this->DB->addQuotes( $option );
 		}
