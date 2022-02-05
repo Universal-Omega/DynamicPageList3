@@ -1014,7 +1014,7 @@ class Parameters extends ParametersData {
 			$this->setParameter( 'titlegt', $titlegt );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '~' );
+			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '' );
 			$titlelt = ucfirst( $titlelt );
 
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
