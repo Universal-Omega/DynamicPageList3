@@ -2085,7 +2085,7 @@ class Query {
 		}
 
 		if ( $option === '~' ) {
-			$option = 'TRUE';
+			$option = 1;
 		} else {
 			$option = $this->DB->addQuotes( $option );
 		}
