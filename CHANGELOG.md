@@ -722,3 +722,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Restore MediaWiki 1.35 compatibility
 * Fix path to `Maintenance.php`
 * Fix second param to `preg_match`
+
+# Version 3.3.9
+* Add support for `openreferences=missing`
+* Fix usage of scroll and order in the same query
+* Minor documentation updates
