@@ -2,9 +2,9 @@
 	"name": "DynamicPageList3",
 	"version": "3.3.8",
 	"author": [
+		"'''Universal Omega'''",
 		"Alexia E. Smith",
-		"[https://meta.miraheze.org/wiki/User:Universal_Omega Universal Omega]",
-		"[https://de.wikipedia.org/wiki/Benutzer:Algorithmix Gero Scholz]"
+		"Gero Scholz"
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
 	"descriptionmsg": "dpl-desc",
