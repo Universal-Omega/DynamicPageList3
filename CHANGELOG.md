@@ -727,3 +727,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Add support for `openreferences=missing`
 * Fix usage of scroll and order in the same query
 * Minor documentation updates
+
+# Version 3.3.10
+* Fix MessagesDirs to prevent mergeMessageFileList issue
