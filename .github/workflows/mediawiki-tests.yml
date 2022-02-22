@@ -83,13 +83,6 @@ jobs:
             experimental: false
             stage: coverage
 
-          # Latest LTS MediaWiki - PHP 7.3 (phpunit-unit)
-          - mw: 'REL1_35'
-            php: 7.3
-            php-docker: 73
-            experimental: false
-            stage: phpunit-unit
-
           # Latest stable MediaWiki - PHP 7.3 (phpunit-unit)
           - mw: 'REL1_36'
             php: 7.3
@@ -131,13 +124,6 @@ jobs:
             php-docker: 74
             experimental: false
             stage: phpunit-unit
-
-          # Latest LTS MediaWiki - PHP 7.3 (phpunit)
-          - mw: 'REL1_35'
-            php: 7.3
-            php-docker: 73
-            experimental: false
-            stage: phpunit
 
           # Latest stable MediaWiki - PHP 7.3 (phpunit)
           - mw: 'REL1_36'
