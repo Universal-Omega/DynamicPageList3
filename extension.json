@@ -24,7 +24,7 @@
 		"dpl_param_delete_rules"
 	],
 	"MessagesDirs": {
-		"DynamicPageList": [
+		"DynamicPageList3": [
 			"i18n"
 		]
 	},
