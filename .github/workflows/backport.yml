@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Backport
-        uses: sqren/backport-github-action@v1
+        uses: sqren/backport-github-action@v7.3.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
           backport_label_pattern: '^backport-to-(.*)$'
