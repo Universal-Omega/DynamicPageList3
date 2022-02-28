@@ -11,5 +11,5 @@ jobs:
       - name: Backport
         uses: sqren/backport-github-action@v7.3.2
         with:
-          access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           backport_label_pattern: '^backport-to-(.*)$'
