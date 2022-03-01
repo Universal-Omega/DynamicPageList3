@@ -418,10 +418,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ matrix.stage == 'coverage' }}
-        uses: danhunsaker/clover-reporter-action@v0.2.17-clover
+        uses: mikepenz/action-junit-report@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          clover-file: /home/runner/cover/clover.xml
+          report_paths: '/home/runner/cover/junit.xml'
 
       - name: Tear down
         run: |
