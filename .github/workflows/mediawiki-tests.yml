@@ -231,7 +231,7 @@ jobs:
         if: ${{ matrix.stage == 'coverage' }}
         uses: mikepenz/action-junit-report@v2
         with:
-          report_paths: '**/log/*.xml'
+          report_paths: '/home/runner/cover/*.xml'
 
       - name: Tear down
         run: |
