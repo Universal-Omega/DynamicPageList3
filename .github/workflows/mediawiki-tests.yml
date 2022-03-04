@@ -227,11 +227,12 @@ jobs:
               $DEPENDENCIES
             fi
 
-      - name: Upload coverage to Codecov
+      - name: Generate code coverage report
         if: ${{ matrix.stage == 'coverage' }}
-        uses: mikepenz/action-junit-report@v2
+        uses: Universal-Omega/clover-reporter-action@Universal-Omega-patch-1
         with:
-          report_paths: '/home/runner/cover/*.xml'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          clover-file: /home/runner/cover/clover.xml
 
       - name: Tear down
         run: |
