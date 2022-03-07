@@ -1,5 +1,0 @@
-{
-  "branchLabelMapping": {
-    "^backport-to-(.+)$": "$1"
-  }
-}
