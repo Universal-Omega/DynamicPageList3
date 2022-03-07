@@ -1,4 +1,4 @@
-# DynamicPageList3
+# DynamicPageList3y
 
 The **DynamicPageList3** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://help.fandom.com/Extension:DPL3/Manual).
 
