@@ -230,9 +230,7 @@ class Article {
 
 		$article->mLink = $articleLink;
 
-		$languageConverter = MediaWikiServices::getInstance()
-			->getLanguageConverterFactory()
-			->getLanguageConverter();
+		$languageConverter = $services->getLanguageConverterFactory()->getLanguageConverter();
 
 		// get first char used for category-style output
 		if ( isset( $row['sortkey'] ) ) {
