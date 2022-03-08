@@ -194,7 +194,7 @@ class Article {
 	 * @param string $pageTitle
 	 * @return Article
 	 */
-	public static function newFromRow( $row, Parameters $parameters, Title $title, $pageNamespace, $pageTitle ) {
+	public static function newFromRowTest( $row, Parameters $parameters, Title $title, $pageNamespace, $pageTitle ) {
 		$services = MediaWikiServices::getInstance();
 
 		$contentLanguage = $services->getContentLanguage();
