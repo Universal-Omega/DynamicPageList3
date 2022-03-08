@@ -233,7 +233,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           clover-file: /home/runner/cover/clover.xml
-          filter-changed-files: "undefined"
 
       - name: Tear down
         run: |
