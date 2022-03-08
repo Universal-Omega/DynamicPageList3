@@ -1,7 +1,9 @@
 name: Backport
 on:
   pull_request_target:
-    types: [opened, closed, labeled, unlabeled, synchronize]
+    types:
+      - labeled
+      - closed
 
 jobs:
   backport:
