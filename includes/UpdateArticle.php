@@ -218,9 +218,6 @@ class UpdateArticle {
 		}
 
 		// deal with template parameters =================================================
-
-		global $wgRequest;
-
 		$user = RequestContext::getMain()->getUser();
 
 		if ( $template != '' ) {
@@ -331,7 +328,9 @@ class UpdateArticle {
 							if ( $call >= $matchCount ) {
 								break;
 							}
-							$myValue = $wgRequest->getVal( urlencode( $call . '_' . $parm ), '' );
+
+							$request = RequestContext::getMain()->getRequest();
+							$myValue = $request->getVal( urlencode( $call . '_' . $parm ), '' );
 						}
 
 						$myOptional = array_key_exists( $nr, $optional );
@@ -354,7 +353,9 @@ class UpdateArticle {
 		if ( $exec == 'set' ) {
 			return self::doUpdateArticle( $title, $text, $summary );
 		} elseif ( $exec == 'preview' ) {
-			global $wgScriptPath, $wgRequest;
+			global $wgScriptPath;
+
+			$request = RequestContext::getMain()->getRequest();
 
 			$titleX = Title::newFromText( $title );
 			$articleX = new Article( $titleX );
@@ -371,7 +372,7 @@ class UpdateArticle {
 		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
 		<input name="wpAutoSummary" type="hidden" value="" />
 		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
-		<input type="hidden" value="' . $wgRequest->getVal( 'token' ) . '" name="wpEditToken" />
+		<input type="hidden" value="' . $request->getVal( 'token' ) . '" name="wpEditToken" />
 	</form>
 </html>';
 			return $form;
@@ -381,12 +382,13 @@ class UpdateArticle {
 	}
 
 	private static function doUpdateArticle( $title, $text, $summary ) {
-		global $wgRequest, $wgOut;
+		$context = RequestContext::getMain();
+		$request = $context->getRequest();
+		$out = $context->getOutput();
+		$user = $context->getUser();
 
-		$user = RequestContext::getMain()->getUser();
-
-		if ( !$user->matchEditToken( $wgRequest->getVal( 'wpEditToken' ) ) ) {
-			$wgOut->addWikiMsg( 'sessionfailure' );
+		if ( !$user->matchEditToken( $request->getVal( 'wpEditToken' ) ) ) {
+			$out->addWikiMsg( 'sessionfailure' );
 
 			return 'session failure';
 		}
@@ -415,11 +417,11 @@ class UpdateArticle {
 				EDIT_UPDATE | EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY
 			);
 
-			$wgOut->redirect( $titleX->getFullUrl( $page->isRedirect() ? 'redirect=no' : '' ) );
+			$out->redirect( $titleX->getFullUrl( $page->isRedirect() ? 'redirect=no' : '' ) );
 
 			return '';
 		} else {
-			$wgOut->showPermissionsErrorPage( $permission_errors );
+			$out->showPermissionsErrorPage( $permission_errors );
 
 			return 'permission error';
 		}
@@ -666,8 +668,6 @@ class UpdateArticle {
 	}
 
 	public static function deleteArticleByRule( $title, $text, $rulesText ) {
-		global $wgOut;
-
 		// return "deletion of articles by DPL is disabled.";
 
 		// we use ; as command delimiter; \; stands for a semicolon
@@ -711,14 +711,17 @@ class UpdateArticle {
 		$titleX = Title::newFromText( $title );
 
 		if ( $exec ) {
-			$user = RequestContext::getMain()->getUser();
+			$context = RequestContext::getMain();
+			$out = $context->getOutput();
+			$user = $context->getUser();
 
 			# Check permissions
 			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $user, $titleX );
 			$isReadOnly = MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly();
 
 			if ( count( $permission_errors ) > 0 ) {
-				$wgOut->showPermissionsErrorPage( $permission_errors );
+				$out->showPermissionsErrorPage( $permission_errors );
+
 				return 'permission error';
 			} elseif ( $isReadOnly ) {
 				throw new ReadOnlyError;
