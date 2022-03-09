@@ -8,6 +8,7 @@ use DPL\Parameters;
 use DPL\UpdateArticle;
 use MediaWiki\MediaWikiServices;
 use Parser;
+use RequestContext;
 use Sanitizer;
 use Title;
 
@@ -624,7 +625,7 @@ class Lister {
 	 * @return string
 	 */
 	public function formatItem( Article $article, $pageText = null ) {
-		global $wgLang;
+		$lang = RequestContext::getMain()->getLanguage();
 
 		$item = '';
 
@@ -644,14 +645,14 @@ class Lister {
 
 		if ( $article->mSize != null ) {
 			$byte = 'B';
-			$pageLength = $wgLang->formatNum( $article->mSize );
+			$pageLength = $lang->formatNum( $article->mSize );
 			$item .= " [{$pageLength} {$byte}]";
 		}
 
 		if ( $article->mCounter !== null ) {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
-			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $wgLang->formatNum( $article->mCounter ) )->escaped() . ')';
+			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')';
 		}
 
 		if ( $article->mUserLink !== null ) {
