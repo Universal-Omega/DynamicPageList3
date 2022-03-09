@@ -8,7 +8,11 @@ use Exception;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use MWException;
+use PoolCounterWorkViaCallback;
+use WANObjectCache;
+use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
+use WikiMap;
 
 class Query {
 	/**
@@ -318,7 +322,6 @@ class Query {
 			}
 
 			$this->sqlQuery = $sql;
-			$result = $this->DB->query( $sql, __METHOD__ );
 
 			if ( $calcRows ) {
 				$calcRowsResult = $this->DB->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
@@ -327,14 +330,59 @@ class Query {
 				$calcRowsResult->free();
 			}
 		} catch ( Exception $e ) {
-			$queryError = true;
-		}
-
-		if ( $queryError || $result === false ) {
 			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
 		}
 
-		return $result;
+		// From intersection
+		global $wgDPLQueryCacheTime, $wgDPLMaxQueryTime;
+
+		if ( $wgDPLMaxQueryTime ) {
+			$options['MAX_EXECUTION_TIME'] = $wgDPLMaxQueryTime;
+		}
+
+		$qname = __METHOD__ . ' - ' . $pageName;
+		$where = $this->where;
+		$join = $this->join;
+
+		$dbr = wfGetDB( DB_REPLICA );
+
+		$doQuery = static function () use ( $qname, $dbr, $tables, $select, $where, $options, $join ) {
+			$res = $dbr->select( $tables, $select, $where, $qname, $options, $join );
+			return iterator_to_array( $res );
+		};
+
+		$poolCounterKey = 'nowait:dpl-query:' . WikiMap::getCurrentWikiId();
+		$worker = new PoolCounterWorkViaCallback( 'DPL', $poolCounterKey, [
+			'doWork' => $doQuery,
+		] );
+
+		if ( $wgDPLQueryCacheTime <= 0 ) {
+			return $worker->execute();
+		}
+
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+
+		return $cache->getWithSetCallback(
+			$cache->makeKey( "DPLQuery", hash( "sha256", $sql ) ),
+			$wgDPLQueryCacheTime,
+			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
+				$setOpts += Database::getCacheSetOptions( $dbr );
+				$res = $worker->execute();
+				if ( $res === false ) {
+					// Do not cache errors.
+					$ttl = WANObjectCache::TTL_UNCACHEABLE;
+					// If we have oldVal, prefer it to error
+					if ( is_array( $oldVal ) ) {
+						return $oldVal;
+					}
+				}
+				return $res;
+			},
+			[
+				'lowTTL' => min( $cache::TTL_MINUTE, floor( $wgDPLQueryCacheTime * 0.75 ) ),
+				'pcTTL' => min( $cache::TTL_PROC_LONG, $wgDPLQueryCacheTime )
+			]
+		);
 	}
 
 	/**
