@@ -8,6 +8,7 @@ use ExtVariables;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use Parser;
+use RequestContext;
 use Title;
 use WebRequest;
 use Wikimedia\Rdbms\IDatabase;
@@ -97,13 +98,11 @@ class Parse {
 	];
 
 	public function __construct() {
-		global $wgRequest;
-
 		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
 		$this->parameters = new Parameters();
 		$this->logger = new Logger();
 		$this->tableNames = Query::getTableNames();
-		$this->request = $wgRequest;
+		$this->request = RequestContext::getMain()->getRequest();
 	}
 
 	/**
