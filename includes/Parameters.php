@@ -995,31 +995,31 @@ class Parameters extends ParametersData {
 
 		// If scrolling is active we adjust the values for certain other parameters based on URL arguments
 		if ( $option === true ) {
-			global $wgRequest;
+			$request = RequestContext::getMain()->getRequest();
 
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
-			$titlegt = $wgRequest->getVal( 'DPL_findTitle', '' );
+			$titlegt = $request->getVal( 'DPL_findTitle', '' );
 
 			if ( !empty( $titlegt ) ) {
 				$titlegt = '=_' . ucfirst( $titlegt );
 			} else {
-				$titlegt = $wgRequest->getVal( 'DPL_fromTitle', '' );
+				$titlegt = $request->getVal( 'DPL_fromTitle', '' );
 				$titlegt = ucfirst( $titlegt );
 			}
 
 			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = $wgRequest->getVal( 'DPL_toTitle', '' );
+			$titlelt = $request->getVal( 'DPL_toTitle', '' );
 			$titlelt = ucfirst( $titlelt );
 
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the Variables extension and in the header/footer replacements.
-			$this->setParameter( 'scrolldir', $wgRequest->getVal( 'DPL_scrollDir', '' ) );
+			$this->setParameter( 'scrolldir', $request->getVal( 'DPL_scrollDir', '' ) );
 
 			// Also set count limit from URL if not otherwise set.
-			$this->_count( $wgRequest->getInt( 'DPL_count' ) );
+			$this->_count( $request->getInt( 'DPL_count' ) );
 		}
 
 		// We do not return false since they could have just left it out. Who knows why they put the parameter in the list in the first place.
