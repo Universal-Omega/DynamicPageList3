@@ -10,9 +10,9 @@ use MediaWiki\User\UserFactory;
 use MWException;
 use PoolCounterWorkViaCallback;
 use WANObjectCache;
+use WikiMap;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
-use WikiMap;
 
 class Query {
 	/**
