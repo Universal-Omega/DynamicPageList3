@@ -215,14 +215,14 @@ class Parse {
 		/*********/
 		try {
 			$query = new Query( $this->parameters );
-			$result = $query->buildAndSelect( $calcRows );
+			$rows = $query->buildAndSelect( $calcRows );
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
 
-		$numRows = $result->numRows();
-		$articles = $this->processQueryResults( $result, $parser );
+		$numRows = count( $rows );
+		$articles = $this->processQueryResults( $rows, $parser );
 
 		global $wgDebugDumpSql;
 		if ( DynamicPageListHooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
@@ -240,8 +240,6 @@ class Parse {
 		/* Handle No Results */
 		/*********************/
 		if ( $numRows <= 0 || empty( $articles ) ) {
-			// Shortcut out since there is no processing to do.
-			$result->free();
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -341,17 +339,17 @@ class Parse {
 	/**
 	 * Process Query Results
 	 *
-	 * @param $result
+	 * @param $rows
 	 * @param Parser $parser
 	 * @return array
 	 */
-	private function processQueryResults( $result, Parser $parser ) {
+	private function processQueryResults( $rows, Parser $parser ) {
 		/*******************************/
 		/* Random Count Pick Generator */
 		/*******************************/
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
 		if ( $randomCount > 0 ) {
-			$nResults = $result->numRows();
+			$nResults = count( $rows );
 			// mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
 			//Constrain the total amount of random results to not be greater than the total results.
 			if ( $randomCount > $nResults ) {
@@ -373,7 +371,7 @@ class Parse {
 		/* Article Processing */
 		/**********************/
 		$i = 0;
-		while ( $row = $result->fetchRow() ) {
+		foreach ( $rows as $row ) {
 			$i++;
 
 			// In random mode skip articles which were not chosen.
@@ -383,15 +381,15 @@ class Parse {
 
 			if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
 				$pageNamespace = NS_CATEGORY;
-				$pageTitle = $row['cl_to'];
+				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
 					$pageNamespace = NS_FILE;
-					$pageTitle = $row['il_to'];
+					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row['pl_namespace'];
-					$pageTitle = $row['pl_title'];
+					$pageNamespace = $row->pl_namespace;
+					$pageTitle = $row->pl_title;
 				}
 
 				if (
@@ -402,8 +400,8 @@ class Parse {
 				}
 			} else {
 				// Existing PAGE TITLE
-				$pageNamespace = $row['page_namespace'];
-				$pageTitle = $row['page_title'];
+				$pageNamespace = $row->page_namespace;
+				$pageTitle = $row->page_title;
 			}
 
 			// if subpages are to be excluded: skip them
@@ -421,8 +419,6 @@ class Parse {
 
 			$articles[] = Article::newFromRow( $row, $this->parameters, $title, $pageNamespace, $pageTitle );
 		}
-
-		$result->free();
 
 		return $articles;
 	}
