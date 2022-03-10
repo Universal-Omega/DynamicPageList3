@@ -265,10 +265,6 @@ class Query {
 
 			$options[] = 'DISTINCT';
 		} else {
-			if ( $calcRows ) {
-				$options[] = 'SQL_CALC_FOUND_ROWS';
-			}
-
 			if ( $this->distinct ) {
 				$options[] = 'DISTINCT';
 			}
