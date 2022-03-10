@@ -279,7 +279,7 @@ class Query {
 		$queryError = false;
 		try {
 			if ( $categoriesGoal ) {
-				$result = $dbr->select(
+				$res = $dbr->select(
 					$tables,
 					$fields,
 					$this->where,
@@ -290,7 +290,7 @@ class Query {
 
 				$pageIds = [];
 
-				foreach ( $result as $row ) {
+				foreach ( $res as $row ) {
 					$pageIds[] = $row->page_id;
 				}
 
