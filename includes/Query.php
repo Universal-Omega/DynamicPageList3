@@ -333,11 +333,12 @@ class Query {
 			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
 		}
 
-		// From intersection
-		global $wgDPLQueryCacheTime, $wgDPLMaxQueryTime;
+		// Partially taken from intersection
+		$queryCacheTime = Config::getSetting( 'queryCacheTime' );
+		$maxQueryTime = Config::getSetting( 'maxQueryTime' );
 
-		if ( $wgDPLMaxQueryTime ) {
-			$options['MAX_EXECUTION_TIME'] = $wgDPLMaxQueryTime;
+		if ( $maxQueryTime ) {
+			$options['MAX_EXECUTION_TIME'] = $maxQueryTime;
 		}
 
 		$parser = MediaWikiServices::getInstance()->getParser();
@@ -359,7 +360,7 @@ class Query {
 			'doWork' => $doQuery,
 		] );
 
-		if ( $wgDPLQueryCacheTime <= 0 ) {
+		if ( $queryCacheTime <= 0 ) {
 			return $worker->execute();
 		}
 
@@ -367,7 +368,7 @@ class Query {
 
 		return $cache->getWithSetCallback(
 			$cache->makeKey( "DPLQuery", hash( "sha256", $sql ) ),
-			$wgDPLQueryCacheTime,
+			$queryCacheTime,
 			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
 				$setOpts += Database::getCacheSetOptions( $dbr );
 				$res = $worker->execute();
@@ -382,8 +383,8 @@ class Query {
 				return $res;
 			},
 			[
-				'lowTTL' => min( $cache::TTL_MINUTE, floor( $wgDPLQueryCacheTime * 0.75 ) ),
-				'pcTTL' => min( $cache::TTL_PROC_LONG, $wgDPLQueryCacheTime )
+				'lowTTL' => min( $cache::TTL_MINUTE, floor( $queryCacheTime * 0.75 ) ),
+				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
 			]
 		);
 	}
