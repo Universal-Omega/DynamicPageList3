@@ -2,11 +2,11 @@
 
 The **DynamicPageList3** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://help.fandom.com/Extension:DPL3/Manual).
 
-When invoked with a basic set of selection parameters DPL displays a list of pages in one or more categories.  Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles.  Output takes a variety of forms, some of which incorporate elements of selected articles.
+When invoked with a basic set of selection parameters DPL3 displays a list of pages in one or more categories. Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles. Output takes a variety of forms, some of which incorporate elements of selected articles.
 
-This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code>&lt;DPL&gt;</nowiki></code>.  A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
+This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code>&lt;DPL&gt;</nowiki></code>. A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
 
-Complex look ups can result in computationally expensive database queries.  However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load.  The [DPL:Parameters: Other Parameters](https://help.fandom.com/Extension:DPL3/Parameters:_Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
+Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [DPL:Parameters: Other Parameters](https://help.fandom.com/Extension:DPL3/Parameters:_Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
 * Manual and Complete Documentation: [Documentation](https://help.fandom.com/Extension:DPL3/Manual)
 * Source Code: [Source code at GitHub](https://github.com/Universal-Omega/DynamicPageList3)
@@ -18,51 +18,51 @@ Complex look ups can result in computationally expensive database queries.  Howe
 Please see the [releases page](https://github.com/Universal-Omega/DynamicPageList3/releases) for the latest releases.
 
 ## Configuration
-These are DPL's configuration settings and along with their default values.  To change them make sure they are defined before including the extension on the wiki.  More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3#Configuration)**.
+These are DPL3's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3#Configuration)**.
 
-**Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>.  This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
+**Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>. This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
 
 |          Setting                            | Default | Description                                                                                                                                                                                                               |
 |:--------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| $wgDplSettings['allowedNamespaces']         | null    | By default all existing namespaces are used when DPL initializes. Customize this setting with an array of namespace constants to restrict DPL to work only in those namespaces.                                           |
+| $wgDplSettings['allowedNamespaces']         | null    | By default all existing namespaces are used when DPL3 initializes. Customize this setting with an array of namespace constants to restrict DPL3 to work only in those namespaces.                                           |
 | $wgDplSettings['allowUnlimitedCategories']  | false   | Set this to true to ignore 'maxCategoryCount' and allow unlimited categories. Please note that large amounts of categories in a query can slow down or crash servers.                                                     |
 | $wgDplSettings['allowUnlimitedResults']     | false   | Set this to true to ignore 'maxResultCount' and allow unlimited results. Please note that large result sets may result in slow or failed page loads.                                                                      |
-| $wgDplSettings['behavingLikeIntersection']  | false   | Set DPL to always behave like Extension:Intersection.                                                                                                                                                                     |
+| $wgDplSettings['behavingLikeIntersection']  | false   | Set DPL3 to always behave like Extension:Intersection.                                                                                                                                                                     |
 | $wgDplSettings['categoryStyleListCutoff']   | 6       | Maximum number of items in a category list before being cut off.                                                                                                                                                          |
-| $wgDplSettings['fixedCategories']           | []      | This does something with preventing DPL from "looking" at these categories.                                                                                                                                               |
+| $wgDplSettings['fixedCategories']           | []      | This does something with preventing DPL3 from "looking" at these categories.                                                                                                                                               |
 | $wgDplSettings['functionalRichness']        | 3       | Set the level of parameters available to end users.                                                                                                                                                                       |
 | $wgDplSettings['maxCategoryCount']          | 4       | Maximum number of categories to allow in queries.                                                                                                                                                                         |
 | $wgDplSettings['minCategoryCount']          | 0       | Minimum number of categories to allow in queries.                                                                                                                                                                         |
 | $wgDplSettings['maxResultCount']            | 500     | Maximum number of results to return from a query.                                                                                                                                                                         |
-| $wgDplSettings['recursiveTagParse']         | false   | Do recursive tag parsing on <dpl> parser tags converting tags and functions such as magic words like {{PAGENAME}}.  This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases. |
-| $wgDplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL to run from protected pages only. This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.                               |
-| $wgDplSettings['handleSectionTag']          | false   | Set this to true to have DPL handle <section> tags outside of DPL parser tags.                                                                                                                                            |
+| $wgDplSettings['recursiveTagParse']         | false   | Do recursive tag parsing on <dpl> parser tags converting tags and functions such as magic words like {{PAGENAME}}. This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases. |
+| $wgDplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL3 to run from protected pages only. This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.                               |
+| $wgDplSettings['handleSectionTag']          | false   | Set this to true to have DPL3 handle <section> tags outside of the parser tags provided by DPL3.                                                                                                                                            |
 | $wgDplSettings['maxQueryTime']              | 10000   | Maximum allowed time for database queries in milliseconds.                                                                                                                                                                |
 | $wgDplSettings['queryCacheTime']            | 0       | Can help with situations where you have a template with the same query used on a large number of pages all being refreshed at once. The query cache cannot be purged. Suggested value between 30 to 600.                  |
 
-The global variable <code>$wgNonincludableNamespaces</code> is automatically respected by DPL3.  It will prevent the contents of the listed namespaces from appearing in DPL's output.
+The global variable <code>$wgNonincludableNamespaces</code> is automatically respected by DPL3. It will prevent the contents of the listed namespaces from appearing in DPL3's output.
 
-**Note: <code>$wgDplSettings['maxResultCount']</code> is a LIMIT *on the SQL query itself*.  Some DPL query parameters like <code>includematch</code> are applied *after* the SQL query, however, so results here may easily be misleading.**
+**Note: <code>$wgDplSettings['maxResultCount']</code> is a LIMIT *on the SQL query itself*. Some DPL3 query parameters like <code>includematch</code> are applied *after* the SQL query, however, so results here may easily be misleading.**
 
 ### Functional Richness
 
-DynamicPageList3 has many features which are unlocked based on the maximum functional richness level.  There are some that can cause high CPU or database load and should be used sparingly.
+DynamicPageList3 has many features which are unlocked based on the maximum functional richness level. There are some that can cause high CPU or database load and should be used sparingly.
 
 * <code>$wgDplSettings['functionalRichness'] = 0</code> is equivalent to Wikimedia's [DynamicPageList](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))
 * <code>$wgDplSettings['functionalRichness'] = 1</code> adds additional formatting parameters
 * <code>$wgDplSettings['functionalRichness'] = 2</code> adds performance equivalent features for templates and pagelinks
 * <code>$wgDplSettings['functionalRichness'] = 3</code> allows more-expensive page inclusion features and regular expression queries.
-* <code>$wgDplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites.  Includes debugging parameters for testing and development.
+* <code>$wgDplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites. Includes debugging parameters for testing and development.
 
 
 ## Usage
-### Extended DPL Functionality
-Extended DPL is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code><DPL> .... </DPL></code>.
+### Extended DPL3 Functionality
+Extended DPL3 is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code>&lt;DPL&gt; .... &lt;/DPL&gt;</code>.
 
 *See [Manual - **General Usage and Invocation Syntax**](https://help.fandom.com/Extension:DPL3/General_usage_and_invocation_syntax) and [DPL:Parameters: **Criteria for Page Selection**](https://help.fandom.com/Extension:DPL3/Parameters:_Criteria_for_page_selection)*
 
 ### Backwards Compatibility
-Functionality compatible with Wikimedia's DPL extension can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>.  Further information can be found on the [Compatibility manual page](https://help.fandom.com/Extension:DPL3/Compatibility).
+Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>. Further information can be found on the [Compatibility manual page](https://help.fandom.com/Extension:DPL3/Compatibility).
 
 ## Usage Philosophy and Overview
 With the assumption there are some articles writtne about *countries* those articles will typically have three things in common:
@@ -79,7 +79,7 @@ category=countries
 }}
 </nowiki></pre>
 
-With DPL one could:
+With DPL3 one could:
 * Generate a list of all those articles (or a random sample)
 * Show metadata of the articles (popularity, date of last update, ..)
 * Show one or more chapters of the articles ('transclude' content)
@@ -134,8 +134,8 @@ With DPL one could:
 
 ## Considerations
 ### Performance
-DPL's code execution and database access is typically fast for typical category and article look ups.  However, using loose LIKE and REGEXP match parameters and/or requesting large data sets can result in long database access times.  Parser time should also be kept in consideration.  For example, having the query of image results go into a template that displays them will result in a parser media transform for each one.  This can quickly eat up 2MBs of RAM per media transform.
+DPL3's code execution and database access is typically fast for typical category and article look ups. However, using loose LIKE and REGEXP match parameters and/or requesting large data sets can result in long database access times. Parser time should also be kept in consideration. For example, having the query of image results go into a template that displays them will result in a parser media transform for each one. This can quickly eat up 2MBs of RAM per media transform.
 
 ## See Also
 ### Further Reading
-DPL can do much more than we can explain here. A complete **[manual](https://help.fandom.com/Extension:DPL3/Manual)** is available with full parameter documentation.
+DPL3 can do much more than we can explain here. A complete **[manual](https://help.fandom.com/Extension:DPL3/Manual)** is available with full parameter documentation.
