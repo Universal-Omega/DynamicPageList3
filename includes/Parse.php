@@ -11,16 +11,8 @@ use Parser;
 use RequestContext;
 use Title;
 use WebRequest;
-use Wikimedia\Rdbms\IDatabase;
 
 class Parse {
-	/**
-	 * Mediawiki Database Object
-	 *
-	 * @var IDatabase
-	 */
-	private $DB = null;
-
 	/**
 	 * Parameters Object
 	 *
@@ -98,7 +90,6 @@ class Parse {
 	];
 
 	public function __construct() {
-		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
 		$this->parameters = new Parameters();
 		$this->logger = new Logger();
 		$this->tableNames = Query::getTableNames();
