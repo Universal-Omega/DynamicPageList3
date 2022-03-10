@@ -677,7 +677,7 @@ class Query {
 	 * @return array
 	 */
 	public static function getSubcategories( $categoryName, $depth = 1 ) {
-		$DB = wfGetDB( DB_REPLICA, 'dpl' );
+		$dbr = wfGetDB( DB_REPLICA, 'dpl' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
@@ -685,7 +685,7 @@ class Query {
 		}
 
 		$categories = [];
-		$result = $DB->select(
+		$res = $dbr->select(
 			[ 'page', 'categorylinks' ],
 			[ 'page_title' ],
 			[
@@ -702,15 +702,15 @@ class Query {
 			]
 		);
 
-		while ( $row = $result->fetchRow() ) {
-			$categories[] = $row['page_title'];
+		foreach ( $res as $row ) {
+			$categories[] = $row->page_title;
 			if ( $depth > 1 ) {
-				$categories = array_merge( $categories, self::getSubcategories( $row['page_title'], $depth - 1 ) );
+				$categories = array_merge( $categories, self::getSubcategories( $row->page_title, $depth - 1 ) );
 			}
 		}
 
 		$categories = array_unique( $categories );
-		$result->free();
+		$res->free();
 
 		return $categories;
 	}
@@ -1695,13 +1695,13 @@ class Query {
 	private function _ordercollation( $option ) {
 		$option = mb_strtolower( $option );
 
-		$results = $this->DB->query( 'SHOW CHARACTER SET' );
-		if ( !$results ) {
+		$res = $this->DB->query( 'SHOW CHARACTER SET' );
+		if ( !$res ) {
 			return false;
 		}
 
-		while ( $row = $results->fetchRow() ) {
-			if ( $option == $row['Default collation'] ) {
+		foreach ( $res as $row ) {
+			if ( $option == $row->{'Default collation'} ) {
 				$this->setCollation( $option );
 				break;
 			}
