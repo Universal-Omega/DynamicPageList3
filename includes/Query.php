@@ -169,12 +169,12 @@ class Query {
 	}
 
 	/**
-	 * Start a query build.
+	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
-	 * @return mixed Mediawiki Result Object or False
+	 * @return array
 	 */
-	public function buildAndSelect( $calcRows = false ) {
+	public function buildAndSelect( bool $calcRows = false ) {
 		global $wgNonincludableNamespaces;
 
 		$options = [];
@@ -265,10 +265,6 @@ class Query {
 
 			$options[] = 'DISTINCT';
 		} else {
-			if ( $calcRows ) {
-				$options[] = 'SQL_CALC_FOUND_ROWS';
-			}
-
 			if ( $this->distinct ) {
 				$options[] = 'DISTINCT';
 			}
@@ -322,13 +318,6 @@ class Query {
 			}
 
 			$this->sqlQuery = $sql;
-
-			if ( $calcRows ) {
-				$calcRowsResult = $this->DB->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
-				$total = $calcRowsResult->fetchRow();
-				$this->foundRows = intval( $total['rowcount'] );
-				$calcRowsResult->free();
-			}
 		} catch ( Exception $e ) {
 			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
 		}
@@ -361,32 +350,38 @@ class Query {
 		] );
 
 		if ( $queryCacheTime <= 0 ) {
-			return $worker->execute();
+			$rows = $worker->execute();
+		} else {
+			$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+
+			$rows = $cache->getWithSetCallback(
+				$cache->makeKey( "DPLQuery", hash( "sha256", $sql ) ),
+				$queryCacheTime,
+				static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
+					$setOpts += Database::getCacheSetOptions( $dbr );
+					$res = $worker->execute();
+					if ( $res === false ) {
+						// Do not cache errors.
+						$ttl = WANObjectCache::TTL_UNCACHEABLE;
+						// If we have oldVal, prefer it to error
+						if ( is_array( $oldVal ) ) {
+							return $oldVal;
+						}
+					}
+					return $res;
+				},
+				[
+					'lowTTL' => min( $cache::TTL_MINUTE, floor( $queryCacheTime * 0.75 ) ),
+					'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
+				]
+			);
 		}
 
-		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		if ( $calcRows ) {
+			$this->foundRows = count( $rows );
+		}
 
-		return $cache->getWithSetCallback(
-			$cache->makeKey( "DPLQuery", hash( "sha256", $sql ) ),
-			$queryCacheTime,
-			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
-				$setOpts += Database::getCacheSetOptions( $dbr );
-				$res = $worker->execute();
-				if ( $res === false ) {
-					// Do not cache errors.
-					$ttl = WANObjectCache::TTL_UNCACHEABLE;
-					// If we have oldVal, prefer it to error
-					if ( is_array( $oldVal ) ) {
-						return $oldVal;
-					}
-				}
-				return $res;
-			},
-			[
-				'lowTTL' => min( $cache::TTL_MINUTE, floor( $queryCacheTime * 0.75 ) ),
-				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
-			]
-		);
+		return $rows;
 	}
 
 	/**
