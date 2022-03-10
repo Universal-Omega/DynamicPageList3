@@ -340,6 +340,9 @@ class Query {
 			$options['MAX_EXECUTION_TIME'] = $wgDPLMaxQueryTime;
 		}
 
+		$parser = MediaWikiServices::getInstance()->getParser();
+		$pageName = str_replace( [ '*', '/' ], '-', $parser->getTitle()->getPrefixedDBkey() );
+
 		$qname = __METHOD__ . ' - ' . $pageName;
 		$where = $this->where;
 		$join = $this->join;
