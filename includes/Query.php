@@ -169,12 +169,12 @@ class Query {
 	}
 
 	/**
-	 * Start a query build.
+	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
-	 * @return mixed Mediawiki Result Object or False
+	 * @return array
 	 */
-	public function buildAndSelect( $calcRows = false ) {
+	public function buildAndSelect( bool $calcRows = false ) {
 		global $wgNonincludableNamespaces;
 
 		$options = [];
