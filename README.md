@@ -37,8 +37,10 @@ These are DPL's configuration settings and along with their default values.  To 
 | $wgDplSettings['recursiveTagParse']         | false   | Do recursive tag parsing on <dpl> parser tags converting tags and functions such as magic words like {{PAGENAME}}.  This is similar to the {{#dpl}} parser function call, but may not work exactly the same in all cases. |
 | $wgDplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL to run from protected pages only. This is recommend if wiki administrators are having issues with malicious users creating computationally intensive queries.                               |
 | $wgDplSettings['handleSectionTag']          | false   | Set this to true to have DPL handle <section> tags outside of DPL parser tags.                                                                                                                                            |
+| $wgDplSettings['maxQueryTime']              | 10000   | Maximum allowed time for database queries in milliseconds.                                                                                                                                                                |
+| $wgDplSettings['queryCacheTime']            | 0       | Can help with situations where you have a template with the same query used on a large number of pages all being refreshed at once. The query cache cannot be purged. Suggested value between 30 to 600.                  |
 
-The global variable {{manual|$wgNonincludableNamespaces}} is automatically respected by DPL.  It will prevent the contents of the listed namespaces from appearing in DPL's output.
+The global variable <code>$wgNonincludableNamespaces</code> is automatically respected by DPL3.  It will prevent the contents of the listed namespaces from appearing in DPL's output.
 
 **Note: <code>$wgDplSettings['maxResultCount']</code> is a LIMIT *on the SQL query itself*.  Some DPL query parameters like <code>includematch</code> are applied *after* the SQL query, however, so results here may easily be misleading.**
 
