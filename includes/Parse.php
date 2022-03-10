@@ -417,7 +417,7 @@ class Parse {
 				continue;
 			}
 
-			$articles[] = Article::newFromRow( $row, $this->parameters, $title, $pageNamespace, $pageTitle );
+			$articles[] = Article::newFromRow( (array)$row, $this->parameters, $title, $pageNamespace, $pageTitle );
 		}
 
 		return $articles;
