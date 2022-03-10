@@ -4,6 +4,7 @@ namespace DPL;
 
 use MediaWiki\MediaWikiServices;
 use RequestContext;
+use stdClass;
 use Title;
 
 class Article {
@@ -187,24 +188,30 @@ class Article {
 	/**
 	 * Initialize a new instance from a database row.
 	 *
-	 * @param array $row
+	 * @param stdClass $row
 	 * @param Parameters $parameters
 	 * @param Title $title
 	 * @param int $pageNamespace
 	 * @param string $pageTitle
-	 * @return Article
+	 * @return self
 	 */
-	public static function newFromRow( $row, Parameters $parameters, Title $title, $pageNamespace, $pageTitle ) {
+	public static function newFromRow(
+		stdClass $row,
+		Parameters $parameters,
+		Title $title,
+		int $pageNamespace,
+		string $pageTitle
+	): self {
 		$services = MediaWikiServices::getInstance();
 
 		$contentLanguage = $services->getContentLanguage();
 		$userFactory = $services->getUserFactory();
 
-		$article = new Article( $title, $pageNamespace );
+		$article = new self( $title, $pageNamespace );
 
 		$revActorName = null;
-		if ( isset( $row['revactor_actor'] ) ) {
-			$revActorName = $userFactory->newFromActorId( $row['revactor_actor'] )->getName();
+		if ( isset( $row->revactor_actor ) ) {
+			$revActorName = $userFactory->newFromActorId( $row->revactor_actor )->getName();
 		}
 
 		$titleText = $title->getText();
@@ -222,8 +229,8 @@ class Article {
 			$titleText = substr( $titleText, 0, $parameters->getParameter( 'titlemaxlen' ) ) . '...';
 		}
 
-		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row['page_id'] ) ) {
-			$articleLink = '[' . $title->getLinkURL( [ 'curid' => $row['page_id'] ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
+		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
+			$articleLink = '[' . $title->getLinkURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
 		} else {
 			$articleLink = '[[' . ( $parameters->getParameter( 'escapelinks' ) && ( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : '' ) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
@@ -233,68 +240,68 @@ class Article {
 		$languageConverter = $services->getLanguageConverterFactory()->getLanguageConverter();
 
 		// get first char used for category-style output
-		if ( isset( $row['sortkey'] ) ) {
-			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $row['sortkey'] ) );
+		if ( isset( $row->sortkey ) ) {
+			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $row->sortkey ) );
 		} else {
 			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $pageTitle ) );
 		}
 
-		$article->mID = intval( $row['page_id'] );
+		$article->mID = intval( $row->page_id );
 
 		// External link
-		if ( isset( $row['el_to'] ) ) {
-			$article->mExternalLink = $row['el_to'];
+		if ( isset( $row->el_to ) ) {
+			$article->mExternalLink = $row->el_to;
 		}
 
 		// SHOW PAGE_COUNTER
-		if ( isset( $row['page_counter'] ) ) {
-			$article->mCounter = intval( $row['page_counter'] );
+		if ( isset( $row->page_counter ) ) {
+			$article->mCounter = intval( $row->page_counter );
 		}
 
 		// SHOW PAGE_SIZE
-		if ( isset( $row['page_len'] ) ) {
-			$article->mSize = intval( $row['page_len'] );
+		if ( isset( $row->page_len ) ) {
+			$article->mSize = intval( $row->page_len );
 		}
 
 		// STORE initially selected PAGE
 		if ( is_array( $parameters->getParameter( 'linksto' ) ) && ( count( $parameters->getParameter( 'linksto' ) ) || count( $parameters->getParameter( 'linksfrom' ) ) ) ) {
-			if ( !isset( $row['sel_title'] ) ) {
+			if ( !isset( $row->sel_title ) ) {
 				$article->mSelTitle = 'unknown page';
 				$article->mSelNamespace = 0;
 			} else {
-				$article->mSelTitle = $row['sel_title'];
-				$article->mSelNamespace = $row['sel_ns'];
+				$article->mSelTitle = $row->sel_title;
+				$article->mSelNamespace = $row->sel_ns;
 			}
 		}
 
 		// STORE selected image
 		if ( is_array( $parameters->getParameter( 'imageused' ) ) && count( $parameters->getParameter( 'imageused' ) ) > 0 ) {
-			if ( !isset( $row['image_sel_title'] ) ) {
+			if ( !isset( $row->image_sel_title ) ) {
 				$article->mImageSelTitle = 'unknown image';
 			} else {
-				$article->mImageSelTitle = $row['image_sel_title'];
+				$article->mImageSelTitle = $row->image_sel_title;
 			}
 		}
 
 		if ( $parameters->getParameter( 'goal' ) != 'categories' ) {
 			// REVISION SPECIFIED
 			if ( $parameters->getParameter( 'lastrevisionbefore' ) || $parameters->getParameter( 'allrevisionsbefore' ) || $parameters->getParameter( 'firstrevisionsince' ) || $parameters->getParameter( 'allrevisionssince' ) ) {
-				$article->mRevision = $row['revactor_rev'];
+				$article->mRevision = $row->revactor_rev;
 				$article->mUser = $revActorName;
-				$article->mDate = $row['revactor_timestamp'];
+				$article->mDate = $row->revactor_timestamp;
 
-				// $article->mComment = $row['rev_comment'];
+				// $article->mComment = $row->rev_comment;
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
 			if ( $parameters->getParameter( 'addpagetoucheddate' ) ) {
-				$article->mDate = $row['page_touched'];
+				$article->mDate = $row->page_touched;
 			} elseif ( $parameters->getParameter( 'addfirstcategorydate' ) ) {
-				$article->mDate = $row['cl_timestamp'];
-			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row['revactor_timestamp'] ) ) {
-				$article->mDate = $row['revactor_timestamp'];
-			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row['page_touched'] ) ) {
-				$article->mDate = $row['page_touched'];
+				$article->mDate = $row->cl_timestamp;
+			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row->revactor_timestamp ) ) {
+				$article->mDate = $row->revactor_timestamp;
+			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row->page_touched ) ) {
+				$article->mDate = $row->page_touched;
 			}
 
 			// Time zone adjustment
@@ -311,11 +318,11 @@ class Article {
 
 			// CONTRIBUTION, CONTRIBUTOR
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
-				$article->mContribution = $row['contribution'];
+				$article->mContribution = $row->contribution;
 
-				$article->mContributor = $userFactory->newFromActorId( $row['contributor'] )->getName();
+				$article->mContributor = $userFactory->newFromActorId( $row->contributor )->getName();
 
-				$article->mContrib = substr( '*****************', 0, (int)round( log( $row['contribution'] ) ) );
+				$article->mContrib = substr( '*****************', 0, (int)round( log( $row->contribution ) ) );
 			}
 
 			// USER/AUTHOR(S)
@@ -327,8 +334,8 @@ class Article {
 			}
 
 			// CATEGORY LINKS FROM CURRENT PAGE
-			if ( $parameters->getParameter( 'addcategories' ) && ( $row['cats'] ) ) {
-				$artCatNames = explode( ' | ', $row['cats'] );
+			if ( $parameters->getParameter( 'addcategories' ) && ( $row->cats ) ) {
+				$artCatNames = explode( ' | ', $row->cats );
 				foreach ( $artCatNames as $artCatName ) {
 					$article->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace( '_', ' ', $artCatName ) . ']]';
 					$article->mCategoryTexts[] = str_replace( '_', ' ', $artCatName );
@@ -340,12 +347,12 @@ class Article {
 				switch ( $parameters->getParameter( 'ordermethod' )[0] ) {
 					case 'category':
 						// Count one more page in this heading
-						self::$headings[$row['cl_to']] = ( isset( self::$headings[$row['cl_to']] ) ? self::$headings[$row['cl_to']] + 1 : 1 );
-						if ( $row['cl_to'] == '' ) {
+						self::$headings[$row->cl_to] = ( isset( self::$headings[$row->cl_to] ) ? self::$headings[$row->cl_to] + 1 : 1 );
+						if ( $row->cl_to == '' ) {
 							// uncategorized page (used if ordermethod=category,...)
 							$article->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMessage( 'uncategorizedpages' ) . ']]';
 						} else {
-							$article->mParentHLink = '[[:Category:' . $row['cl_to'] . '|' . str_replace( '_', ' ', $row['cl_to'] ) . ']]';
+							$article->mParentHLink = '[[:Category:' . $row->cl_to . '|' . str_replace( '_', ' ', $row->cl_to ) . ']]';
 						}
 
 						break;
