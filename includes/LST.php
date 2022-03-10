@@ -573,7 +573,9 @@ class LST {
 			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
 
 			foreach ( $tCalls as $i => $tCall ) {
-				if ( ( $n = strpos( $tCall, ':' ) ) !== false ) {
+				$n = strpos( $tCall, ':' );
+
+				if ( $n !== false ) {
 					$tCalls[$i][$n] = ' ';
 				}
 			}
@@ -735,7 +737,9 @@ class LST {
 
 							foreach ( $extractParm as $exParmKey => $exParm ) {
 								$maxlen = -1;
-								if ( ( $limpos = strpos( $exParm, '[' ) ) > 0 && $exParm[strlen( $exParm ) - 1] == ']' ) {
+								$limpos = strpos( $exParm, '[' );
+
+								if ( $limpos > 0 && $exParm[strlen( $exParm ) - 1] == ']' ) {
 									$maxlen = intval( substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 ) );
 									$exParm = substr( $exParm, 0, $limpos );
 								}
