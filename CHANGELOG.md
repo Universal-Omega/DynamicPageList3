@@ -730,3 +730,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.3.10
 * Fix MessagesDirs to prevent mergeMessageFileList issue
+
+# Version 3.4.0
+* Improved query performance
+* Added `maxQueryTime` and `queryCacheTime` configuration
