@@ -178,6 +178,7 @@ class Query {
 		global $wgNonincludableNamespaces;
 
 		$options = [];
+		$dbr = $this->DB;
 
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
@@ -228,12 +229,10 @@ class Query {
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
-				// $sSqlSelectFrom = $sSqlCl_to.'ic.il_to, '.$sSqlSelPage."ic.il_to AS sortkey".' FROM '.$this->tableNames['imagelinks'].' AS ic';
 				$tables = [
 					'ic' => 'imagelinks'
 				];
 			} else {
-				// $sSqlSelectFrom = "SELECT $sSqlCalcFoundRows $sSqlDistinct ".$sSqlCl_to.'pl_namespace, pl_title'.$sSqlSelPage.$sSqlSortkey.' FROM '.$this->tableNames['pagelinks'];
 				$this->addSelect(
 					[
 						'pl_namespace',
@@ -259,7 +258,7 @@ class Query {
 		}
 		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
 			$categoriesGoal = true;
-			$select = [
+			$fields = [
 				$this->tableNames['page'] . '.page_id'
 			];
 
@@ -274,15 +273,15 @@ class Query {
 			}
 
 			$categoriesGoal = false;
-			$select = $this->select;
+			$fields = $this->select;
 		}
 
 		$queryError = false;
 		try {
 			if ( $categoriesGoal ) {
-				$result = $this->DB->select(
+				$result = $dbr->select(
 					$tables,
-					$select,
+					$fields,
 					$this->where,
 					__METHOD__,
 					$options,
@@ -291,11 +290,11 @@ class Query {
 
 				$pageIds = [];
 
-				while ( $row = $result->fetchRow() ) {
-					$pageIds[] = $row['page_id'];
+				foreach ( $result as $row ) {
+					$pageIds[] = $row->page_id;
 				}
 
-				$sql = $this->DB->selectSQLText(
+				$query = $dbr->selectSQLText(
 					[
 						'clgoal' => 'categorylinks'
 					],
@@ -311,9 +310,9 @@ class Query {
 					]
 				);
 			} else {
-				$sql = $this->DB->selectSQLText(
+				$query = $dbr->selectSQLText(
 					$tables,
-					$select,
+					$fields,
 					$this->where,
 					__METHOD__,
 					$options,
@@ -321,16 +320,16 @@ class Query {
 				);
 			}
 
-			$this->sqlQuery = $sql;
+			$this->sqlQuery = $query;
 
 			if ( $calcRows ) {
-				$calcRowsResult = $this->DB->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
+				$calcRowsResult = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
 				$total = $calcRowsResult->fetchRow();
 				$this->foundRows = intval( $total['rowcount'] );
 				$calcRowsResult->free();
 			}
 		} catch ( Exception $e ) {
-			throw new MWException( __METHOD__ . ": " . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->DB->lastError() )->text() );
+			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $dbr->lastError() )->text() );
 		}
 
 		// Partially taken from intersection
@@ -348,10 +347,8 @@ class Query {
 		$where = $this->where;
 		$join = $this->join;
 
-		$dbr = wfGetDB( DB_REPLICA );
-
-		$doQuery = static function () use ( $qname, $dbr, $tables, $select, $where, $options, $join ) {
-			$res = $dbr->select( $tables, $select, $where, $qname, $options, $join );
+		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join ) {
+			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 			return iterator_to_array( $res );
 		};
 
@@ -367,7 +364,7 @@ class Query {
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
 
 		return $cache->getWithSetCallback(
-			$cache->makeKey( "DPLQuery", hash( "sha256", $sql ) ),
+			$cache->makeKey( 'DPLQuery', hash( 'sha256', $query ) ),
 			$queryCacheTime,
 			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
 				$setOpts += Database::getCacheSetOptions( $dbr );
