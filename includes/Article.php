@@ -187,7 +187,7 @@ class Article {
 	/**
 	 * Initialize a new instance from a database row.
 	 *
-	 * @param object $row
+	 * @param array $row
 	 * @param Parameters $parameters
 	 * @param Title $title
 	 * @param int $pageNamespace
@@ -203,8 +203,6 @@ class Article {
 		$article = new Article( $title, $pageNamespace );
 
 		$revActorName = null;
-		$row = (array)$row;
-
 		if ( isset( $row['revactor_actor'] ) ) {
 			$revActorName = $userFactory->newFromActorId( $row['revactor_actor'] )->getName();
 		}
