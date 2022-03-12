@@ -239,7 +239,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows <= 0 || empty( $articles ) ) {
+		if ( $numRows == 0 || empty( $articles ) ) {
 			return $this->getFullOutput( 0, false );
 		}
 
