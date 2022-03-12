@@ -350,17 +350,18 @@ class Parse {
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
 		if ( $randomCount > 0 ) {
 			$nResults = count( $rows );
-			// mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
-			//Constrain the total amount of random results to not be greater than the total results.
+
+			// Constrain the total amount of random results to not be greater than the total results.
 			if ( $randomCount > $nResults ) {
 				$randomCount = $nResults;
 			}
 
-			// This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
 			// Generate pick numbers for results.
 			$pick = range( 1, $nResults );
+
 			// Shuffle the pick numbers.
 			shuffle( $pick );
+
 			// Select pick numbers from the beginning to the maximum of $randomCount.
 			$pick = array_slice( $pick, 0, $randomCount );
 		}
