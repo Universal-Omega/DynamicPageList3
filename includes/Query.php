@@ -352,8 +352,8 @@ class Query {
 			return iterator_to_array( $res );
 		};
 
-		$poolCounterKey = 'nowait:dpl-query:' . WikiMap::getCurrentWikiId();
-		$worker = new PoolCounterWorkViaCallback( 'DPL', $poolCounterKey, [
+		$poolCounterKey = 'nowait:dpl3-query:' . WikiMap::getCurrentWikiId();
+		$worker = new PoolCounterWorkViaCallback( 'DPL3', $poolCounterKey, [
 			'doWork' => $doQuery,
 		] );
 
@@ -364,7 +364,7 @@ class Query {
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
 
 		return $cache->getWithSetCallback(
-			$cache->makeKey( 'DPLQuery', hash( 'sha256', $query ) ),
+			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
 			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
 				$setOpts += Database::getCacheSetOptions( $dbr );
