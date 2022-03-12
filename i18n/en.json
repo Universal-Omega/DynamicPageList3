@@ -34,7 +34,7 @@
 	"dpl_log_20": "Warning: An infinite transclusion loop is created by page '$0'.",
 	"dpl_log_21": "Query: <code>$0</code>",
 	"dpl_log_22": "Warning: No parameter option supplied for '$1'. (Missing '=')",
-	"dpl_log_25": "Error: List cannot be displayed because the servers are overloaded. Please try again later.",
+	"dpl_log_23": "Error: List cannot be displayed because the servers are overloaded. Please try again later.",
 	"dpl_articlecount": "There {{PLURAL:$1|is one article|are $1 articles}} in this heading.",
 	"action-dpl_param_update_rules": "to use the parameter 'updaterules'",
 	"action-dpl_param_delete_rules": "to use the parameter 'deleterules'",
