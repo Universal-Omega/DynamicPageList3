@@ -213,7 +213,7 @@ class Parse {
 				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
 
 				// Pool counter all threads in use.
-				$this->logger->addMessage( DynamicPageListHooks::WARN_POOLCOUNTER );
+				$this->logger->addMessage( DynamicPageListHooks::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
 		} catch ( MWException $e ) {
