@@ -172,7 +172,7 @@ class Query {
 	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
-	 * @return array
+	 * @return array|bool
 	 */
 	public function buildAndSelect( bool $calcRows = false ) {
 		global $wgNonincludableNamespaces;
