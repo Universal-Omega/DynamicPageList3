@@ -36,6 +36,8 @@ class DynamicPageListHooks {
 
 	public const FATAL_SQLBUILDERROR = 1024;
 
+	public const FATAL_POOLCOUNTER = 1025;
+
 	public const WARN_UNKNOWNPARAM = 2013;
 
 	public const WARN_PARAMNOOPTION = 2022;
@@ -53,8 +55,6 @@ class DynamicPageListHooks {
 	public const WARN_DEBUGPARAMNOTFIRST = 2019;
 
 	public const WARN_TRANSCLUSIONLOOP = 2020;
-
-	public const WARN_POOLCOUNTER = 2023;
 
 	public const DEBUG_QUERY = 3021;
 
