@@ -54,7 +54,7 @@ class DynamicPageListHooks {
 
 	public const WARN_TRANSCLUSIONLOOP = 2020;
 
-	public const WARN_POOLCOUNTER = 2021;
+	public const WARN_POOLCOUNTER = 2023;
 
 	public const DEBUG_QUERY = 3021;
 
