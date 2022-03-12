@@ -207,6 +207,15 @@ class Parse {
 		try {
 			$query = new Query( $this->parameters );
 			$rows = $query->buildAndSelect( $calcRows );
+			if ( $rows === false ) {
+				// This error path is very fast (We exit immediately if poolcounter is full)
+				// Thus it should be safe to try again in ~5 minutes.
+				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
+
+				// Pool counter all threads in use.
+				$this->logger->addMessage( DynamicPageListHooks::WARN_POOLCOUNTER );
+				return $this->getFullOutput( true );
+			}
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
