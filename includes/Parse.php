@@ -11,16 +11,8 @@ use Parser;
 use RequestContext;
 use Title;
 use WebRequest;
-use Wikimedia\Rdbms\IDatabase;
 
 class Parse {
-	/**
-	 * Mediawiki Database Object
-	 *
-	 * @var IDatabase
-	 */
-	private $DB = null;
-
 	/**
 	 * Parameters Object
 	 *
@@ -98,7 +90,6 @@ class Parse {
 	];
 
 	public function __construct() {
-		$this->DB = wfGetDB( DB_REPLICA, 'dpl' );
 		$this->parameters = new Parameters();
 		$this->logger = new Logger();
 		$this->tableNames = Query::getTableNames();
@@ -215,14 +206,23 @@ class Parse {
 		/*********/
 		try {
 			$query = new Query( $this->parameters );
-			$result = $query->buildAndSelect( $calcRows );
+			$rows = $query->buildAndSelect( $calcRows );
+			if ( $rows === false ) {
+				// This error path is very fast (We exit immediately if poolcounter is full)
+				// Thus it should be safe to try again in ~5 minutes.
+				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
+
+				// Pool counter all threads in use.
+				$this->logger->addMessage( DynamicPageListHooks::FATAL_POOLCOUNTER );
+				return $this->getFullOutput( true );
+			}
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( DynamicPageListHooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
 
-		$numRows = $result->numRows();
-		$articles = $this->processQueryResults( $result, $parser );
+		$numRows = count( $rows );
+		$articles = $this->processQueryResults( $rows, $parser );
 
 		global $wgDebugDumpSql;
 		if ( DynamicPageListHooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
@@ -239,9 +239,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows <= 0 || empty( $articles ) ) {
-			// Shortcut out since there is no processing to do.
-			$result->free();
+		if ( $numRows == 0 || empty( $articles ) ) {
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -341,28 +339,29 @@ class Parse {
 	/**
 	 * Process Query Results
 	 *
-	 * @param $result
+	 * @param $rows
 	 * @param Parser $parser
 	 * @return array
 	 */
-	private function processQueryResults( $result, Parser $parser ) {
+	private function processQueryResults( $rows, Parser $parser ) {
 		/*******************************/
 		/* Random Count Pick Generator */
 		/*******************************/
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
 		if ( $randomCount > 0 ) {
-			$nResults = $result->numRows();
-			// mt_srand() seeding was removed due to PHP 5.2.1 and above no longer generating the same sequence for the same seed.
-			//Constrain the total amount of random results to not be greater than the total results.
+			$nResults = count( $rows );
+
+			// Constrain the total amount of random results to not be greater than the total results.
 			if ( $randomCount > $nResults ) {
 				$randomCount = $nResults;
 			}
 
-			// This is 50% to 150% faster than the old while (true) version that could keep rechecking the same random key over and over again.
 			// Generate pick numbers for results.
 			$pick = range( 1, $nResults );
+
 			// Shuffle the pick numbers.
 			shuffle( $pick );
+
 			// Select pick numbers from the beginning to the maximum of $randomCount.
 			$pick = array_slice( $pick, 0, $randomCount );
 		}
@@ -373,7 +372,7 @@ class Parse {
 		/* Article Processing */
 		/**********************/
 		$i = 0;
-		while ( $row = $result->fetchRow() ) {
+		foreach ( $rows as $row ) {
 			$i++;
 
 			// In random mode skip articles which were not chosen.
@@ -383,15 +382,15 @@ class Parse {
 
 			if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
 				$pageNamespace = NS_CATEGORY;
-				$pageTitle = $row['cl_to'];
+				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
 					$pageNamespace = NS_FILE;
-					$pageTitle = $row['il_to'];
+					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row['pl_namespace'];
-					$pageTitle = $row['pl_title'];
+					$pageNamespace = $row->pl_namespace;
+					$pageTitle = $row->pl_title;
 				}
 
 				if (
@@ -402,8 +401,8 @@ class Parse {
 				}
 			} else {
 				// Existing PAGE TITLE
-				$pageNamespace = $row['page_namespace'];
-				$pageTitle = $row['page_title'];
+				$pageNamespace = $row->page_namespace;
+				$pageTitle = $row->page_title;
 			}
 
 			// if subpages are to be excluded: skip them
@@ -421,8 +420,6 @@ class Parse {
 
 			$articles[] = Article::newFromRow( $row, $this->parameters, $title, $pageNamespace, $pageTitle );
 		}
-
-		$result->free();
 
 		return $articles;
 	}

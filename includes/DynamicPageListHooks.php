@@ -32,9 +32,11 @@ class DynamicPageListHooks {
 
 	public const FATAL_MISSINGPARAMFUNCTION = 1022;
 
-	public const FATAL_NOTPROTECTED = 1023;
+	public const FATAL_POOLCOUNTER = 1023;
 
-	public const FATAL_SQLBUILDERROR = 1024;
+	public const FATAL_NOTPROTECTED = 1024;
+
+	public const FATAL_SQLBUILDERROR = 1025;
 
 	public const WARN_UNKNOWNPARAM = 2013;
 
