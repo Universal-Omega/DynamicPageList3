@@ -1,10 +1,10 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
 use CategoryViewer;
-use DPL\Article;
-use DPL\Config;
+use MediaWiki\Extension\DynamicPageList3\Article;
+use MediaWiki\Extension\DynamicPageList3\Config;
 
 class CategoryList extends Lister {
 	/**

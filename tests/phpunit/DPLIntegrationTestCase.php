@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
 use DOMDocument;
 use DOMXPath;

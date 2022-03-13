@@ -29,43 +29,23 @@
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageListMagic": "includes/DynamicPageListMagic.php"
+		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
 	},
 	"AutoloadClasses": {
-		"DPL\\Article": "includes/Article.php",
-		"DPL\\Config": "includes/Config.php",
-		"DPL\\Heading\\DefinitionHeading": "includes/heading/DefinitionHeading.php",
-		"DPL\\Heading\\Heading": "includes/heading/Heading.php",
-		"DPL\\Heading\\OrderedHeading": "includes/heading/OrderedHeading.php",
-		"DPL\\Heading\\TieredHeading": "includes/heading/TieredHeading.php",
-		"DPL\\Heading\\UnorderedHeading": "includes/heading/UnorderedHeading.php",
-		"DPL\\Lister\\CategoryList": "includes/lister/CategoryList.php",
-		"DPL\\Lister\\DefinitionList": "includes/lister/DefinitionList.php",
-		"DPL\\Lister\\GalleryList": "includes/lister/GalleryList.php",
-		"DPL\\Lister\\InlineList": "includes/lister/InlineList.php",
-		"DPL\\Lister\\Lister": "includes/lister/Lister.php",
-		"DPL\\Lister\\OrderedList": "includes/lister/OrderedList.php",
-		"DPL\\Lister\\SubPageList": "includes/lister/SubPageList.php",
-		"DPL\\Lister\\UnorderedList": "includes/lister/UnorderedList.php",
-		"DPL\\Lister\\UserFormatList": "includes/lister/UserFormatList.php",
-		"DPL\\Logger": "includes/Logger.php",
-		"DPL\\LST": "includes/LST.php",
-		"DPL\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php",
-		"DPL\\Parameters": "includes/Parameters.php",
-		"DPL\\ParametersData": "includes/ParametersData.php",
-		"DPL\\Parse": "includes/Parse.php",
-		"DPL\\Query": "includes/Query.php",
-		"DPL\\UpdateArticle": "includes/UpdateArticle.php",
-		"DPL\\Variables": "includes/Variables.php",
-		"DPL\\DynamicPageListHooks": "includes/DynamicPageListHooks.php",
-		"DPL\\DPLIntegrationTestCase": "tests/phpunit/DPLIntegrationTestCase.php"
+		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/"
+	},
+	"TestAutoloadNamespaces": {
+		"MediaWiki\\Extension\\DynamicPageList3\\Tests\\": "tests/phpunit/"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
-			"DPL\\DynamicPageListHooks::onParserFirstCallInit"
+			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onParserFirstCallInit"
 		],
 		"LoadExtensionSchemaUpdates": [
-			"DPL\\DynamicPageListHooks::onLoadExtensionSchemaUpdates"
+			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onLoadExtensionSchemaUpdates"
 		]
 	},
 	"config": {

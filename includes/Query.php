@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 use DateInterval;
 use DateTime;
@@ -328,7 +328,7 @@ class Query {
 				$calcRowsResult->free();
 			}
 		} catch ( Exception $e ) {
-			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', DynamicPageListHooks::getVersion(), $this->dbr->lastError() )->text() );
+			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
 
 		// Partially taken from intersection
@@ -1822,7 +1822,7 @@ class Query {
 					$this->revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
-					if ( DynamicPageListHooks::isLikeIntersection() ) {
+					if ( Hooks::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
 						$this->addSelect(
 							[

@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL\Maintenance;
+namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
 use CommentStoreComment;
 use LoggedUpdateMaintenance;

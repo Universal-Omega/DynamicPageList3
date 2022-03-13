@@ -1,9 +1,9 @@
 <?php
 
-namespace DPL\Heading;
+namespace MediaWiki\Extension\DynamicPageList3\Heading;
 
-use DPL\Lister\Lister;
-use DPL\Parameters;
+use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList3\Parameters;
 
 class TieredHeading extends Heading {
 	/**

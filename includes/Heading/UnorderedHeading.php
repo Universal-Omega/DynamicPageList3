@@ -1,15 +1,8 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Heading;
 
-class UnorderedList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_UNORDERED;
-
+class UnorderedHeading extends Heading {
 	/**
 	 * List(Section) Start
 	 *

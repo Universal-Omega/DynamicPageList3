@@ -1,11 +1,11 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use DPL\Article;
-use DPL\LST;
-use DPL\Parameters;
-use DPL\UpdateArticle;
+use MediaWiki\Extension\DynamicPageList3\Article;
+use MediaWiki\Extension\DynamicPageList3\LST;
+use MediaWiki\Extension\DynamicPageList3\Parameters;
+use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
 use MediaWiki\MediaWikiServices;
 use Parser;
 use RequestContext;

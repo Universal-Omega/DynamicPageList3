@@ -1,8 +1,8 @@
 <?php
 
-namespace DPL\Heading;
+namespace MediaWiki\Extension\DynamicPageList3\Heading;
 
-use DPL\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 
 class DefinitionHeading extends Heading {
 	/**

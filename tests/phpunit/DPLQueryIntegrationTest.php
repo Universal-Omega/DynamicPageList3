@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
 /**
  * @group DynamicPageList3
