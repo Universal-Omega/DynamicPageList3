@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
 class UnorderedList extends Lister {
 	/**
