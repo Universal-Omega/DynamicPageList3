@@ -746,6 +746,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Added missing error message for FATAL_SQLBUILDERROR (dpl_log_25)
 * Additional minor wording and capitalisation changes to i18n messages
 * Re-namespaced all classes under `MediaWiki\Extension\DynamicPageList3` and uses `AutoloadNamespaces`
+* Replaced usages of global `$wgLang`, `$wgOut`, and `$wgRequest`
 * Bumped MediaWiki requirement to 1.35.3
 * Migrate extension.json to `manifest_version` 2
 * Some additional minor cleanup
