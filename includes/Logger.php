@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 class Logger {
 	/**
@@ -43,17 +43,17 @@ class Logger {
 		$errorLevel = floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
 
-		if ( DynamicPageListHooks::getDebugLevel() >= $errorLevel ) {
-			if ( DynamicPageListHooks::isLikeIntersection() ) {
-				if ( $errorId == DynamicPageListHooks::FATAL_TOOMANYCATS ) {
+		if ( Hooks::getDebugLevel() >= $errorLevel ) {
+			if ( Hooks::isLikeIntersection() ) {
+				if ( $errorId == Hooks::FATAL_TOOMANYCATS ) {
 					$text = wfMessage( 'intersection_toomanycats', $args )->text();
-				} elseif ( $errorId == DynamicPageListHooks::FATAL_TOOFEWCATS ) {
+				} elseif ( $errorId == Hooks::FATAL_TOOFEWCATS ) {
 					$text = wfMessage( 'intersection_toofewcats', $args )->text();
-				} elseif ( $errorId == DynamicPageListHooks::WARN_NORESULTS ) {
+				} elseif ( $errorId == Hooks::WARN_NORESULTS ) {
 					$text = wfMessage( 'intersection_noresults', $args )->text();
-				} elseif ( $errorId == DynamicPageListHooks::FATAL_NOSELECTION ) {
+				} elseif ( $errorId == Hooks::FATAL_NOSELECTION ) {
 					$text = wfMessage( 'intersection_noincludecats', $args )->text();
-				} elseif ( $errorId == DynamicPageListHooks::FATAL_POOLCOUNTER ) {
+				} elseif ( $errorId == Hooks::FATAL_POOLCOUNTER ) {
 					$text = wfMessage( 'intersection_pcerror', $args )->text();
 				}
 			}
@@ -62,7 +62,7 @@ class Logger {
 				$text = wfMessage( 'dpl_log_' . $errorMessageId, $args )->text();
 			}
 
-			$this->buffer[] = '<p>Extension:DynamicPageList3 (DPL3), version ' . DynamicPageListHooks::getVersion() . ': ' . $text . '</p>';
+			$this->buffer[] = '<p>Extension:DynamicPageList3 (DPL3), version ' . Hooks::getVersion() . ': ' . $text . '</p>';
 		}
 	}
 }
