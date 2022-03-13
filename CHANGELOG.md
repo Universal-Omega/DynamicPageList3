@@ -730,3 +730,22 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.3.10
 * Fix MessagesDirs to prevent mergeMessageFileList issue
+
+# Version 3.4.0
+* Improved overall query performance
+* Added ability to set maximum query time using `maxQueryTime` configuration
+* Added support for query cache using `queryCacheTime` configuration
+* Added pool counter support to limit query concurrency
+* Fixed all `MediaWiki.ControlStructures.AssignmentInControlStructures.AssignmentInControlStructures` PHPCS violations and enabled it
+* Renamed `Query::$DB` property to `Query::$dbr`
+* Removed unused `Parse::$DB` property
+* Minor wording and markdown changes to README
+* Use Extension:DynamicPageList3 in logger
+* Added new pool counter error message to logger
+* Added missing error message for FATAL_NOTPROTECTED (dpl_log_24)
+* Added missing error message for FATAL_SQLBUILDERROR (dpl_log_25)
+* Additional minor wording and capitalisation changes to i18n messages
+* Re-namespaced all classes under `MediaWiki\Extension\DynamicPageList3` and uses `AutoloadNamespaces`
+* Bumped MediaWiki requirement to 1.35.3
+* Migrate extension.json to `manifest_version` 2
+* Some additional minor cleanup
