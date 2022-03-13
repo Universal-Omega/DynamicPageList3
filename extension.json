@@ -83,7 +83,9 @@
 			"recursiveTagParse": false,
 			"runFromProtectedPagesOnly": false,
 			"handleSectionTag": false,
-			"alwaysCacheResults": false
+			"alwaysCacheResults": false,
+			"maxQueryTime": 10000,
+			"queryCacheTime": 0
 		}
 	},
 	"TrackingCategories": [

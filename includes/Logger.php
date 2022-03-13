@@ -53,6 +53,8 @@ class Logger {
 					$text = wfMessage( 'intersection_noresults', $args )->text();
 				} elseif ( $errorId == DynamicPageListHooks::FATAL_NOSELECTION ) {
 					$text = wfMessage( 'intersection_noincludecats', $args )->text();
+				} elseif ( $errorId == DynamicPageListHooks::FATAL_POOLCOUNTER ) {
+					$text = wfMessage( 'intersection_pcerror', $args )->text();
 				}
 			}
 
