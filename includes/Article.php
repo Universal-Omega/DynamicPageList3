@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\\Extension\\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\MediaWikiServices;
 use RequestContext;
