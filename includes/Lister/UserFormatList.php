@@ -1,9 +1,9 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use DPL\Article;
-use DPL\Parameters;
+use MediaWiki\Extension\DynamicPageList3\Article;
+use MediaWiki\Extension\DynamicPageList3\Parameters;
 use Parser;
 
 class UserFormatList extends Lister {
