@@ -1,8 +1,8 @@
 <?php
 
-namespace DPL\Lister;
+namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use DPL\Parameters;
+use MediaWiki\Extension\DynamicPageList3\Parameters;
 use Parser;
 
 class InlineList extends Lister {
