@@ -1,6 +1,6 @@
 <?php
 
-namespace DPL\Heading;
+namespace MediaWiki\Extension\DynamicPageList3\Heading;
 
 class UnorderedHeading extends Heading {
 	/**
