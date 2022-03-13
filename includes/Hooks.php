@@ -1,12 +1,12 @@
 <?php
 
-namespace DPL;
+namespace MediaWiki\Extension\DynamicPageList3;
 
 use DatabaseUpdater;
 use Parser;
 use PPFrame;
 
-class DynamicPageListHooks {
+class Hooks {
 
 	public const FATAL_WRONGNS = 1001;
 
