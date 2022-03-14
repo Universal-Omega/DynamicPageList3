@@ -6,6 +6,7 @@ use MediaWiki\MediaWikiServices;
 use MWException;
 use PermissionsError;
 use RequestContext;
+use StringUtils;
 use Title;
 
 class Parameters extends ParametersData {
@@ -390,11 +391,7 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	private function isRegexValid( $regexes, $forDb = false ) {
-		if ( !is_array( $regexes ) ) {
-			$regexes = [ $regexes ];
-		}
-
-		foreach ( $regexes as $regex ) {
+		foreach ( (array)$regexes as $regex ) {
 			if ( empty( trim( $regex ) ) ) {
 				continue;
 			}
@@ -403,12 +400,7 @@ class Parameters extends ParametersData {
 				$regex = '#' . str_replace( '#', '\#', $regex ) . '#';
 			}
 
-			// Purposely silencing the errors here since we are testing if preg_match
-			// would throw an error due to a bad regex from user input.
-
-			// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-			if ( @preg_match( $regex, '' ) === false ) {
-				// @phan-suppress-previous-line PhanParamSuspiciousOrder
+			if ( !StringUtils::isValidPCRERegex( $regex ) ) {
 				return false;
 			}
 		}
