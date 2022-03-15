@@ -2110,9 +2110,9 @@ class Query {
 		if ( $option === '' ) {
 			$operator = 'LIKE';
 			$option = '%';
-		} else {
-			$option = $this->dbr->addQuotes( $option );
 		}
+
+		$option = $this->dbr->addQuotes( $option );
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$where = "(pl_title {$operator} {$option})";
@@ -2138,9 +2138,9 @@ class Query {
 		if ( $option === '' ) {
 			$operator = 'LIKE';
 			$option = '%';
-		} else {
-			$option = $this->dbr->addQuotes( $option );
 		}
+
+		$option = $this->dbr->addQuotes( $option );
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$where = "(pl_title {$operator} {$option})";
