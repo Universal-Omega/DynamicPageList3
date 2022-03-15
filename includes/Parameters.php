@@ -739,7 +739,6 @@ class Parameters extends ParametersData {
 	 */
 	public function _ordermethod( $option ) {
 		$methods = explode( ',', $option );
-		$success = true;
 
 		foreach ( $methods as $method ) {
 			if ( !in_array( $method, $this->getData( 'ordermethod' )['values'] ) ) {
