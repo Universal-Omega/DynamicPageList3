@@ -35,13 +35,6 @@ class Parse {
 	private $tableNames = [];
 
 	/**
-	 * Cache Key for this tag parse.
-	 *
-	 * @var string
-	 */
-	private $cacheKey = null;
-
-	/**
 	 * Header Output
 	 *
 	 * @var string
@@ -142,7 +135,6 @@ class Parse {
 		$this->getUrlArgs( $parser );
 
 		$this->parameters->setParameter( 'offset', $this->request->getInt( 'DPL_offset', $this->parameters->getData( 'offset' )['default'] ) );
-		$offset = $this->parameters->getParameter( 'offset' );
 
 		/***************************************/
 		/* User Input preparation and parsing. */
