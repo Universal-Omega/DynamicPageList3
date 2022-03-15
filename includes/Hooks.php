@@ -156,7 +156,7 @@ class Hooks {
 	 * @return bool
 	 */
 	public static function isLikeIntersection() {
-		return (bool)self::$likeIntersection;
+		return (bool)self::$likeIntersection || Config::getSetting( 'behavingLikeIntersection' );
 	}
 
 	/**
