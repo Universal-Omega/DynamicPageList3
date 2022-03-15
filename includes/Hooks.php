@@ -493,11 +493,6 @@ class Hooks {
 		echo '</pre>';
 	}
 
-	// remove section markers in case the LabeledSectionTransclusion extension is not installed.
-	public static function removeSectionMarkers( $in, $assocArgs = [], $parser = null ) {
-		return '';
-	}
-
 	public static function fixCategory( $cat ) {
 		if ( $cat != '' ) {
 			self::$fixedCategories[$cat] = 1;
