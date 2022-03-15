@@ -476,23 +476,6 @@ class Hooks {
 		}
 	}
 
-	private static function dumpParsedRefs( $parser, $label ) {
-		echo '<pre>parser mLinks: ';
-		ob_start();
-		var_dump( $parser->getOutput()->mLinks );
-		$a = ob_get_contents();
-		ob_end_clean();
-		echo htmlspecialchars( $a, ENT_QUOTES );
-		echo '</pre>';
-		echo '<pre>parser mTemplates: ';
-		ob_start();
-		var_dump( $parser->getOutput()->mTemplates );
-		$a = ob_get_contents();
-		ob_end_clean();
-		echo htmlspecialchars( $a, ENT_QUOTES );
-		echo '</pre>';
-	}
-
 	public static function fixCategory( $cat ) {
 		if ( $cat != '' ) {
 			self::$fixedCategories[$cat] = 1;
@@ -595,8 +578,6 @@ class Hooks {
 	 * @param DatabaseUpdater $updater
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
-		$extDir = __DIR__;
-
 		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
 
 		$db = $updater->getDB();
