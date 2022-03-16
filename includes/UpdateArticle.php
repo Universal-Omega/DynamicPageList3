@@ -296,7 +296,7 @@ class UpdateArticle {
 							$myValue = $tpv[$call][$parm];
 						}
 
-						$form .= self::editTemplateCall( $template, $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat );
+						$form .= self::editTemplateCall( $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat );
 					}
 
 					$form .= "</table>\n<br/><br/>";
@@ -426,7 +426,7 @@ class UpdateArticle {
 		}
 	}
 
-	private static function editTemplateCall( $template, $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat ) {
+	private static function editTemplateCall( $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat ) {
 		$matches = [];
 		$nlCount = preg_match_all( '/\n/', $value, $matches );
 
