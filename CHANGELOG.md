@@ -754,9 +754,9 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 # Version 3.4.1
 * Used `StringUtils::isValidPCRERegex` for checking valid regex
 * Fixed query error due to not adding quotes to '%'
-* Removed unused removeSectionMarkers function
+* Removed unused `Hooks::removeSectionMarkers()` function
 * Removed some unused code
-* Removed unimplimented configuration options
-* Removed unused parameters from `editTemplateCall`
-* Added `alwaysCacheResults` to README
+* Removed unimplimented configuration options (`behavingLikeIntersection` and `fixedCategories`)
+* Removed unused parameters from `UpdateArticle::editTemplateCall()`
+* Added `$wgDplSettings['alwaysCacheResults']` to README
 * Properly implemented `titlemaxlength` and `includemaxlength`
