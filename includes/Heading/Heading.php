@@ -177,7 +177,6 @@ class Heading {
 		$rowSize = $this->getParameters()->getParameter( 'rowsize' );
 		$rowColFormat = $this->getParameters()->getParameter( 'rowcolformat' );
 
-		$start = 0;
 		$count = 0;
 
 		$headings = Article::getHeadings();
@@ -228,7 +227,6 @@ class Heading {
 					$nstart += $hspace;
 					$portion = $headingCount;
 					$greml -= $hspace;
-					$listOutput = '';
 
 					do {
 						$greml -= $portion;
