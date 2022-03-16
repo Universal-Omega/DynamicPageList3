@@ -752,7 +752,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Some additional minor cleanup
 
 # Version 3.4.1
-* Used `StringUtils::isValidPCRERegex` for checking valid regex
+* Used `StringUtils::isValidPCRERegex()` for checking valid regex
 * Fixed query error due to not adding quotes to '%'
 * Removed unused `Hooks::removeSectionMarkers()` function
 * Removed some unused code
