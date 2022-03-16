@@ -878,6 +878,18 @@ class Parameters extends ParametersData {
 	}
 
 	/**
+	 * Clean and test 'titlemaxlength' parameter.
+	 *
+	 * @param string|int $option
+	 * @return bool
+	 */
+	public function _titlemaxlength( $option ) {
+		$this->setParameter( 'titlemaxlen', intval( $option ) );
+
+		return true;
+	}
+
+	/**
 	 * Clean and test 'titleregexp' parameter.
 	 *
 	 * @param string $option
@@ -1092,6 +1104,18 @@ class Parameters extends ParametersData {
 		}
 
 		$this->setParameter( 'seclabelsmatch', $regexes );
+
+		return true;
+	}
+
+	/**
+	 * Clean and test 'includemaxlength' parameter.
+	 *
+	 * @param string|int $option
+	 * @return bool
+	 */
+	public function _includemaxlength( $option ) {
+		$this->setParameter( 'includemaxlen', intval( $option ) );
 
 		return true;
 	}
