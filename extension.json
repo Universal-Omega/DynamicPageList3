@@ -54,7 +54,6 @@
 				"allowedNamespaces": null,
 				"allowUnlimitedCategories": false,
 				"allowUnlimitedResults": false,
-				"behavingLikeIntersection": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
 				"maxCategoryCount": 4,
