@@ -280,7 +280,6 @@ class UpdateArticle {
 							$myFormat = $format[$nr];
 						}
 
-						$myOptional = array_key_exists( $nr, $optional );
 						if ( $legendText != '' && $myToolTip == '' ) {
 							$myToolTip = preg_replace( '/^.*\<section\s+begin\s*=\s*' . preg_quote( $parm, '/' ) . '\s*\/\>/s', '', $legendText );
 
@@ -296,7 +295,7 @@ class UpdateArticle {
 							$myValue = $tpv[$call][$parm];
 						}
 
-						$form .= self::editTemplateCall( $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $myOptional, $fieldFormat );
+						$form .= self::editTemplateCall( $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $fieldFormat );
 					}
 
 					$form .= "</table>\n<br/><br/>";
@@ -426,7 +425,7 @@ class UpdateArticle {
 		}
 	}
 
-	private static function editTemplateCall( $call, $parameter, $type, $value, $format, $legend, $instruction, $optional, $fieldFormat ) {
+	private static function editTemplateCall( $call, $parameter, $type, $value, $format, $legend, $instruction, $fieldFormat ) {
 		$matches = [];
 		$nlCount = preg_match_all( '/\n/', $value, $matches );
 
