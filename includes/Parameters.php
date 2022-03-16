@@ -881,7 +881,7 @@ class Parameters extends ParametersData {
 	/**
 	 * Clean and test 'titlemaxlength' parameter.
 	 *
-	 * @param string $option
+	 * @param string|int $option
 	 * @return bool
 	 */
 	public function _titlemaxlength( $option ) {
@@ -1112,7 +1112,7 @@ class Parameters extends ParametersData {
 	/**
 	 * Clean and test 'includemaxlength' parameter.
 	 *
-	 * @param string $option
+	 * @param string|int $option
 	 * @return bool
 	 */
 	public function _includemaxlength( $option ) {
