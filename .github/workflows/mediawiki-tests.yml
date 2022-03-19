@@ -211,6 +211,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      memcached:
+        image: memcached:1.5.16
+        ports: ["11211:11211"]
+
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
       DOCKER_ORG: releng
@@ -334,9 +339,6 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
-
-      - name: Setup Memcached
-        uses: niden/actions-memcached@v7
 
       - name: Composer install
         if: ${{ matrix.stage == 'phan' }}
