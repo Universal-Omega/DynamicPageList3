@@ -368,9 +368,8 @@ jobs:
 
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
+        uses: niden/actions-memcached@v7
         run: |
-          sudo apt install supervisor
-          # sudo supervisord -c /etc/supervisor/supervisord.conf
           cd /home/runner
           # Move our extension
           sudo cp -r "${GITHUB_WORKSPACE}" src/extensions/
