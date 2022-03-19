@@ -370,7 +370,7 @@ jobs:
         continue-on-error: ${{ matrix.experimental }}
         run: |
           sudo apt install supervisor
-          supervisord -c /etc/supervisor/supervisord.conf
+          sudo supervisord -c /etc/supervisor/supervisord.conf
           cd /home/runner
           # Move our extension
           sudo cp -r "${GITHUB_WORKSPACE}" src/extensions/
