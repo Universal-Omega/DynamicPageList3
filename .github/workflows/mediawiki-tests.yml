@@ -57,7 +57,7 @@ jobs:
 
           # Latest stable MediaWiki - PHP 7.3 (coverage)
           - mw: 'REL1_36'
-            php: 7.3
+            php: 7.4
             php-docker: 73
             experimental: false
             stage: coverage
@@ -368,6 +368,8 @@ jobs:
 
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
+        env:
+          PHP_VERSION: ${{ matrix.php }}
         run: |
           cd /home/runner
           # Move our extension
