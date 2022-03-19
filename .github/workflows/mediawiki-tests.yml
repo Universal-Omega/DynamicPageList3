@@ -369,6 +369,8 @@ jobs:
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
         run: |
+          sudo apt install supervisor
+          supervisord -c /etc/supervisor/supervisord.conf
           cd /home/runner
           # Move our extension
           sudo cp -r "${GITHUB_WORKSPACE}" src/extensions/
@@ -376,7 +378,6 @@ jobs:
           chmod 777 src cache cover
           sudo chown -R nobody:nogroup src cache
           sudo chown $(id -u):$(id -g) src cache
-          sudo supervisord -c /etc/supervisor/supervisord.conf
           # Composer install
           if [ "${{ matrix.stage }}" == 'phan' ] || [ "${{ matrix.stage }}" == 'coverage' ]; then
             docker run \
