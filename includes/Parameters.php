@@ -640,8 +640,14 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _count( $option ) {
-		if ( !Config::getSetting( 'allowUnlimitedResults' ) && $option <= Config::getSetting( 'maxResultCount' ) && $option > 0 ) {
-			$this->setParameter( 'count', intval( $option ) );
+		if ( $option > 0 ) {
+			$max = Config::getSetting( 'maxResultCount' );
+
+			if ( Config::getSetting( 'allowUnlimitedResults' ) ) {
+				$max = true;
+			}
+
+			$this->setParameter( 'count', min( max( intval( $option ), 0 ), $max ) );
 
 			return true;
 		}
