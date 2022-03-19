@@ -214,7 +214,8 @@ jobs:
     services:
       memcached:
         image: memcached:latest
-        ports: ["11211:11211"]
+        ports:
+          - 11211:11211
 
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
