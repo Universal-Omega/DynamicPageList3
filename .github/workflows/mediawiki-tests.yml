@@ -335,6 +335,9 @@ jobs:
           php-version: ${{ matrix.php }}
           tools: composer:v2
 
+      - name: Setup Memcached
+        uses: niden/actions-memcached@v7
+
       - name: Composer install
         if: ${{ matrix.stage == 'phan' }}
         run: |
@@ -368,7 +371,6 @@ jobs:
 
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
-        uses: niden/actions-memcached@v7
         run: |
           cd /home/runner
           # Move our extension
