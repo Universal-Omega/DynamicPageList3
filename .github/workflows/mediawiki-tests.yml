@@ -211,12 +211,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    services:
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
       DOCKER_ORG: releng
@@ -286,12 +280,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/docker-images/${{ env.QUIBBLE_DOCKER_IMAGE }}
-          key: ${{ env.QUIBBLE_DOCKER_IMAGE }}:1.4.3-s3
+          key: ${{ env.QUIBBLE_DOCKER_IMAGE }}:${{ env.QUIBBLE_DOCKER_LATEST_TAG }}
       - name: Load or pull quibble docker image
         if: ${{ matrix.stage == 'coverage' || matrix.stage == 'phan' }}
         run: |
           docker load -i /home/runner/docker-images/"${QUIBBLE_DOCKER_IMAGE}" || \
-            docker pull "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:1.4.3-s3"
+            docker pull "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:${QUIBBLE_DOCKER_LATEST_TAG}"
 
       - name: Download MediaWiki and extensions
         run: |
@@ -388,7 +382,7 @@ jobs:
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:1.4.3-s3" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:${QUIBBLE_DOCKER_LATEST_TAG}" \
               --skip-zuul \
               --packages-source composer \
               --skip-install \
