@@ -209,10 +209,10 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      memcached:
-        image: memcached:latest
+      redis:
+        image: redis
         ports:
-          - 11211:11211
+          - 6379:6379
 
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
