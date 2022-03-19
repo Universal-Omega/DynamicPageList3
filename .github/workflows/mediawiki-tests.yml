@@ -280,12 +280,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/docker-images/${{ env.QUIBBLE_DOCKER_IMAGE }}
-          key: ${{ env.QUIBBLE_DOCKER_IMAGE }}:1.4.3-s1
+          key: ${{ env.QUIBBLE_DOCKER_IMAGE }}:0.2.1-s1
       - name: Load or pull quibble docker image
         if: ${{ matrix.stage == 'coverage' || matrix.stage == 'phan' }}
         run: |
           docker load -i /home/runner/docker-images/"${QUIBBLE_DOCKER_IMAGE}" || \
-            docker pull "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:1.4.3-s1"
+            docker pull "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:0.2.1-s1"
 
       - name: Download MediaWiki and extensions
         run: |
@@ -382,7 +382,7 @@ jobs:
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:1.4.3-s1" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:0.2.1-s1" \
               --skip-zuul \
               --packages-source composer \
               --skip-install \
@@ -394,7 +394,7 @@ jobs:
             docker run \
               -e THING_SUBNAME=extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/src:/mediawiki \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s1" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s3" \
               --color
           elif [ "${{ matrix.stage }}" == 'coverage' ] && [ -d src/extensions/"${{ github.event.repository.name }}"/tests/phpunit ]; then
             docker run \
@@ -402,7 +402,7 @@ jobs:
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
               -v "$(pwd)"/cover:/workspace/cover \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s1" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s3" \
               --skip-zuul \
               --skip-deps \
               -c mwext-phpunit-coverage
@@ -411,7 +411,7 @@ jobs:
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s1" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:1.4.3-s3" \
               --skip-zuul \
               --packages-source composer \
               --run "${{ matrix.stage }}" \
