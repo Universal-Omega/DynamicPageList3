@@ -215,12 +215,7 @@ jobs:
       memcached:
         image: memcached:latest
         ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "curl -s http://0.0.0.0:11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          - 11211/tcp
 
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
