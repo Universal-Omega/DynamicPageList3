@@ -369,11 +369,8 @@ jobs:
       - name: Main Test
         continue-on-error: ${{ matrix.experimental }}
         run: |
-          ls -R /home/runner/docker-images
-          sh /usr/local/bin/quibble-with-apache
           sudo apt install supervisor
-          sudo kill -s SIGTERM $(supervisorctl pid)
-          sudo supervisord -c /etc/supervisor/supervisord.conf
+          # sudo supervisord -c /etc/supervisor/supervisord.conf
           cd /home/runner
           # Move our extension
           sudo cp -r "${GITHUB_WORKSPACE}" src/extensions/
