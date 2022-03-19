@@ -644,7 +644,7 @@ class Parameters extends ParametersData {
 			$max = Config::getSetting( 'maxResultCount' );
 
 			if ( Config::getSetting( 'allowUnlimitedResults' ) ) {
-				$max = true;
+				$max = INF;
 			}
 
 			$this->setParameter( 'count', min( max( intval( $option ), 0 ), $max ) );
