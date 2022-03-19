@@ -2,7 +2,6 @@ name: Quibble and Phan
 
 on:
   push:
-  pull_request:
 
 jobs:
   test:
