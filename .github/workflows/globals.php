@@ -1,5 +1,5 @@
 <?php
-
+$wgMessageCacheType = CACHE_NONE;
 $wgHooks['MediaWikiServices'][] = 'wfOnMediaWikiServices';
 
 function wfOnMediaWikiServices( MediaWiki\MediaWikiServices $services ) {
