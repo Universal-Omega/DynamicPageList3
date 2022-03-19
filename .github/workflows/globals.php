@@ -1,4 +1,4 @@
 <?php
 
 $wgMessageCacheType = CACHE_ACCEL;
-$wgSessionCacheType = CACHE_NONE;
+$wgSessionCacheType = CACHE_DB;
