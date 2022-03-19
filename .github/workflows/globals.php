@@ -3,9 +3,7 @@
 $wgHooks['MediaWikiServices'][] = 'wfOnMediaWikiServices';
 
 function wfOnMediaWikiServices( MediaWiki\MediaWikiServices $services ) {
-	global $wgMainCacheType, $wgMessageCacheType, $wgUseLocalMessageCache;
+	global $wgMainCacheType;
 
-	$wgMainCacheType = 'memcached-pecl';
-	$wgMessageCacheType = CACHE_ANYTHING;
-	$wgUseLocalMessageCache = true;
+	$wgMainCacheType = CACHE_NONE;
 }
