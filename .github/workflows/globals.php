@@ -3,7 +3,10 @@
 $wgHooks['MediaWikiServices'][] = 'wfOnMediaWikiServices';
 
 function wfOnMediaWikiServices( MediaWiki\MediaWikiServices $services ) {
-	global $wgMainCacheType;
+	global $wgMemCachedServers, $wgMemCachedPersistent;
 
-	$wgMainCacheType = CACHE_NONE;
+	if ( extension_loaded( 'memcached' ) ) {
+		$wgMemCachedServers = [ '0.0.0.0:11211' ];
+		$wgMemCachedPersistent = false;
+	}
 }
