@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use DatabaseUpdater;
+use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use Parser;
 use PPFrame;
 
@@ -577,7 +578,7 @@ class Hooks {
 	 * @param DatabaseUpdater $updater
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
-		// $updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
+		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
 
 		$db = $updater->getDB();
 		if ( !$db->tableExists( 'dpl_clview' ) ) {
