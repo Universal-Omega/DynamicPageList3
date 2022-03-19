@@ -316,6 +316,9 @@ jobs:
             curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/hacks/Setup-REL1_36.php > src/includes/Setup.php
           fi
 
+          curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/globals/setup-CreateWiki.php >> .github/workflows/globals.php
+          curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/globals/fix-cache.php >> .github/workflows/globals.php
+
           if [ -e "$GITHUB_WORKSPACE"/.github/workflows/globals.php ]; then
             echo 'require_once __DIR__ . "/../extensions/${{ github.event.repository.name }}/.github/workflows/globals.php";' >> src/includes/DevelopmentSettings.php
           fi
