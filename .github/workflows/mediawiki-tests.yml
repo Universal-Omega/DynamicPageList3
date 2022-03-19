@@ -213,7 +213,7 @@ jobs:
 
     services:
       memcached:
-        image: memcached:1.5.16
+        image: memcached:latest
         ports: ["11211:11211"]
 
     env:
