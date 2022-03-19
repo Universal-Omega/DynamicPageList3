@@ -217,7 +217,7 @@ jobs:
         ports:
           - 11211:11211
         options: >-
-          --health-cmd "curl -s http://127.0.0.1:11211'"
+          --health-cmd "curl -s http://0.0.0.0:11211'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
