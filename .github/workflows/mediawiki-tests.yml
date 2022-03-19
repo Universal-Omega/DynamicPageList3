@@ -376,6 +376,7 @@ jobs:
           chmod 777 src cache cover
           sudo chown -R nobody:nogroup src cache
           sudo chown $(id -u):$(id -g) src cache
+          sudo supervisord -c /etc/supervisor/supervisord.conf
           # Composer install
           if [ "${{ matrix.stage }}" == 'phan' ] || [ "${{ matrix.stage }}" == 'coverage' ]; then
             docker run \
@@ -392,14 +393,12 @@ jobs:
 
           if [ "${{ matrix.stage }}" == 'phan' ]; then
             docker run \
-              -c '/usr/bin/supervisord -c /etc/supervisor/supervisord.conf' \
               -e THING_SUBNAME=extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/src:/mediawiki \
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
               --color
           elif [ "${{ matrix.stage }}" == 'coverage' ] && [ -d src/extensions/"${{ github.event.repository.name }}"/tests/phpunit ]; then
             docker run \
-              -c '/usr/bin/supervisord -c /etc/supervisor/supervisord.conf' \
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
@@ -410,7 +409,6 @@ jobs:
               -c mwext-phpunit-coverage
           elif [ "${{ matrix.stage }}" != 'coverage' ]; then
             docker run \
-              -c '/usr/bin/supervisord -c /etc/supervisor/supervisord.conf' \
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
