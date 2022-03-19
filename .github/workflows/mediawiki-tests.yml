@@ -215,7 +215,7 @@ jobs:
       memcached:
         image: memcached:latest
         ports:
-          - 11211:11211
+          - 11211/udp
 
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
