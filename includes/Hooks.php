@@ -3,7 +3,6 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use DatabaseUpdater;
-use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use Parser;
 use PPFrame;
 
