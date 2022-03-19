@@ -370,6 +370,7 @@ jobs:
         continue-on-error: ${{ matrix.experimental }}
         run: |
           sudo apt install supervisor
+          sudo kill -s SIGTERM $(supervisorctl pid)
           sudo supervisord -c /etc/supervisor/supervisord.conf
           cd /home/runner
           # Move our extension
