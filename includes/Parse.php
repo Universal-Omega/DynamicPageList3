@@ -148,7 +148,9 @@ class Parse {
 		}
 
 		$cleanParameters = Parameters::sortByPriority( $cleanParameters );
-		$this->parameters->setParameter( 'includeuncat', false ); // to check if pseudo-category of Uncategorized pages is included
+
+		// To check if pseudo-category of Uncategorized pages is included
+		$this->parameters->setParameter( 'includeuncat', false );
 
 		foreach ( $cleanParameters as $parameter => $option ) {
 			foreach ( $option as $_option ) {
@@ -263,16 +265,21 @@ class Parse {
 
 		// $this->addOutput($lister->format($articles));
 		if ( $foundRows === null ) {
-			$foundRows = $lister->getRowCount(); // Get row count after calling format() otherwise the count will be inaccurate.
+			// Get row count after calling format() otherwise the count will be inaccurate.
+			$foundRows = $lister->getRowCount();
 		}
 
 		/*******************************/
 		/* Replacement Variables       */
 		/*******************************/
-		$this->setVariable( 'TOTALPAGES', (string)$foundRows ); // Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() ); // This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
 
-		//Replace %DPLTIME% by execution time and timestamp in header and footer
+		// Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
+		$this->setVariable( 'TOTALPAGES', (string)$foundRows );
+
+		// This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
+		$this->setVariable( 'PAGES', $lister->getRowCount() );
+
+		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp = date( 'Y/m/d H:i:s' );
 		$dplElapsedTime = sprintf( '%.3f sec.', microtime( true ) - $dplStartTime );
 		$dplTime = "{$dplElapsedTime} ({$nowTimeStamp})";
@@ -456,7 +463,8 @@ class Parse {
 				$parameter = str_replace( '>', 'gt', $parameter );
 			}
 
-			$parameter = strtolower( $parameter ); // Force lower case for ease of use.
+			// Force lower case for ease of use.
+			$parameter = strtolower( $parameter );
 			if ( empty( $parameter ) || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
 				continue;
 			}

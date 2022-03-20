@@ -31,7 +31,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesNotInCategory(): void {
 		$results = $this->getDPLQueryResults( [
-			'namespace' => '', // NS_MAIN
+			// NS_MAIN
+			'namespace' => '',
 			'notcategory' => 'DPLTestCategory'
 		] );
 
@@ -43,7 +44,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesNotInCategoryByPrefix(): void {
 		$results = $this->getDPLQueryResults( [
-			'namespace' => '', // NS_MAIN
+			// NS_MAIN
+			'namespace' => '',
 			'titlematch' => 'DPLTest%',
 			'notcategory' => 'DPLTestCategory'
 		] );
@@ -57,7 +59,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesByPrefix(): void {
 		$results = $this->getDPLQueryResults( [
-			'namespace' => '', // NS_MAIN
+			// NS_MAIN
+			'namespace' => '',
 			'titlematch' => 'DPLTest%',
 		] );
 
@@ -124,7 +127,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertArrayEquals(
 			[ 'DPLTestArticle 1', 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
-				'namespace' => '', // NS_MAIN
+				// NS_MAIN
+				'namespace' => '',
 				'titleregexp' => 'DPLTestArticle [12]'
 			] )
 		);

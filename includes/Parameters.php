@@ -426,13 +426,17 @@ class Parameters extends ParametersData {
 		$heading = false;
 		$notHeading = false;
 
-		if ( substr( $option, 0, 1 ) == '+' ) { // categories are headings
+		if ( substr( $option, 0, 1 ) == '+' ) {
+			// categories are headings
 			$heading = true;
+
 			$option = ltrim( $option, '+' );
 		}
 
-		if ( substr( $option, 0, 1 ) == '-' ) { // categories are NOT headings
+		if ( substr( $option, 0, 1 ) == '-' ) {
+			// categories are NOT headings
 			$notHeading = true;
+
 			$option = ltrim( $option, '-' );
 		}
 
@@ -1259,11 +1263,11 @@ class Parameters extends ParametersData {
 
 		for ( $i = 0; $i < count( $sectionLabels ); $i++ ) {
 			if ( $i == 0 ) {
-				$sectionSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
+				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
 				$sectionSeparators[1] = '';
-				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink; // ."\n";
+				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
 			} else {
-				$sectionSeparators[2 * $i] = "\n|"; // ."\n";
+				$sectionSeparators[2 * $i] = "\n|";
 				$sectionSeparators[2 * $i + 1] = '';
 
 				if ( is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] == '#' ) {

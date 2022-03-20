@@ -67,7 +67,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 			$user = $this->newUserFromName( $userName );
 
 			if ( !$user || $user->idForName() !== 0 ) {
-				return; // sanity
+				// sanity
+				return;
 			}
 
 			$status = $authManager->autoCreateUser(
@@ -138,7 +139,9 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$invocation = '<dpl>';
 
 		foreach ( $params as $paramName => $values ) {
-			$values = (array)$values; // multi-value parameters
+			// multi-value parameters
+			$values = (array)$values;
+
 			foreach ( $values as $value ) {
 				$invocation .= "$paramName=$value\n";
 			}
