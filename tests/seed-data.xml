@@ -275,7 +275,7 @@
 				<username>DPLTestUser</username>
 				<id>2</id>
 			</contributor>
-			<comment>Create test page with redlinks</comment>
+			<comment>Create test page with red link</comment>
 			<origin>29</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
