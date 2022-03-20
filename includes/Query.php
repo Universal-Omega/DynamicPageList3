@@ -251,8 +251,8 @@ class Query {
 
 					$this->addSelect(
 						[
-							'page_namespace',
-							'page_title',
+							'page_namespace' => $this->tableNames['page'] . '.page_namespace',
+							'page_title' => $this->tableNames['page'] . '.page_title',
 						]
 					);
 
