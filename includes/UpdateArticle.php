@@ -183,7 +183,8 @@ class UpdateArticle {
 			}
 
 			if ( $cmd[0] == 'exec' ) {
-				$exec = $arg; // desired action (set or edit or preview)
+				// desired action (set or edit or preview)
+				$exec = $arg;
 			}
 		}
 
@@ -575,7 +576,8 @@ class UpdateArticle {
 						$c = $text[$i];
 
 						if ( $c == '{' || $c == '[' ) {
-							$cbrackets++; // we count both types of brackets
+							// we count both types of brackets
+							$cbrackets++;
 						}
 
 						if ( $c == '}' || $c == ']' ) {
@@ -595,7 +597,8 @@ class UpdateArticle {
 									$parmValue = trim( $token[1] );
 
 									if ( $parmValue == $value ) {
-										break; // no need to change when values are identical
+										// no need to change when values are identical
+										break;
 									}
 
 									// keep spaces;
@@ -680,7 +683,8 @@ class UpdateArticle {
 
 		foreach ( $rules as $rule ) {
 			if ( preg_match( '/^\s*#/', $rule ) > 0 ) {
-				continue; // # is comment symbol
+				// # is comment symbol
+				continue;
 			}
 
 			$rule = preg_replace( '/^[\s]*/', '', $rule );
@@ -731,7 +735,7 @@ class UpdateArticle {
 			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";
 		}
 
-		$message .= "<pre><nowiki>\n{$text}</nowiki></pre>"; // <pre><nowiki>\n";
+		$message .= "<pre><nowiki>\n{$text}</nowiki></pre>";
 
 		return $message;
 	}
