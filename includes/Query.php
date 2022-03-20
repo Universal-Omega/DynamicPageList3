@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\DynamicPageList3;
 use DateInterval;
 use DateTime;
 use Exception;
+use ExtensionRegistry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use MWException;
@@ -886,7 +887,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _addpagecounter( $option ) {
-		if ( class_exists( '\\HitCounters\\Hooks' ) ) {
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 			$this->addTable( 'hit_counter', 'hit_counter' );
 			$this->addSelect(
 				[
@@ -1781,7 +1782,7 @@ class Query {
 					$this->addOrderBy( 'cl1.cl_timestamp' );
 					break;
 				case 'counter':
-					if ( class_exists( '\\HitCounters\\Hooks' ) ) {
+					if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 						// If the "addpagecounter" parameter was not used the table and join need to be added now.
 						if ( !array_key_exists( 'hit_counter', $this->tables ) ) {
 							$this->addTable( 'hit_counter', 'hit_counter' );
