@@ -408,11 +408,11 @@ jobs:
               -c mwext-phpunit-coverage
           elif [ "${{ matrix.stage }}" != 'coverage' ]; then
             docker run \
+              --entrypoint quibble-with-apache \
               -e ZUUL_PROJECT=mediawiki/extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
-              --entrypoint quibble-with-apache \
               --skip-zuul \
               --packages-source composer \
               --run "${{ matrix.stage }}" \
