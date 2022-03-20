@@ -249,9 +249,16 @@ class Query {
 						'page',
 					];
 
+					$this->addSelect(
+						[
+							'page_namespace',
+							'page_title',
+						]
+					);
+
 					$this->addWhere(
 						[
-							$this->tableNames['page'] . 'page_namespace' => null,
+							'page_namespace' => null,
 						]
 					);
 
