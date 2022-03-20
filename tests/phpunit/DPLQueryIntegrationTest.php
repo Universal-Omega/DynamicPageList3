@@ -335,7 +335,6 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'DPLTestArticle 2 DPLTestAdmin',
 			'DPLTestArticle 3 DPLTestAdmin',
 			'DPLTestArticleMultipleCategories DPLTestAdmin',
-			'DPLTestOpenReferences DPLTestUser',
 		], $results );
 	}
 
