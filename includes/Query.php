@@ -942,10 +942,21 @@ class Query {
 	private function _adduser( $option, $tableAlias = '' ) {
 		$tableAlias = ( !empty( $tableAlias ) ? $tableAlias . '.' : '' );
 
+		$commentStore = new CommentStore( 'rev_comment' );
+		$commentQuery = $commentStore->getJoin();
+
+		$this->addTables( $commentQuery['tables'] );
+
 		$this->addSelect(
 			[
 				$tableAlias . 'revactor_actor',
-			]
+			] + $commentQuery['fields']
+		);
+
+		$this->addJoins(
+			[
+				'page' => [ 'JOIN', 'rev_page=page_id' ],
+			] + $commentQuery['joins']
 		);
 	}
 
