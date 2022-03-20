@@ -245,7 +245,7 @@ class Query {
 				];
 
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
-					$tables += [	
+					$tables += [
 						'page',
 					];
 
