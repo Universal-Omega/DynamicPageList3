@@ -35,7 +35,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			// NS_MAIN
 			'namespace' => '',
 			'notcategory' => 'DPLTestCategory',
-			'notcategory' => 'DPLTestCategory 2'
+			'nottitle' => 'DPLTestOpenReferences'
 		] );
 
 		$this->assertContains( 'DPLTestArticleNoCategory', $results );
@@ -50,7 +50,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'namespace' => '',
 			'titlematch' => 'DPLTest%',
 			'notcategory' => 'DPLTestCategory',
-			'notcategory' => 'DPLTestCategory 2'
+			'nottitle' => 'DPLTestOpenReferences'
 		] );
 
 		$this->assertArrayEquals(
