@@ -243,6 +243,29 @@ class Query {
 				$tables = [
 					'pagelinks'
 				];
+
+				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
+					$tables += [	
+						'page',
+					];
+
+					$this->addWhere(
+						[
+							'page_namespace' => null,
+						]
+					);
+
+					$this->addJoin(
+						'page',
+						[
+							'LEFT JOIN',
+							[
+								'page_namespace = pl_namespace',
+								'page_title = pl_title',
+							],
+						]
+					);
+				}
 			}
 		} else {
 			$tables = $this->tables;
