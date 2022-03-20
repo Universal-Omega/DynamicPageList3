@@ -335,4 +335,20 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'DPLTestArticleMultipleCategories DPLTestAdmin',
 		], $results );
 	}
+
+	public function testOpenReferences(): void {
+		$results = $this->getDPLQueryResults( [
+			'namespace' => '',
+			'openreferences' => 'missing',
+			'count' => 1
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'RedLink',
+			],
+			$results,
+			true
+		);
+	}
 }
