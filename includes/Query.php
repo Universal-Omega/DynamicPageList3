@@ -228,7 +228,7 @@ class Query {
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
+			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
 				$tables = [
 					'ic' => 'imagelinks'
 				];
