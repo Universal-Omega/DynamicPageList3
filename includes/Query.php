@@ -176,7 +176,7 @@ class Query {
 	 * @return array|bool
 	 */
 	public function buildAndSelect( bool $calcRows = false ) {
-		global $wgNonincludableNamespaces;
+		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
 
@@ -354,7 +354,9 @@ class Query {
 				);
 			}
 
-			$this->sqlQuery = $query;
+			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+				$this->sqlQuery = $query;
+			}
 
 			if ( $calcRows ) {
 				$calcRowsResult = $this->dbr->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
