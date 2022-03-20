@@ -49,7 +49,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			// NS_MAIN
 			'namespace' => '',
 			'titlematch' => 'DPLTest%',
-			'notcategory' => 'DPLTestCategory',
+			'notcategory' => 'DPLTestCategory'
 		] );
 
 		$this->assertArrayEquals(
