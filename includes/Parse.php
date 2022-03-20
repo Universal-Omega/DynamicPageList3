@@ -148,7 +148,9 @@ class Parse {
 		}
 
 		$cleanParameters = Parameters::sortByPriority( $cleanParameters );
-		$this->parameters->setParameter( 'includeuncat', false ); // to check if pseudo-category of Uncategorized pages is included
+
+		// To check if pseudo-category of Uncategorized pages is included
+		$this->parameters->setParameter( 'includeuncat', false );
 
 		foreach ( $cleanParameters as $parameter => $option ) {
 			foreach ( $option as $_option ) {
@@ -270,8 +272,12 @@ class Parse {
 		/*******************************/
 		/* Replacement Variables       */
 		/*******************************/
-		$this->setVariable( 'TOTALPAGES', (string)$foundRows ); // Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() ); // This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
+
+		// Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
+		$this->setVariable( 'TOTALPAGES', (string)$foundRows );
+
+		// This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
+		$this->setVariable( 'PAGES', $lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$nowTimeStamp = date( 'Y/m/d H:i:s' );
