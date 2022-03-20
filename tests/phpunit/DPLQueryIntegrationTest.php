@@ -50,11 +50,10 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'namespace' => '',
 			'titlematch' => 'DPLTest%',
 			'notcategory' => 'DPLTestCategory',
-			'nottitle' => 'DPLTestOpenReferences'
 		] );
 
 		$this->assertArrayEquals(
-			[ 'DPLTestArticleNoCategory', 'DPLTestArticleOtherCategoryWithInfobox' ],
+			[ 'DPLTestArticleNoCategory', 'DPLTestArticleOtherCategoryWithInfobox', 'DPLTestOpenReferences' ],
 			$results,
 			true
 		);
