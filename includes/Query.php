@@ -943,8 +943,8 @@ class Query {
 	private function _adduser( $option, $tableAlias = '' ) {
 		$tableAlias = ( !empty( $tableAlias ) ? $tableAlias . '.' : '' );
 
-		$commentStore = new CommentStore( 'rev_comment' );
-		$commentQuery = $commentStore->getJoin();
+		$commentStore = CommentStore::getStore();
+		$commentQuery = $commentStore->getJoin( 'rev_comment' );
 
 		$this->addTables( $commentQuery['tables'] );
 
