@@ -946,7 +946,7 @@ class Query {
 		$commentStore = CommentStore::getStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
 
-		$this->addTables( [ 'revision' ] + $commentQuery['tables'] );
+		$this->addTables( [ $tableAlias => 'revision' ] + $commentQuery['tables'] );
 
 		$this->addSelect(
 			[
