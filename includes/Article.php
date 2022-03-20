@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use CommentStore;
 use MediaWiki\MediaWikiServices;
 use RequestContext;
 use stdClass;
@@ -290,7 +291,8 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->revactor_timestamp;
 
-				// $article->mComment = $row->rev_comment;
+				$commentStore = CommentStore::getStore();
+				$article->mComment = $commentStore->getComment( 'rev_comment', $row );
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
