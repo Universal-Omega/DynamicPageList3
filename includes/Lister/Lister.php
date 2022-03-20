@@ -1012,7 +1012,8 @@ class Lister {
 		$matchFailed = false;
 		$septag = [];
 
-		if ( empty( $this->pageTextMatch ) || $this->pageTextMatch[0] == '*' ) { // include whole article
+		// include whole article
+		if ( empty( $this->pageTextMatch ) || $this->pageTextMatch[0] == '*' ) {
 			$title = $article->mTitle->getPrefixedText();
 
 			if ( $this->getStyle() == self::LIST_USERFORMAT ) {
