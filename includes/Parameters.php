@@ -426,15 +426,17 @@ class Parameters extends ParametersData {
 		$heading = false;
 		$notHeading = false;
 
-		// categories are headings
 		if ( substr( $option, 0, 1 ) == '+' ) {
+			// categories are headings
 			$heading = true;
+
 			$option = ltrim( $option, '+' );
 		}
 
-		// categories are NOT headings
 		if ( substr( $option, 0, 1 ) == '-' ) {
+			// categories are NOT headings
 			$notHeading = true;
+
 			$option = ltrim( $option, '-' );
 		}
 
