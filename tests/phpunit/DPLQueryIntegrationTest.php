@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\DynamicPageList3\Tests;
 /**
  * @group DynamicPageList3
  * @group Database
+ * @covers \MediaWiki\Extension\DynamicPageList3\Query
  */
 class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
