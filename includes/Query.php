@@ -251,7 +251,7 @@ class Query {
 
 					$this->addWhere(
 						[
-							'page_namespace' => null,
+							$this->tableNames['page'] . 'page_namespace' => null,
 						]
 					);
 
