@@ -337,8 +337,9 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		], $results );
 	}
 
-	public function testOpenReferences(): void {
+	public function testOpenReferencesMissing(): void {
 		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
 			'namespace' => '',
 			'openreferences' => 'missing',
 			'count' => 1
