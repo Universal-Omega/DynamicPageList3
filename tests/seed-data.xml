@@ -279,7 +279,7 @@
 			<origin>29</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text xml:space="preserve">[[DPLUncategorizedPage]][[RedLink]]</text>
+			<text xml:space="preserve">[[DPLTestArticle 1]][[DPLTestArticle 2]][[RedLink]][[DPLTestArticle 3]]</text>
 			<sha1 />
 		</revision>
 	</page>
