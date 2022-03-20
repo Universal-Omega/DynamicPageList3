@@ -763,3 +763,9 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.4.2
 * Fixed `minoredits` parameter
+
+# Version 3.4.3
+* Fixed all `PEAR.Functions.ValidDefaultValue.NotAtEnd` PHPCS violations and enabled it
+* Used `quibble-with-apache` entrypoint in CI
+* Fixed `$wgDplSettings['allowUnlimitedResults']`
+* Fixed behavior for `$wgDplSettings['maxResultCount']`
