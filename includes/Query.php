@@ -951,6 +951,7 @@ class Query {
 		$this->addSelect(
 			[
 				$tableAlias . 'revactor_actor',
+				$tableAlias . 'rev_id',
 			] + $commentQuery['fields']
 		);
 
