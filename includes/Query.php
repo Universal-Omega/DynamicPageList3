@@ -228,21 +228,55 @@ class Query {
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
+			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
 				$tables = [
 					'ic' => 'imagelinks'
 				];
 			} else {
-				$this->addSelect(
-					[
-						'pl_namespace',
-						'pl_title'
-					]
-				);
+				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
+					$this->addSelect(
+						[
+							'page_namespace',
+							'page_id',
+							'page_title',
+							'pl_namespace',
+							'pl_title',
+						]
+					);
 
-				$tables = [
-					'pagelinks'
-				];
+					$this->addWhere(
+						[
+							'page_namespace' => null,
+						]
+					);
+
+					$this->addJoin(
+						'page',
+						[
+							'LEFT JOIN',
+							[
+								'page_namespace = pl_namespace',
+								'page_title = pl_title',
+							],
+						]
+					);
+
+					$tables = [
+						'page',
+						'pagelinks',
+					];
+				} else {
+					$this->addSelect(
+						[
+							'pl_namespace',
+							'pl_title',
+						]
+					);
+
+					$tables = [
+						'pagelinks',
+					];
+				}
 			}
 		} else {
 			$tables = $this->tables;

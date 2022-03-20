@@ -34,7 +34,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
 			'namespace' => '',
-			'notcategory' => 'DPLTestCategory'
+			'notcategory' => 'DPLTestCategory',
+			'nottitle' => 'DPLTestOpenReferences'
 		] );
 
 		$this->assertContains( 'DPLTestArticleNoCategory', $results );
@@ -52,7 +53,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		] );
 
 		$this->assertArrayEquals(
-			[ 'DPLTestArticleNoCategory', 'DPLTestArticleOtherCategoryWithInfobox' ],
+			[ 'DPLTestArticleNoCategory', 'DPLTestArticleOtherCategoryWithInfobox', 'DPLTestOpenReferences' ],
 			$results,
 			true
 		);
@@ -334,5 +335,22 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'DPLTestArticle 3 DPLTestAdmin',
 			'DPLTestArticleMultipleCategories DPLTestAdmin',
 		], $results );
+	}
+
+	public function testOpenReferencesMissing(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'openreferences' => 'missing',
+			'count' => 1
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'RedLink',
+			],
+			$results,
+			true
+		);
 	}
 }

@@ -383,20 +383,13 @@ class Parse {
 				$pageNamespace = NS_CATEGORY;
 				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
-				if ( count( $this->parameters->getParameter( 'imagecontainer' ) ) > 0 ) {
+				if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
 					$pageNamespace = NS_FILE;
 					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
 					$pageNamespace = $row->pl_namespace;
 					$pageTitle = $row->pl_title;
-				}
-
-				if (
-					$this->parameters->getParameter( 'openreferences' ) === 'missing' &&
-					Title::makeTitle( $pageNamespace, $pageTitle )->exists()
-				) {
-					continue;
 				}
 			} else {
 				// Existing PAGE TITLE
