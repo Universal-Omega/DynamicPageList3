@@ -218,8 +218,7 @@ class Parse {
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
 
-		global $wgDebugDumpSql;
-		if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+		if ( $query->getSqlQuery() ) {
 			$this->addOutput( $query->getSqlQuery() . "\n" );
 		}
 
