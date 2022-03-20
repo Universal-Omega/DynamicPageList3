@@ -946,12 +946,12 @@ class Query {
 		$commentStore = CommentStore::getStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
 
-		$this->addTables( [ 'page', 'revision' ] + $commentQuery['tables'] );
+		$this->addTables( [ 'page' ] + $commentQuery['tables'] );
 
 		$this->addSelect(
 			[
 				$tableAlias . 'revactor_actor',
-				'rev_id',
+				'rev_id' => $tableAlias . 'revactor_rev',
 			] + $commentQuery['fields']
 		);
 
