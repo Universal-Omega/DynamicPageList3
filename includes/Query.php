@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use CommentStore;
 use DateInterval;
 use DateTime;
 use Exception;
