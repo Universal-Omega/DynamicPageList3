@@ -238,7 +238,7 @@ class Parse {
 
 		$foundRows = null;
 		if ( $calcRows ) {
-			$foundRows = $rows->count;
+			$foundRows = $rows['count'];
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.
