@@ -595,7 +595,7 @@ class Parse {
 			return false;
 		}
 
-		if ( $this->parameters->getParameter( 'results' . $position ) !== null && ( $count >= 2 || ( $this->parameters->getParameter( 'oneresult' . $position ) === null && $count >= 1 ) ) ) {
+		if ( $count >= 2 && $this->parameters->getParameter( 'results' . $position ) !== null ) {
 			$_type = 'results' . $position;
 		} elseif ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
 			$_type = 'oneresult' . $position;
