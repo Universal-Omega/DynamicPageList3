@@ -357,13 +357,6 @@ class Query {
 			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
 				$this->sqlQuery = $query;
 			}
-
-			if ( $calcRows ) {
-				$calcRowsResult = $this->dbr->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
-				$total = $calcRowsResult->fetchRow();
-				$this->foundRows = intval( $total['rowcount'] );
-				$calcRowsResult->free();
-			}
 		} catch ( Exception $e ) {
 			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
@@ -384,8 +377,15 @@ class Query {
 		$join = $this->join;
 		$dbr = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join ) {
+		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
+
+			if ( $calcRows ) {
+				$calcRowsResult = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount;', __METHOD__ );
+				$total = $calcRowsResult->fetchRow();
+				$res->count = $total['rowcount'];
+			}
+
 			return iterator_to_array( $res );
 		};
 
