@@ -380,11 +380,13 @@ class Query {
 		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 
+			$db = $dbr;
+
 			if ( $calcRows ) {
-				$count = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount;', __METHOD__ );
+				$count = $db->query( 'SELECT FOUND_ROWS() AS rowcount;', $qname );
 
 				return array_merge(
-					...(array)array_merge( iterator_to_array( $res ), iterator_to_array( $count ) )
+					...array_merge( (array)iterator_to_array( $res ), iterator_to_array( $count ) )
 				);
 			}
 
