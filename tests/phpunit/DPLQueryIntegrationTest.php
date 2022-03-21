@@ -341,11 +341,12 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
 			'resultsheader' => '%TOTALPAGES%',
-			'count' => 1
-		], '%TOTALPAGES%' );
+			'count' => 2
+		] );
 
 		$this->assertEquals( [
-			'4',
+			'DPLTestArticle 1',
+			'DPLTestArticle 2',
 		], $results );
 	}
 
