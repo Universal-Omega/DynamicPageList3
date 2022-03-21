@@ -375,9 +375,9 @@ class Query {
 			$res = $db->select( $tables, $fields, $where, $qname, $options, $join );
 
 			if ( $calcRows ) {
-				$count = $db->query( 'SELECT FOUND_ROWS() AS rowcount;', $qname );
+				$count = $db->query( 'SELECT FOUND_ROWS() AS count;', $qname );
 				$total = $count->fetchRow();
-				$foundRows = $total['rowcount'];
+				$foundRows = (int)$total['count'];
 			}
 
 			return iterator_to_array( $res );
