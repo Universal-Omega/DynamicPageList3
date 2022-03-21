@@ -340,11 +340,11 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 	public function testTotalPagesInHeader(): void {
 		$results = $this->runDPLQuery( [
 			'category' => 'DPLTestCategory',
-			'resultsheader' => '%TOTALPAGES%',
+			'resultsheader' => 'TOTALPAGES: %TOTALPAGES%',
 			'count' => 2
 		] );
 
-		$this->assertSame( 'DPLTestArticle 1', $results );
+		$this->assertContains( 'TOTALPAGES: 4', $results );
 	}
 
 	public function testOpenReferencesMissing(): void {
