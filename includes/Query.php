@@ -136,13 +136,6 @@ class Query {
 	private $collation = false;
 
 	/**
-	 * Number of Rows Found
-	 *
-	 * @var int
-	 */
-	private $foundRows = 0;
-
-	/**
 	 * Was the revision auxiliary table select added for firstedit and lastedit?
 	 *
 	 * @var bool
@@ -424,15 +417,6 @@ class Query {
 				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
 			]
 		);
-	}
-
-	/**
-	 * Return the number of found rows.
-	 *
-	 * @return int
-	 */
-	public function getFoundRows() {
-		return $this->foundRows;
 	}
 
 	/**
