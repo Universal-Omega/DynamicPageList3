@@ -341,6 +341,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
 			'resultsheader' => 'Total: %TOTALPAGES%',
+			'debug' => 5,
 			'count' => 3
 		] );
 
