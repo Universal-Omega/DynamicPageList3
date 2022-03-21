@@ -384,10 +384,9 @@ class Query {
 
 			if ( $calcRows ) {
 				$count = $db->query( 'SELECT FOUND_ROWS() AS rowcount;', $qname );
+				$row = $count->fetchObject();
 
-				return array_merge(
-					...array_merge( (array)iterator_to_array( $res ), iterator_to_array( $count ) )
-				);
+				return iterator_to_array( $res ) + iterator_to_array( $count );
 			}
 
 			return iterator_to_array( $res );
