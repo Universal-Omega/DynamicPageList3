@@ -397,8 +397,8 @@ class Query {
 		return $cache->getWithSetCallback(
 			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
-			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
-				$setOpts += Database::getCacheSetOptions( $dbr );
+			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $db ){
+				$setOpts += Database::getCacheSetOptions( $db );
 				$res = $worker->execute();
 				if ( $res === false ) {
 					// Do not cache errors.
