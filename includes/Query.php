@@ -369,12 +369,10 @@ class Query {
 		$qname = __METHOD__ . ' - ' . $pageName;
 		$where = $this->where;
 		$join = $this->join;
-		$dbr = $this->dbr;
+		$db = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
-			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
-
-			$db = $dbr;
+		$doQuery = static function () use ( $qname, $db, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
+			$res = $db->select( $tables, $fields, $where, $qname, $options, $join );
 
 			if ( $calcRows ) {
 				$count = $db->query( 'SELECT FOUND_ROWS() AS rowcount;', $qname );
