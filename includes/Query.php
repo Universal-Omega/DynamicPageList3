@@ -166,9 +166,10 @@ class Query {
 	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
+	 * @param ?int &$foundRows
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false ) {
+	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
@@ -370,7 +371,7 @@ class Query {
 		$join = $this->join;
 		$dbr = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows ) {
+		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 
 			$db = $dbr;
@@ -378,8 +379,7 @@ class Query {
 			if ( $calcRows ) {
 				$count = $db->query( 'SELECT FOUND_ROWS() AS rowcount;', $qname );
 				$total = $count->fetchRow();
-
-				return iterator_to_array( $res ) + [ 'rowcount' => $total['rowcount'] ];
+				$foundRows = $total['rowcount'];
 			}
 
 			return iterator_to_array( $res );
