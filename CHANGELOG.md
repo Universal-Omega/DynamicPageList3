@@ -777,3 +777,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed `openreferences=missing` count
 * Only set `Query::sqlQuery` if used for debug
 * Fixed `firstrevisionsince` and `lastrevisionbefore` parameters
+
+# Version 3.4.5
+* Fixed `%TOTALPAGES%` usage
