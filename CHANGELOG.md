@@ -769,3 +769,11 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Used `quibble-with-apache` entrypoint in CI
 * Fixed `$wgDplSettings['allowUnlimitedResults']`
 * Fixed behavior for `$wgDplSettings['maxResultCount']`
+
+# Version 3.4.4
+* Fixed all `MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment` PHPCS violations and enable it
+* Used `ExtensionRegistry::getInstance()->isLoaded()` for checking HitCounters
+* Fixed all `MediaWiki.Commenting.MissingCovers.MissingCovers` PHPCS violations and enable it
+* Fixed `openreferences=missing` count
+* Only set `Query::sqlQuery` if used for debug
+* Fixed `firstrevisionsince` and `lastrevisionbefore` parameters
