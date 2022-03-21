@@ -200,7 +200,9 @@ class Parse {
 		/*********/
 		try {
 			$query = new Query( $this->parameters );
-			$rows = $query->buildAndSelect( $calcRows );
+
+			$foundRows = null;
+			$rows = $query->buildAndSelect( $calcRows, $foundRows );
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -213,13 +215,6 @@ class Parse {
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
-		}
-
-		$foundRows = null;
-		if ( $calcRows ) {
-			$foundRows = $rows['rowcount'];
-
-			unset( $rows['rowcount'] );
 		}
 
 		$numRows = count( $rows );
