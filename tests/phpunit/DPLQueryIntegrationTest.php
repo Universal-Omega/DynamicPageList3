@@ -343,7 +343,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'namespace' => '',
 			'openreferences' => 'missing',
 			'count' => 1
-		] );
+		], '%TOTALPAGES%' );
 
 		$this->assertArrayEquals(
 			[
