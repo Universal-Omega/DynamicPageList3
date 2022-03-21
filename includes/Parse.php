@@ -215,6 +215,13 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
+		$foundRows = null;
+		if ( $calcRows ) {
+			$foundRows = $rows['rowcount'];
+
+			unset( $rows['rowcount'] );
+		}
+
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
 
@@ -234,11 +241,6 @@ class Parse {
 		/*********************/
 		if ( $numRows == 0 || empty( $articles ) ) {
 			return $this->getFullOutput( 0, false );
-		}
-
-		$foundRows = null;
-		if ( $calcRows ) {
-			$foundRows = $rows['rowcount'];
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.
