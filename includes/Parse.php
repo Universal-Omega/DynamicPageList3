@@ -200,7 +200,9 @@ class Parse {
 		/*********/
 		try {
 			$query = new Query( $this->parameters );
-			$rows = $query->buildAndSelect( $calcRows );
+
+			$foundRows = null;
+			$rows = $query->buildAndSelect( $calcRows, $foundRows );
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -234,11 +236,6 @@ class Parse {
 		/*********************/
 		if ( $numRows == 0 || empty( $articles ) ) {
 			return $this->getFullOutput( 0, false );
-		}
-
-		$foundRows = null;
-		if ( $calcRows ) {
-			$foundRows = $query->getFoundRows();
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.

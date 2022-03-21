@@ -136,13 +136,6 @@ class Query {
 	private $collation = false;
 
 	/**
-	 * Number of Rows Found
-	 *
-	 * @var int
-	 */
-	private $foundRows = 0;
-
-	/**
 	 * Was the revision auxiliary table select added for firstedit and lastedit?
 	 *
 	 * @var bool
@@ -173,9 +166,10 @@ class Query {
 	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
+	 * @param ?int &$foundRows
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false ) {
+	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
@@ -357,13 +351,6 @@ class Query {
 			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
 				$this->sqlQuery = $query;
 			}
-
-			if ( $calcRows ) {
-				$calcRowsResult = $this->dbr->query( 'SELECT FOUND_ROWS() AS rowcount', __METHOD__ );
-				$total = $calcRowsResult->fetchRow();
-				$this->foundRows = intval( $total['rowcount'] );
-				$calcRowsResult->free();
-			}
 		} catch ( Exception $e ) {
 			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
@@ -382,10 +369,18 @@ class Query {
 		$qname = __METHOD__ . ' - ' . $pageName;
 		$where = $this->where;
 		$join = $this->join;
-		$dbr = $this->dbr;
+		$db = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join ) {
-			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
+		$doQuery = static function () use ( $qname, $db, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
+			$res = $db->select( $tables, $fields, $where, $qname, $options, $join );
+
+			if ( $calcRows ) {
+				$calcRowsResult = $db->query( 'SELECT FOUND_ROWS() AS count;', $qname );
+				$total = $calcRowsResult->fetchRow();
+
+				$foundRows = (int)$total['count'];
+			}
+
 			return iterator_to_array( $res );
 		};
 
@@ -403,8 +398,8 @@ class Query {
 		return $cache->getWithSetCallback(
 			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
-			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
-				$setOpts += Database::getCacheSetOptions( $dbr );
+			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $db ){
+				$setOpts += Database::getCacheSetOptions( $db );
 				$res = $worker->execute();
 				if ( $res === false ) {
 					// Do not cache errors.
@@ -421,15 +416,6 @@ class Query {
 				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
 			]
 		);
-	}
-
-	/**
-	 * Return the number of found rows.
-	 *
-	 * @return int
-	 */
-	public function getFoundRows() {
-		return $this->foundRows;
 	}
 
 	/**
