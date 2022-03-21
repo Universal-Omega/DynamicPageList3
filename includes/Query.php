@@ -383,7 +383,9 @@ class Query {
 			if ( $calcRows ) {
 				$count = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount;', __METHOD__ );
 
-				return array_merge_recursive( iterator_to_array( $res ), iterator_to_array( $count ) );
+				return array_merge(
+					...array_merge( iterator_to_array( $res ), iterator_to_array( $count ) )
+				);
 			}
 
 			return iterator_to_array( $res );
