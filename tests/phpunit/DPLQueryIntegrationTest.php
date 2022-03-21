@@ -337,13 +337,25 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		], $results );
 	}
 
+	public function testTotalPagesInHeader(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory',
+			'resultsheader' => '%TOTALPAGES%',
+			'count' => 1
+		], '%TOTALPAGES%' );
+
+		$this->assertEquals( [
+			'4',
+		], $results );
+	}
+
 	public function testOpenReferencesMissing(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
 			'namespace' => '',
 			'openreferences' => 'missing',
 			'count' => 1
-		], '%TOTALPAGES%' );
+		] );
 
 		$this->assertArrayEquals(
 			[
