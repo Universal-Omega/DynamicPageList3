@@ -381,9 +381,9 @@ class Query {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 
 			if ( $calcRows ) {
-				$calcRowsResult = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount;', __METHOD__ );
-				$total = $calcRowsResult->fetchRow();
-				$res->count = $total['rowcount'];
+				$count = $dbr->query( 'SELECT FOUND_ROWS() AS rowcount;', __METHOD__ );
+
+				return array_merge( iterator_to_array( $res ), iterator_to_array( $count ) );
 			}
 
 			return iterator_to_array( $res );
