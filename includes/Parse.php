@@ -741,7 +741,15 @@ class Parse {
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		// firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ( $this->parameters->getParameter( 'addeditdate' ) && !array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && ( $this->parameters->getParameter( 'allrevisionsbefore' ) || $this->parameters->getParameter( 'allrevisionssince' ) || $this->parameters->getParameter( 'firstrevisionsince' ) || $this->parameters->getParameter( 'lastrevisionbefore' ) ) ) {
+		if (
+			$this->parameters->getParameter( 'addeditdate' ) &&
+			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && (
+				$this->parameters->getParameter( 'allrevisionsbefore' ) ||
+				$this->parameters->getParameter( 'allrevisionssince' ) ||
+				$this->parameters->getParameter( 'firstrevisionsince' ) ||
+				$this->parameters->getParameter( 'lastrevisionbefore' )
+			)
+		) {
 			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
 
 			return false;
@@ -766,7 +774,19 @@ class Parse {
 		}
 
 		// add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ( $this->parameters->getParameter( 'mode' ) == 'category' && ( $this->parameters->getParameter( 'addcategories' ) || $this->parameters->getParameter( 'addeditdate' ) || $this->parameters->getParameter( 'addfirstcategorydate' ) || $this->parameters->getParameter( 'addpagetoucheddate' ) || $this->parameters->getParameter( 'incpage' ) || $this->parameters->getParameter( 'adduser' ) || $this->parameters->getParameter( 'addauthor' ) || $this->parameters->getParameter( 'addcontribution' ) || $this->parameters->getParameter( 'addlasteditor' ) ) ) {
+		if (
+			$this->parameters->getParameter( 'mode' ) === 'category' && (
+				$this->parameters->getParameter( 'addcategories' ) ||
+				$this->parameters->getParameter( 'addeditdate' ) ||
+				$this->parameters->getParameter( 'addfirstcategorydate' ) ||
+				$this->parameters->getParameter( 'addpagetoucheddate' ) ||
+				$this->parameters->getParameter( 'incpage' ) ||
+				$this->parameters->getParameter( 'adduser' ) ||
+				$this->parameters->getParameter( 'addauthor' ) ||
+				$this->parameters->getParameter( 'addcontribution' ) ||
+				$this->parameters->getParameter( 'addlasteditor' )
+			)
+		) {
 			$this->logger->addMessage( Hooks::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
