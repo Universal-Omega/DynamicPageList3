@@ -229,6 +229,9 @@ class LST {
 	 * @param string $page
 	 * @param string $sec
 	 * @param string $to
+	 * @param bool $recursionCheck
+	 * @param bool $trim
+	 * @param array $skipPattern
 	 * @return array
 	 */
 	public static function includeSection( $parser, $page = '', $sec = '', $to = '', $recursionCheck = true, $trim = false, $skipPattern = [] ) {
@@ -386,6 +389,19 @@ class LST {
 		}
 	}
 
+	/**
+	 * @param Parser $parser
+	 * @param string $page
+	 * @param string $sec
+	 * @param string $to
+	 * @param array &$sectionHeading
+	 * @param bool $recursionCheck
+	 * @param int $maxLength
+	 * @param string $link
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return array
+	 */
 	public static function includeHeading( $parser, $page, $sec, $to, &$sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern ) {
 		$output = [];
 
@@ -401,7 +417,23 @@ class LST {
 		return self::extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 	}
 
-	// section inclusion - include all matching sections (return array)
+	/**
+	 * Section inclusion - include all matching sections
+	 *
+	 * @param Parser $parser
+	 * @param string $page
+	 * @param Title|string $title
+	 * @param string $text
+	 * @param string $sec
+	 * @param string $to
+	 * @param array &$sectionHeading
+	 * @param bool $recursionCheck
+	 * @param int $maxLength
+	 * @param string $clink
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return array
+	 */
 	public static function extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, &$sectionHeading, $recursionCheck, $maxLength, $cLink, $trim, $skipPattern = [] ) {
 		$continueSearch = true;
 		$output = [];
@@ -830,6 +862,10 @@ class LST {
 		return $output;
 	}
 
+	/**
+	 * @param string $pattern
+	 * @return string
+	 */
 	public static function spaceOrUnderscore( $pattern ) {
 		// returns a pettern that matches underscores as well as spaces
 		return str_replace( ' ', '[ _]', $pattern );
