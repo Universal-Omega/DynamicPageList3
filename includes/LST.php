@@ -91,6 +91,7 @@ class LST {
 	 * @param string $link
 	 * @param bool $trim
 	 * @param array $skipPattern
+	 * @return string
 	 */
 	private static function parse( $parser, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = [] ) {
 		// if someone tries something like<section begin=blah>lst only</section>
@@ -133,6 +134,7 @@ class LST {
 	 * @param string $sec
 	 * @param string $to
 	 * @param bool &$any
+	 * @return string
 	 */
 	private static function createSectionPattern( $sec, $to, &$any ) {
 		$any = false;
@@ -429,7 +431,7 @@ class LST {
 	 * @param array &$sectionHeading
 	 * @param bool $recursionCheck
 	 * @param int $maxLength
-	 * @param string $clink
+	 * @param string $cLink
 	 * @param bool $trim
 	 * @param array $skipPattern
 	 * @return array
@@ -596,11 +598,26 @@ class LST {
 		return $output;
 	}
 
-	// template inclusion - find the place(s) where template1 is called,
-	// replace its name by template2, then expand template2 and return the result
-	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
-	// and do NOT match the condition "$mustNotMatch" (if specified)
-	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
+	/**
+	 * Template inclusion - find the place(s) where template1 is called,
+	 * replace its name by template2, then expand template2 and return the result
+	 * we return an array containing all occurences of the template call which match the condition "$mustMatch"
+	 * and do NOT match the condition "$mustNotMatch" (if specified)
+	 * we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
+	 *
+	 * @param Parser $parser
+	 * @param Lister $lister
+	 * @param mixed $dplNr
+	 * @param Article $article
+	 * @param string $template1
+	 * @param string $template2
+	 * @param string $defaultTemplate
+	 * @param bool $mustMatch
+	 * @param bool $mustNotMatch
+	 * @param bool $matchParsed
+	 * @param string $catlist
+	 * @return array
+	 */
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1, $template2, $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
 		$page = $article->mTitle->getPrefixedText();
 		$date = $article->myDate;
