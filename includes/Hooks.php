@@ -513,7 +513,6 @@ class Hooks {
 
 	/**
 	 * @param string $cat
-	 * @return string
 	 */
 	public static function fixCategory( $cat ) {
 		if ( $cat != '' ) {
