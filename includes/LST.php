@@ -199,7 +199,7 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $page title text of target page
-	 * @param Title &$title normalized title object
+	 * @param Title|string &$title normalized title object
 	 * @param string &$text wikitext output
 	 * @return bool true if returning text, false if target not found
 	 */
