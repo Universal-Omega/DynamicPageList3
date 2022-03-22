@@ -112,22 +112,9 @@ class LST {
 		}
 	}
 
-	# #############################################################
+	##############################################################
 	# And now, the labeled section transclusion
 	##############################################################
-
-	/**
-	 * Parser tag hook for <section>.
-	 * The section markers aren't paired, so we only need to remove them.
-	 *
-	 * @param string $in
-	 * @param array $assocArgs
-	 * @param Parser $parser
-	 * @return string
-	 */
-	private static function noop( $in, $assocArgs = [], $parser = null ) {
-		return '';
-	}
 
 	// Generate a regex to match the section(s) we're interested in.
 	private static function createSectionPattern( $sec, $to, &$any ) {
