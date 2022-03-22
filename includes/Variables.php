@@ -17,8 +17,13 @@ class Variables {
 	 */
 	public static $memoryArray = [];
 
-	// expects pairs of 'variable name' and 'value'
-	// if the first parameter is empty it will be ignored {{#vardefine:|a|b}} is the same as {{#vardefine:a|b}}
+	/**
+	 * Expects pairs of 'variable name' and 'value'
+	 * if the first parameter is empty it will be ignored {{#vardefine:|a|b}} is the same as {{#vardefine:a|b}}
+	 *
+	 * @param array $arg
+	 * @return string
+	 */
 	public static function setVar( $arg ) {
 		$numargs = count( $arg );
 
@@ -41,6 +46,10 @@ class Variables {
 		return '';
 	}
 
+	/**
+	 * @param array $arg
+	 * @return string
+	 */
 	public static function setVarDefault( $arg ) {
 		$numargs = count( $arg );
 
@@ -59,6 +68,10 @@ class Variables {
 		return '';
 	}
 
+	/**
+	 * @param string $var
+	 * @return string
+	 */
 	public static function getVar( $var ) {
 		if ( array_key_exists( $var, self::$memoryVar ) ) {
 			return self::$memoryVar[$var];
@@ -67,6 +80,10 @@ class Variables {
 		return '';
 	}
 
+	/**
+	 * @param array $arg
+	 * @return string
+	 */
 	public static function setArray( $arg ) {
 		$numargs = count( $arg );
 
@@ -84,7 +101,7 @@ class Variables {
 
 		if ( $value == '' ) {
 			self::$memoryArray[$var] = [];
-			return;
+			return '';
 		}
 
 		if ( $delimiter == '' ) {
@@ -92,7 +109,7 @@ class Variables {
 				$value
 			];
 
-			return;
+			return '';
 		}
 
 		if ( strpos( $delimiter, '/' ) !== 0 || ( strlen( $delimiter ) - 1 ) !== strrpos( $delimiter, '/' ) ) {
@@ -104,6 +121,10 @@ class Variables {
 		return "value={$value}, delimiter={$delimiter}," . count( self::$memoryArray[$var] );
 	}
 
+	/**
+	 * @param array $arg
+	 * @return string
+	 */
 	public static function dumpArray( $arg ) {
 		$numargs = count( $arg );
 
@@ -128,6 +149,13 @@ class Variables {
 		return $text . "}\n";
 	}
 
+	/**
+	 * @param string $var
+	 * @param string $delimiter
+	 * @param string $search
+	 * @param string $subject
+	 * @return array|string
+	 */
 	public static function printArray( $var, $delimiter, $search, $subject ) {
 		$var = trim( $var );
 

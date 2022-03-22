@@ -33,16 +33,17 @@ use Parser;
 use Title;
 
 class LST {
-	# #############################################################
-	# To do transclusion from an extension, we need to interact with the parser
-	# at a low level. This is the general transclusion functionality
-	##############################################################
+
+	/*
+	 * To do transclusion from an extension, we need to interact with the parser
+	 * at a low level. This is the general transclusion functionality
+	 */
 
 	/**
 	 * Register what we're working on in the parser, so we don't fall into a trap.
 	 *
 	 * @param Parser $parser
-	 * @param $part1
+	 * @param string $part1
 	 * @return bool
 	 *
 	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
@@ -64,7 +65,7 @@ class LST {
 	 * Finish processing the function.
 	 *
 	 * @param Parser $parser
-	 * @param $part1
+	 * @param string $part1
 	 *
 	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
@@ -80,6 +81,17 @@ class LST {
 	/**
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
+	 *
+	 * @param Parser $parser
+	 * @param string $text
+	 * @param string $part1
+	 * @param int $skiphead
+	 * @param bool $recursionCheck
+	 * @param int $maxLength
+	 * @param string $link
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return string
 	 */
 	private static function parse( $parser, $text, $part1, $skiphead = 0, $recursionCheck = true, $maxLength = -1, $link = '', $trim = false, $skipPattern = [] ) {
 		// if someone tries something like<section begin=blah>lst only</section>
@@ -112,11 +124,18 @@ class LST {
 		}
 	}
 
-	##############################################################
-	# And now, the labeled section transclusion
-	##############################################################
+	/*
+	 * And now, the labeled section transclusion
+	 */
 
-	// Generate a regex to match the section(s) we're interested in.
+	/**
+	 * Generate a regex to match the section(s) we're interested in.
+	 *
+	 * @param string $sec
+	 * @param string $to
+	 * @param bool &$any
+	 * @return string
+	 */
 	private static function createSectionPattern( $sec, $to, &$any ) {
 		$any = false;
 		$to_sec = ( $to == '' ) ? $sec : $to;
@@ -154,8 +173,8 @@ class LST {
 	 * prevent wrong heading links.
 	 *
 	 * @param string $text
-	 * @param int $limit
-	 * @return int
+	 * @param int $limit Cutoff point in the text to stop searching
+	 * @return int Number of matches
 	 */
 	private static function countHeadings( $text, $limit ) {
 		$pat = '^(={1,6}).+\1\s*$()';
@@ -176,6 +195,16 @@ class LST {
 		return $count;
 	}
 
+	/**
+	 * Fetches content of target page if valid and found, otherwise
+	 * produces wikitext of a link to the target page.
+	 *
+	 * @param Parser $parser
+	 * @param string $page title text of target page
+	 * @param Title|string &$title normalized title object
+	 * @param string &$text wikitext output
+	 * @return bool true if returning text, false if target not found
+	 */
 	public static function text( $parser, $page, &$title, &$text ) {
 		$title = Title::newFromText( $page );
 
@@ -195,7 +224,18 @@ class LST {
 		}
 	}
 
-	// section inclusion - include all matching sections
+	/**
+	 * section inclusion - include all matching sections
+	 *
+	 * @param Parser $parser
+	 * @param string $page
+	 * @param string $sec
+	 * @param string $to
+	 * @param bool $recursionCheck
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return array
+	 */
 	public static function includeSection( $parser, $page = '', $sec = '', $to = '', $recursionCheck = true, $trim = false, $skipPattern = [] ) {
 		$output = [];
 
@@ -210,7 +250,7 @@ class LST {
 		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
 
 		foreach ( $m[2] as $nr => $piece ) {
-			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern );
+			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, -1, '', $trim, $skipPattern );
 
 			if ( $any ) {
 				$output[] = $m[1][$nr] . '::' . $piece;
@@ -230,9 +270,9 @@ class LST {
 	 * ... it is cut at a word boundary (white space) if possible
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
-	 * @param $text the wikitext to be truncated
-	 * @param $limit limit of character count for the result
-	 * @param $link an optional link which will be appended to the text if it was truncated
+	 * @param string $text the wikitext to be truncated
+	 * @param int $limit limit of character count for the result
+	 * @param string $link an optional link which will be appended to the text if it was truncated
 	 *
 	 * @return string the truncated text;
 	 *         note that the returned text may be longer than the limit if this is necessary
@@ -351,6 +391,19 @@ class LST {
 		}
 	}
 
+	/**
+	 * @param Parser $parser
+	 * @param string $page
+	 * @param string $sec
+	 * @param string $to
+	 * @param array &$sectionHeading
+	 * @param bool $recursionCheck
+	 * @param int $maxLength
+	 * @param string $link
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return array
+	 */
 	public static function includeHeading( $parser, $page, $sec, $to, &$sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern ) {
 		$output = [];
 
@@ -366,7 +419,23 @@ class LST {
 		return self::extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, $sectionHeading, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 	}
 
-	// section inclusion - include all matching sections (return array)
+	/**
+	 * Section inclusion - include all matching sections
+	 *
+	 * @param Parser $parser
+	 * @param string $page
+	 * @param Title|string $title
+	 * @param string $text
+	 * @param string $sec
+	 * @param string $to
+	 * @param array &$sectionHeading
+	 * @param bool $recursionCheck
+	 * @param int $maxLength
+	 * @param string $cLink
+	 * @param bool $trim
+	 * @param array $skipPattern
+	 * @return array
+	 */
 	public static function extractHeadingFromText( $parser, $page, $title, $text, $sec, $to, &$sectionHeading, $recursionCheck, $maxLength, $cLink, $trim, $skipPattern = [] ) {
 		$continueSearch = true;
 		$output = [];
@@ -529,11 +598,26 @@ class LST {
 		return $output;
 	}
 
-	// template inclusion - find the place(s) where template1 is called,
-	// replace its name by template2, then expand template2 and return the result
-	// we return an array containing all occurences of the template call which match the condition "$mustMatch"
-	// and do NOT match the condition "$mustNotMatch" (if specified)
-	// we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
+	/**
+	 * Template inclusion - find the place(s) where template1 is called,
+	 * replace its name by template2, then expand template2 and return the result
+	 * we return an array containing all occurences of the template call which match the condition "$mustMatch"
+	 * and do NOT match the condition "$mustNotMatch" (if specified)
+	 * we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
+	 *
+	 * @param Parser $parser
+	 * @param Lister $lister
+	 * @param mixed $dplNr
+	 * @param Article $article
+	 * @param string $template1
+	 * @param string $template2
+	 * @param string $defaultTemplate
+	 * @param string $mustMatch
+	 * @param string $mustNotMatch
+	 * @param bool $matchParsed
+	 * @param string $catlist
+	 * @return array
+	 */
 	public static function includeTemplate( $parser, Lister $lister, $dplNr, $article, $template1, $template2, $defaultTemplate, $mustMatch, $mustNotMatch, $matchParsed, $catlist ) {
 		$page = $article->mTitle->getPrefixedText();
 		$date = $article->myDate;
@@ -795,6 +879,10 @@ class LST {
 		return $output;
 	}
 
+	/**
+	 * @param string $pattern
+	 * @return string
+	 */
 	public static function spaceOrUnderscore( $pattern ) {
 		// returns a pettern that matches underscores as well as spaces
 		return str_replace( ' ', '[ _]', $pattern );

@@ -334,7 +334,7 @@ class Parse {
 	/**
 	 * Process Query Results
 	 *
-	 * @param $rows
+	 * @param array $rows
 	 * @param Parser $parser
 	 * @return array
 	 */

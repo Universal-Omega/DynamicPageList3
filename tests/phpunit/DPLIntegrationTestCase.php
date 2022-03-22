@@ -111,6 +111,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	/**
 	 * Convenience function to return the list of page titles matching a DPL query
 	 * @param array $params - DPL invocation parameters
+	 * @param string $format
 	 * @return string[]
 	 */
 	protected function getDPLQueryResults( array $params, string $format = '%PAGE%' ): array {

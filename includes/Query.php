@@ -624,6 +624,9 @@ class Query {
 		return true;
 	}
 
+	/**
+	 * @param array $joins
+	 */
 	public function addJoins( array $joins ) {
 		foreach ( $joins as $alias => $conds ) {
 			$this->addJoin( $alias, $conds );
@@ -1737,6 +1740,7 @@ class Query {
 	 * Set SQL for 'ordermethod' parameter.
 	 *
 	 * @param mixed $option
+	 * @return bool
 	 */
 	private function _ordermethod( $option ) {
 		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {

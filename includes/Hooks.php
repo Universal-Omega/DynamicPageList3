@@ -310,6 +310,11 @@ class Hooks {
 		return $num;
 	}
 
+	/**
+	 * @param Parser &$parser
+	 * @param string $cmd
+	 * @return string
+	 */
 	public static function dplVarParserFunction( &$parser, $cmd ) {
 		$parser->addTrackingCategory( 'dplvar-parserfunc-tracking-category' );
 		$args = func_get_args();
@@ -323,6 +328,10 @@ class Hooks {
 		return Variables::getVar( $cmd );
 	}
 
+	/**
+	 * @param string $needle
+	 * @return bool
+	 */
 	private static function isRegexp( $needle ) {
 		if ( strlen( $needle ) < 3 ) {
 			return false;
@@ -344,6 +353,13 @@ class Hooks {
 		return false;
 	}
 
+	/**
+	 * @param Parser &$parser
+	 * @param string $text
+	 * @param string $pat
+	 * @param string $repl
+	 * @return string
+	 */
 	public static function dplReplaceParserFunction( &$parser, $text, $pat = '', $repl = '' ) {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
 		if ( $text == '' || $pat == '' ) {
@@ -362,12 +378,31 @@ class Hooks {
 		return @preg_replace( $pat, $repl, $text );
 	}
 
+	/**
+	 * @param Parser &$parser
+	 * @param string $text
+	 * @param string $heading
+	 * @param int $maxLength
+	 * @param string $page
+	 * @param string $link
+	 * @param bool $trim
+	 * @return string
+	 */
 	public static function dplChapterParserFunction( &$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false ) {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
 		$output = LST::extractHeadingFromText( $parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim );
 		return $output[0];
 	}
 
+	/**
+	 * @param Parser &$parser
+	 * @param string $name
+	 * @param string $yes
+	 * @param string $no
+	 * @param string $flip
+	 * @param string $matrix
+	 * @return string
+	 */
 	public static function dplMatrixParserFunction( &$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '' ) {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
 		$lines = explode( "\n", $matrix );
@@ -476,6 +511,9 @@ class Hooks {
 		}
 	}
 
+	/**
+	 * @param string $cat
+	 */
 	public static function fixCategory( $cat ) {
 		if ( $cat != '' ) {
 			self::$fixedCategories[$cat] = 1;
@@ -500,7 +538,12 @@ class Hooks {
 		return self::$debugLevel;
 	}
 
-	// reset everything; some categories may have been fixed, however via fixcategory=
+	/**
+	 * Reset everything; some categories may have been fixed, however via fixcategory=
+	 *
+	 * @param Parser $parser
+	 * @param string $text
+	 */
 	public static function endReset( $parser, $text ) {
 		if ( !self::$createdLinks['resetdone'] ) {
 			self::$createdLinks['resetdone'] = true;
@@ -531,6 +574,10 @@ class Hooks {
 		}
 	}
 
+	/**
+	 * @param Parser $parser
+	 * @param string &$text
+	 */
 	public static function endEliminate( $parser, &$text ) {
 		// called during the final output phase; removes links created by DPL
 		if ( isset( self::$createdLinks ) ) {

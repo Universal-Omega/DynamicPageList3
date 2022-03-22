@@ -13,13 +13,18 @@ use WikiPage;
 
 class UpdateArticle {
 	/**
-	 * this fucntion hast three tasks (depending on $exec):
+	 * This fucntion hast three tasks (depending on $exec):
 	 * (1) show an edit dialogue for template fields (exec = edit)
 	 * (2) set template parameters to values specified in the query (exec=set)v
 	 * (2) preview the source code including any changes of these parameters made in the edit form or with other changes (exec=preview)
 	 * (3) save the article with the changed value set or with other changes (exec=save)
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
+	 *
+	 * @param string $title
+	 * @param string $text
+	 * @param string $rulesText
+	 * @return string
 	 */
 	public static function updateArticleByRule( $title, $text, $rulesText ) {
 		// we use ; as command delimiter; \; stands for a semicolon
@@ -380,6 +385,12 @@ class UpdateArticle {
 		return "exec must be one of the following: edit, preview, set";
 	}
 
+	/**
+	 * @param string $title
+	 * @param string $text
+	 * @param string $summary
+	 * @return string
+	 */
 	private static function doUpdateArticle( $title, $text, $summary ) {
 		$context = RequestContext::getMain();
 		$request = $context->getRequest();
@@ -426,6 +437,17 @@ class UpdateArticle {
 		}
 	}
 
+	/**
+	 * @param int $call
+	 * @param string $parameter
+	 * @param string $type
+	 * @param string $value
+	 * @param string $format
+	 * @param string $legend
+	 * @param string $instruction
+	 * @param string $fieldFormat
+	 * @return string
+	 */
 	private static function editTemplateCall( $call, $parameter, $type, $value, $format, $legend, $instruction, $fieldFormat ) {
 		$matches = [];
 		$nlCount = preg_match_all( '/\n/', $value, $matches );
@@ -451,7 +473,9 @@ class UpdateArticle {
 	}
 
 	/**
-	 * return an array of template invocations; each element is an associative array of parameter and value
+	 * @param string $text
+	 * @param string $template
+	 * @return array|string
 	 */
 	private static function getTemplateParmValues( $text, $template ) {
 		$matches = [];
@@ -526,8 +550,18 @@ class UpdateArticle {
 		return $tval;
 	}
 
-	/*
+	/**
 	 * Changes a single parameter value within a certain call of a template
+	 *
+	 * @param int &$matchCount
+	 * @param string $text
+	 * @param string $template
+	 * @param int $call
+	 * @param string $parameter
+	 * @param string $value
+	 * @param array $afterParm
+	 * @param bool $optional
+	 * @return string
 	 */
 	private static function updateTemplateCall( &$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional ) {
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
@@ -668,6 +702,12 @@ class UpdateArticle {
 		return substr( $text, 0, $beginSubst ) . ( $substitution ?? '' ) . substr( $text, $endSubst );
 	}
 
+	/**
+	 * @param string $title
+	 * @param string $text
+	 * @param string $rulesText
+	 * @return string
+	 */
 	public static function deleteArticleByRule( $title, $text, $rulesText ) {
 		// return "deletion of articles by DPL is disabled.";
 
