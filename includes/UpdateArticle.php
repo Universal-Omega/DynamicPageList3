@@ -438,7 +438,7 @@ class UpdateArticle {
 	}
 
 	/**
-	 * @param string $call
+	 * @param string|int $call
 	 * @param string $parameter
 	 * @param string $type
 	 * @param string $value
@@ -475,7 +475,7 @@ class UpdateArticle {
 	/**
 	 * @param string $text
 	 * @param string $template
-	 * @return array template invocations; each element is an associative array of parameter and value
+	 * @return array|string
 	 */
 	private static function getTemplateParmValues( $text, $template ) {
 		$matches = [];
@@ -559,7 +559,7 @@ class UpdateArticle {
 	 * @param string $call
 	 * @param string $parameter
 	 * @param string $value
-	 * @param string $afterParm
+	 * @param array $afterParm
 	 * @param bool $optional
 	 * @return string
 	 */
