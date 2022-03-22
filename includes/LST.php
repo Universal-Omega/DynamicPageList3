@@ -250,7 +250,7 @@ class LST {
 		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
 
 		foreach ( $m[2] as $nr => $piece ) {
-			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, $trim, $skipPattern );
+			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, -1, '', $trim, $skipPattern );
 
 			if ( $any ) {
 				$output[] = $m[1][$nr] . '::' . $piece;
@@ -612,8 +612,8 @@ class LST {
 	 * @param string $template1
 	 * @param string $template2
 	 * @param string $defaultTemplate
-	 * @param bool $mustMatch
-	 * @param bool $mustNotMatch
+	 * @param string $mustMatch
+	 * @param string $mustNotMatch
 	 * @param bool $matchParsed
 	 * @param string $catlist
 	 * @return array
