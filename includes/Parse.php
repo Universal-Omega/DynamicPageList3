@@ -115,8 +115,12 @@ class Parse {
 		}
 
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getTitle()->isProtected( 'edit' ) ) {
-			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
+		if (
+			Config::getSetting( 'runFromProtectedPagesOnly' ) === true &&
+			!$parser->getTitle()->isProtected( 'edit' )
+		) {
+			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected.
+			// Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
 			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $parser->getTitle()->getPrefixedText() );
 
 			return $this->getFullOutput();
