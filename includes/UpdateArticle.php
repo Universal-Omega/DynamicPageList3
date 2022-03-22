@@ -438,7 +438,7 @@ class UpdateArticle {
 	}
 
 	/**
-	 * @param string|int $call
+	 * @param int $call
 	 * @param string $parameter
 	 * @param string $type
 	 * @param string $value
@@ -556,7 +556,7 @@ class UpdateArticle {
 	 * @param int &$matchCount
 	 * @param string $text
 	 * @param string $template
-	 * @param string $call
+	 * @param int $call
 	 * @param string $parameter
 	 * @param string $value
 	 * @param array $afterParm
