@@ -1176,16 +1176,18 @@ class Query {
 	private function _firstrevisionsince( $option ) {
 		$this->addTable( 'revision_actor_temp', 'rev' );
 
-		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-		$commentQuery = $commentStore->getJoin( 'rev_comment' );
-		$this->addTables( $commentQuery['tables'] );
+		// $commentStore = MediaWikiServices::getInstance()->getCommentStore();
+		// $commentQuery = $commentStore->getJoin( 'rev_comment' );
+		// $this->addTables( $commentQuery['tables'] );
+
+		$this->addTable( 'revision_comment_temp', 'comment' );
 
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
 				'rev.revactor_timestamp',
-				'revision_comment_temp.revcomment_rev',
-				'revision_comment_temp.revcomment_comment_id'
+				'comment.revcomment_rev',
+				'comment.revcomment_comment_id'
 			]
 		);
 
