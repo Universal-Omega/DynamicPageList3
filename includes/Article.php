@@ -291,6 +291,10 @@ class Article {
 				$article->mDate = $row->revactor_timestamp;
 
 				$row->rev_id = $row->revactor_rev;
+				$row->rev_actor = $row->revactor_actor;
+				$row->rev_user_text = $revActorName;
+
+				$row->rev_user = $userFactory->newFromActorId( $row->revactor_actor )->getId();
 
 				$revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
 				$rev = $revisionStore->newRevisionFromRow( $row, 0, $title );
