@@ -290,7 +290,7 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->revactor_timestamp;
 
-				$row->rev_id = $row->revactor_rev;
+				$row->rev_id = $row->revcomment_rev;
 				$row->comment_id = $row->revcomment_comment_id;
 				// $row->rev_actor = $row->revactor_actor;
 				// $row->rev_user_text = $revActorName;
