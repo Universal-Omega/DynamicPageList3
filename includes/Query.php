@@ -1183,7 +1183,9 @@ class Query {
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp'
+				'rev.revactor_timestamp',
+				'revision_comment_temp.revcomment_rev',
+				'revision_comment_temp.revcomment_comment_id'
 			]
 		);
 
