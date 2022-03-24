@@ -446,6 +446,7 @@ class Query {
 			'recentchanges',
 			'revision',
 			'revision_actor_temp',
+			'revision_comment_temp',
 			'templatelinks'
 		];
 
@@ -1178,7 +1179,8 @@ class Query {
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp'
+				'rev.revactor_timestamp',
+				$this->tableNames['revision_comment_temp'] . 'revcomment_comment_id',
 			]
 		);
 
