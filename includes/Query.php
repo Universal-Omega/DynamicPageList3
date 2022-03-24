@@ -1180,14 +1180,17 @@ class Query {
 		// $commentQuery = $commentStore->getJoin( 'rev_comment' );
 		// $this->addTables( $commentQuery['tables'] );
 
-		$this->addTable( 'revision_comment_temp', 'comment' );
+		$this->addTable( 'revision_comment_temp', 'revcomment' );
+		$this->addTable( 'comment', 'comment' );
 
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
 				'rev.revactor_timestamp',
-				'comment.revcomment_rev',
-				'comment.revcomment_comment_id'
+				'revcomment.revcomment_rev',
+				'revcomment.revcomment_comment_id',
+				'comment.comment_text',
+				'comment.comment_data'
 			]
 		);
 
