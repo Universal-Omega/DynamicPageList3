@@ -1,5 +1,4 @@
 <?php
-
 namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
 /**
