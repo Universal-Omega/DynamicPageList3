@@ -348,6 +348,7 @@ class Query {
 				);
 			}
 
+			$this->sqlQuery = $query;
 			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
 				$this->sqlQuery = $query;
 			}
