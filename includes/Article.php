@@ -290,20 +290,19 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->revactor_timestamp;
 
-				// $row->rev_id = $row->revcomment_rev;
-				// $row->comment_id = $row->revcomment_comment_id;
-				// $row->rev_actor = $row->revactor_actor;
-				// $row->rev_user_text = $revActorName;
+				$row->rev_id = $row->revactor_rev;
+				$row->rev_actor = $row->revactor_actor ?? 0;
+				$row->rev_user_text = $revActorName;
 
-				// $row->rev_user = $userFactory->newFromActorId( $row->revactor_actor )->getId();
+				$row->rev_user = $userFactory->newFromActorId( $row->revactor_actor ?? 0 )->getId();
 
-				// $revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
-				// $rev = $revisionStore->newRevisionFromRow( $row, 0, $title );
+				$revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
+				$rev = $revisionStore->newRevisionFromRow( $row, 0, $title );
 
-				// $article->mComment = $rev->getComment() === null ? '' : $rev->getComment()->text;
+				$article->mComment = $rev->getComment() === null ? '' : $rev->getComment()->text;
 
-				$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-				$article->mComment = $commentStore->getComment( 'rev_comment', $row )->text;
+				// $commentStore = MediaWikiServices::getInstance()->getCommentStore();
+				// $article->mComment = $commentStore->getComment( 'rev_comment', $row )->text;
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
