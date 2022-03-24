@@ -290,8 +290,10 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->revactor_timestamp;
 
-				$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-				$article->mComment = $commentStore->getComment( 'rev_comment', $row )->text;
+				$revisionStore = MediaWikiServices::getInstance()->getRevisionStore();
+				$rev = $revisionStore->newRevisionFromRow( $row, 0, $title );
+
+				$article->mComment = $rev->getComment() === null ? '' : $rev->getComment()->text;
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
