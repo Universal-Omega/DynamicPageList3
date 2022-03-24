@@ -1175,6 +1175,11 @@ class Query {
 	 */
 	private function _firstrevisionsince( $option ) {
 		$this->addTable( 'revision_actor_temp', 'rev' );
+
+		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
+		$commentQuery = $commentStore->getJoin( 'rev_comment' );
+		$this->addTables( $commentQuery['tables'] );
+
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
