@@ -1176,22 +1176,16 @@ class Query {
 	private function _firstrevisionsince( $option ) {
 		$this->addTable( 'revision_actor_temp', 'rev' );
 
-		// $commentStore = MediaWikiServices::getInstance()->getCommentStore();
-		// $commentQuery = $commentStore->getJoin( 'rev_comment' );
-		// $this->addTables( $commentQuery['tables'] );
+		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
+		$commentQuery = $commentStore->getJoin( 'rev_comment' );
+		$this->addTables( $commentQuery['tables'] );
 
-		$this->addTable( 'revision_comment_temp', 'revcomment' );
-		$this->addTable( 'comment', 'comment' );
 
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp',
-				'revcomment.revcomment_rev',
-				'revcomment.revcomment_comment_id',
-				'comment.comment_text',
-				'comment.comment_data'
-			]
+				'rev.revactor_timestamp'
+			] + $commentQuery['fields']
 		);
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
