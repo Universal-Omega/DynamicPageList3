@@ -337,6 +337,20 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		], $results );
 	}
 
+	public function testGetEditSummary(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory',
+			'firstrevisionsince' => '200812041300'
+		], '%PAGE% %EDITSUMMARY%' );
+
+		$this->assertEquals( [
+			'DPLTestArticle 1 DPLTestUser',
+			'DPLTestArticle 2 DPLTestAdmin',
+			'DPLTestArticle 3 DPLTestAdmin',
+			'DPLTestArticleMultipleCategories DPLTestAdmin',
+		], $results );
+	}
+
 	public function testTotalPagesInHeader(): void {
 		$results = $this->runDPLQuery( [
 			'category' => 'DPLTestCategory',
