@@ -446,7 +446,6 @@ class Query {
 			'recentchanges',
 			'revision',
 			'revision_actor_temp',
-			'revision_comment_temp',
 			'templatelinks'
 		];
 
@@ -1176,12 +1175,10 @@ class Query {
 	 */
 	private function _firstrevisionsince( $option ) {
 		$this->addTable( 'revision_actor_temp', 'rev' );
-		$this->addTable( 'revision_comment_temp', 'comment' );
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp',
-				'comment.revcomment_comment_id',
+				'rev.revactor_timestamp'
 			]
 		);
 
