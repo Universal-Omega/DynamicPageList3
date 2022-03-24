@@ -291,6 +291,8 @@ class Article {
 				$article->mDate = $row->revactor_timestamp;
 
 				$row->rev_id = $row->revactor_rev;
+				$row->rev_page = $row->revactor_page;
+
 				$row->rev_actor = $row->revactor_actor ?? 0;
 				$row->rev_user_text = $revActorName;
 
