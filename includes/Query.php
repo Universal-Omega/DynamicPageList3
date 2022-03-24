@@ -1180,7 +1180,6 @@ class Query {
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
 		$this->addTables( $commentQuery['tables'] );
 
-
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
