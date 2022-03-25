@@ -1179,7 +1179,7 @@ class Query {
 
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
-		$this->addTables( $commentQuery['tables'] );
+		// $this->addTables( $commentQuery['tables'] );
 
 		$this->addSelect(
 			[
