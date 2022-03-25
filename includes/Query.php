@@ -1192,6 +1192,8 @@ class Query {
 			] + $commentQuery['fields']
 		);
 
+		$this->addJoins( $commentQuery['joins'] );
+
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
 			[
