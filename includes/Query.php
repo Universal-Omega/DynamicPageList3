@@ -1175,18 +1175,19 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _firstrevisionsince( $option ) {
-		$this->addTable( 'revision_actor_temp', 'rev' );
-
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
+
 		$this->addTables( $commentQuery['tables'] );
+		$this->addSelect( $commentQuery['fields'] );
+
+		$this->addTable( 'revision_actor_temp', 'rev' );
 
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
 				'rev.revactor_timestamp',
-				'rev.revactor_page'
-			] + $commentQuery['fields']
+			]
 		);
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
