@@ -1209,7 +1209,7 @@ class Query {
 		$this->addJoin(
 			'revision_actor_temp',
 			[
-				'JOIN',
+				'LEFT JOIN',
 				[
 					'rev_id = revactor_rev',
 				],
