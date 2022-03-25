@@ -1180,6 +1180,7 @@ class Query {
 
 		$this->addTables( [ 'revision' => 'revision' ] + $commentQuery['tables'] );
 		$this->addSelect( $commentQuery['fields'] );
+		$this->addJoins( $commentQuery['joins'] );
 
 		$this->addTable( 'revision_actor_temp', 'rev' );
 
@@ -1205,7 +1206,7 @@ class Query {
 			]
 		);
 
-		$this->addJoin(
+		/* $this->addJoin(
 			'comment',
 			[
 				'LEFT JOIN',
@@ -1213,7 +1214,7 @@ class Query {
 					'comment_id = rev_comment_id',
 				],
 			]
-		);
+		); */
 	}
 
 	/**
