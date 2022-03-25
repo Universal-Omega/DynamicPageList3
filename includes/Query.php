@@ -1206,15 +1206,15 @@ class Query {
 			]
 		);
 
-		/* $this->addJoin(
-			'comment',
+		$this->addJoin(
+			'revision',
 			[
 				'LEFT JOIN',
 				[
-					'comment_id = rev_comment_id',
+					'rev_id = revactor_rev',
 				],
 			]
-		); */
+		);
 	}
 
 	/**
