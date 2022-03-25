@@ -1183,7 +1183,7 @@ class Query {
 
 		$this->addSelect(
 			[
-				'rev.revactor_rev',
+				'DISTINCT rev.revactor_rev',
 				'rev.revactor_timestamp'
 			] + $commentQuery['fields']
 		);
