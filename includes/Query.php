@@ -1207,7 +1207,7 @@ class Query {
 		);
 
 		$this->addJoin(
-			'revision',
+			'revision_actor_temp',
 			[
 				'JOIN',
 				[
