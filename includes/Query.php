@@ -1178,7 +1178,7 @@ class Query {
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
 
-		$this->addTables( $commentQuery['tables'] );
+		$this->addTables( [ 'revision' => 'revision' ] + $commentQuery['tables'] );
 		$this->addSelect( $commentQuery['fields'] );
 
 		$this->addTable( 'revision_actor_temp', 'rev' );
@@ -1202,6 +1202,16 @@ class Query {
 			[
 				$this->tableNames['page'] . '.page_id = rev.revactor_page',
 				'rev.revactor_timestamp = (SELECT MIN(rev_aux_snc.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_snc WHERE rev_aux_snc.revactor_page=rev.revactor_page AND rev_aux_snc.revactor_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
+			]
+		);
+
+		$this->addJoin(
+			'comment',
+			[
+				'LEFT JOIN',
+				[
+					'comment_id = rev_comment_id',
+				],
 			]
 		);
 	}
