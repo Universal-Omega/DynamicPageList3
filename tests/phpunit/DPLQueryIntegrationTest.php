@@ -341,7 +341,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
 			'firstrevisionsince' => '200812041300',
-		], '%PAGE%: %EDITSUMMARY%' );
+		], '%PAGE%, %REVISION%: %EDITSUMMARY%' );
 
 		$this->assertEquals( [
 			'DPLTestArticle 1: %EDITSUMMARY%',
