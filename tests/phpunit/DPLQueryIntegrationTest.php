@@ -339,7 +339,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 	public function testGetEditSummary(): void {
 		$results = $this->runDPLQuery( [
 			'category' => 'DPLTestCategory',
-			'firstrevisionsince' => '200812041300'
+			'firstrevisionsince' => '200812041300',
 			'format' => ',%PAGE% %EDITSUMMARY%,,',
 		] );
 
