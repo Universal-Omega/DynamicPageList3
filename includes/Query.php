@@ -1179,17 +1179,12 @@ class Query {
 
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$commentQuery = $commentStore->getJoin( 'rev_comment' );
-		$this->addTables( [ 'revision' => 'revision' ] + $commentQuery['tables'] );
-
-		$this->_adduser( null, 'rev' );
+		$this->addTables( $commentQuery['tables'] );
 
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp',
-				'rev.revactor_page',
-				'revision.rev_minor_edit',
-				'revision.rev_deleted',
+				'rev.revactor_timestamp'
 			] + $commentQuery['fields']
 		);
 
