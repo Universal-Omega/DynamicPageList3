@@ -343,12 +343,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'format' => ',%PAGE% %EDITSUMMARY%,,',
 		] );
 
-		$this->assertEquals( [
-			'DPLTestArticle 1 DPLTestUser',
-			'DPLTestArticle 2 DPLTestAdmin',
-			'DPLTestArticle 3 DPLTestAdmin',
-			'DPLTestArticleMultipleCategories DPLTestAdmin',
-		], $results );
+		$this->assertSame( 'DPLTestArticle 1', $results );
 	}
 
 	public function testTotalPagesInHeader(): void {
