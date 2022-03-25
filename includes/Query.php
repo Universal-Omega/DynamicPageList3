@@ -1189,10 +1189,9 @@ class Query {
 				'rev.revactor_timestamp',
 				'rev.revactor_page',
 				'revision.rev_minor_edit',
+				'revision.rev_deleted',
 			] + $commentQuery['fields']
 		);
-
-		$this->addJoins( $commentQuery['joins'] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
