@@ -1211,7 +1211,7 @@ class Query {
 			[
 				'LEFT JOIN',
 				[
-					'rev_id = rev.revactor_rev',
+					'rev_id = ' . $this->tableNames['revision_actor_temp'] . '.revactor_rev',
 				],
 			]
 		);
