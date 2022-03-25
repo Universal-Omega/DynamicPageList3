@@ -1187,7 +1187,7 @@ class Query {
 		$this->addSelect(
 			[
 				'rev.revactor_rev',
-				'rev.revactor_timestamp',
+				'rev.revactor_timestamp'
 			]
 		);
 
@@ -1211,7 +1211,7 @@ class Query {
 			[
 				'LEFT JOIN',
 				[
-					'rev_id = revactor_rev',
+					'rev_id = rev.revactor_rev',
 				],
 			]
 		);
