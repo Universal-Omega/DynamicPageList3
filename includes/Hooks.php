@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList3;
 
 use DatabaseUpdater;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
+use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
 use Parser;
 use PPFrame;
 
@@ -626,12 +627,6 @@ class Hooks {
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
 		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
-
-		$db = $updater->getDB();
-		if ( !$db->tableExists( 'dpl_clview' ) ) {
-			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
-			$sqlNullMethod = ( $db->getType() === 'postgres' ? 'COALESCE' : 'IFNULL' );
-			$db->query( "CREATE VIEW {$db->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$db->tablePrefix()}page LEFT OUTER JOIN {$db->tablePrefix()}categorylinks ON {$db->tablePrefix()}page.page_id=cl_from;" );
-		}
+		$updater->addPostDatabaseUpdateMaintenance( CreateView::class );
 	}
 }
