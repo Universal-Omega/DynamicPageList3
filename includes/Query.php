@@ -1205,16 +1205,6 @@ class Query {
 				'rev.revactor_timestamp = (SELECT MIN(rev_aux_snc.revactor_timestamp) FROM ' . $this->tableNames['revision_actor_temp'] . ' AS rev_aux_snc WHERE rev_aux_snc.revactor_page=rev.revactor_page AND rev_aux_snc.revactor_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
 			]
 		);
-
-		$this->addJoin(
-			'revision_actor_temp',
-			[
-				'LEFT JOIN',
-				[
-					'rev_id = revactor_rev',
-				],
-			]
-		);
 	}
 
 	/**
