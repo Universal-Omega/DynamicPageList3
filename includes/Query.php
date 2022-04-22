@@ -1077,7 +1077,8 @@ class Query {
 			[
 				$this->DB->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.revactor_actor',
 				'creation_rev_actor.revactor_page = page_id',
-				'creation_rev.rev_parent_id = 0'
+				'creation_rev.rev_parent_id = 0',
+				'creation_rev_actor.revactor_rev = creation_rev.rev_id'
 			]
 		);
 	}
