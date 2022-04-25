@@ -1545,7 +1545,7 @@ class Query {
 			} else {
 				$this->addWhere(
 					[
-						"{$this->tableNames['page']}.page_namespace" => $option
+						"{$this->tableNames['page']}.page_namespace" => $option ?: 0
 					]
 				);
 			}
