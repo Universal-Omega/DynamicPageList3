@@ -370,7 +370,7 @@ class Query {
 		$join = $this->join;
 		$dbr = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr $tables, $fields, $where, $options, $join, $calcRows ) {
+		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 			$res = iterator_to_array( $res );
 
