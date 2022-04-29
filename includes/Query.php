@@ -166,10 +166,9 @@ class Query {
 	 * Start a query build. Returns found rows.
 	 *
 	 * @param bool $calcRows
-	 * @param ?int &$foundRows
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null ) {
+	public function buildAndSelect( bool $calcRows = false ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
@@ -369,17 +368,14 @@ class Query {
 		$qname = __METHOD__ . ' - ' . $pageName;
 		$where = $this->where;
 		$join = $this->join;
-		$db = $this->dbr;
+		$dbr = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $db, $tables, $fields, $where, $options, $join, $calcRows, &$foundRows ) {
-			$res = $db->select( $tables, $fields, $where, $qname, $options, $join );
-
+		$doQuery = static function () use ( $qname, $dbr $tables, $fields, $where, $options, $join, $calcRows ) {
 			if ( $calcRows ) {
-				$calcRowsResult = $db->query( 'SELECT FOUND_ROWS() AS count;', $qname );
-				$total = $calcRowsResult->fetchRow();
-
-				$foundRows = (int)$total['count'];
+				$fields += [ 'rowcount' => 'FOUND_ROWS()' ];
 			}
+
+			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 
 			return iterator_to_array( $res );
 		};
@@ -398,8 +394,8 @@ class Query {
 		return $cache->getWithSetCallback(
 			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
-			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $db ){
-				$setOpts += Database::getCacheSetOptions( $db );
+			static function ( $oldVal, &$ttl, &$setOpts ) use ( $worker, $dbr ){
+				$setOpts += Database::getCacheSetOptions( $dbr );
 				$res = $worker->execute();
 				if ( $res === false ) {
 					// Do not cache errors.
