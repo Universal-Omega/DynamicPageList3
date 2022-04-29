@@ -167,9 +167,10 @@ class Query {
 	 *
 	 * @param bool $calcRows
 	 * @param ?int &$foundRows
+	 * @param string $profilingContext Used to see the origin of a query in the profiling
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null ) {
+	public function buildAndSelect( bool $calcRows = false, ?int &$foundRows = null, $profilingContext = '' ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
@@ -363,10 +364,10 @@ class Query {
 			$options['MAX_EXECUTION_TIME'] = $maxQueryTime;
 		}
 
-		$parser = MediaWikiServices::getInstance()->getParser();
-		$pageName = str_replace( [ '*', '/' ], '-', $parser->getTitle()->getPrefixedDBkey() );
-
-		$qname = __METHOD__ . ' - ' . $pageName;
+		$qname = __METHOD__;
+		if ( !empty( $profilingContext ) ) {
+			$qname .= ' - ' . $profilingContext;
+		}
 		$where = $this->where;
 		$join = $this->join;
 		$db = $this->dbr;
