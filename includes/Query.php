@@ -371,13 +371,14 @@ class Query {
 		$dbr = $this->dbr;
 
 		$doQuery = static function () use ( $qname, $dbr $tables, $fields, $where, $options, $join, $calcRows ) {
+			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
+			$res = iterator_to_array( $res );
+
 			if ( $calcRows ) {
-				$fields += [ 'rowcount' => 'FOUND_ROWS()' ];
+				$res['count'] = $dbr->selectField( $tables, 'FOUND_ROWS()', '', $qname );
 			}
 
-			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
-
-			return iterator_to_array( $res );
+			return $res;
 		};
 
 		$poolCounterKey = 'nowait:dpl3-query:' . WikiMap::getCurrentWikiId();
