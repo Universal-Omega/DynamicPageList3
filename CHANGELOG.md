@@ -780,3 +780,10 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.4.5
 * Fixed `%TOTALPAGES%` usage
+
+# Version 3.4.6
+* Removed unused `LST::noop()` function
+* Fixed all `MediaWiki.Commenting.FunctionComment` PHPCS violations and enabled it
+* Updated CreateTemplate to mention DPL3, not DPL
+* Used database update maintenance script for creating VIEW
+* Added additional isset check for mTemplatePath
