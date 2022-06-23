@@ -22,6 +22,14 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	 */
 	private static $wasSeedDataImported = false;
 
+	protected function setUp(): void {
+		parent::setUp();
+
+		$this->setMwGlobals( [
+			'wgActorTableSchemaMigrationStage' => SCHEMA_COMPAT_NEW,
+		] );
+	}
+
 	public function addDBData() {
 		if ( self::$wasSeedDataImported ) {
 			return;
