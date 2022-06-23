@@ -983,12 +983,12 @@ class Query {
 		$this->addTable( 'revision', 'rev' );
 		$this->addSelect(
 			[
-				'rev.rev_rev',
+				'rev.rev_id',
 				'rev.rev_timestamp'
 			]
 		);
 
-		$this->addOrderBy( 'rev.rev_rev' );
+		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
 
 		$this->addWhere(
@@ -1008,12 +1008,12 @@ class Query {
 		$this->addTable( 'revision', 'rev' );
 		$this->addSelect(
 			[
-				'rev.rev_rev',
+				'rev.rev_id',
 				'rev.rev_timestamp'
 			]
 		);
 
-		$this->addOrderBy( 'rev.rev_rev' );
+		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
 
 		$this->addWhere(
@@ -1177,7 +1177,7 @@ class Query {
 		$this->addTable( 'revision', 'rev' );
 		$this->addSelect(
 			[
-				'rev.rev_rev',
+				'rev.rev_id',
 				'rev.rev_timestamp'
 			]
 		);
@@ -1308,7 +1308,7 @@ class Query {
 	 */
 	private function _lastrevisionbefore( $option ) {
 		$this->addTable( 'revision', 'rev' );
-		$this->addSelect( [ 'rev.rev_rev', 'rev.rev_timestamp' ] );
+		$this->addSelect( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
