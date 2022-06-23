@@ -9,7 +9,6 @@ use MediaWiki\Revision\SlotRecord;
 use ReadOnlyError;
 use RequestContext;
 use Title;
-use WikiPage;
 
 class UpdateArticle {
 	/**
