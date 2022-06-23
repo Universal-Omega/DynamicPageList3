@@ -252,13 +252,27 @@
 		</revision>
 		<revision>
 			<id>28</id>
-			<timestamp>2021-09-04T03:01:00Z</timestamp>
+			<timestamp>2021-09-04T03:01:14Z</timestamp>
 			<contributor>
 				<username>DPLTestUser</username>
 				<id>2</id>
 			</contributor>
 			<comment>Page edited</comment>
-			<origin>27</origin>
+			<origin>28</origin>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text xml:space="preserve">Uncategorized test page edit</text>
+			<sha1 />
+		</revision>
+		<revision>
+			<id>29</id>
+			<timestamp>2021-09-04T03:01:26Z</timestamp>
+			<contributor>
+				<username>DPLTestAdmin</username>
+				<id>1</id>
+			</contributor>
+			<comment>Page edited</comment>
+			<origin>29</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
 			<text xml:space="preserve">Uncategorized test page edit</text>
@@ -268,16 +282,16 @@
 	<page>
 		<title>DPLTestOpenReferences</title>
 		<ns>0</ns>
-		<id>29</id>
+		<id>30</id>
 		<revision>
-			<id>29</id>
+			<id>30</id>
 			<timestamp>2021-09-04T04:00:00Z</timestamp>
 			<contributor>
 				<username>DPLTestUser</username>
 				<id>2</id>
 			</contributor>
 			<comment>Create test page with red link</comment>
-			<origin>29</origin>
+			<origin>30</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
 			<text xml:space="preserve">[[DPLTestArticle 1]][[DPLTestArticle 2]][[RedLink]][[DPLTestArticle 3]]</text>
