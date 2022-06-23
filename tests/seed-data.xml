@@ -3,7 +3,7 @@
 		<sitename>MediaWiki</sitename>
 		<dbname>mwdev</dbname>
 		<base>http://localhost:8080/wiki/Main_Page</base>
-		<generator>MediaWiki 1.37.0-alpha</generator>
+		<generator>MediaWiki 1.38.0</generator>
 		<case>first-letter</case>
 		<namespaces>
 			<namespace key="-2" case="first-letter">Media</namespace>
