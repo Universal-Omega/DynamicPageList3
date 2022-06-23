@@ -9,6 +9,14 @@ namespace MediaWiki\Extension\DynamicPageList3\Tests;
  */
 class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
+	protected function setUp(): void {
+		parent::setUp();
+
+		$this->setMwGlobals( [
+			'wgActorTableSchemaMigrationStage' => SCHEMA_COMPAT_NEW,
+		] );
+	}
+
 	public function testFindPagesInCategory(): void {
 		$this->assertArrayEquals(
 			[ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticle 3', 'DPLTestArticleMultipleCategories' ],
