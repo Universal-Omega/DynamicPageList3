@@ -7,10 +7,6 @@
 	"require": {
 		"composer/installers": ">=1.0.1"
 	},
-	"config": {
-		"prepend-autoloader": false,
-		"optimize-autoloader": true
-	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "39.0.0",
 		"mediawiki/mediawiki-phan-config": "0.11.1",
@@ -30,5 +26,12 @@
 		],
 		"phan": "phan -d . --long-progress-bar",
 		"phpcs": "phpcs -sp --cache"
+	},
+	"config": {
+		"prepend-autoloader": false,
+		"optimize-autoloader": true,
+		"allow-plugins": {
+			"composer/installers": true
+		}
 	}
 }
