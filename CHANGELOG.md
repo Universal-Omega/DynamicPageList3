@@ -787,3 +787,9 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Updated CreateTemplate to mention DPL3, not DPL
 * Used database update maintenance script for creating VIEW
 * Added additional isset check for mTemplatePath
+
+# Version 3.4.7
+* Dropped `revision_actor_temp` support and completed actor migration
+* Dropped support for MediaWiki versions before 1.38.0
+* Added support for MediaWiki 1.39
+* Fixed installing via composer version 2.2.1 and later
