@@ -36,7 +36,7 @@
 	"dpl_log_21": "Datenbank-Abfrage: <code>$0</code>",
 	"dpl_log_22": "Warnung: Keine Parameter-Option angegeben für „$1“. („=“ fehlt)",
 	"dpl_log_23": "Fehler: Diese Liste kann nicht angezeigt werden, da die Server überlastet sind. Bitte versuche es später noch einmal.",
-	"dpl_log_24": "Fehler: „runFromProtectedPagesOnly“ ist gesetzt, aber die Seite „$1“ ist nicht vor Bearbeitungen geschützt.",
+	"dpl_log_24": "Fehler: <code>$wgDplSettings['runFromProtectedPagesOnly']</code> ist gesetzt, aber die Seite „$1“ ist nicht vor Bearbeitungen geschützt.",
 	"dpl_log_25": "Fehler: $1",
 	"dpl_articlecount": "Diese Gruppe enthält {{PLURAL:$1|einen|$1}} Artikel.",
 	"action-dpl_param_update_rules": "um den Parameter „updaterules“ zu nutzen",
