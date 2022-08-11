@@ -224,6 +224,12 @@ class Query {
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
+				$this->addSelect(
+					[
+						'il_to',
+					]
+				);
+
 				$tables = [
 					'ic' => 'imagelinks'
 				];
