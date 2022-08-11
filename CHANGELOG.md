@@ -793,3 +793,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Dropped support for MediaWiki versions before 1.38.0
 * Added support for MediaWiki 1.39
 * Fixed installing via composer version 2.2.1 and later
+* Fixed using imagecontainer with openreferences
