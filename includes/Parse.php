@@ -203,7 +203,7 @@ class Parse {
 
 			$foundRows = null;
 			$profilingContext = '';
-			$currentTitle= $parser->getTitle();
+			$currentTitle = $parser->getTitle();
 			if ( $currentTitle instanceof Title ) {
 				$profilingContext
 					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
