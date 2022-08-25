@@ -195,7 +195,7 @@ class Forum {
 		$this->sLastEditFormat = $this->get( 'lasteditformat', false );
 		$this->bAddLastEditor = ( $this->get( 'addlasteditor' ) == 'true' );
 		$this->bAddCreationDate = ( $this->get( 'addcreationdate' ) == 'true' );
-		$this->sCreationDateFormat = htmlspecialchars( $this->get( 'creationdateformat', false ) );
+		$this->sCreationDateFormat = $this->get( 'creationdateformat', false );
 
 		switch ( $this->get( 'historylink' ) ) {
 			case 'embed':
@@ -485,6 +485,7 @@ class Forum {
 				if ( $this->bEmbedHistory ) {
 					$made = $linkRenderer->makeKnownLink( $page, $made, [], [ 'action' => 'history' ] );
 				} else {
+					$made = htmlspecialchars( $made );
 					$made .= ' (' . $linkRenderer->makeKnownLink( $page,
 						wfMessage( 'hist' )->text(), [], [ 'action' => 'history' ] ) . ')';
 				}
