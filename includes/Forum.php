@@ -478,14 +478,13 @@ class Forum {
 
 		if ( $this->bAddCreationDate ) {
 			if ( is_numeric( $made ) ) {
-				$made = $this->date( $made, 'date', $this->sCreationDateFormat );
+				$made = htmlspecialchars( $this->date( $made, 'date', $this->sCreationDateFormat ) );
 			}
 
 			if ( $page && $this->bLinkHistory && !$this->bAddLastEdit ) {
 				if ( $this->bEmbedHistory ) {
 					$made = $linkRenderer->makeKnownLink( $page, $made, [], [ 'action' => 'history' ] );
 				} else {
-					$made = htmlspecialchars( $made );
 					$made .= ' (' . $linkRenderer->makeKnownLink( $page,
 						wfMessage( 'hist' )->text(), [], [ 'action' => 'history' ] ) . ')';
 				}
