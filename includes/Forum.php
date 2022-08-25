@@ -10,19 +10,39 @@ use User;
 
 class Forum {
 
-	/** Minimum number of categories to look for */
+	/**
+	 * Minimum number of categories to look for
+	 *
+	 * @var int
+	 */
 	public $minCategories = 1;
 
-	/** Maximum number of categories to look for */
+	/**
+	 * Maximum number of categories to look for
+	 *
+	 * @var int
+	 */
 	public $maxCategories = 6;
 
-	/** Maximum number of results to allow */
+	/**
+	 * Maximum number of results to allow
+	 *
+	 * @var int
+	 */
 	public $maxResultCount = 50;
 
-	/** Allow unlimited results */
+	/**
+	 * Allow unlimited results
+	 *
+	 * @var bool
+	 */
 	public $unlimitedResults = true;
 
-	/** Allow unlimited categories */
+	/**
+	 * Allow unlimited categories
+	 *
+	 * @var bool
+	 */
 	public $unlimitedCategories = false;
 
 	/**
@@ -30,25 +50,56 @@ class Forum {
 	 * Unless this array is empty, namespace-free searches are also restricted.
 	 * Note: Only integers in this array are checked.
 	 *
-	 * No restrictions.
+	 * @var array.
 	 */
 	public $restrictNamespace = [];
 
+	/** @var bool */
 	public $bTableMode;
+
+	/** @var bool */
 	public $bTimestamp;
+
+	/** @var bool */
 	public $bLinkHistory;
+
+	/** @var bool */
 	public $bEmbedHistory;
+
+	/** @var bool */
 	public $bShowNamespace;
+
+	/** @var bool */
 	public $bAddAuthor;
+
+	/** @var bool */
 	public $bAddCreationDate;
+
+	/** @var bool */
 	public $bAddLastEdit;
+
+	/** @var bool */
 	public $bAddLastEditor;
+
+	/** @var bool */
 	public $bCompactAuthor;
+
+	/** @var bool */
 	public $bCompactEdit;
+
+	/** @var string */
 	public $sInput;
+
+	/** @var string */
 	public $sOmit;
+
+	/** @var int */
 	public $vMarkNew;
+
+	/** @var bool|string */
 	public $sCreationDateFormat;
+
+	/** @var bool|string */
 	public $sLastEditFormat;
 
 	/**
@@ -57,7 +108,7 @@ class Forum {
 	 *
 	 * @return Title[]
 	 */
-	private function cat( $parser, $name ) {
+	public function cat( $parser, $name ) {
 		$cats = [];
 		if ( preg_match_all( "/^\s*$name\s*=\s*(.*)/mi", $this->sInput, $matches ) ) {
 			foreach ( $matches[1] as $cat ) {
@@ -78,7 +129,7 @@ class Forum {
 	 *
 	 * @return int|null|string
 	 */
-	private function get( $name, $value = null, $parser = null ) {
+	public function get( $name, $value = null, $parser = null ) {
 		if ( preg_match( "/^\s*$name\s*=\s*(.*)/mi", $this->sInput, $matches ) ) {
 			$arg = trim( $matches[1] );
 			if ( is_int( $value ) ) {
@@ -99,7 +150,7 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	private function msg( $type, $error = null ) {
+	public function msg( $type, $error = null ) {
 		if ( $error && ( $this->get( 'suppresserrors' ) == 'true' ) ) {
 			return '';
 		}
@@ -114,7 +165,7 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	private function date( $ts, $type = 'date', $df = false ) {
+	public function date( $ts, $type = 'date', $df = false ) {
 		// based on Language::date()
 		$lang = RequestContext::getMain()->getLanguage();
 
@@ -122,7 +173,7 @@ class Forum {
 		$ts = $lang->userAdjust( $ts );
 
 		if ( $df === false ) {
-			$df = $lang->getDateFormatString( $type, $wgLang->dateFormat( true ) );
+			$df = $lang->getDateFormatString( $type, $lang->dateFormat( true ) );
 		}
 
 		return $lang->sprintfDate( $df, $ts );
@@ -418,7 +469,7 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	private function buildOutput( $page, $title, $time, $user = '', $author = '', $made = '' ) {
+	public function buildOutput( $page, $title, $time, $user = '', $author = '', $made = '' ) {
 		$tableMode =& $this->bTableMode;
 		$output = '';
 		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
