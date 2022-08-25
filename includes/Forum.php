@@ -176,7 +176,7 @@ class Forum {
 			$df = $lang->getDateFormatString( $type, $lang->dateFormat( true ) );
 		}
 
-		return htmlspecialchars( $lang->sprintfDate( $df, $ts ) );
+		return $lang->sprintfDate( $df, $ts );
 	}
 
 	/**
@@ -195,7 +195,7 @@ class Forum {
 		$this->sLastEditFormat = $this->get( 'lasteditformat', false );
 		$this->bAddLastEditor = ( $this->get( 'addlasteditor' ) == 'true' );
 		$this->bAddCreationDate = ( $this->get( 'addcreationdate' ) == 'true' );
-		$this->sCreationDateFormat = $this->get( 'creationdateformat', false );
+		$this->sCreationDateFormat = htmlspecialchars( $this->get( 'creationdateformat', false ) );
 
 		switch ( $this->get( 'historylink' ) ) {
 			case 'embed':
