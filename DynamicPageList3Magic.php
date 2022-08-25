@@ -9,5 +9,7 @@ $magicWords['en'] = [
 	'dplreplace' => [ 0, 'dplreplace' ],
 	'dplchapter' => [ 0, 'dplchapter' ],
 	'dplmatrix' => [ 0, 'dplmatrix' ],
-	'DynamicPageList' => [ 0, 'DynamicPageList' ]
+	'DynamicPageList' => [ 0, 'DynamicPageList' ],
+	'forum' => [ 0, 'forum' ],
+	'forumlink' => [ 0, 'forumlink' ],
 ];
