@@ -93,7 +93,7 @@ class Forum {
 	/** @var string */
 	public $sOmit;
 
-	/** @var int */
+	/** @var string */
 	public $vMarkNew;
 
 	/** @var bool|string */
@@ -124,7 +124,7 @@ class Forum {
 
 	/**
 	 * @param string $name
-	 * @param int|null $value
+	 * @param mixed $value
 	 * @param Parser|null $parser
 	 *
 	 * @return int|null|string
@@ -187,7 +187,7 @@ class Forum {
 	 */
 	public function parse( &$input, $parser ) {
 		$this->sInput =& $input;
-		$sPrefix = $this->get( 'prefix', '', $parser );
+		$sPrefix = (string)$this->get( 'prefix', '', $parser );
 		$this->sOmit = $this->get( 'omit', $sPrefix, $parser );
 		$this->bAddAuthor = ( $this->get( 'addauthor' ) == 'true' );
 		$this->bTimestamp = ( $this->get( 'timestamp' ) != 'false' );
@@ -450,7 +450,7 @@ class Forum {
 					$userText
 				);
 			} else {
-				$output .= $this->buildOutput( null, $title, $this->msg( 'dplforum-never' ) );
+				$output .= $this->buildOutput( null, $title, wfMessage( 'dplforum-never' )->text() );
 			}
 
 			$output .= $sEndItem . "\n";
@@ -462,7 +462,7 @@ class Forum {
 	/**
 	 * Generates a single line of output.
 	 *
-	 * @param Title $page
+	 * @param ?Title $page
 	 * @param Title $title
 	 * @param int|string $time Usually revision.rev_timestamp but can be an i18n msg (dplforum-never)
 	 * @param string $user
