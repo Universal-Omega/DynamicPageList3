@@ -176,7 +176,7 @@ class Forum {
 			$df = $lang->getDateFormatString( $type, $lang->dateFormat( true ) );
 		}
 
-		return $lang->sprintfDate( $df, $ts );
+		return htmlspecialchars( $lang->sprintfDate( $df, $ts ) );
 	}
 
 	/**
