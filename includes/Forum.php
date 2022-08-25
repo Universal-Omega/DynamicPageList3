@@ -397,6 +397,7 @@ class Forum {
 		// $output .= 'QUERY: [' . $dbr->limitResult( $sSqlSelectFrom . $sSqlWhere, $count, $start ) . "]<br />";
 
 		// process the query
+		// phpcs:ignore MediaWiki.Usage.DbrQueryUsage.DbrQueryFound
 		$res = $dbr->query( $dbr->limitResult( $sSqlSelectFrom . $sSqlWhere, $count, $start ), __METHOD__ );
 
 		$this->vMarkNew = $dbr->timestamp( time() -
