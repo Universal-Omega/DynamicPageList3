@@ -632,7 +632,7 @@ class Hooks {
 	 */
 	public static function parseForum( $input, $argv, $parser ) {
 		$f = new Forum();
-		return $f->parse( $input, $parser );
+		return $f->parse( htmlspecialchars( $input ), $parser );
 	}
 
 	/**
