@@ -50,7 +50,7 @@ class Forum {
 	 * Unless this array is empty, namespace-free searches are also restricted.
 	 * Note: Only integers in this array are checked.
 	 *
-	 * @var array.
+	 * @var array
 	 */
 	public $restrictNamespace = [];
 
