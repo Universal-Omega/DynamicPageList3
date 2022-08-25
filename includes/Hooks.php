@@ -7,6 +7,7 @@ use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
 use Parser;
 use PPFrame;
+use RequestContext;
 
 class Hooks {
 
@@ -110,6 +111,9 @@ class Hooks {
 		$parser->setFunctionHook( 'dplreplace', [ __CLASS__, 'dplReplaceParserFunction' ] );
 		$parser->setFunctionHook( 'dplchapter', [ __CLASS__, 'dplChapterParserFunction' ] );
 		$parser->setFunctionHook( 'dplmatrix', [ __CLASS__, 'dplMatrixParserFunction' ] );
+
+		$parser->setHook( 'forum', [ __CLASS__, 'parseForum' ] );
+		$parser->setFunctionHook( 'forumlink', [ __CLASS__, 'parseForumLink' ] );
 	}
 
 	/**
@@ -618,6 +622,88 @@ class Hooks {
 				$parser->getOutput()->mImages = array_diff_assoc( $parser->getOutput()->mImages, self::$createdLinks[3] );
 			}
 		}
+	}
+
+	/**
+	 * @param string $input
+	 * @param string[] $argv
+	 * @param Parser $parser
+	 * @return string
+	 */
+	public static function parseForum( $input, $argv, $parser ) {
+		$f = new Forum();
+		return $f->parse( $input, $parser );
+	}
+
+	/**
+	 * @param Parser $parser
+	 * @param int $count
+	 * @param string $page
+	 * @param string $text
+	 *
+	 * @return string
+	 */
+	public static function parseForumLink( $parser, $count, $page = '', $text = '' ) {
+		$count = (int)$count;
+		if ( $count < 1 ) {
+			return '';
+		}
+
+		$request = RequestContext::getMain()->getRequest();
+
+		$parser->getOutput()->updateCacheExpiry( 0 );
+		$offset = (int)$request->getVal( 'offset', '' );
+
+		$i = (int)$page;
+		if ( $i != 0 && ctype_digit( $page[0] ) ) {
+			$i -= 1;
+		} else {
+			$i += $offset / $count;
+		}
+
+		if ( self::linkTest( $i, $page ) ) {
+			return '';
+		}
+
+		if ( $text === '' ) {
+			$text = $i + 1;
+		}
+
+		$page = $count * $i;
+		if ( $page == $offset ) {
+			return $text;
+		}
+
+		return '[' . $parser->replaceVariables( '{{fullurl:{{FULLPAGENAME}}|offset=' . $page . '}} ' ) . $text . ']';
+	}
+
+	/**
+	 * @param int $page
+	 * @param string $cond
+	 *
+	 * @return bool
+	 */
+	private static function linkTest( $page, $cond ) {
+		if ( preg_match( "/\\d+(\\D+)(\\d+)/", $cond, $m ) ) {
+			$m[1] = strtr( $m[1], [
+				( '&l' . 't;' ) => '<',
+				( '&g' . 't;' ) => '>'
+			] );
+
+			$m[2] = (int)$m[2] - 1;
+			switch ( $m[1] ) {
+				case '<':
+					return $page >= $m[2];
+				case '>':
+					return $page <= $m[2];
+				case '<=':
+					return $page > $m[2];
+				case '>=':
+					return $page < $m[2];
+			}
+		}
+
+		return $page < 0;
 	}
 
 	/**
