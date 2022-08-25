@@ -478,7 +478,7 @@ class Forum {
 
 		if ( $this->bAddCreationDate ) {
 			if ( is_numeric( $made ) ) {
-				$made = htmlspecialchars( $this->date( $made, 'date', $this->sCreationDateFormat ) );
+				$made = $this->date( htmlspecialchars( $made ), 'date', $this->sCreationDateFormat );
 			}
 
 			if ( $page && $this->bLinkHistory && !$this->bAddLastEdit ) {
