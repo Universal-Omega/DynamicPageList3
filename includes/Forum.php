@@ -1,8 +1,15 @@
 <?php
 
+namespace MediaWiki\Extension\DynamicPageList3;
+
 use MediaWiki\MediaWikiServices;
+use Parser;
+use RequestContext;
+use Title;
+use User;
 
 class Forum {
+
 	/** Minimum number of categories to look for */
 	public $minCategories = 1;
 
@@ -17,9 +24,6 @@ class Forum {
 
 	/** Allow unlimited categories */
 	public $unlimitedCategories = false;
-
-	/** Only clear the cache on purge */
-	public $requireCache = false;
 
 	/**
 	 * Restricted namespaces cannot be searched for page author or creation time.
@@ -48,12 +52,12 @@ class Forum {
 	public $sLastEditFormat;
 
 	/**
-	 * @param Parser &$parser
+	 * @param Parser $parser
 	 * @param string $name
 	 *
 	 * @return Title[]
 	 */
-	function cat( &$parser, $name ) {
+	private function cat( $parser, $name ) {
 		$cats = [];
 		if ( preg_match_all( "/^\s*$name\s*=\s*(.*)/mi", $this->sInput, $matches ) ) {
 			foreach ( $matches[1] as $cat ) {
@@ -63,6 +67,7 @@ class Forum {
 				}
 			}
 		}
+
 		return $cats;
 	}
 
@@ -73,7 +78,7 @@ class Forum {
 	 *
 	 * @return int|null|string
 	 */
-	function get( $name, $value = null, $parser = null ) {
+	private function get( $name, $value = null, $parser = null ) {
 		if ( preg_match( "/^\s*$name\s*=\s*(.*)/mi", $this->sInput, $matches ) ) {
 			$arg = trim( $matches[1] );
 			if ( is_int( $value ) ) {
@@ -84,77 +89,8 @@ class Forum {
 				return $parser->replaceVariables( $arg );
 			}
 		}
+
 		return $value;
-	}
-
-	/**
-	 * @param Parser &$parser
-	 * @param int $count
-	 * @param string $page
-	 * @param string $text
-	 *
-	 * @return string
-	 */
-	function link( &$parser, $count, $page = '', $text = '' ) {
-		$count = intval( $count );
-		if ( $count < 1 ) {
-			return '';
-		}
-
-		if ( $this->requireCache ) {
-			$offset = 0;
-		} else {
-			global $wgRequest;
-			$parser->getOutput()->updateCacheExpiry( 0 );
-			$offset = intval( $wgRequest->getVal( 'offset', '' ) );
-		}
-
-		$i = intval( $page );
-		if ( ( $i != 0 ) && ctype_digit( $page[0] ) ) {
-			$i -= 1;
-		} else {
-			$i += intval( $offset / $count );
-		}
-		if ( $this->linkTest( $i, $page ) ) {
-			return '';
-		}
-
-		if ( $text === '' ) {
-			$text = ( $i + 1 );
-		}
-		$page = ( $count * $i );
-		if ( $page == $offset ) {
-			return $text;
-		}
-
-		return '[' . $parser->replaceVariables( '{{fullurl:{{FULLPAGENAME}}|offset=' . $page . '}} ' ) . $text . ']';
-	}
-
-	/**
-	 * @param int $page
-	 * @param string $cond
-	 *
-	 * @return bool
-	 */
-	function linkTest( $page, $cond ) {
-		if ( preg_match( "/\\d+(\\D+)(\\d+)/", $cond, $m ) ) {
-			$m[1] = strtr( $m[1], [
-				( '&l' . 't;' ) => '<',
-				( '&g' . 't;' ) => '>'
-			] );
-			$m[2] = intval( $m[2] ) - 1;
-			switch ( $m[1] ) {
-				case '<':
-					return ( $page >= $m[2] );
-				case '>':
-					return ( $page <= $m[2] );
-				case '<=':
-					return ( $page > $m[2] );
-				case '>=':
-					return ( $page < $m[2] );
-			}
-		}
-		return ( $page < 0 );
 	}
 
 	/**
@@ -163,7 +99,7 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	function msg( $type, $error = null ) {
+	private function msg( $type, $error = null ) {
 		if ( $error && ( $this->get( 'suppresserrors' ) == 'true' ) ) {
 			return '';
 		}
@@ -178,24 +114,27 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	function date( $ts, $type = 'date', $df = false ) {
+	private function date( $ts, $type = 'date', $df = false ) {
 		// based on Language::date()
-		global $wgLang;
+		$lang = RequestContext::getMain()->getLanguage();
+
 		$ts = wfTimestamp( TS_MW, $ts );
-		$ts = $wgLang->userAdjust( $ts );
+		$ts = $lang->userAdjust( $ts );
+
 		if ( $df === false ) {
-			$df = $wgLang->getDateFormatString( $type, $wgLang->dateFormat( true ) );
+			$df = $lang->getDateFormatString( $type, $wgLang->dateFormat( true ) );
 		}
-		return $wgLang->sprintfDate( $df, $ts );
+
+		return $lang->sprintfDate( $df, $ts );
 	}
 
 	/**
 	 * @param string &$input
-	 * @param Parser &$parser
+	 * @param Parser $parser
 	 *
 	 * @return string
 	 */
-	function parse( &$input, &$parser ) {
+	public function parse( &$input, $parser ) {
 		$this->sInput =& $input;
 		$sPrefix = $this->get( 'prefix', '', $parser );
 		$this->sOmit = $this->get( 'omit', $sPrefix, $parser );
@@ -215,6 +154,7 @@ class Forum {
 			case 'show':
 				$this->bLinkHistory = true;
 		}
+
 		$sOrder = 'rev_timestamp';
 		switch ( $this->get( 'ordermethod' ) ) {
 			case 'categoryadd':
@@ -229,6 +169,7 @@ class Forum {
 		if ( $arg == 'all' || strpos( $arg, 'edit' ) === 0 ) {
 			$this->bCompactEdit = $this->bAddLastEdit;
 		}
+
 		$this->bCompactAuthor = ( $arg == 'author' || $arg == 'all' );
 
 		$arg = $this->get( 'namespace', '', $parser );
@@ -250,6 +191,7 @@ class Forum {
 		$sStartItem = $sEndItem = '';
 		$bCountMode = false;
 		$arg = $this->get( 'mode' );
+
 		switch ( $arg ) {
 			case 'none':
 				$sEndItem = '<br />';
@@ -269,6 +211,7 @@ class Forum {
 				$sStartItem = '<tr>';
 				$sEndItem = '</tr>';
 		}
+
 		$aCategories = $this->cat( $parser, 'category' );
 		$aExcludeCategories = $this->cat( $parser, 'notcategory' );
 		$cats = count( $aCategories );
@@ -287,14 +230,16 @@ class Forum {
 		$count = 1;
 		$start = $this->get( 'start', 0 );
 		$title = Title::newFromText( $parser->replaceVariables( trim( $this->get( 'title' ) ) ) );
-		if ( !( $bCountMode || $this->requireCache || $this->get( 'cache' ) == 'true' ) ) {
+		if ( !( $bCountMode || $this->get( 'cache' ) == 'true' ) ) {
 			$parser->getOutput()->updateCacheExpiry( 0 );
 
 			if ( $title === null ) {
-				global $wgRequest;
-				$start += intval( $wgRequest->getVal( 'offset' ) );
+				$request = RequestContext::getMain()->getRequest();
+
+				$start += intval( $request->getVal( 'offset' ) );
 			}
 		}
+
 		if ( $start < 0 ) {
 			$start = 0;
 		}
@@ -335,6 +280,7 @@ class Forum {
 			if ( $sOrder == 'first_time' ) {
 				$sOrder = 'page_id';
 			}
+
 			$sSqlSelectFrom .= $arg;
 		}
 
@@ -354,6 +300,7 @@ class Forum {
 					'\'' => '\\\''
 				]
 			);
+
 			$sSqlWhere .= " AND page_title LIKE BINARY '" . $sPrefix . "%'";
 		}
 
@@ -375,6 +322,7 @@ class Forum {
 				$dbr->addQuotes( $aCategories[$i]->getDBkey() );
 			$n++;
 		}
+
 		for ( $i = 0; $i < $nocats; $i++ ) {
 			$sSqlSelectFrom .= " LEFT OUTER JOIN $categorylinks AS" .
 				" c{$n} ON page_id = c{$n}.cl_from AND c{$n}.cl_to=" .
@@ -433,11 +381,13 @@ class Forum {
 					$first_user,
 					$first_time
 				);
+
 				$output .= $sEndItem . "\n";
 			}
 		} else {
 			$output .= $sStartItem;
 			$row = $res->fetchObject();
+
 			if ( $row ) {
 				$userText = User::newFromActorId( $row->rev_actor )->getName();
 				$output .= $this->buildOutput(
@@ -449,8 +399,10 @@ class Forum {
 			} else {
 				$output .= $this->buildOutput( null, $title, $this->msg( 'dplforum-never' ) );
 			}
+
 			$output .= $sEndItem . "\n";
 		}
+
 		return $output;
 	}
 
@@ -466,10 +418,11 @@ class Forum {
 	 *
 	 * @return string
 	 */
-	function buildOutput( $page, $title, $time, $user = '', $author = '', $made = '' ) {
+	private function buildOutput( $page, $title, $time, $user = '', $author = '', $made = '' ) {
 		$tableMode =& $this->bTableMode;
 		$output = '';
 		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
+
 		if ( $this->bAddCreationDate ) {
 			if ( is_numeric( $made ) ) {
 				$made = $this->date( $made, 'date', $this->sCreationDateFormat );
