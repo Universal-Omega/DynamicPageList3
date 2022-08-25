@@ -201,6 +201,7 @@ class Forum {
 			case 'embed':
 			case 'true':
 				$this->bEmbedHistory = true;
+				break;
 			case 'append':
 			case 'show':
 				$this->bLinkHistory = true;
@@ -358,12 +359,12 @@ class Forum {
 		switch ( $this->get( 'redirects' ) ) {
 			case 'only':
 				$sSqlWhere .= ' AND page_is_redirect = 1';
+				break;
 			case 'include':
 				break;
 			case 'exclude':
 			default:
 				$sSqlWhere .= ' AND page_is_redirect = 0';
-				break;
 		}
 
 		$n = 1;
