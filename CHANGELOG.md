@@ -790,7 +790,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.4.7
 * Dropped `revision_actor_temp` support and completed actor migration
-* Dropped support for MediaWiki versions before 1.38.0
-* Added support for MediaWiki 1.39
+* Added support for `templatelinks` migration
+* Added support for MediaWiki 1.39 and dropped support for older MediaWiki versions (before 1.39.0)
 * Fixed installing via composer version 2.2.1 and later
 * Fixed using imagecontainer with openreferences
