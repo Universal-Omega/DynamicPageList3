@@ -1150,13 +1150,12 @@ class Query {
 	 */
 	private function _createdby( $option ) {
 		$this->addTable( 'revision', 'creation_rev' );
-		$this->addTable( 'revision', 'creation_rev_actor' );
-		$this->_adduser( null, 'creation_rev_actor' );
+		$this->_adduser( null, 'creation_rev' );
 
 		$this->addWhere(
 			[
-				$this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev_actor.rev_actor',
-				'creation_rev_actor.rev_page = page_id',
+				$this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' = creation_rev.rev_actor',
+				'creation_rev.rev_page = page_id',
 				'creation_rev.rev_parent_id = 0'
 			]
 		);
@@ -1403,7 +1402,7 @@ class Query {
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$_or = '(pl.pl_namespace=' . intval( $link->getNamespace() );
+						$_or = '(pl.pl_namespace=' . (int)$link->getNamespace();
 						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
@@ -1426,7 +1425,7 @@ class Query {
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . intval( $link->getNamespace() );
+						$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . (int)$link->getNamespace();
 						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
@@ -1477,7 +1476,7 @@ class Query {
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = $this->tableNames['pagelinks'] . '.pl_from = ' . intval( $link->getArticleID() );
+					$ors[] = $this->tableNames['pagelinks'] . '.pl_from = ' . (int)$link->getArticleID();
 				}
 			}
 
@@ -1503,7 +1502,7 @@ class Query {
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . intval( $link->getNamespace() );
+					$_or = '(' . $this->tableNames['pagelinks'] . '.pl_namespace=' . (int)$link->getNamespace();
 					if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 						$operator = 'LIKE';
 					} else {
@@ -1638,9 +1637,8 @@ class Query {
 	 */
 	private function _notcreatedby( $option ) {
 		$this->addTable( 'revision', 'no_creation_rev' );
-		$this->addTable( 'revision', 'no_creation_rev_actor' );
 
-		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != no_creation_rev_actor.rev_actor AND no_creation_rev_actor.rev_page = page_id AND no_creation_rev.rev_parent_id = 0' );
+		$this->addWhere( $this->dbr->addQuotes( $this->userFactory->newFromName( $option )->getActorId() ) . ' != no_creation_rev.rev_actor AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0' );
 	}
 
 	/**
@@ -2196,29 +2194,29 @@ class Query {
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'tpl_from = ' . intval( $link->getArticleID() );
+					$ors[] = 'tpl_from = ' . (int)$link->getArticleID();
 				}
 			}
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
-			$this->addTable( 'templatelinks', 'tl' );
-			$this->addTable( 'linktarget', 'lt' );
-
-			$this->addTable( 'page', 'tplsrc' );
+			$this->addTables( [
+				'linktarget' => 'lt',
+				'page' => 'tplsrc',
+				'templatelinks' => 'tpl',
+			] );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			$queryInfo = $linksMigration->getQueryInfo( 'templatelinks' );
 			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
 
 			$this->addSelect( [ 'tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace' ] );
 			$where = $this->tableNames['page'] . '.page_namespace = lt.' . $nsField . ' AND ' .
-					 $this->tableNames['page'] . '.page_title = lt.' . $titleField . ' AND tplsrc.page_id = tl.tl_from AND ';
+					 $this->tableNames['page'] . '.page_title = lt.' . $titleField . ' AND tplsrc.page_id = tpl.tl_from AND ';
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'tl.tl_from = ' . intval( $link->getArticleID() );
+					$ors[] = 'tpl.tl_from = ' . (int)$link->getArticleID();
 				}
 			}
 
@@ -2234,19 +2232,20 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _uses( $option ) {
-		$this->addTable( 'templatelinks', 'tl' );
-		$this->addTable( 'linktarget', 'lt' );
+		$this->addTables( [
+			'linktarget' => 'lt',
+			'templatelinks' => 'tl',
+		] );
 
 		$where = $this->tableNames['page'] . '.page_id=tl.tl_from AND (';
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-		$queryInfo = $linksMigration->getQueryInfo( 'templatelinks' );
 		list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . intval( $link->getNamespace() );
+				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
@@ -2273,12 +2272,11 @@ class Query {
 			$ors = [];
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			$queryInfo = $linksMigration->getQueryInfo( 'templatelinks' );
 			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$_or = '(' . $this->tableNames['linktarget'] . '.' . $nsField . '=' . intval( $link->getNamespace() );
+					$_or = '(' . $this->tableNames['linktarget'] . '.' . $nsField . '=' . (int)$link->getNamespace();
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 						$_or .= ' AND LOWER(CAST(' . $this->tableNames['linktarget'] . '.' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
