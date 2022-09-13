@@ -2201,21 +2201,21 @@ class Query {
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
-			$this->addTable( 'templatelinks', 'tpl' );
+			$this->addTable( 'templatelinks', 'tl' );
 			$this->addTable( 'page', 'tplsrc' );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			$queryInfo = $linksMigration->getQueryInfo( 'tpl' );
-			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'tpl' );
+			$queryInfo = $linksMigration->getQueryInfo( 'tl' );
+			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'tl' );
 
 			$this->addSelect( [ 'tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace' ] );
 			$where = $this->tableNames['page'] . '.page_namespace = ' . $nsField . ' AND ' .
-					 $this->tableNames['page'] . '.page_title = ' . $titleField . ' AND tplsrc.page_id = tpl.tl_from AND ';
+					 $this->tableNames['page'] . '.page_title = ' . $titleField . ' AND tplsrc.page_id = tl.tl_from AND ';
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'tpl.tl_from = ' . intval( $link->getArticleID() );
+					$ors[] = 'tl.tl_from = ' . intval( $link->getArticleID() );
 				}
 			}
 
