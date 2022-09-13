@@ -795,3 +795,5 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Dropped official support for PHP versions before PHP 7.4.3, because MediaWiki 1.39 does not support older PHP versions anymore
 * Fixed installing via composer version 2.2.1 and later
 * Fixed using imagecontainer with openreferences
+* Replaced usages of `intval()` with `(int)` in Query.php
+* Swapped order of mapping for `Query::addTables()` from `[ alias => table ]` to `[ table => alias ]`
