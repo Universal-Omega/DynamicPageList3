@@ -1,8 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Universal Omega",
-			"Purodha"
+			"Purodha",
+			"Universal Omega"
 		]
 	},
 	"intersection-desc": "{{desc}}",
@@ -48,6 +48,6 @@
 	"dplreplace-parserfunc-tracking-category": "'Pages using DynamicPageList3 dplreplace parser function' tracking category",
 	"dplchapter-parserfunc-tracking-category": "'Pages using DynamicPageList3 dplchapter parser function' tracking category",
 	"dplmatrix-parserfunc-tracking-category": "'Pages using DynamicPageList3 dplmatrix parser function' tracking category",
-	"right-dpl_param_update_rules": "{{doc-right|dpl_param_update_rules}}",
-	"right-dpl_param_delete_rules": "{{doc-right|dpl_param_delete_rules}}"
+	"right-dpl_param_delete_rules": "{{doc-right|dpl_param_delete_rules}}",
+	"right-dpl_param_update_rules": "{{doc-right|dpl_param_update_rules}}"
 }
