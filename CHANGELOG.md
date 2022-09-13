@@ -792,5 +792,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Dropped `revision_actor_temp` support and completed actor migration
 * Added support for `templatelinks` migration
 * Added support for MediaWiki 1.39 and dropped support for older MediaWiki versions (before 1.39.0)
+* Dropped official support for PHP versions before PHP 7.4.3, because MediaWiki 1.39 does not support older PHP versions anymore
 * Fixed installing via composer version 2.2.1 and later
 * Fixed using imagecontainer with openreferences
