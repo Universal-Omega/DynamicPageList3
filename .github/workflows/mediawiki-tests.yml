@@ -14,14 +14,14 @@ jobs:
       matrix:
         include:
           # Latest stable MediaWiki - PHP 7.3 (phan)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: true
             stage: phan
 
           # Latest stable MediaWiki - PHP 7.4 (phan)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
             experimental: true
@@ -42,7 +42,7 @@ jobs:
             stage: phan
 
           # Latest stable MediaWiki - PHP 7.3 (coverage)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
@@ -56,14 +56,14 @@ jobs:
             stage: coverage
 
           # Latest stable MediaWiki - PHP 7.3 (phpunit-unit)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
             stage: phpunit-unit
 
           # Latest stable MediaWiki - PHP 7.4 (phpunit-unit)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
             experimental: false
@@ -84,14 +84,14 @@ jobs:
             stage: phpunit-unit
 
           # Latest stable MediaWiki - PHP 7.3 (phpunit)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
             stage: phpunit
 
           # Latest stable MediaWiki - PHP 7.4 (phpunit)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
             experimental: false
@@ -112,7 +112,7 @@ jobs:
             stage: phpunit
 
           # Latest stable MediaWiki - PHP 7.3 (selenium)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
@@ -126,7 +126,7 @@ jobs:
             stage: selenium
 
           # Latest stable MediaWiki - PHP 7.3 (qunit)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
@@ -140,7 +140,7 @@ jobs:
             stage: qunit
 
           # Latest stable MediaWiki - PHP 7.3 (composer-test)
-          - mw: 'REL1_38'
+          - mw: 'REL1_39'
             php: 7.3
             php-docker: 73
             experimental: false
