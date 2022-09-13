@@ -492,10 +492,10 @@ class Query {
 	/**
 	 * Add multiple tables to the output.
 	 *
-	 * @param array $tablesByAlias
+	 * @param array $tablesByAlias [ table => alias ]
 	 */
 	public function addTables( array $tablesByAlias ) {
-		foreach ( $tablesByAlias as $alias => $table ) {
+		foreach ( $tablesByAlias as $table => $alias ) {
 			$this->addTable( $table, $alias );
 		}
 	}
