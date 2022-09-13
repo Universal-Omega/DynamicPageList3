@@ -2203,9 +2203,14 @@ class Query {
 		} else {
 			$this->addTable( 'templatelinks', 'tpl' );
 			$this->addTable( 'page', 'tplsrc' );
+
+			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
+			$queryInfo = $linksMigration->getQueryInfo( 'tpl' );
+			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'tpl' );
+
 			$this->addSelect( [ 'tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace' ] );
-			$where = $this->tableNames['page'] . '.page_namespace = tpl.tl_namespace AND ' .
-					 $this->tableNames['page'] . '.page_title = tpl.tl_title AND tplsrc.page_id = tpl.tl_from AND ';
+			$where = $this->tableNames['page'] . '.page_namespace = ' . $nsField . ' AND ' .
+					 $this->tableNames['page'] . '.page_title = ' . $titleField . ' AND tplsrc.page_id = tpl.tl_from AND ';
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
@@ -2230,14 +2235,18 @@ class Query {
 		$where = $this->tableNames['page'] . '.page_id=tl.tl_from AND (';
 		$ors = [];
 
+		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
+		$queryInfo = $linksMigration->getQueryInfo( 'tl' );
+		list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'tl' );
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(tl.tl_namespace=' . intval( $link->getNamespace() );
+				$_or = '(' . $nsField . '=' . intval( $link->getNamespace() );
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(tl.tl_title AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
+					$_or .= ' AND LOWER(CAST(' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= ' AND tl.tl_title = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
@@ -2258,14 +2267,18 @@ class Query {
 			$where = $this->tableNames['page'] . '.page_id NOT IN (SELECT ' . $this->tableNames['templatelinks'] . '.tl_from FROM ' . $this->tableNames['templatelinks'] . ' WHERE (';
 			$ors = [];
 
+			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
+			$queryInfo = $linksMigration->getQueryInfo( $this->tableNames['templatelinks'] );
+			list( $nsField, $titleField ) = $linksMigration->getTitleFields( $this->tableNames['templatelinks'] );
+
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$_or = '(' . $this->tableNames['templatelinks'] . '.tl_namespace=' . intval( $link->getNamespace() );
+					$_or = '(' . $nsField . '=' . intval( $link->getNamespace() );
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or .= ' AND LOWER(CAST(' . $this->tableNames['templatelinks'] . '.tl_title AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
+						$_or .= ' AND LOWER(CAST(' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 					} else {
-						$_or .= ' AND ' . $this->tableNames['templatelinks'] . '.tl_title = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+						$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 					}
 					$ors[] = $_or;
 				}
