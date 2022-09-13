@@ -448,6 +448,7 @@ class Query {
 			'externallinks',
 			'flaggedpages',
 			'imagelinks',
+			'linktarget',
 			'page',
 			'pagelinks',
 			'recentchanges',
@@ -2202,6 +2203,8 @@ class Query {
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
 			$this->addTable( 'templatelinks', 'tl' );
+			$this->addTable( 'linktarget', 'lt' );
+
 			$this->addTable( 'page', 'tplsrc' );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -2209,8 +2212,8 @@ class Query {
 			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
 
 			$this->addSelect( [ 'tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace' ] );
-			$where = $this->tableNames['page'] . '.page_namespace = ' . $nsField . ' AND ' .
-					 $this->tableNames['page'] . '.page_title = ' . $titleField . ' AND tplsrc.page_id = tl.tl_from AND ';
+			$where = $this->tableNames['page'] . '.page_namespace = lt.' . $nsField . ' AND ' .
+					 $this->tableNames['page'] . '.page_title = lt.' . $titleField . ' AND tplsrc.page_id = tl.tl_from AND ';
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
@@ -2232,6 +2235,8 @@ class Query {
 	 */
 	private function _uses( $option ) {
 		$this->addTable( 'templatelinks', 'tl' );
+		$this->addTable( 'linktarget', 'lt' );
+
 		$where = $this->tableNames['page'] . '.page_id=tl.tl_from AND (';
 		$ors = [];
 
@@ -2241,10 +2246,10 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(' . $nsField . '=' . intval( $link->getNamespace() );
+				$_or = '(lt.' . $nsField . '=' . intval( $link->getNamespace() );
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
+					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
 					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
@@ -2273,12 +2278,12 @@ class Query {
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$_or = '(' . $nsField . '=' . intval( $link->getNamespace() );
+					$_or = '(' . $this->tableNames['linktarget'] . '.' . $nsField . '=' . intval( $link->getNamespace() );
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or .= ' AND LOWER(CAST(' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
+						$_or .= ' AND LOWER(CAST(' . $this->tableNames['linktarget'] . '.' . $titleField . ' AS char)) = LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . '))';
 					} else {
-						$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+						$_or .= ' AND ' . $this->tableNames['linktarget'] . '.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 					}
 					$ors[] = $_or;
 				}
