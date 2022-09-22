@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eleassar"
+		]
+	},
+	"intersection-desc": "Izpiše označeni seznam zadnjih predmetov v kategoriji ali presek več kategorij",
+	"intersection_toomanycats": "Napaka: Preveč kategorij!",
+	"intersection_toofewcats": "Napaka: Premalo kategorij!",
+	"intersection_noresults": "Napaka: Ni zadetkov!",
+	"intersection_pcerror": "Tega seznama ni mogoče prikazati, ker so strežniki preobremenjeni. Prosimo, poskusite pozneje.",
+	"dpl-desc": "Zelo prilagodljiv generator poročil za MediaWikije",
+	"dpl_log_7": "Napaka: Če vključite več kot eno kategorijo, ne morete uporabiti 'addfirstcategorydate=true' ali 'ordermethod=categoryadd'.",
+	"dpl_log_8": "Napaka: Naenkrat je mogoče dodati samo eno vrsto datuma.",
+	"dpl_log_16": "Opozorilo: Ni zadetkov.",
+	"dpl_log_19": "Opozorilo: 'debug= $1 ' ni na prvem mestu v elementu DPL. Nove nastavitve za odpravljanje napak ne bodo uporabljene, dokler ne bodo razčlenjeni in preverjeni vsi prejšnji parametri.",
+	"dpl_log_21": "Poizvedba: <code>$0</code>",
+	"dpl_log_23": "Napaka: seznama ni mogoče prikazati, ker so strežniki preobremenjeni. Prosimo, poskusite pozneje.",
+	"dpl_log_25": "Napaka: $1",
+	"dpl-tag-tracking-category": "Strani, ki uporabljajo oznako razčlenjevalnika DynamicPageList3",
+	"dpl-intersection-tracking-category": "Strani, ki uporabljajo oznako razčlenjevalnika DynamicPageList3 Intersection",
+	"dpl-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3",
+	"dplnum-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3 dplnum",
+	"dplvar-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3 dplvar",
+	"dplreplace-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3 dplreplace",
+	"dplmatrix-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3 dplmatrix",
+	"right-dpl_param_delete_rules": "Množično brisanje strani z uporabo DynamicPageList3",
+	"right-dpl_param_update_rules": "Množično posodabljanje strani z uporabo DynamicPageList3"
+}
