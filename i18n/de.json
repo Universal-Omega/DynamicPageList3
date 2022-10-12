@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Gero Scholz",
+			"Justman10000",
 			"Magiczocker",
 			"MarkusRost"
 		]
@@ -23,7 +24,7 @@
 	"dpl_log_8": "Fehler: Es kann jeweils nur eine Datumsart hinzugefügt werden.",
 	"dpl_log_9": "Fehler: Der Parameter „$1“ muss in Verbindung mit „ordermethod=[ $2 ]“ benutzt werden.",
 	"dpl_log_10": "Fehler: Die Indexangabe bei „dominant section“ muss zwischen 1 und der Anzahl der Argumente von „includepage“ liegen ($0 in diesem Fall).",
-	"dpl_log_11": "Fehler: Kann keine logischen Operationen an nicht kategorisierten Seiten ausführen (z.&nbsp;B. mit dem „category“ Parameter) weil die „$0“-Ansicht nicht in der Datenbank vorhanden ist!",
+	"dpl_log_11": "Fehler: Auf den nicht kategorisierten Seiten (z. B. mit dem Parameter 'Kategorie') können keine logischen Operationen ausgeführt werden, da die $0-Ansicht in der Datenbank nicht vorhanden ist! Hilfe: Lasse den Datenbankadministrator diese Abfrage ausführen: <code>$1</code>.",
 	"dpl_log_12": "Fehler: Die Angabe von „openreferences“ ist nicht vereinbar mit anderen angegegeben Optionen. Entferne die anderen Optionen oder „openreferences“. Details dazu stehen im DynamicPageList3-Manual.",
 	"dpl_log_13": "Warnung: Der unbekannte Parameter „$1“ wurde ignoriert. Hilfe: Verfügbare Parameter: <code>$2</code>.",
 	"dpl_log_14": "Warnung: Überspringe die ungültige Option „$2“ für den Parameter „$1“.",
