@@ -157,7 +157,7 @@ class Query {
 
 		$this->tableNames = self::getTableNames();
 
-		$this->dbr = wfGetDB( DB_REPLICA, 'dpl' );
+		$this->dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA, 'dpl' );
 
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
@@ -440,7 +440,7 @@ class Query {
 	 * @return array
 	 */
 	public static function getTableNames() {
-		$dbr = wfGetDB( DB_REPLICA, 'dpl' );
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA, 'dpl' );
 
 		$tables = [
 			'categorylinks',
@@ -710,7 +710,7 @@ class Query {
 	 * @return array
 	 */
 	public static function getSubcategories( $categoryName, $depth = 1 ) {
-		$dbr = wfGetDB( DB_REPLICA, 'dpl' );
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA, 'dpl' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
