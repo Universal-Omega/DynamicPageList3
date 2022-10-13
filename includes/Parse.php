@@ -98,8 +98,6 @@ class Parse {
 	 * @param array	&$eliminate
 	 * @param bool $isParserTag
 	 * @return string
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
@@ -107,17 +105,19 @@ class Parse {
 		// Reset headings when being ran more than once in the same page load.
 		Article::resetHeadings();
 
+		$title = Title::castFromPageReference( $parser->getPage() );
+
 		// Check that we are not in an infinite transclusion loop
-		if ( isset( $parser->mTemplatePath[$parser->getPage()->getPrefixedText()] ) ) {
-			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $parser->getPage()->getPrefixedText() );
+		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
+			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
 
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getPage()->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$title->isProtected( 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $parser->getPage()->getPrefixedText() );
+			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
@@ -405,7 +405,7 @@ class Parse {
 			}
 
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
-			$thisTitle = $parser->getPage();
+			$thisTitle = Title::castFromPageReference( $parser->getPage() );
 
 			// Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle->equals( $title ) ) {
