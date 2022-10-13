@@ -907,7 +907,9 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $parser->getPage() ? $localParser->parse( $output, $parser->getPage(), $parser->getOptions() ) : null;
+
+		$page = $parser->getPage();
+		$parserOutput = $page ? $localParser->parse( $output, $page, $parser->getOptions() ) : null;
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
