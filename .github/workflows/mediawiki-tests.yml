@@ -27,13 +27,6 @@ jobs:
             experimental: true
             stage: phan
 
-          # Latest stable MediaWiki - PHP 7.4 (coverage)
-          - mw: 'REL1_39'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: coverage
-
           # Latest MediaWiki master - PHP 7.4 (coverage)
           - mw: 'master'
             php: 7.4
