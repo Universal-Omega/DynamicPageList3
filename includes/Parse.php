@@ -906,7 +906,7 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $localParser->parse( $output, $parser->getPage(), $parser->getOptions() );
+		$parserOutput = $parser->getPage() ? $localParser->parse( $output, $parser->getPage(), $parser->getOptions() ) : null;
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
@@ -967,7 +967,7 @@ class Parse {
 				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate';
 			}
 
-			if ( isset( $eliminate['links'] ) && $eliminate['links'] ) {
+			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
@@ -976,7 +976,7 @@ class Parse {
 				}
 			}
 
-			if ( isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Hooks::$createdLinks[1] = [];
 
 				foreach ( $parserOutput->getTemplates() as $nsp => $tpl ) {
@@ -984,11 +984,11 @@ class Parse {
 				}
 			}
 
-			if ( isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
+			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
 				Hooks::$createdLinks[2] = $parserOutput->mCategories;
 			}
 
-			if ( isset( $eliminate['images'] ) && $eliminate['images'] ) {
+			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
 				Hooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}
