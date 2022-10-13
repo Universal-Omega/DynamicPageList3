@@ -124,7 +124,8 @@ class LST {
 				return $text;
 			}
 		} else {
-			return "[[" . $parser->getPage()->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
+			$title = Title::castFromPageReference( $parser->getPage() );
+			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
 		}
 	}
 
