@@ -278,7 +278,7 @@ class Hooks {
 			// @phan-suppress-next-line PhanPluginMixedKeyNoKey
 			$parser->getPreprocessor()->preprocessToObj( $dplresult, 1 ),
 			'isLocalObj' => true,
-			'title' => $parser->getTitle()
+			'title' => $parser->getPage()
 		];
 	}
 
