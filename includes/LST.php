@@ -45,8 +45,6 @@ class LST {
 	 * @param Parser $parser
 	 * @param string $part1
 	 * @return bool
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public static function open( $parser, $part1 ) {
 		// Infinite loop test
@@ -70,8 +68,6 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $part1
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public static function close( $parser, $part1 ) {
 		// Infinite loop test
