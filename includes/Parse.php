@@ -108,16 +108,16 @@ class Parse {
 		Article::resetHeadings();
 
 		// Check that we are not in an infinite transclusion loop
-		if ( isset( $parser->mTemplatePath[$parser->getTitle()->getPrefixedText()] ) ) {
-			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $parser->getTitle()->getPrefixedText() );
+		if ( isset( $parser->mTemplatePath[$parser->getPage()->getPrefixedText()] ) ) {
+			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $parser->getPage()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
 
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getTitle()->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getPage()->isProtected( 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $parser->getTitle()->getPrefixedText() );
+			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $parser->getPage()->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
@@ -203,7 +203,7 @@ class Parse {
 
 			$foundRows = null;
 			$profilingContext = '';
-			$currentTitle = $parser->getTitle();
+			$currentTitle = $parser->getPage();
 			if ( $currentTitle instanceof Title ) {
 				$profilingContext
 					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
@@ -405,7 +405,7 @@ class Parse {
 			}
 
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
-			$thisTitle = $parser->getTitle();
+			$thisTitle = $parser->getPage();
 
 			// Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle->equals( $title ) ) {
@@ -906,7 +906,7 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $localParser->parse( $output, $parser->getTitle(), $parser->getOptions() );
+		$parserOutput = $localParser->parse( $output, $parser->getPage(), $parser->getOptions() );
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
