@@ -114,8 +114,9 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
+		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$title->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && $title && !$restrictionStore->isProtected( $title, 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
 			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 
