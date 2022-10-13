@@ -17,7 +17,7 @@ jobs:
           - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
-            experimental: true
+            experimental: false
             stage: phan
 
           # Latest MediaWiki master - PHP 7.4 (phan)
