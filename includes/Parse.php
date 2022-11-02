@@ -591,7 +591,7 @@ class Parse {
 	 * @return mixed Type to use: 'results', 'oneresult', or 'noresults'. False if invalid or none should be used.
 	 */
 	private function getHeaderFooterType( $position, $count ) {
-		$count = intval( $count );
+		$count = (int)$count;
 
 		if ( $position != 'header' && $position != 'footer' ) {
 			return false;
@@ -715,7 +715,7 @@ class Parse {
 
 		// No more than one type of date at a time!
 		// @TODO: Can this be fixed to allow all three later after fixing the article class?
-		if ( ( intval( $this->parameters->getParameter( 'addpagetoucheddate' ) ) + intval( $this->parameters->getParameter( 'addfirstcategorydate' ) ) + intval( $this->parameters->getParameter( 'addeditdate' ) ) ) > 1 ) {
+		if ( ( (int)$this->parameters->getParameter( 'addpagetoucheddate' ) + (int)$this->parameters->getParameter( 'addfirstcategorydate' ) + (int)$this->parameters->getParameter( 'addeditdate' ) ) > 1 ) {
 			$this->logger->addMessage( Hooks::FATAL_MORETHAN1TYPEOFDATE );
 
 			return false;
