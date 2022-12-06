@@ -788,7 +788,7 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Used database update maintenance script for creating VIEW
 * Added additional isset check for mTemplatePath
 
-# Version 3.4.7
+# Version 3.5.0
 * Dropped `revision_actor_temp` support and completed actor migration
 * Added support for `templatelinks` migration
 * Added support for MediaWiki 1.39 and dropped support for older MediaWiki versions (before 1.39.0)
@@ -797,3 +797,9 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed using imagecontainer with openreferences
 * Replaced usages of `intval()` with `(int)` in Query.php and Parse.php
 * Swapped order of mapping for `Query::addTables()` from `[ alias => table ]` to `[ table => alias ]`
+* Replaced usages of deprecated `wfGetDB()`
+* Replaced usages of deprecated `Parser::getTitle()`
+* Replaced usage of deprecated `Title::isProtected()`
+* Replaced usage of deprecated `User::matchEditToken()`
+* Replaced usage of deprecated `Article::doDelete()`
+* Added `null` checks on `Parser::getPage()` and ParserOutput before using to avoid fatals
