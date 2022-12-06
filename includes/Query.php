@@ -2237,7 +2237,7 @@ class Query {
 			'templatelinks' => 'tl',
 		] );
 
-		$where = $this->tableNames['page'] . '.page_id=tl.tl_from AND (';
+		$where = $this->tableNames['page'] . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
