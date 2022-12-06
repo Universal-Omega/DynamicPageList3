@@ -802,4 +802,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Replaced usage of deprecated `Title::isProtected()`
 * Replaced usage of deprecated `User::matchEditToken()`
 * Replaced usage of deprecated `Article::doDelete()`
-* Added `null` checks on `Parser::getPage()` and ParserOutput before using to avoid fatals
+* Added `null` checks on `Parser::getPage()` and `ParserOutput` before using to avoid fatals
