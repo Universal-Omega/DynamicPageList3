@@ -787,3 +787,19 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Updated CreateTemplate to mention DPL3, not DPL
 * Used database update maintenance script for creating VIEW
 * Added additional isset check for mTemplatePath
+
+# Version 3.5.0
+* Dropped `revision_actor_temp` support and completed actor migration
+* Added support for `templatelinks` migration
+* Added support for MediaWiki 1.39 and dropped support for older MediaWiki versions (before 1.39.0)
+* Dropped official support for PHP versions before PHP 7.4.3, because MediaWiki 1.39 does not support older PHP versions anymore
+* Fixed installing via composer version 2.2.1 and later
+* Fixed using imagecontainer with openreferences
+* Replaced usages of `intval()` with `(int)` in Query.php and Parse.php
+* Swapped order of mapping for `Query::addTables()` from `[ alias => table ]` to `[ table => alias ]`
+* Replaced usages of deprecated `wfGetDB()`
+* Replaced usages of deprecated `Parser::getTitle()`
+* Replaced usage of deprecated `Title::isProtected()`
+* Replaced usage of deprecated `User::matchEditToken()`
+* Replaced usage of deprecated `Article::doDelete()`
+* Added `null` checks on `Parser::getPage()` and `ParserOutput` before using to avoid fatals

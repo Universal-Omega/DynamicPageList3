@@ -88,12 +88,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$source = new ImportStreamSource( $seedDataFile );
 		$services = MediaWikiServices::getInstance();
 
-		if ( $services->hasService( 'WikiImporterFactory' ) ) {
-			return $services->getWikiImporterFactory()->getWikiImporter( $source );
-		}
-
-		// MW 1.36
-		return new WikiImporter( $source, $services->getMainConfig() );
+		return $services->getWikiImporterFactory()->getWikiImporter( $source );
 	}
 
 	private function getAuthManager(): AuthManager {
@@ -155,6 +150,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$parserOptions = ParserOptions::newCanonical(
 			RequestContext::getMain()
 		);
+
 		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
 
 		return $parserOutput->getText();
