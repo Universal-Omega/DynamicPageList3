@@ -7,6 +7,8 @@ use MediaWiki\Extension\DynamicPageList3\LST;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
 use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
 use MediaWiki\MediaWikiServices;
+use PageImages\PageImages;
+use ExtensionRegistry;
 use Parser;
 use RequestContext;
 use Sanitizer;
@@ -970,6 +972,7 @@ class Lister {
 	 */
 	protected function parseImageUrlWithPath( $article ) {
 		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
+		$pageImagesEnabled = ExtensionRegistry::getInstance()->isLoaded( 'PageImages' );
 
 		$imageUrl = '';
 		if ( $article instanceof Article ) {
@@ -983,6 +986,20 @@ class Lister {
 				} else {
 					$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
 					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
+				}
+			} else if ( $pageImagesEnabled ) {
+				//ugropont
+				$pageImage = self::getPageImage( $article->mID ) ?: false;
+				if ( !$pageImage ) { 
+					return ""; 
+				}
+				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
+				if ( $img && $img->exists() ) {
+					$imageUrl = $img->getURL();
+				} else {
+					$imageUrl = "";
+					//$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
+					//$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
 			}
 		} else {
@@ -1301,4 +1318,25 @@ class Lister {
 	public function getRowCount() {
 		return $this->rowCount;
 	}
+
+	
+	/*domi*/
+	public function getPageImage( int $pageID ) {
+
+		$dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $dbl->getConnection( DB_REPLICA );
+		//in the future, a check could be made for page_image too, but page_image_free is the default, should do for now
+		$propValue = $dbr->selectField( 'page_props', // table to use
+					'pp_value', // Field to select
+					[ 'pp_page' => $pageID, 'pp_propname' => "page_image_free" ], // where conditions 
+					__METHOD__
+		);
+		if ( $propValue === false ) {
+					// No prop stored for this page
+					return false;
+		}
+
+		return $propValue;
+	}
+
 }
