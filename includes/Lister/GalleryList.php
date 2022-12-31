@@ -94,7 +94,7 @@ class GalleryList extends Lister {
 
 		$dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $dbl->getConnection( DB_REPLICA );
-		//in the future, a check could be made for page_image too, but page_image_free is the default, should do for now
+		//in the future, a check could be made for the page_image prop too, but page_image_free is the default, should do for now
 		$propValue = $dbr->selectField( 'page_props', // table to use
 					'pp_value', // Field to select
 					[ 'pp_page' => $pageID, 'pp_propname' => "page_image_free" ], // where conditions 
