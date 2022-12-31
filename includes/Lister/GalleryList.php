@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\DynamicPageList3\Lister;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use PageImages\PageImages;
 use ExtensionRegistry;
-use MediaWiki\MediaWikiServices;
 
 class GalleryList extends Lister {
 	/**
@@ -65,7 +64,7 @@ class GalleryList extends Lister {
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle;
 		if ( $article->mNamespace != NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
-			$pageImage = self::getPageImage( $article->mID ) ?: false;
+			$pageImage = $this->getPageImage( $article->mID ) ?: false;
 			if ( $pageImage ) {
 				$item = $pageImage;
 			}
@@ -87,24 +86,5 @@ class GalleryList extends Lister {
 		$item = $this->replaceTagParameters( $item, $article );
 
 		return $item;
-	}
-
-
-	public function getPageImage( int $pageID ) {
-
-		$dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
-		$dbr = $dbl->getConnection( DB_REPLICA );
-		//in the future, a check could be made for the page_image prop too, but page_image_free is the default, should do for now
-		$propValue = $dbr->selectField( 'page_props', // table to use
-					'pp_value', // Field to select
-					[ 'pp_page' => $pageID, 'pp_propname' => "page_image_free" ], // where conditions 
-					__METHOD__
-		);
-		if ( $propValue === false ) {
-					// No prop stored for this page
-					return false;
-		}
-
-		return $propValue;
 	}
 }

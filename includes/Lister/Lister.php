@@ -988,6 +988,7 @@ class Lister {
 					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
 			} else if ( $pageImagesEnabled ) {
+
 				$pageImage = self::getPageImage( $article->mID ) ?: false;
 				if ( !$pageImage ) { 
 					return ""; 
@@ -1319,7 +1320,6 @@ class Lister {
 	}
 
 	
-	/*domi*/
 	public function getPageImage( int $pageID ) {
 
 		$dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
