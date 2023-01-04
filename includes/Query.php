@@ -2268,7 +2268,7 @@ class Query {
 	 */
 	private function _notuses( $option ) {
 		if ( count( $option ) > 0 ) {
-			$where = $this->tableNames['page'] . '.page_id NOT IN (SELECT ' . $this->tableNames['templatelinks'] . '.tl_from FROM ' . $this->tableNames['templatelinks'] . ' WHERE (';
+			$where = $this->tableNames['page'] . '.page_id NOT IN (SELECT ' . $this->tableNames['templatelinks'] . '.tl_from FROM ' . $this->tableNames['templatelinks'] . ' INNER JOIN ' . $this->tableNames['linktarget'] . ' ON ' . $this->tableNames['linktarget'] . '.lt_id = ' . $this->tableNames['templatelinks'] . '.tl_target_id WHERE (';
 			$ors = [];
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
