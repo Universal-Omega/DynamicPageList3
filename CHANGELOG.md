@@ -803,3 +803,6 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Replaced usage of deprecated `User::matchEditToken()`
 * Replaced usage of deprecated `Article::doDelete()`
 * Added `null` checks on `Parser::getPage()` and `ParserOutput` before using to avoid fatals
+
+# Version 3.5.1
+* Added a fix for links migration: added a `JOIN` on `linktarget` for the `notuses` parameter
