@@ -15,6 +15,7 @@
 	"dpl_log_8": "Napaka: Naenkrat je mogoče dodati samo eno vrsto datuma.",
 	"dpl_log_16": "Opozorilo: Ni zadetkov.",
 	"dpl_log_19": "Opozorilo: 'debug= $1 ' ni na prvem mestu v elementu DPL. Nove nastavitve za odpravljanje napak ne bodo uporabljene, dokler ne bodo razčlenjeni in preverjeni vsi prejšnji parametri.",
+	"dpl_log_20": "Opozorilo: Stran »$0« ustvarja nepričakovano neskončno zanko.",
 	"dpl_log_21": "Poizvedba: <code>$0</code>",
 	"dpl_log_23": "Napaka: seznama ni mogoče prikazati, ker so strežniki preobremenjeni. Prosimo, poskusite pozneje.",
 	"dpl_log_25": "Napaka: $1",
