@@ -358,7 +358,7 @@ class Article {
 
 						break;
 					case 'user':
-						if ( $revActorName ) {
+						if ( $revActorName && $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
 							self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
 
 							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
