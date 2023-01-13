@@ -671,7 +671,7 @@ class Lister {
 			$item .= ' . . <small>' . wfMessage( 'categories' ) . ': ' . implode( ' | ', $article->mCategoryLinks ) . '</small>';
 		}
 
-		if ( $this->getParameters()->getParameter( 'addexternallink' ) && $article->mExternalLink !== null ) {
+		if ( $this->getParameters()->getParameter( 'addexternallink' ) && $article->mExternalLink !== '' ) {
 			$item .= ' → ' . $article->mExternalLink;
 		}
 
