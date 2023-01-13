@@ -808,7 +808,7 @@ class Lister {
 		$tag = str_replace( '%CONTRIBUTOR%', $article->mContributor, $tag );
 		$tag = str_replace( '%USER%', $article->mUser, $tag );
 
-		if ( $article->mSelTitle != null ) {
+		if ( $article->mSelTitle ) {
 			if ( $article->mSelNamespace == 0 ) {
 				$tag = str_replace( '%PAGESEL%', str_replace( '_', ' ', $article->mSelTitle ), $tag );
 			} else {
