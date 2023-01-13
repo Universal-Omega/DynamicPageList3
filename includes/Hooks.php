@@ -213,17 +213,17 @@ class Hooks {
 
 		// we can remove the templates by save/restore
 		if ( $reset['templates'] ?? false ) {
-			$saveTemplates = $parser->getOutput()->mTemplates;
+			$saveTemplates = $parser->getOutput()->getTemplates();
 		}
 
 		// we can remove the categories by save/restore
 		if ( $reset['categories'] ?? false ) {
-			$saveCategories = $parser->getOutput()->mCategories;
+			$saveCategories = $parser->getOutput()->getCategories();
 		}
 
 		// we can remove the images by save/restore
 		if ( $reset['images'] ?? false ) {
-			$saveImages = $parser->getOutput()->mImages;
+			$saveImages = $parser->getOutput()->getImages();
 		}
 
 		$parsedDPL = $parser->recursiveTagParse( $text );
@@ -232,7 +232,7 @@ class Hooks {
 		}
 
 		if ( $reset['categories'] ?? false ) {
-			$parser->getOutput()->mCategories = $saveCategories ?? [];
+			$parser->getOutput()->setCategories( $saveCategories ?? [] );
 		}
 
 		if ( $reset['images'] ?? false ) {
@@ -549,7 +549,7 @@ class Hooks {
 		if ( !self::$createdLinks['resetdone'] ) {
 			self::$createdLinks['resetdone'] = true;
 
-			foreach ( $parser->getOutput()->mCategories as $key => $val ) {
+			foreach ( $parser->getOutput()->getCategories() as $key => $val ) {
 				if ( array_key_exists( $key, self::$fixedCategories ) ) {
 					self::$fixedCategories[$key] = $val;
 				}
@@ -560,7 +560,7 @@ class Hooks {
 			}
 
 			if ( self::$createdLinks['resetCategories'] ) {
-				$parser->getOutput()->mCategories = self::$fixedCategories;
+				$parser->getOutput()->setCategories( self::$fixedCategories );
 			}
 
 			if ( self::$createdLinks['resetTemplates'] ) {
@@ -611,7 +611,7 @@ class Hooks {
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
-				$parser->getOutput()->mCategories = array_diff_assoc( $parser->getOutput()->mCategories, self::$createdLinks[2] );
+				$parser->getOutput()->setCategories( array_diff_assoc( $parser->getOutput()->getCategories(), self::$createdLinks[2] ) );
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
