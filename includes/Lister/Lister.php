@@ -643,13 +643,13 @@ class Lister {
 			$item .= $article->mLink;
 		}
 
-		if ( $article->mSize != null ) {
+		if ( $article->mSize > 0 ) {
 			$byte = 'B';
 			$pageLength = $lang->formatNum( $article->mSize );
 			$item .= " [{$pageLength} {$byte}]";
 		}
 
-		if ( $article->mCounter !== null ) {
+		if ( $article->mCounter > 0 ) {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')';
