@@ -392,7 +392,7 @@ class Article {
 	/**
 	 * Get the formatted date for this article if available.
 	 *
-	 * @return string formatted string or '' if none set.
+	 * @return string formatted string or empty string if none set.
 	 */
 	public function getDate() {
 		if ( $this->myDate ) {
