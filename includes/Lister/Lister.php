@@ -655,7 +655,7 @@ class Lister {
 			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')';
 		}
 
-		if ( $article->mUserLink !== null ) {
+		if ( $article->mUserLink ) {
 			$item .= ' . . [[User:' . $article->mUser . '|' . $article->mUser . ']]';
 
 			if ( $article->mComment != '' ) {
@@ -663,7 +663,7 @@ class Lister {
 			}
 		}
 
-		if ( $article->mContributor !== null ) {
+		if ( $article->mContributor ) {
 			$item .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
 		}
 
