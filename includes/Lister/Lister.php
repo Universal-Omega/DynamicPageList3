@@ -253,10 +253,10 @@ class Lister {
 	 * @param Parser $parser
 	 */
 	public function __construct( Parameters $parameters, Parser $parser ) {
-		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) );
-		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) );
-		$this->setListAttributes( $parameters->getParameter( 'listattr' ) );
-		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) );
+		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
+		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
+		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
+		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
 		$this->setDominantSectionCount( $parameters->getParameter( 'dominantsection' ) );
 		$this->setTemplateSuffix( $parameters->getParameter( 'defaulttemplatesuffix' ) );
 		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
