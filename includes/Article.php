@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\ActorStore;
 use RequestContext;
 use stdClass;
 use Title;
@@ -209,9 +210,9 @@ class Article {
 
 		$article = new self( $title, $pageNamespace );
 
-		$revActorName = null;
+		$revActorName = '';
 		if ( isset( $row->rev_actor ) ) {
-			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
+			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName() ?? ActorStore::UNKNOWN_USER_NAME;
 		}
 
 		$titleText = $title->getText();
