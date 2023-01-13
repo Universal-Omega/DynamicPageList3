@@ -633,7 +633,7 @@ class Lister {
 		if ( $date ) {
 			$item .= $date . ' ';
 
-			if ( $article->mRevision !== null ) {
+			if ( $article->mRevision > 0 ) {
 				$item .= '[{{fullurl:' . $article->mTitle . '|oldid=' . $article->mRevision . '}} ' . htmlspecialchars( $article->mTitle ) . ']';
 			} else {
 				$item .= $article->mLink;
