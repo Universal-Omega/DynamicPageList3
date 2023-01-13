@@ -291,8 +291,6 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp;
 
-				$row->rev_id = $row->revactor_rev;
-
 				$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 				$article->mComment = $commentStore->getComment( 'rev_comment', $row )->text;
 			}
