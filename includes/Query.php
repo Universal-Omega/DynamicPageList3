@@ -1186,8 +1186,8 @@ class Query {
 
 		$this->addTables( [ 'revision' => 'rev' ] + array_flip( $join['tables'] ) );
 		$this->addSelect( [
-			'rev_id',
-			'rev_timestamp',
+			'rev.rev_id',
+			'rev.rev_timestamp',
 			'comment_text'
 		] );
 
