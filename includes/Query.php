@@ -1187,9 +1187,8 @@ class Query {
 		$this->addTables( [ 'revision' => 'rev' ] + array_flip( $join['tables'] ) );
 		$this->addSelect( [
 			'rev.rev_id',
-			'rev.rev_timestamp',
-			'comment_text'
-		] );
+			'rev.rev_timestamp'
+		] + $join['fields'] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
