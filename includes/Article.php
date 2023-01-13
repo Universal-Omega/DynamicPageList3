@@ -111,14 +111,14 @@ class Article {
 	 *
 	 * @var string|int
 	 */
-	public $mDate = null;
+	public $mDate = '';
 
 	/**
 	 * Timestamp depending on the user's request, based on user format definition.
 	 *
 	 * @var string
 	 */
-	public $myDate = null;
+	public $myDate = '';
 
 	/**
 	 * Revision ID
@@ -391,17 +391,17 @@ class Article {
 	/**
 	 * Get the formatted date for this article if available.
 	 *
-	 * @return mixed Formatted string or null for none set.
+	 * @return string formatted string or '' if none set.
 	 */
 	public function getDate() {
-		if ( $this->myDate !== null ) {
+		if ( $this->myDate ) {
 			return $this->myDate;
-		} elseif ( $this->mDate !== null ) {
+		} elseif ( $this->mDate ) {
 			$lang = RequestContext::getMain()->getLanguage();
 
 			return $lang->timeanddate( $this->mDate, true );
 		}
 
-		return null;
+		return '';
 	}
 }
