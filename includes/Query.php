@@ -1181,13 +1181,15 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _firstrevisionsince( $option ) {
-		$this->addTable( 'revision', 'rev' );
-		$this->addSelect(
-			[
-				'rev.rev_id',
-				'rev.rev_timestamp'
-			]
-		);
+		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
+		$join = $commentStore->getJoin( 'rev_comment' );
+
+		$this->addTables( [ 'revision' => 'rev' ] + $join['tables'] );
+		$this->addSelect( [
+			'rev.rev_id',
+			'rev.rev_timestamp',
+			'comment_text'
+		] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
@@ -1203,6 +1205,8 @@ class Query {
 				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $this->tableNames['revision'] . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
 			]
 		);
+		$this->addJoins( $join['joins'] );
+		$this->addWhere( $join['conds'] );
 	}
 
 	/**
