@@ -808,5 +808,5 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Added a fix for links migration: added a `JOIN` on `linktarget` for the `notuses` parameter
 * Added a PHPUnit test for the `notuses` parameter
 
-# Version 3.5.1
+# Version 3.5.2
 * Added support for PHP 8.0 and PHP 8.1
