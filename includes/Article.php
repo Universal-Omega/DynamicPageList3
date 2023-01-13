@@ -132,7 +132,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mUserLink = null;
+	public $mUserLink = '';
 
 	/**
 	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
