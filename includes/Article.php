@@ -34,7 +34,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mSelTitle = null;
+	public $mSelTitle = '';
 
 	/**
 	 * Selected namespace ID of initial page.
@@ -137,9 +137,9 @@ class Article {
 	/**
 	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
 	 *
-	 * @var string|null
+	 * @var string
 	 */
-	public $mUser = null;
+	public $mUser = '';
 
 	/**
 	 * Edit Summary(Revision Comment)
