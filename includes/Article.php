@@ -126,7 +126,7 @@ class Article {
 	 *
 	 * @var int
 	 */
-	public $mRevision = null;
+	public $mRevision = '';
 
 	/**
 	 * Link to editor (first/last, depending on user's request) 's page or contributions if not registered.
