@@ -48,7 +48,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mImageSelTitle = null;
+	public $mImageSelTitle = '';
 
 	/**
 	 * HTML link to page.
@@ -69,7 +69,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mStartChar = null;
+	public $mStartChar = '';
 
 	/**
 	 * Heading (link to the associated page) that page belongs to in the list (default '' means no heading)
