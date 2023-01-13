@@ -210,9 +210,9 @@ class Article {
 
 		$article = new self( $title, $pageNamespace );
 
-		$revActorName = '';
+		$revActorName = ActorStore::UNKNOWN_USER_NAME;
 		if ( isset( $row->rev_actor ) ) {
-			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName() ?? ActorStore::UNKNOWN_USER_NAME;
+			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
 		}
 
 		$titleText = $title->getText();
