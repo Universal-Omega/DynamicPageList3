@@ -1184,7 +1184,7 @@ class Query {
 		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
 		$join = $commentStore->getJoin( 'rev_comment' );
 
-		$this->addTables( [ 'revision' => 'rev' ] + $join['tables'] );
+		$this->addTables( [ 'revision' => 'rev' ] + array_flip( $join['tables'] ) );
 		$this->addSelect( [
 			'rev.rev_id',
 			'rev.rev_timestamp',
