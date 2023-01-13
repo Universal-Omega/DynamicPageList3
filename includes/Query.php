@@ -1205,8 +1205,8 @@ class Query {
 				'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' . $this->tableNames['revision'] . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page=rev.rev_page AND rev_aux_snc.rev_timestamp >= ' . $this->convertTimestamp( $option ) . ')'
 			]
 		);
+
 		$this->addJoins( $join['joins'] );
-		$this->addWhere( $join['conds'] );
 	}
 
 	/**
