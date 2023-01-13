@@ -253,10 +253,10 @@ class Lister {
 	 * @param Parser $parser
 	 */
 	public function __construct( Parameters $parameters, Parser $parser ) {
-		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) );
-		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) );
-		$this->setListAttributes( $parameters->getParameter( 'listattr' ) );
-		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) );
+		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
+		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
+		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
+		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
 		$this->setDominantSectionCount( $parameters->getParameter( 'dominantsection' ) );
 		$this->setTemplateSuffix( $parameters->getParameter( 'defaulttemplatesuffix' ) );
 		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
@@ -630,10 +630,10 @@ class Lister {
 		$item = '';
 
 		$date = $article->getDate();
-		if ( $date !== null ) {
+		if ( $date ) {
 			$item .= $date . ' ';
 
-			if ( $article->mRevision !== null ) {
+			if ( $article->mRevision > 0 ) {
 				$item .= '[{{fullurl:' . $article->mTitle . '|oldid=' . $article->mRevision . '}} ' . htmlspecialchars( $article->mTitle ) . ']';
 			} else {
 				$item .= $article->mLink;
@@ -643,19 +643,19 @@ class Lister {
 			$item .= $article->mLink;
 		}
 
-		if ( $article->mSize != null ) {
+		if ( $article->mSize > 0 ) {
 			$byte = 'B';
 			$pageLength = $lang->formatNum( $article->mSize );
 			$item .= " [{$pageLength} {$byte}]";
 		}
 
-		if ( $article->mCounter !== null ) {
+		if ( $article->mCounter > 0 ) {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')';
 		}
 
-		if ( $article->mUserLink !== null ) {
+		if ( $article->mUserLink ) {
 			$item .= ' . . [[User:' . $article->mUser . '|' . $article->mUser . ']]';
 
 			if ( $article->mComment != '' ) {
@@ -663,7 +663,7 @@ class Lister {
 			}
 		}
 
-		if ( $article->mContributor !== null ) {
+		if ( $article->mContributor ) {
 			$item .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
 		}
 
@@ -671,7 +671,7 @@ class Lister {
 			$item .= ' . . <small>' . wfMessage( 'categories' ) . ': ' . implode( ' | ', $article->mCategoryLinks ) . '</small>';
 		}
 
-		if ( $this->getParameters()->getParameter( 'addexternallink' ) && $article->mExternalLink !== null ) {
+		if ( $this->getParameters()->getParameter( 'addexternallink' ) && $article->mExternalLink ) {
 			$item .= ' → ' . $article->mExternalLink;
 		}
 
@@ -808,7 +808,7 @@ class Lister {
 		$tag = str_replace( '%CONTRIBUTOR%', $article->mContributor, $tag );
 		$tag = str_replace( '%USER%', $article->mUser, $tag );
 
-		if ( $article->mSelTitle != null ) {
+		if ( $article->mSelTitle ) {
 			if ( $article->mSelNamespace == 0 ) {
 				$tag = str_replace( '%PAGESEL%', str_replace( '_', ' ', $article->mSelTitle ), $tag );
 			} else {

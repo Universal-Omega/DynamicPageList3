@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList3",
-	"version": "3.4.5",
+	"version": "3.5.2",
 	"author": [
 		"'''Universal Omega'''",
 		"Alexia E. Smith",
@@ -11,7 +11,7 @@
 	"license-name": "GPL-3.0-or-later",
 	"type": "parserhook",
 	"requires": {
-		"MediaWiki": ">= 1.35.3"
+		"MediaWiki": ">= 1.39.0"
 	},
 	"GroupPermissions": {
 		"sysop": {
@@ -32,7 +32,8 @@
 		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
 	},
 	"AutoloadClasses": {
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php"
+		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php",
+		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateView": "maintenance/createView.php"
 	},
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/"

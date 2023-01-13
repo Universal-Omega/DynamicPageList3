@@ -98,8 +98,6 @@ class Parse {
 	 * @param array	&$eliminate
 	 * @param bool $isParserTag
 	 * @return string
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
@@ -107,17 +105,20 @@ class Parse {
 		// Reset headings when being ran more than once in the same page load.
 		Article::resetHeadings();
 
+		$title = Title::castFromPageReference( $parser->getPage() );
+
 		// Check that we are not in an infinite transclusion loop
-		if ( isset( $parser->mTemplatePath[$parser->getTitle()->getPrefixedText()] ) ) {
-			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $parser->getTitle()->getPrefixedText() );
+		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
+			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
 
+		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && !$parser->getTitle()->isProtected( 'edit' ) ) {
+		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && $title && !$restrictionStore->isProtected( $title, 'edit' ) ) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
-			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $parser->getTitle()->getPrefixedText() );
+			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 
 			return $this->getFullOutput();
 		}
@@ -202,7 +203,13 @@ class Parse {
 			$query = new Query( $this->parameters );
 
 			$foundRows = null;
-			$rows = $query->buildAndSelect( $calcRows, $foundRows );
+			$profilingContext = '';
+			$currentTitle = $parser->getPage();
+			if ( $currentTitle instanceof Title ) {
+				$profilingContext
+					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
+			}
+			$rows = $query->buildAndSelect( $calcRows, $foundRows, $profilingContext );
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -299,7 +306,7 @@ class Parse {
 		$this->setVariable( 'FIRSTTITLE', $firstTitleFound );
 		$this->setVariable( 'LASTNAMESPACE', $lastNamespaceFound );
 		$this->setVariable( 'LASTTITLE', $lastTitleFound );
-		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) );
+		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) ?? '' );
 
 		/*******************************/
 		/* Scroll Variables            */
@@ -399,7 +406,7 @@ class Parse {
 			}
 
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
-			$thisTitle = $parser->getTitle();
+			$thisTitle = Title::castFromPageReference( $parser->getPage() );
 
 			// Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
 			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle->equals( $title ) ) {
@@ -584,7 +591,7 @@ class Parse {
 	 * @return mixed Type to use: 'results', 'oneresult', or 'noresults'. False if invalid or none should be used.
 	 */
 	private function getHeaderFooterType( $position, $count ) {
-		$count = intval( $count );
+		$count = (int)$count;
 
 		if ( $position != 'header' && $position != 'footer' ) {
 			return false;
@@ -708,7 +715,7 @@ class Parse {
 
 		// No more than one type of date at a time!
 		// @TODO: Can this be fixed to allow all three later after fixing the article class?
-		if ( ( intval( $this->parameters->getParameter( 'addpagetoucheddate' ) ) + intval( $this->parameters->getParameter( 'addfirstcategorydate' ) ) + intval( $this->parameters->getParameter( 'addeditdate' ) ) ) > 1 ) {
+		if ( ( (int)$this->parameters->getParameter( 'addpagetoucheddate' ) + (int)$this->parameters->getParameter( 'addfirstcategorydate' ) + (int)$this->parameters->getParameter( 'addeditdate' ) ) > 1 ) {
 			$this->logger->addMessage( Hooks::FATAL_MORETHAN1TYPEOFDATE );
 
 			return false;
@@ -900,7 +907,9 @@ class Parse {
 		global $wgHooks;
 
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$parserOutput = $localParser->parse( $output, $parser->getTitle(), $parser->getOptions() );
+
+		$page = $parser->getPage();
+		$parserOutput = $page ? $localParser->parse( $output, $page, $parser->getOptions() ) : null;
 
 		if ( !is_array( $reset ) ) {
 			$reset = [];
@@ -961,7 +970,7 @@ class Parse {
 				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate';
 			}
 
-			if ( isset( $eliminate['links'] ) && $eliminate['links'] ) {
+			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
@@ -970,7 +979,7 @@ class Parse {
 				}
 			}
 
-			if ( isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Hooks::$createdLinks[1] = [];
 
 				foreach ( $parserOutput->getTemplates() as $nsp => $tpl ) {
@@ -978,11 +987,11 @@ class Parse {
 				}
 			}
 
-			if ( isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
+			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
 				Hooks::$createdLinks[2] = $parserOutput->mCategories;
 			}
 
-			if ( isset( $eliminate['images'] ) && $eliminate['images'] ) {
+			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
 				Hooks::$createdLinks[3] = $parserOutput->mImages;
 			}
 		}
