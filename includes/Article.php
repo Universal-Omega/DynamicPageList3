@@ -167,7 +167,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mContributor = null;
+	public $mContributor = '';
 
 	/**
 	 * Article Headings - Maps heading to count (# of pages under each heading).
