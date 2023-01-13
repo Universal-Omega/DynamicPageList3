@@ -306,7 +306,7 @@ class Parse {
 		$this->setVariable( 'FIRSTTITLE', $firstTitleFound );
 		$this->setVariable( 'LASTNAMESPACE', $lastNamespaceFound );
 		$this->setVariable( 'LASTTITLE', $lastTitleFound );
-		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) );
+		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) ?? '' );
 
 		/*******************************/
 		/* Scroll Variables            */
