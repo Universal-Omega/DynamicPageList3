@@ -97,14 +97,14 @@ class Article {
 	 *
 	 * @var int
 	 */
-	public $mCounter = null;
+	public $mCounter = 0;
 
 	/**
 	 * Article length in bytes of wiki text
 	 *
 	 * @var int
 	 */
-	public $mSize = null;
+	public $mSize = 0;
 
 	/**
 	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
