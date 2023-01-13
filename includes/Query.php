@@ -1181,15 +1181,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _firstrevisionsince( $option ) {
-		$commentStore = MediaWikiServices::getInstance()->getCommentStore();
-		$commentQuery = $commentStore->getJoin( 'rev_comment' );
-
-		$this->addTables( $commentQuery['tables'] );
-		$this->addSelect( $commentQuery['fields'] );
-		$this->addJoins( $commentQuery['joins'] );
-
 		$this->addTable( 'revision', 'rev' );
-
 		$this->addSelect(
 			[
 				'rev.rev_id',
