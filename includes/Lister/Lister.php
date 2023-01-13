@@ -630,7 +630,7 @@ class Lister {
 		$item = '';
 
 		$date = $article->getDate();
-		if ( $date !== null ) {
+		if ( $date ) {
 			$item .= $date . ' ';
 
 			if ( $article->mRevision !== null ) {
