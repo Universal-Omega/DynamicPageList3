@@ -62,7 +62,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mExternalLink = null;
+	public $mExternalLink = '';
 
 	/**
 	 * First character of the page title.
