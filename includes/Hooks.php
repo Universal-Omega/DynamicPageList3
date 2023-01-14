@@ -7,7 +7,6 @@ use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
 use Parser;
 use PPFrame;
-use StringUtils;
 
 class Hooks {
 
