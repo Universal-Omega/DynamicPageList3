@@ -370,13 +370,19 @@ class Hooks {
 		// convert \n to a real newline character
 		$repl = str_replace( '\n', "\n", $repl );
 
-		# replace
+		// replace
 		if ( !self::isRegexp( $pat ) ) {
 			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
+		// check for dangerous patterns
+		if ( preg_match( '/(\(\?[:\!R0])|(\\\d)|(\\{\\d+\\,\\d+\\})|(\\[.*\\])|(\\?=)|(\\?!)|(\\?<=)|(\\?<!)/', $pat ) ) {
+			return '';
+		}
+
 		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		return @preg_replace( $pat, $repl, $text );
+		// @phan-suppress-previous-line SecurityCheck-ReDoS
 	}
 
 	/**
