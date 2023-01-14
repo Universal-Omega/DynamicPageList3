@@ -1,5 +1,5 @@
 {
-	"name": "mediawiki/dynamic-page-list3",
+	"name": "universal-omega/dynamic-page-list3",
 	"type": "mediawiki-extension",
 	"description": "The DynamicPageList3 extension allows creating lists of other articles based on their category, namespace, title, references or template usage and include contents or arguments of template calls of those articles into your page.",
 	"homepage": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
@@ -7,13 +7,9 @@
 	"require": {
 		"composer/installers": ">=1.0.1"
 	},
-	"config": {
-		"prepend-autoloader": false,
-		"optimize-autoloader": true
-	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "38.0.0",
-		"mediawiki/mediawiki-phan-config": "0.11.1",
+		"mediawiki/mediawiki-codesniffer": "40.0.1",
+		"mediawiki/mediawiki-phan-config": "0.12.0",
 		"mediawiki/minus-x": "1.1.1",
 		"php-parallel-lint/php-console-highlighter": "1.0.0",
 		"php-parallel-lint/php-parallel-lint": "1.3.2"
@@ -30,5 +26,12 @@
 		],
 		"phan": "phan -d . --long-progress-bar",
 		"phpcs": "phpcs -sp --cache"
+	},
+	"config": {
+		"prepend-autoloader": false,
+		"optimize-autoloader": true,
+		"allow-plugins": {
+			"composer/installers": true
+		}
 	}
 }
