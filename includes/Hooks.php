@@ -376,13 +376,13 @@ class Hooks {
 			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
-		// check for dangerous patterns
-		if ( preg_match( '/(\(\?[:\!R0])|(\\\d)|(\\{\\d+\\,\\d+\\})|(\\[.*\\])|(\\?=)|(\\?!)|(\\?<=)|(\\?<!)/', $pat ) ) {
+		// check for invalid regex
+		if ( !StringUtils::isValidPCRERegex( $pat ) ) {
 			return '';
 		}
 
-		// check for invalid regex
-		if ( !StringUtils::isValidPCRERegex( $pat ) ) {
+		// check for dangerous patterns
+		if ( preg_match( '/(\(\?[:\!R0])|(\\\d)|(\\{\\d+\\,\\d+\\})|(\\[.*\\])|(\\?=)|(\\?!)|(\\?<=)|(\\?<!)/', $pat ) ) {
 			return '';
 		}
 
