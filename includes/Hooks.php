@@ -7,6 +7,7 @@ use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
 use Parser;
 use PPFrame;
+use StringUtils;
 
 class Hooks {
 
@@ -370,13 +371,22 @@ class Hooks {
 		// convert \n to a real newline character
 		$repl = str_replace( '\n', "\n", $repl );
 
-		# replace
+		// replace
 		if ( !self::isRegexp( $pat ) ) {
 			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
-		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-		return @preg_replace( $pat, $repl, $text );
+		// check for dangerous patterns
+		if ( preg_match( '/(\(\?[:\!R0])|(\\\d)|(\\{\\d+\\,\\d+\\})|(\\[.*\\])|(\\?=)|(\\?!)|(\\?<=)|(\\?<!)/', $pat ) ) {
+			return '';
+		}
+
+		// check for invalid regex
+		if ( !StringUtils::isValidPCRERegex( $pat ) ) {
+			return '';
+		}
+
+		return preg_replace( $pat, $repl, $text );
 	}
 
 	/**
