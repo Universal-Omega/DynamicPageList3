@@ -62,10 +62,10 @@ jobs:
             experimental: false
             stage: phpunit
 
-          # Latest MediaWiki master - PHP 8.1 (phpunit)
+          # Latest MediaWiki master - PHP 8.2 (phpunit)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: phpunit
 
