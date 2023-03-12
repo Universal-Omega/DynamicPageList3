@@ -376,8 +376,8 @@ class Hooks {
 			$pat = '`' . str_replace( '`', '\`', $pat ) . '`';
 		}
 
-		// check for dangerous patterns
-		if ( preg_match( '/(\(\?[:\!R0])|(\\\d)|(\\{\\d+\\,\\d+\\})|(\\[.*\\])|(\\?=)|(\\?!)|(\\?<=)|(\\?<!)/', $pat ) ) {
+		// Check for buffer overflow
+		if ( strlen( $pat ) > 1000 ) {
 			return '';
 		}
 
