@@ -810,4 +810,5 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.5.2
 * Added support for PHP 8.0 and PHP 8.1
-* Added additional ReDoS security validation for `dplreplace` and enabled the `SecurityCheck-ReDoS` phan check
+* Enabled the `SecurityCheck-ReDoS` phan check
+* Added buffer overflow check for `dplreplace`
