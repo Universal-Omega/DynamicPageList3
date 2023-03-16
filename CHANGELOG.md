@@ -812,3 +812,4 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Added support for PHP 8.0 and PHP 8.1
 * Enabled the `SecurityCheck-ReDoS` phan check
 * Added buffer overflow check for `dplreplace`
+* Fixed `usedby` queries returning all templates
