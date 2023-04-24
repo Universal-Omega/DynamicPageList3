@@ -211,7 +211,7 @@ class Article {
 		$article = new self( $title, $pageNamespace );
 
 		$revActorName = ActorStore::UNKNOWN_USER_NAME;
-		if ( isset( $row->rev_actor ) ) {
+		if ( isset( $row->rev_actor ) && $row->rev_actor !== '0' ) {
 			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
 		}
 
