@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80",
+			"מקף"
+		]
+	},
+	"intersection_toomanycats": "שגיאה: יותר מדי קטגוריות!",
+	"intersection_toofewcats": "שגיאה: מעט מדי קטגוריות!",
+	"intersection_noresults": "שגיאה: אין תוצאות!",
+	"intersection_noincludecats": "שגיאה: יש לכלול לפחות קטגוריה אחת, או לציין מרחב שם!",
+	"intersection_pcerror": "לא ניתן להציג את הרשימה הזאת, משום שהשרתים עמוסים מדי. נא לנסות שוב מאוחר יותר.",
+	"dpl-desc": "מחולל דו\"חות גמיש מאוד עבור אתרי מדיה־ויקי",
+	"dpl_log_3": "שגיאה: יותר מדי קטגוריות! המספר המרבי: $1. עזרה: יש להגדיל את <code dir=\"ltr\">$wgDplSettings['maxCategoryCount']</code> כדי לציין קטגוריות נוספות, או להגדיר את <code dir=\"ltr\">$wgDplSettings['allowUnlimitedCategories'] = true;</code> להסרת המגבלות. (יש להגדיר את המשתנה בקובץ התצורה <code>LocalSettings.php</code> של הוויקי.)",
+	"dpl_log_8": "שגיאה: ניתן להוסיף רק סוג תאריך אחד בכל פעם.",
+	"dpl_log_16": "אזהרה: אין תוצאות.",
+	"dpl_log_21": "שאילתה: <code dir=\"ltr\">$0</code>",
+	"dpl_log_25": "שגיאה: $1",
+	"dpl-intersection-tracking-category": "דפים המשתמשים בתג המפענח Intersection של DynamicPageList3",
+	"dpl-parserfunc-tracking-category": "דפים המשתמשים בתג מפענח של DynamicPageList3",
+	"dplnum-parserfunc-tracking-category": "דפים המשתמשים בתג המפענח dplnum של DynamicPageList3",
+	"dplvar-parserfunc-tracking-category": "דפים המשתמשים בתג המפענח dplvar של DynamicPageList3",
+	"dplreplace-parserfunc-tracking-category": "דפים המשתמשים בתג המפענח dplreplace של DynamicPageList3",
+	"dplchapter-parserfunc-tracking-category": "דפים המשתמשים בתג dplchapter של DynamicPageList3",
+	"dplmatrix-parserfunc-tracking-category": "דפים המשתמשים בתג המפענח dplmatrix של DynamicPageList3",
+	"right-dpl_param_delete_rules": "מחיקת דפים המונית באמצעות DynamicPageList3",
+	"right-dpl_param_update_rules": "עדכון דפים המוני באמצעות DynamicPageList3"
+}
