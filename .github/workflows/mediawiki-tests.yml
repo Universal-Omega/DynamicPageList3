@@ -155,7 +155,7 @@ jobs:
           if [ -e .github/workflows/dependencies ] && [ "${{ matrix.stage }}" == 'phan' ]; then
             cd .github/workflows
             curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/master/zuul/parameter_functions.py -o pf.py
-            curl -sL https://raw.githubusercontent.com/Universal-Omega/scripts/master/mediawiki/resolve_dependencies.py -o rd.py
+            curl -sL https://raw.githubusercontent.com/WikiForge/ci-scripts/master/mediawiki/resolve_dependencies.py -o rd.py
             echo "DEPENDENCIES=$(python3 rd.py)" >> $GITHUB_ENV
           fi
 
