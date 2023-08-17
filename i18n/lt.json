@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nokeoo"
+		]
+	},
+	"intersection_toomanycats": "Klaida: per daug kategorijų!",
+	"intersection_toofewcats": "Klaida: per mažai kategorijų!",
+	"intersection_noresults": "Klaida: nėra rezultatų!",
+	"intersection_noincludecats": "Klaida: turite įtraukti bent vieną kategoriją arba nurodyti vardų sritį!",
+	"intersection_pcerror": "Šio sąrašo negalima parodyti, nes serveriai perkrauti. Pabandykite dar kartą vėliau.",
+	"dpl-desc": "Labai lankstus ataskaitų generatorius, skirtas MediaWikis",
+	"dpl_log_8": "Klaida: vienu metu galima pridėti tik vieną duomenų tipą.",
+	"dpl_log_9": "Klaida: parametras „$1“ turi būti naudojamas su „ordermethod=[ $2 ]“",
+	"dpl_log_16": "Įspėjimas: rezultatų nėra.",
+	"dpl_log_21": "Užklausa: <code>$0</code>",
+	"dpl_log_23": "Klaida: sąrašas negali būti rodomas, nes serveriai yra perkrauti. Pabandykite dar kartą vėliau.",
+	"dpl_log_25": "Klaida: $1"
+}
