@@ -13,7 +13,7 @@
 	"dpl-desc": "Zelo prilagodljiv generator poročil za MediaWiki",
 	"dpl_log_1": "Napaka: Napačen parameter »$1«: »$2«! Pomoč: <code>$1=<i>prazen niz</i> (osnovno)$3</code>.",
 	"dpl_log_2": "Napaka: Napačen parameter »$1«: »$2«! Pomoč: <code>$1 = <i>celotno ime strani</i></code> .",
-	"dpl_log_3": "Napaka: Preveč kategorij! Največ dovoljeno: $1. Pomoč: povečajte <code>$wgDplSettings['maxCategoryCount']</code>, da določite več kategorij, ali nastavite <code>$wgDplSettings['allowUnlimitedCategories'] = true;</code>, da odstranite omejitev. (Spremenljivko nastavite v konfiguracijski datoteki wikija <code>LocalSettings.php</code>.)",
+	"dpl_log_3": "Napaka: Preveč kategorij! Največ dovoljeno: $1. Pomoč: povečajte <code>$wgDplSettings['maxCategoryCount']</code>, da določite več kategorij, ali nastavite <code>$wgDplSettings['allowUnlimitedCategories'] = true;</code>, da odstranite omejitev. (Spremenljivko nastavite v konfiguracijski datoteki vikija <code>LocalSettings.php</code>.)",
 	"dpl_log_4": "Napaka: Premalo kategorij! Najmanj dovoljeno: $1. Pomoč: zmanjšajte <code>$wgDplSettings['minCategoryCount']</code>, da določite manj kategorij. (Spremenljivko nastavite v konfiguracijski datoteki vikija <code>LocalSettings.php</code>.)",
 	"dpl_log_5": "Napaka: Ni najdenih izbirnih meril! Uporabiti morate vsaj enega od naslednjih parametrov: »category«, »namespace«, »titlematch«, »linksto«, »uses«, »createdby«, »modifiedby«, »lastmodifiedby« ali njihove »not« različice.",
 	"dpl_log_6": "Napaka: Za uporabo »addfirstcategorydate=true« ali »ordermethod=categoryadd« morate izbrati vsaj eno kategorijo.",
