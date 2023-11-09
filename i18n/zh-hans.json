@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"GuoPC",
 			"Lakejason0",
 			"LittlePaw365"
 		]
@@ -17,7 +18,7 @@
 	"dpl_log_3": "错误：分类过多！最大值：$1。帮助：增加<code>$wgDplSettings['maxCategoryCount']</code>的值以指定更多分类，或设置<code>$wgDplSettings['allowUnlimitedCategories'] = true;</code>以移除限制。（请在wiki的<code>LocalSettings.php</code>配置文件中设置相关变量。）",
 	"dpl_log_4": "错误：分类过少！最小值：$1。帮助：减小<code>$wgDplSettings['minCategoryCount']</code>的值以指定更少的分类。（请在wiki的<code>LocalSettings.php</code>配置文件中设置相关变量。）",
 	"dpl_log_5": "错误：没有找到任何选择规则！您必须使用至少一个以下参数：category、namespace、titlematch、linksto、uses、createdby、modifiedby、lastmodifiedby，或它们的“not”（取反）变种",
-	"dpl_log_6": "错误：若要使用“addfirstcategorydate=true”或“ordermethod=categoryadd”，请至少选择一个分类。",
+	"dpl_log_6": "错误：要使用“addfirstcategorydate=true”或“ordermethod=categoryadd”，请至少选择一个分类。",
 	"dpl_log_7": "错误：若要包含多于一个分类，则不能使用“addfirstcategorydate=true”或“ordermethod=categoryadd”。",
 	"dpl_log_8": "错误：一次只能添加一个日期类型。",
 	"dpl_log_9": "错误：参数“$1”必须与“ordermethod=[ $2 ]”一起使用。",
