@@ -291,7 +291,8 @@ class Article {
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp;
 
-				// $article->mComment = $row->rev_comment;
+				$commentStore = MediaWikiServices::getInstance()->getCommentStore();
+				$article->mComment = $commentStore->getComment( 'rev_comment', $row )->text;
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
