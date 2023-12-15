@@ -886,10 +886,10 @@ class Parse {
 		$scrollVariables = (array)$scrollVariables;
 
 		foreach ( $scrollVariables as $variable => $value ) {
-			Variables::setVar( [ '', '', $variable, $value ] );
+			Variables::setVar( [ '', '', $variable, $value ?? '' ] );
 
 			if ( defined( 'ExtVariables::VERSION' ) ) {
-				ExtVariables::get( $parser )->setVarValue( $variable, $value );
+				ExtVariables::get( $parser )->setVarValue( $variable, $value ?? '' );
 			}
 		}
 	}
