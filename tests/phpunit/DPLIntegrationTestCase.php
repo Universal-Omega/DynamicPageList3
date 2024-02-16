@@ -5,21 +5,45 @@ namespace MediaWiki\Extension\DynamicPageList3\Tests;
 use DOMDocument;
 use DOMXPath;
 use ImportStreamSource;
-use MediaWiki\Auth\AuthManager;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
 use User;
-use WikiImporter;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
+	private $importStreamSource;
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		$file = dirname( __DIR__ ) . '/../seed-data.xml';
+
+		$this->importStreamSource = ImportStreamSource::newFromFile( $file );
+
+		if ( !$this->importStreamSource->isGood() ) {
+			$this->fail( "Import source for {$file} failed" );
+		}
+	}
+
 	private function doImport(): void {
-		$seedDataPath = __DIR__ . '/../seed-data.xml';
-		$this->seedTestUsers( $seedDataPath );
-		$importer = $this->getWikiImporter( $seedDataPath );
+		$this->seedTestUsers( $this->importStreamSource->value );
+
+		$services = $this->getServiceContainer();
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$importer = $services->getWikiImporterFactory()->getWikiImporter(
+				$this->importStreamSource->value,
+				$this->getTestSysop()->getAuthority()
+			);
+		} else {
+			$importer = $services->getWikiImporterFactory()->getWikiImporter(
+				$this->importStreamSource->value
+			);
+		}
+
 		$importer->disableStatisticsUpdate();
+
 		// Ensure we actually create local user accounts in the DB
 		$importer->setUsernamePrefix( '', true );
 		$importer->doImport();
@@ -40,7 +64,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$userNodes = $xpath->query( '//mw:mediawiki/mw:page/mw:revision/mw:contributor/mw:username' );
 		$usersByName = [];
 
-		$authManager = $this->getAuthManager();
+		$authManager = $this->getServiceContainer()->getAuthManager();
 
 		foreach ( $userNodes as $node ) {
 			$userName = $node->nodeValue;
@@ -68,23 +92,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 				return;
 			}
 		}
-	}
-
-	private function getWikiImporter( string $seedDataPath ): WikiImporter {
-		$source = ImportStreamSource::newFromFile( $seedDataPath );
-		$services = $this->getServiceContainer();
-
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$performer = $this->getTestSysop()->getAuthority();
-			return $services->getWikiImporterFactory()->getWikiImporter( $source, $performer );
-		}
-
-		return $services->getWikiImporterFactory()->getWikiImporter( $source );
-	}
-
-	private function getAuthManager(): AuthManager {
-		$services = $this->getServiceContainer();
-		return $services->getAuthManager();
 	}
 
 	private function newUserFromName( string $name ): ?User {
