@@ -17,6 +17,14 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	/** @var Status */
 	private $importStreamSource;
 
+	/**
+	 * Guard condition to ensure we only import seed data once per test suite run.
+  	 * Only used before 1.42 as it breaks on 1.42 if not running for each test
+    	 *
+	 * @var bool
+	 */
+	private static $wasSeedDataImported = false;
+
 	protected function setUp(): void {
 		parent::setUp();
 
@@ -29,16 +37,21 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	}
 
 	private function doImport(): void {
-		$file = dirname( __DIR__ ) . '/seed-data.xml';
-		$this->seedTestUsers( $file );
-
 		$services = $this->getServiceContainer();
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$file = dirname( __DIR__ ) . '/seed-data.xml';
+			$this->seedTestUsers( $file );
 			$importer = $services->getWikiImporterFactory()->getWikiImporter(
 				$this->importStreamSource->value,
 				$this->getTestSysop()->getAuthority()
 			);
 		} else {
+			if ( self::$wasSeedDataImported ) {
+				return;
+			}
+			self::$wasSeedDataImported = true;
+			$file = dirname( __DIR__ ) . '/seed-data.xml';
+			$this->seedTestUsers( $file );
 			$importer = $services->getWikiImporterFactory()->getWikiImporter(
 				$this->importStreamSource->value
 			);
