@@ -20,7 +20,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$file = dirname( __DIR__ ) . '/../seed-data.xml';
+		$file = dirname( __DIR__ ) . '/seed-data.xml';
 
 		$this->importStreamSource = ImportStreamSource::newFromFile( $file );
 
