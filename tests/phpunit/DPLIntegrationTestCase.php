@@ -156,7 +156,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 			RequestContext::getMain()
 		);
 
-		var_dump( $invocation );
+		// var_dump( $invocation );
 
 		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
 		var_dump( $parserOutput->getText() );
