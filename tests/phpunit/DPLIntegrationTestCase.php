@@ -21,7 +21,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		parent::setUp();
 
 		$file = dirname( __DIR__ ) . '/seed-data.xml';
-
 		$this->importStreamSource = ImportStreamSource::newFromFile( $file );
 
 		if ( !$this->importStreamSource->isGood() ) {
@@ -30,7 +29,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	}
 
 	private function doImport(): void {
-		$this->seedTestUsers( $this->importStreamSource->value );
+		$file = dirname( __DIR__ ) . '/seed-data.xml';
+		$this->seedTestUsers( $file );
 
 		$services = $this->getServiceContainer();
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
