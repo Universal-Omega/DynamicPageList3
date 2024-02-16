@@ -2,16 +2,15 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
+use DerivativeContext;
 use DOMDocument;
 use DOMXPath;
 use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
-use Title;
 use User;
 use WikiImporter;
 
@@ -86,7 +85,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	private function getWikiImporter( string $seedDataPath ): WikiImporter {
 		$seedDataFile = fopen( $seedDataPath, 'rt' );
 		$source = new ImportStreamSource( $seedDataFile );
-		$services = MediaWikiServices::getInstance();
+		$services = $this->getServiceContainer();
 
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
 			$performer = $this->getTestSysop()->getAuthority();
@@ -97,14 +96,12 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	}
 
 	private function getAuthManager(): AuthManager {
-		$services = MediaWikiServices::getInstance();
-
+		$services = $this->getServiceContainer();
 		return $services->getAuthManager();
 	}
 
 	private function newUserFromName( string $name ): ?User {
-		$services = MediaWikiServices::getInstance();
-
+		$services = $this->getServiceContainer();
 		return $services->getUserFactory()->newFromName( $name, UserFactory::RIGOR_CREATABLE );
 	}
 
@@ -150,11 +147,13 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 		$invocation .= '</dpl>';
 
-		$parser = MediaWikiServices::getInstance()->getParserFactory()->getInstance();
-		$title = Title::makeTitle( NS_MAIN, 'DPLQueryTest' );
-		$parserOptions = ParserOptions::newCanonical(
-			RequestContext::getMain()
-		);
+		$services = $this->getServiceContainer();
+		$context = new DerivativeContext( RequestContext::getMain() );
+
+		$parser = $services->getParserFactory()->getInstance();
+		$title = $services->getTitleFactory()->makeTitle( NS_MAIN, 'DPLQueryTest' );
+
+		$parserOptions = ParserOptions::newCanonical( $context );
 
 		// var_dump( $invocation );
 
