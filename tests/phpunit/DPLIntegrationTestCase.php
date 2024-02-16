@@ -8,13 +8,13 @@ use DOMXPath;
 use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\User\UserFactory;
-use MediaWikiIntegrationTestCase;
+use MediaWikiLangTestCase;
 use ParserOptions;
 use RequestContext;
 use User;
 use WikiImporter;
 
-abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
+abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 	/**
 	 * Guard condition to ensure we only import seed data once per test suite run.
 	 * @var bool
