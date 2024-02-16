@@ -150,7 +150,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 		$invocation .= '</dpl>';
 
-		$parser = MediaWikiServices::getInstance()->getParser();
+		$parser = MediaWikiServices::getInstance()->getParserFactory()->getInstance();
 		$title = Title::makeTitle( NS_MAIN, 'DPLQueryTest' );
 		$parserOptions = ParserOptions::newCanonical(
 			RequestContext::getMain()
