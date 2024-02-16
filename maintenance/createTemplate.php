@@ -22,6 +22,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 		parent::__construct();
 
 		$this->addDescription( 'Handle inserting DynamicPageList3\'s necessary template for content inclusion.' );
+		$this->setForce();
 	}
 
 	/**
