@@ -19,8 +19,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Guard condition to ensure we only import seed data once per test suite run.
-  	 * Only used before 1.42 as it breaks on 1.42 if not running for each test
-    	 *
+	 * Only used before 1.42 as it breaks on 1.42 if not running for each test
+	 *
 	 * @var bool
 	 */
 	private static $wasSeedDataImported = false;
