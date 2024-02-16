@@ -2,31 +2,20 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
-use DerivativeContext;
 use DOMDocument;
 use DOMXPath;
 use ImportStreamSource;
 use MediaWiki\Auth\AuthManager;
 use MediaWiki\User\UserFactory;
-use MediaWikiLangTestCase;
+use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
 use User;
 use WikiImporter;
 
-abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
-	/**
-	 * Guard condition to ensure we only import seed data once per test suite run.
-	 * @var bool
-	 */
-	private static $wasSeedDataImported = false;
+abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
-	protected function setup(): void {
-		parent::setUp();
-		if ( self::$wasSeedDataImported ) {
-			return;
-		}
-
+	private function doImport(): void {
 		$seedDataPath = __DIR__ . '/../seed-data.xml';
 		$this->seedTestUsers( $seedDataPath );
 		$importer = $this->getWikiImporter( $seedDataPath );
@@ -34,8 +23,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 		// Ensure we actually create local user accounts in the DB
 		$importer->setUsernamePrefix( '', true );
 		$importer->doImport();
-
-		self::$wasSeedDataImported = true;
 	}
 
 	/**
@@ -84,8 +71,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 	}
 
 	private function getWikiImporter( string $seedDataPath ): WikiImporter {
-		$seedDataFile = fopen( $seedDataPath, 'rt' );
-		$source = new ImportStreamSource( $seedDataFile );
+		$source = ImportStreamSource::newFromFile( $seedDataPath );
 		$services = $this->getServiceContainer();
 
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
@@ -135,6 +121,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 	 * @return string
 	 */
 	protected function runDPLQuery( array $params ): string {
+		$this->doImport();
+
 		$invocation = '<dpl>';
 
 		foreach ( $params as $paramName => $values ) {
@@ -148,18 +136,13 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 
 		$invocation .= '</dpl>';
 
-		$services = $this->getServiceContainer();
-		$context = new DerivativeContext( RequestContext::getMain() );
-
-		$parser = $services->getParserFactory()->getInstance();
-		$title = $services->getTitleFactory()->makeTitle( NS_MAIN, 'DPLQueryTest' );
-
-		$parserOptions = ParserOptions::newCanonical( $context );
-
-		// var_dump( $invocation );
+		$parser = $this->getServiceContainer()->getParserFactory()->getInstance();
+		$title = $this->getServiceContainer()->getTitleFactory()->makeTitle( NS_MAIN, 'DPLQueryTest' );
+		$parserOptions = ParserOptions::newCanonical(
+			RequestContext::getMain()
+		);
 
 		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
-		var_dump( $parserOutput->getText() );
 		return $parserOutput->getText();
 	}
 }
