@@ -52,7 +52,7 @@ jobs:
           - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
-            experimental: false
+            experimental: true
             stage: phpunit
 
           # Latest MediaWiki master - PHP 7.4 (phpunit)
