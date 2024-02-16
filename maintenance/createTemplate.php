@@ -46,8 +46,6 @@ class CreateTemplate extends Maintenance {
 				EDIT_NEW | EDIT_FORCE_BOT
 			);
 		}
-
-		return true;
 	}
 }
 
