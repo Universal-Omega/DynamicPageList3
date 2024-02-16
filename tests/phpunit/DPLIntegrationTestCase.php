@@ -21,7 +21,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 	 */
 	private static $wasSeedDataImported = false;
 
-	public function setup() {
+	protected function setup(): void {
 		parent::setUp();
 		if ( self::$wasSeedDataImported ) {
 			return;
