@@ -633,7 +633,8 @@ class Hooks {
 	 * @param DatabaseUpdater $updater
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
-		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
-		$updater->addPostDatabaseUpdateMaintenance( CreateView::class );
+		$baseDir = dirname( __DIR__, 1 );
+		$updater->addExtensionUpdate( [ 'runMaintenance', CreateTemplate::class, "$baseDir/maintenance/createTemplate.php" ] );
+		$updater->addExtensionUpdate( [ 'runMaintenance', CreateView::class, "$baseDir/maintenance/createView.php" ] );
 	}
 }
