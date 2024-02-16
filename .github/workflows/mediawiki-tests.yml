@@ -20,29 +20,8 @@ jobs:
             experimental: false
             stage: phan
 
-          # Latest MediaWiki master - PHP 7.4 (phan)
-          - mw: 'master'
-            php: 7.4
-            php-docker: 74
-            experimental: true
-            stage: phan
-
-          # Latest MediaWiki master - PHP 7.4 (coverage)
-          - mw: 'master'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: coverage
-
           # Latest stable MediaWiki - PHP 7.4 (phpunit-unit)
           - mw: 'REL1_39'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: phpunit-unit
-
-          # Latest MediaWiki master - PHP 7.4 (phpunit-unit)
-          - mw: 'master'
             php: 7.4
             php-docker: 74
             experimental: false
@@ -55,29 +34,8 @@ jobs:
             experimental: false
             stage: phpunit
 
-          # Latest MediaWiki master - PHP 7.4 (phpunit)
-          - mw: 'master'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: phpunit
-
-          # Latest MediaWiki master - PHP 8.1 (phpunit)
-          - mw: 'master'
-            php: 8.1
-            php-docker: 81
-            experimental: false
-            stage: phpunit
-
           # Latest stable MediaWiki - PHP 7.4 (selenium)
           - mw: 'REL1_39'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: selenium
-
-          # Latest MediaWiki master - PHP 7.4 (selenium)
-          - mw: 'master'
             php: 7.4
             php-docker: 74
             experimental: false
@@ -90,19 +48,103 @@ jobs:
             experimental: false
             stage: qunit
 
-          # Latest MediaWiki master - PHP 7.4 (qunit)
-          - mw: 'master'
-            php: 7.4
-            php-docker: 74
-            experimental: false
-            stage: qunit
-
           # Latest stable MediaWiki - PHP 7.4 (composer-test)
           - mw: 'REL1_39'
             php: 7.4
             php-docker: 74
             experimental: false
             stage: composer-test
+
+          # Latest stable MediaWiki - PHP 7.4 (phan)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: phan
+
+          # Latest stable MediaWiki - PHP 7.4 (phpunit-unit)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: phpunit-unit
+
+          # Latest stable MediaWiki - PHP 7.4 (phpunit)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: phpunit
+
+          # Latest stable MediaWiki - PHP 7.4 (selenium)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: selenium
+
+          # Latest stable MediaWiki - PHP 7.4 (qunit)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: qunit
+
+          # Latest stable MediaWiki - PHP 7.4 (composer-test)
+          - mw: 'REL1_40'
+            php: 7.4
+            php-docker: 74
+            experimental: false
+            stage: composer-test
+
+          # Latest MediaWiki master - PHP 7.4 (phan)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: phan
+
+          # Latest MediaWiki master - PHP 7.4 (coverage)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: coverage
+
+          # Latest MediaWiki master - PHP 7.4 (phpunit-unit)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: phpunit-unit
+
+          # Latest MediaWiki master - PHP 7.4 (phpunit)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: phpunit
+
+          # Latest MediaWiki master - PHP 8.1 (phpunit)
+          - mw: 'master'
+            php: 8.2
+            php-docker: 82
+            experimental: true
+            stage: phpunit
+
+          # Latest MediaWiki master - PHP 7.4 (selenium)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: selenium
+
+          # Latest MediaWiki master - PHP 7.4 (qunit)
+          - mw: 'master'
+            php: 7.4
+            php-docker: 74
+            experimental: true
+            stage: qunit
 
     runs-on: ubuntu-latest
 
