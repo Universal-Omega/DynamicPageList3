@@ -9,10 +9,12 @@ use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
+use Status;
 use User;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
+	/** @var Status */
 	private $importStreamSource;
 
 	protected function setUp(): void {
