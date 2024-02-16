@@ -229,7 +229,7 @@ class Hooks {
 
 		$parsedDPL = $parser->recursiveTagParse( $text );
 		if ( $reset['templates'] ?? false ) {
-			&$parser->getOutput()->getTemplates() = $saveTemplates ?? [];
+			& $parser->getOutput()->getTemplates() = $saveTemplates ?? [];
 		}
 
 		if ( $reset['categories'] ?? false ) {
@@ -237,7 +237,7 @@ class Hooks {
 		}
 
 		if ( $reset['images'] ?? false ) {
-			&$parser->getOutput()->getImages() = $saveImages ?? [];
+			& $parser->getOutput()->getImages() = $saveImages ?? [];
 		}
 
 		return $parsedDPL;
@@ -563,7 +563,7 @@ class Hooks {
 			}
 
 			if ( self::$createdLinks['resetLinks'] ) {
-				&$parser->getOutput()->getLinks() = [];
+				& $parser->getOutput()->getLinks() = [];
 			}
 
 			if ( self::$createdLinks['resetCategories'] ) {
@@ -571,11 +571,11 @@ class Hooks {
 			}
 
 			if ( self::$createdLinks['resetTemplates'] ) {
-				&$parser->getOutput()->getTemplates() = [];
+				& $parser->getOutput()->getTemplates() = [];
 			}
 
 			if ( self::$createdLinks['resetImages'] ) {
-				&$parser->getOutput()->getImages() = [];
+				& $parser->getOutput()->getImages() = [];
 			}
 
 			self::$fixedCategories = [];
@@ -595,7 +595,7 @@ class Hooks {
 						continue;
 					}
 
-					&$parser->getOutput()->getLinks()[$nsp] = array_diff_assoc( $parser->getOutput()->getLinks()[$nsp], self::$createdLinks[0][$nsp] );
+					& $parser->getOutput()->getLinks()[$nsp] = array_diff_assoc( $parser->getOutput()->getLinks()[$nsp], self::$createdLinks[0][$nsp] );
 
 					if ( count( $parser->getOutput()->getLinks()[$nsp] ) == 0 ) {
 						unset( &$parser->getOutput()->getLinks()[$nsp] );
@@ -609,7 +609,7 @@ class Hooks {
 						continue;
 					}
 
-					&$parser->getOutput()->getTemplates()[$nsp] = array_diff_assoc( $parser->getOutput()->getTemplates()[$nsp], self::$createdLinks[1][$nsp] );
+					& $parser->getOutput()->getTemplates()[$nsp] = array_diff_assoc( $parser->getOutput()->getTemplates()[$nsp], self::$createdLinks[1][$nsp] );
 
 					if ( count( $parser->getOutput()->getTemplates()[$nsp] ) == 0 ) {
 						unset( &$parser->getOutput()->getTemplates()[$nsp] );
@@ -622,7 +622,7 @@ class Hooks {
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
-				&$parser->getOutput()->getImages() = array_diff_assoc( $parser->getOutput()->getImages(), self::$createdLinks[3] );
+				& $parser->getOutput()->getImages() = array_diff_assoc( $parser->getOutput()->getImages(), self::$createdLinks[3] );
 			}
 		}
 	}
