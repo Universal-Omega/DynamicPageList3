@@ -21,9 +21,10 @@ abstract class DPLIntegrationTestCase extends MediaWikiLangTestCase {
 	 */
 	private static $wasSeedDataImported = false;
 
-	public function addDBData() {
+	public function setup() {
+		parent::setUp();
 		if ( self::$wasSeedDataImported ) {
-			// return;
+			return;
 		}
 
 		$seedDataPath = __DIR__ . '/../seed-data.xml';
