@@ -10,7 +10,7 @@
 	"intersection_noresults": "エラー: 結果がありません!",
 	"intersection_noincludecats": "エラー: カテゴリを少なくとも1つ含めるか、名前空間を指定する必要があります!",
 	"intersection_pcerror": "サーバーに負荷がかかっているため、このリストは表示できません。後ほどもう一度お試しください。",
-	"dpl-desc": "MediaWiki 用の柔軟性の高いレポートジェネレーター",
+	"dpl-desc": "MediaWiki 用の多機能な一覧生成ツール",
 	"dpl_log_1": "エラー: 引数 '$1' に誤りがあります: '$2'! ヘルプ: <code>$1= <i>空文字列</i> (標準)$3</code>。",
 	"dpl_log_3": "エラー: カテゴリが多すぎます! 最大: $1。 ヘルプ: 指定できるカテゴリを増やすには、 <code>$wgDplSettings['maxCategoryCount']</code> の値を増やすか、 <code>$wgDplSettings['allowUnlimitedCategories'] = true;</code> を設定して制限を解除します (ウィキの <code>LocalSettings.php</code> 構成ファイルに変数を設定します)。",
 	"dpl_log_4": "エラー: カテゴリが少なすぎます! 最小: $1。 ヘルプ: 指定できるカテゴリの最小数を減らすには、 <code>$wgDplSettings['minCategoryCount']</code> の値を減らします(ウィキの <code>LocalSettings.php</code> 構成ファイルに変数を設定します)。",
