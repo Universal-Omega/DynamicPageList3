@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Winston Sung"
+		]
+	},
+	"intersection-desc": "Daje spisak sa podtačkama najskorijih sadržaja u jednu kategoriju, ili pak ukrstavanje nekoliko kategorija.",
+	"intersection_toomanycats": "Greška: Previše kategorija!",
+	"intersection_toofewcats": "Greška: Premalo kategorija!",
+	"intersection_noincludecats": "Greška: Mora da uključite najmanje jednu kategoriju, ili pak da navedete imenski prostor!",
+	"intersection_pcerror": "Ovaj spisak nije moguće prikazati jer su poslužitelji preopterećeni. Molimo pokušajte ponovo kasnije.",
+	"dpl-desc": "Vrlo fleksibilan generator izvještaja za Medikavikije",
+	"dpl_log_7": "Greška: Ako uključite više od jedne kategorije, ne možete koristiti 'addfirstcategorydate=true' ili 'ordermethod=categoryadd'.",
+	"dpl_log_11": "Pogreška: Ne mogu se izvršiti logičke operacije na Nekategoriziranim stranicama (npr. parametar 'category') jer prikaz $0 ne postoji u bazi podataka! Pomoć: neka administrator baze podataka izvrši ovaj upit: <code>$1</code>.",
+	"dpl_log_17": "Upozorenje: Add* parametri ('adduser', 'addeditdate', itd.)' i 'includepage' nemaju učinka uz 'mode=category'. U ovom načinu rada može se vidjeti samo imenski prostor/naslov stranice.",
+	"dpl_log_24": "Greška: <code>$wgDplSettings['runFromProtectedPagesOnly']</code> je podešena, ali stranica '$1' nije zaštićena za uređivanje.",
+	"dpl_log_25": "Greška: $1",
+	"dpl_articlecount": "{{PLURAL:$1|Jedan članak je|$1 članaka su}} u ovom naslovu.",
+	"action-dpl_param_update_rules": "koristiti parametar 'updaterules'",
+	"action-dpl_param_delete_rules": "koristiti parametar 'deleterules'",
+	"right-dpl_param_delete_rules": "Masovno brisanje stranica pomoću DynamicPageList3",
+	"right-dpl_param_update_rules": "Masovna podnova stranica pomoću DynamicPageList3"
+}

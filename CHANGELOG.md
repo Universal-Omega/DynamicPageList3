@@ -780,3 +780,42 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.4.5
 * Fixed `%TOTALPAGES%` usage
+
+# Version 3.4.6
+* Removed unused `LST::noop()` function
+* Fixed all `MediaWiki.Commenting.FunctionComment` PHPCS violations and enabled it
+* Updated CreateTemplate to mention DPL3, not DPL
+* Used database update maintenance script for creating VIEW
+* Added additional isset check for mTemplatePath
+
+# Version 3.5.0
+* Dropped `revision_actor_temp` support and completed actor migration
+* Added support for `templatelinks` migration
+* Added support for MediaWiki 1.39 and dropped support for older MediaWiki versions (before 1.39.0)
+* Dropped official support for PHP versions before PHP 7.4.3, because MediaWiki 1.39 does not support older PHP versions anymore
+* Fixed installing via composer version 2.2.1 and later
+* Fixed using imagecontainer with openreferences
+* Replaced usages of `intval()` with `(int)` in Query.php and Parse.php
+* Swapped order of mapping for `Query::addTables()` from `[ alias => table ]` to `[ table => alias ]`
+* Replaced usages of deprecated `wfGetDB()`
+* Replaced usages of deprecated `Parser::getTitle()`
+* Replaced usage of deprecated `Title::isProtected()`
+* Replaced usage of deprecated `User::matchEditToken()`
+* Replaced usage of deprecated `Article::doDelete()`
+* Added `null` checks on `Parser::getPage()` and `ParserOutput` before using to avoid fatals
+
+# Version 3.5.1
+* Added a fix for links migration: added a `JOIN` on `linktarget` for the `notuses` parameter
+* Added a PHPUnit test for the `notuses` parameter
+
+# Version 3.5.2
+* Add support for PHP 8.0 and PHP 8.1
+* phan: enable `SecurityCheck-ReDoS`
+* Use ExtensionRegistry::getAllThings() to get version
+* Only check for buffer overflow
+* Fix `usedby` query returns all templates
+* Don't return the viewer's IP address as %USER% if rev_actor is 0.
+* Cleanup in en.json
+* Fix minoredits=exclude
+* Fix "PHP Deprecated: Using ${var} in strings is deprecated, use {$var} instead"
+* Fix "PHP Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated"

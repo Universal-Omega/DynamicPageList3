@@ -9,7 +9,6 @@ use MediaWiki\Revision\SlotRecord;
 use ReadOnlyError;
 use RequestContext;
 use Title;
-use WikiPage;
 
 class UpdateArticle {
 	/**
@@ -311,7 +310,8 @@ class UpdateArticle {
 					$form .= "<input type='hidden' " . $hide . " />";
 				}
 
-				$form .= "<input type='hidden' name='wpEditToken' value='{$user->getEditToken()}'/>";
+				$csrfTokenSet = RequestContext::getMain()->getCsrfTokenSet();
+				$form .= "<input type='hidden' name='wpEditToken' value='{$csrfTokenSet->getToken()}'/>";
 				foreach ( $preview as $prev ) {
 					$form .= "<input type='submit' " . $prev . " /> ";
 				}
@@ -393,11 +393,10 @@ class UpdateArticle {
 	 */
 	private static function doUpdateArticle( $title, $text, $summary ) {
 		$context = RequestContext::getMain();
-		$request = $context->getRequest();
 		$out = $context->getOutput();
 		$user = $context->getUser();
 
-		if ( !$user->matchEditToken( $request->getVal( 'wpEditToken' ) ) ) {
+		if ( !$context->getCsrfTokenSet()->matchTokenField( 'wpEditToken' ) ) {
 			$out->addWikiMsg( 'sessionfailure' );
 
 			return 'session failure';
@@ -408,14 +407,8 @@ class UpdateArticle {
 
 		if ( count( $permission_errors ) == 0 ) {
 			$services = MediaWikiServices::getInstance();
-			// MW 1.36+
-			if ( method_exists( $services, 'getWikiPageFactory' ) ) {
-				$wikiPageFactory = $services->getWikiPageFactory();
-				$page = $wikiPageFactory->newFromTitle( $titleX );
-			} else {
-				// @phan-suppress-next-line PhanDeprecatedFunction
-				$page = WikiPage::factory( $titleX );
-			}
+			$wikiPageFactory = $services->getWikiPageFactory();
+			$page = $wikiPageFactory->newFromTitle( $titleX );
 
 			$updater = $page->newPageUpdater( $user );
 			$content = $page->getContentHandler()->makeContent( $text, $titleX );
@@ -768,8 +761,14 @@ class UpdateArticle {
 			} elseif ( $isReadOnly ) {
 				throw new ReadOnlyError;
 			} else {
-				$articleX = new Article( $titleX );
-				$articleX->doDelete( $reason );
+				$wikiPageFactory = MediaWikiServices::getInstance()->getWikiPageFactory();
+				$deletePageFactory = MediaWikiServices::getInstance()->getDeletePageFactory();
+				$deletePage = $deletePageFactory->newDeletePage(
+					$wikiPageFactory->newFromTitle( $titleX ),
+					$user
+				);
+
+				$deletePage->deleteIfAllowed( $reason );
 			}
 		} else {
 			$message .= "set 'exec yes' to delete &#160; &#160; <big>'''$title'''</big>\n";

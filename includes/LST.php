@@ -45,8 +45,6 @@ class LST {
 	 * @param Parser $parser
 	 * @param string $part1
 	 * @return bool
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public static function open( $parser, $part1 ) {
 		// Infinite loop test
@@ -70,8 +68,6 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $part1
-	 *
-	 * @suppress PhanUndeclaredProperty Use of Parser::mTemplatePath
 	 */
 	public static function close( $parser, $part1 ) {
 		// Infinite loop test
@@ -111,7 +107,7 @@ class LST {
 
 			// Handle recursion here, so we can break cycles.
 			if ( $recursionCheck == false ) {
-				$text = $parser->preprocess( $text, $parser->getTitle(), $parser->getOptions() );
+				$text = $parser->preprocess( $text, $parser->getPage(), $parser->getOptions() );
 				self::close( $parser, $part1 );
 			}
 
@@ -124,7 +120,8 @@ class LST {
 				return $text;
 			}
 		} else {
-			return "[[" . $parser->getTitle()->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
+			$title = Title::castFromPageReference( $parser->getPage() );
+			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
 		}
 	}
 
@@ -254,7 +251,7 @@ class LST {
 		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
 
 		foreach ( $m[2] as $nr => $piece ) {
-			$piece = self::parse( $parser, $piece, "#lst:${page}|${sec}", 0, $recursionCheck, -1, '', $trim, $skipPattern );
+			$piece = self::parse( $parser, $piece, "#lst:{$page}|{$sec}", 0, $recursionCheck, -1, '', $trim, $skipPattern );
 
 			if ( $any ) {
 				$output[] = $m[1][$nr] . '::' . $piece;
@@ -512,7 +509,7 @@ class LST {
 			if ( $nr == -2 ) {
 				// output text before first section and done
 				$piece = substr( $text, 0, $m[1][1] - 1 );
-				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[0] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", 0, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 
 				return $output;
 			}
@@ -583,19 +580,19 @@ class LST {
 
 			if ( $nr == 1 ) {
 				// output n-th section and done
-				$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[0] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 				break;
 			}
 
 			if ( $nr == -1 ) {
 				if ( !isset( $end_off ) ) {
 					// output last section and done
-					$output[0] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+					$output[0] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 					break;
 				}
 			} else {
 				// output section by name and continue search for another section with the same name
-				$output[$n++] = self::parse( $parser, $piece, "#lsth:${page}|${sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
+				$output[$n++] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 			}
 		} while ( $continueSearch );
 
@@ -708,7 +705,7 @@ class LST {
 				}
 			} else {
 				// put a red link into the output
-				$output[0] = $parser->preprocess( '{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->getTitle(), $parser->getOptions() );
+				$output[0] = $parser->preprocess( '{{' . $defaultTemplate . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText() . '|%DATE%=' . $date . '|%USER%=' . $user . '}}', $parser->getPage(), $parser->getOptions() );
 			}
 
 			unset( $title );
@@ -757,7 +754,7 @@ class LST {
 							}
 
 							$argChain .= '|%DATE%=' . $date . '|%USER%=' . $user . '|%ARGS%=' . str_replace( '|', '§', preg_replace( '/[}]+/', '}', preg_replace( '/[{]+/', '{', substr( $invocation, strlen( $template2 ) + 2 ) ) ) ) . '}}';
-							$output[++$n] = $parser->preprocess( $argChain, $parser->getTitle(), $parser->getOptions() );
+							$output[++$n] = $parser->preprocess( $argChain, $parser->getPage(), $parser->getOptions() );
 						}
 						break;
 					}
