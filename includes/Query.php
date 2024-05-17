@@ -1580,18 +1580,6 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'minoredits' parameter.
-	 *
-	 * @param mixed $option
-	 */
-	private function _minoredits( $option ) {
-		if ( isset( $option ) && $option == 'exclude' ) {
-			$this->addTable( 'revision', 'revision' );
-			$this->addWhere( 'revision.rev_minor_edit = 0' );
-		}
-	}
-
-	/**
 	 * Set SQL for 'minrevisions' parameter.
 	 *
 	 * @param mixed $option
@@ -1871,12 +1859,13 @@ class Query {
 						$this->addSelect( [ 'rev.rev_timestamp' ] );
 
 						if ( !$this->revisionAuxWhereAdded ) {
-							$this->addWhere(
-								[
-									"{$this->tableNames['page']}.page_id = rev.rev_page",
-									"rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)"
-								]
-							);
+							$this->addWhere( "{$this->tableNames['page']}.page_id = rev.rev_page" );
+
+							if ( $this->parameters->getParameter( 'minoredits' ) == 'exclude' ) {
+								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page AND rev_aux.rev_minor_edit = 0)" );
+							} else {
+								$this->addWhere( "rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM {$this->tableNames['revision']} AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)" );
+							}
 						}
 
 						$this->revisionAuxWhereAdded = true;
@@ -2206,16 +2195,23 @@ class Query {
 		} else {
 			$this->addTables( [
 				'linktarget' => 'lt',
-				'page' => 'tplsrc',
 				'templatelinks' => 'tpl',
 			] );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
+			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
-			$this->addSelect( [ 'tpl_sel_title' => 'tplsrc.page_title', 'tpl_sel_ns' => 'tplsrc.page_namespace' ] );
-			$where = $this->tableNames['page'] . '.page_namespace = lt.' . $nsField . ' AND ' .
-					 $this->tableNames['page'] . '.page_title = lt.' . $titleField . ' AND tplsrc.page_id = tpl.tl_from AND ';
+			$this->addSelect( [
+				'tpl_sel_title' => "{$this->tableNames['page']}.page_title",
+				'tpl_sel_ns' => "{$this->tableNames['page']}.page_namespace"
+			] );
+
+			$this->addJoin(
+				'lt',
+				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
+			);
+			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id', ]
+			);
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
@@ -2224,9 +2220,8 @@ class Query {
 				}
 			}
 
-			$where .= '(' . implode( ' OR ', $ors ) . ')';
+			$where = '(' . implode( ' OR ', $ors ) . ')';
 		}
-
 		$this->addWhere( $where );
 	}
 
@@ -2245,7 +2240,7 @@ class Query {
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-		list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
+		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
@@ -2276,7 +2271,7 @@ class Query {
 			$ors = [];
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			list( $nsField, $titleField ) = $linksMigration->getTitleFields( 'templatelinks' );
+			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {

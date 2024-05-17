@@ -5,37 +5,63 @@ namespace MediaWiki\Extension\DynamicPageList3\Tests;
 use DOMDocument;
 use DOMXPath;
 use ImportStreamSource;
-use MediaWiki\Auth\AuthManager;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use ParserOptions;
 use RequestContext;
-use Title;
+use Status;
 use User;
-use WikiImporter;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
+
+	/** @var Status */
+	private $importStreamSource;
+
 	/**
 	 * Guard condition to ensure we only import seed data once per test suite run.
+	 * Only used before 1.42 as it breaks on 1.42 if not running for each test
+	 *
 	 * @var bool
 	 */
 	private static $wasSeedDataImported = false;
 
-	public function addDBData() {
-		if ( self::$wasSeedDataImported ) {
-			return;
+	protected function setUp(): void {
+		parent::setUp();
+
+		$file = dirname( __DIR__ ) . '/seed-data.xml';
+		$this->importStreamSource = ImportStreamSource::newFromFile( $file );
+
+		if ( !$this->importStreamSource->isGood() ) {
+			$this->fail( "Import source for {$file} failed" );
+		}
+	}
+
+	private function doImport(): void {
+		$services = $this->getServiceContainer();
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$file = dirname( __DIR__ ) . '/seed-data.xml';
+			$this->seedTestUsers( $file );
+			$importer = $services->getWikiImporterFactory()->getWikiImporter(
+				$this->importStreamSource->value,
+				$this->getTestSysop()->getAuthority()
+			);
+		} else {
+			if ( self::$wasSeedDataImported ) {
+				return;
+			}
+			self::$wasSeedDataImported = true;
+			$file = dirname( __DIR__ ) . '/seed-data.xml';
+			$this->seedTestUsers( $file );
+			$importer = $services->getWikiImporterFactory()->getWikiImporter(
+				$this->importStreamSource->value
+			);
 		}
 
-		$seedDataPath = __DIR__ . '/../seed-data.xml';
-		$this->seedTestUsers( $seedDataPath );
-		$importer = $this->getWikiImporter( $seedDataPath );
 		$importer->disableStatisticsUpdate();
+
 		// Ensure we actually create local user accounts in the DB
 		$importer->setUsernamePrefix( '', true );
 		$importer->doImport();
-
-		self::$wasSeedDataImported = true;
 	}
 
 	/**
@@ -53,7 +79,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$userNodes = $xpath->query( '//mw:mediawiki/mw:page/mw:revision/mw:contributor/mw:username' );
 		$usersByName = [];
 
-		$authManager = $this->getAuthManager();
+		$authManager = $this->getServiceContainer()->getAuthManager();
 
 		foreach ( $userNodes as $node ) {
 			$userName = $node->nodeValue;
@@ -83,23 +109,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	private function getWikiImporter( string $seedDataPath ): WikiImporter {
-		$seedDataFile = fopen( $seedDataPath, 'rt' );
-		$source = new ImportStreamSource( $seedDataFile );
-		$services = MediaWikiServices::getInstance();
-
-		return $services->getWikiImporterFactory()->getWikiImporter( $source );
-	}
-
-	private function getAuthManager(): AuthManager {
-		$services = MediaWikiServices::getInstance();
-
-		return $services->getAuthManager();
-	}
-
 	private function newUserFromName( string $name ): ?User {
-		$services = MediaWikiServices::getInstance();
-
+		$services = $this->getServiceContainer();
 		return $services->getUserFactory()->newFromName( $name, UserFactory::RIGOR_CREATABLE );
 	}
 
@@ -132,6 +143,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	 * @return string
 	 */
 	protected function runDPLQuery( array $params ): string {
+		$this->doImport();
+
 		$invocation = '<dpl>';
 
 		foreach ( $params as $paramName => $values ) {
@@ -145,8 +158,8 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 		$invocation .= '</dpl>';
 
-		$parser = MediaWikiServices::getInstance()->getParser();
-		$title = Title::makeTitle( NS_MAIN, 'DPLQueryTest' );
+		$parser = $this->getServiceContainer()->getParserFactory()->getInstance();
+		$title = $this->getServiceContainer()->getTitleFactory()->makeTitle( NS_MAIN, 'DPLQueryTest' );
 		$parserOptions = ParserOptions::newCanonical(
 			RequestContext::getMain()
 		);

@@ -886,10 +886,10 @@ class Parse {
 		$scrollVariables = (array)$scrollVariables;
 
 		foreach ( $scrollVariables as $variable => $value ) {
-			Variables::setVar( [ '', '', $variable, $value ] );
+			Variables::setVar( [ '', '', $variable, $value ?? '' ] );
 
 			if ( defined( 'ExtVariables::VERSION' ) ) {
-				ExtVariables::get( $parser )->setVarValue( $variable, $value );
+				ExtVariables::get( $parser )->setVarValue( $variable, $value ?? '' );
 			}
 		}
 	}
@@ -904,8 +904,6 @@ class Parse {
 	 * @param Parser $parser
 	 */
 	private function triggerEndResets( $output, &$reset, &$eliminate, $isParserTag, Parser $parser ) {
-		global $wgHooks;
-
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
 
 		$page = $parser->getPage();
@@ -953,22 +951,20 @@ class Parse {
 			}
 		}
 
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
 				Hooks::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endReset', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endReset';
-			}
+			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endReset' );
 		}
 
 		if ( array_sum( $eliminate ) ) {
 			// Register a hook to reset links which were produced during parsing DPL output
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate';
-			}
+			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endEliminate' );
 
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
