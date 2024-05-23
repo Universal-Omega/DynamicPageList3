@@ -2,9 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use MediaWiki\Extension\DynamicPageList3\Article;
-use PageImages\PageImages;
 use ExtensionRegistry;
+use MediaWiki\Extension\DynamicPageList3\Article;
 
 class GalleryList extends Lister {
 	/**
@@ -60,8 +59,7 @@ class GalleryList extends Lister {
 			if ( $pageImage ) {
 				// Successfully got a page image, wrapping it
 				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
-			}
-			else {
+			} else {
 				// Failed to get a page image
 				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
 			}

@@ -2,13 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
+use ExtensionRegistry;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\LST;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
 use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
 use MediaWiki\MediaWikiServices;
-use PageImages\PageImages;
-use ExtensionRegistry;
 use Parser;
 use RequestContext;
 use Sanitizer;
