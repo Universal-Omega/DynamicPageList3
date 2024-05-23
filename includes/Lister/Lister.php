@@ -1332,7 +1332,7 @@ class Lister {
 				'pp_page' => $pageID,
 				'pp_propname' => 'page_image_free',
 			],
-					__METHOD__
+			__METHOD__
 		);
 		if ( $propValue === false ) {
 					// No prop stored for this page
