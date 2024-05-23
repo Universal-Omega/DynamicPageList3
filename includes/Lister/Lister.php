@@ -988,7 +988,6 @@ class Lister {
 					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
 			} elseif ( $pageImagesEnabled ) {
-
 				$pageImage = self::getPageImage( $article->mID ) ?: false;
 				if ( !$pageImage ) { 
 					return '';
