@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\ActorStore;
 use RequestContext;
 use stdClass;
 use Title;
@@ -34,7 +35,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mSelTitle = null;
+	public $mSelTitle = '';
 
 	/**
 	 * Selected namespace ID of initial page.
@@ -48,7 +49,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mImageSelTitle = null;
+	public $mImageSelTitle = '';
 
 	/**
 	 * HTML link to page.
@@ -62,14 +63,14 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mExternalLink = null;
+	public $mExternalLink = '';
 
 	/**
 	 * First character of the page title.
 	 *
 	 * @var string
 	 */
-	public $mStartChar = null;
+	public $mStartChar = '';
 
 	/**
 	 * Heading (link to the associated page) that page belongs to in the list (default '' means no heading)
@@ -97,49 +98,49 @@ class Article {
 	 *
 	 * @var int
 	 */
-	public $mCounter = null;
+	public $mCounter = 0;
 
 	/**
 	 * Article length in bytes of wiki text
 	 *
 	 * @var int
 	 */
-	public $mSize = null;
+	public $mSize = 0;
 
 	/**
 	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
 	 *
 	 * @var string|int
 	 */
-	public $mDate = null;
+	public $mDate = '';
 
 	/**
 	 * Timestamp depending on the user's request, based on user format definition.
 	 *
 	 * @var string
 	 */
-	public $myDate = null;
+	public $myDate = '';
 
 	/**
 	 * Revision ID
 	 *
 	 * @var int
 	 */
-	public $mRevision = null;
+	public $mRevision = 0;
 
 	/**
 	 * Link to editor (first/last, depending on user's request) 's page or contributions if not registered.
 	 *
 	 * @var string
 	 */
-	public $mUserLink = null;
+	public $mUserLink = '';
 
 	/**
 	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
 	 *
-	 * @var string|null
+	 * @var string
 	 */
-	public $mUser = null;
+	public $mUser = '';
 
 	/**
 	 * Edit Summary(Revision Comment)
@@ -167,7 +168,7 @@ class Article {
 	 *
 	 * @var string
 	 */
-	public $mContributor = null;
+	public $mContributor = '';
 
 	/**
 	 * Article Headings - Maps heading to count (# of pages under each heading).
@@ -209,8 +210,8 @@ class Article {
 
 		$article = new self( $title, $pageNamespace );
 
-		$revActorName = null;
-		if ( isset( $row->rev_actor ) ) {
+		$revActorName = ActorStore::UNKNOWN_USER_NAME;
+		if ( isset( $row->rev_actor ) && $row->rev_actor !== '0' ) {
 			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
 		}
 
@@ -357,7 +358,7 @@ class Article {
 
 						break;
 					case 'user':
-						if ( $revActorName ) {
+						if ( $revActorName && $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
 							self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
 
 							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
@@ -391,17 +392,17 @@ class Article {
 	/**
 	 * Get the formatted date for this article if available.
 	 *
-	 * @return mixed Formatted string or null for none set.
+	 * @return string formatted string or empty string if none set.
 	 */
 	public function getDate() {
-		if ( $this->myDate !== null ) {
+		if ( $this->myDate ) {
 			return $this->myDate;
-		} elseif ( $this->mDate !== null ) {
+		} elseif ( $this->mDate ) {
 			$lang = RequestContext::getMain()->getLanguage();
 
 			return $lang->timeanddate( $this->mDate, true );
 		}
 
-		return null;
+		return '';
 	}
 }

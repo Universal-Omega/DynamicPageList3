@@ -45,6 +45,24 @@
 		</revision>
 	</page>
 	<page>
+		<title>Template:DPLInfobox2</title>
+		<ns>10</ns>
+		<id>13123123123</id>
+		<revision>
+			<id>11231231231233</id>
+			<timestamp>2017-09-07T10:45:24Z</timestamp>
+			<contributor>
+				<username>DPLTestSystemUser</username>
+			</contributor>
+			<comment>Test template</comment>
+			<origin>11231231231233</origin>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text xml:space="preserve" bytes="13">Test template</text>
+			<sha1 />
+		</revision>
+	</page>
+	<page>
 		<title>Category:DPLTestCategory</title>
 		<ns>14</ns>
 		<id>14</id>

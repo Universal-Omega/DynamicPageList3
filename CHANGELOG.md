@@ -803,3 +803,19 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Replaced usage of deprecated `User::matchEditToken()`
 * Replaced usage of deprecated `Article::doDelete()`
 * Added `null` checks on `Parser::getPage()` and `ParserOutput` before using to avoid fatals
+
+# Version 3.5.1
+* Added a fix for links migration: added a `JOIN` on `linktarget` for the `notuses` parameter
+* Added a PHPUnit test for the `notuses` parameter
+
+# Version 3.5.2
+* Add support for PHP 8.0 and PHP 8.1
+* phan: enable `SecurityCheck-ReDoS`
+* Use ExtensionRegistry::getAllThings() to get version
+* Only check for buffer overflow
+* Fix `usedby` query returns all templates
+* Don't return the viewer's IP address as %USER% if rev_actor is 0.
+* Cleanup in en.json
+* Fix minoredits=exclude
+* Fix "PHP Deprecated: Using ${var} in strings is deprecated, use {$var} instead"
+* Fix "PHP Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated"
