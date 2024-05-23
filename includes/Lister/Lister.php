@@ -1336,10 +1336,6 @@ class Lister {
 			],
 			__METHOD__
 		);
-		if ( $propValue === false ) {
-					// No prop stored for this page
-					return false;
-		}
 
 		return $propValue;
 	}
