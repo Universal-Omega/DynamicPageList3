@@ -1327,7 +1327,11 @@ class Lister {
 		//in the future, a check could be made for page_image too, but page_image_free is the default, should do for now
 		$propValue = $dbr->selectField( 'page_props', // table to use
 					'pp_value', // Field to select
-					[ 'pp_page' => $pageID, 'pp_propname' => "page_image_free" ], // where conditions 
+			// Where conditions
+			[
+				'pp_page' => $pageID,
+				'pp_propname' => 'page_image_free',
+			],
 					__METHOD__
 		);
 		if ( $propValue === false ) {
