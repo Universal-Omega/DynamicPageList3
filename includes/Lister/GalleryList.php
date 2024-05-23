@@ -41,18 +41,6 @@ class GalleryList extends Lister {
 	 * @var string
 	 */
 	public $itemEnd = '|';
-	
-	/**
-	 * Return $this->listStart with attributes replaced.
-	 *
-	 * @return string
-	 */
-	public function getListStart() {
-		// add gallery parameters
-		$galleryparams = $this->getParameters()->getParameter( 'galleryparameters' );
-
-		return sprintf( $this->listStart, $this->listAttributes . ' ' . $galleryparams );
-	}
 
 	/**
 	 * Format an item.
@@ -63,24 +51,31 @@ class GalleryList extends Lister {
 	 */
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle;
+
+		// If PageImages is loaded and we are not in the file namespace, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace != NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+			
 			$pageImage = $this->getPageImage( $article->mID ) ?: false;
+			
 			if ( $pageImage ) {
-				$item = $pageImage;
+				// Successfully got a pageimage, wrapping it
+				$item = $this->getItemStart() . $pageImage . "| [[" . $item . "]]" . $this->itemEnd . "link=" . $item . "";
 			}
-		}
+			else {
+				// Failed to get a pageimage
+				$item = $this->getItemStart() . $item . $this->itemEnd . "[[" . $item . "]]";
+			}
 
-		if ( $pageText !== null ) {
-			// Include parsed/processed wiki markup content after each item before the closing tag.
-			$item .= $pageText;
 		}
+		else {
 
-		if ( $this->getParameters()->getParameter( 'gallerycaptions' ) ) {
-			$item = $this->getItemStart() . $item . $this->itemEnd . $article->mTitle;
-		}
-		else
-		{
+			if ( $pageText !== null ) {
+				// Include parsed/processed wiki markup content after each item before the closing tag.
+				$item .= $pageText;
+			}
+
 			$item = $this->getItemStart() . $item . $this->itemEnd;
+
 		}
 
 		$item = $this->replaceTagParameters( $item, $article );
