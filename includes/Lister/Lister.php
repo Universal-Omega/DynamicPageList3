@@ -1325,7 +1325,9 @@ class Lister {
 		$dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
 		$dbr = $dbl->getConnection( DB_REPLICA );
 		//in the future, a check could be made for page_image too, but page_image_free is the default, should do for now
-		$propValue = $dbr->selectField( 'page_props', // table to use
+		$propValue = $dbr->selectField(
+			// Table to use
+			'page_props',
 			// Field to select
 			'pp_value',
 			// Where conditions
