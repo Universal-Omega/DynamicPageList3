@@ -58,16 +58,14 @@ class GalleryList extends Lister {
 			$pageImage = $this->getPageImage( $article->mID ) ?: false;
 			
 			if ( $pageImage ) {
-				// Successfully got a pageimage, wrapping it
+				// Successfully got a page image, wrapping it
 				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
 			}
 			else {
-				// Failed to get a pageimage
+				// Failed to get a page image
 				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
 			}
-
 		} else {
-
 			if ( $pageText !== null ) {
 				// Include parsed/processed wiki markup content after each item before the closing tag.
 				$item .= $pageText;

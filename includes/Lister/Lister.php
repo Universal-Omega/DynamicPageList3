@@ -987,8 +987,7 @@ class Lister {
 					$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
 					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
-			} else if ( $pageImagesEnabled ) {
-
+			} elseif ( $pageImagesEnabled ) {
 				$pageImage = self::getPageImage( $article->mID ) ?: false;
 				if ( !$pageImage ) { 
 					return '';
