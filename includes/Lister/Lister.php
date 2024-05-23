@@ -1343,5 +1343,4 @@ class Lister {
 
 		return $propValue;
 	}
-
 }
