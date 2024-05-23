@@ -1318,7 +1318,6 @@ class Lister {
 	public function getRowCount() {
 		return $this->rowCount;
 	}
-
 	
 	public function getPageImage( int $pageID ) {
 
