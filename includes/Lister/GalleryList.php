@@ -68,7 +68,6 @@ class GalleryList extends Lister {
 
 		}
 		else {
-
 			if ( $pageText !== null ) {
 				// Include parsed/processed wiki markup content after each item before the closing tag.
 				$item .= $pageText;
