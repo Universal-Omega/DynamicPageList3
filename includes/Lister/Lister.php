@@ -998,8 +998,6 @@ class Lister {
 					$imageUrl = $img->getURL();
 				} else {
 					$imageUrl = '';
-					//$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
-					//$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
 			}
 		} else {
