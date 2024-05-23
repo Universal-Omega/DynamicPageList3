@@ -997,7 +997,7 @@ class Lister {
 				if ( $img && $img->exists() ) {
 					$imageUrl = $img->getURL();
 				} else {
-					$imageUrl = "";
+					$imageUrl = '';
 					//$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
 					//$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
 				}
