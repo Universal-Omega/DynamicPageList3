@@ -1318,9 +1318,7 @@ class Lister {
 	}
 	
 	public function getPageImage( int $pageID ) {
-
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
-		$dbr = $dbl->getConnection( DB_REPLICA );
 		// In the future, a check could be made for page_image too, but page_image_free is the default, should do for now
 		$propValue = $dbr->selectField(
 			// Table to use
