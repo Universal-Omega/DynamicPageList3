@@ -59,7 +59,7 @@ class GalleryList extends Lister {
 			
 			if ( $pageImage ) {
 				// Successfully got a pageimage, wrapping it
-				$item = $this->getItemStart() . $pageImage . "| [[" . $item . "]]" . $this->itemEnd . "link=" . $item . "";
+				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
 			}
 			else {
 				// Failed to get a pageimage
