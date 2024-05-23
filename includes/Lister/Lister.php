@@ -1326,7 +1326,8 @@ class Lister {
 		$dbr = $dbl->getConnection( DB_REPLICA );
 		//in the future, a check could be made for page_image too, but page_image_free is the default, should do for now
 		$propValue = $dbr->selectField( 'page_props', // table to use
-					'pp_value', // Field to select
+			// Field to select
+			'pp_value',
 			// Where conditions
 			[
 				'pp_page' => $pageID,
