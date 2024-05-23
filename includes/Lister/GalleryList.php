@@ -63,7 +63,7 @@ class GalleryList extends Lister {
 			}
 			else {
 				// Failed to get a pageimage
-				$item = $this->getItemStart() . $item . $this->itemEnd . "[[" . $item . "]]";
+				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
 			}
 
 		}
