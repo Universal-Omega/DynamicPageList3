@@ -991,7 +991,7 @@ class Lister {
 
 				$pageImage = self::getPageImage( $article->mID ) ?: false;
 				if ( !$pageImage ) { 
-					return ""; 
+					return '';
 				}
 				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
 				if ( $img && $img->exists() ) {
