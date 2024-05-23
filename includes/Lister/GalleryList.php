@@ -66,8 +66,7 @@ class GalleryList extends Lister {
 				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
 			}
 
-		}
-		else {
+		} else {
 
 			if ( $pageText !== null ) {
 				// Include parsed/processed wiki markup content after each item before the closing tag.
