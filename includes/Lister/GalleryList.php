@@ -75,7 +75,6 @@ class GalleryList extends Lister {
 			}
 
 			$item = $this->getItemStart() . $item . $this->itemEnd;
-
 		}
 
 		$item = $this->replaceTagParameters( $item, $article );
