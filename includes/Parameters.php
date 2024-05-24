@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
-use MWException;
 use PermissionsError;
 use RequestContext;
 use StringUtils;
@@ -202,7 +202,7 @@ class Parameters extends ParametersData {
 	 */
 	public static function sortByPriority( $parameters ) {
 		if ( !is_array( $parameters ) ) {
-			throw new MWException( __METHOD__ . ': A non-array was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-array was passed.' );
 		}
 
 		// 'category' to get category headings first for ordermethod.
@@ -241,7 +241,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setSelectionCriteriaFound( $found = true ) {
 		if ( !is_bool( $found ) ) {
-			throw new MWException( __METHOD__ . ': A non-boolean was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
 		}
 
 		$this->selectionCriteriaFound = $found;
@@ -264,7 +264,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setOpenReferencesConflict( $conflict = true ) {
 		if ( !is_bool( $conflict ) ) {
-			throw new MWException( __METHOD__ . ': A non-boolean was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
 		}
 
 		$this->openReferencesConflict = $conflict;
