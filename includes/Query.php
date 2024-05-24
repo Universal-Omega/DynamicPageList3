@@ -6,10 +6,11 @@ use DateInterval;
 use DateTime;
 use Exception;
 use ExtensionRegistry;
+use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
-use MWException;
 use PoolCounterWorkViaCallback;
+use UnexpectedValueException;
 use WANObjectCache;
 use WikiMap;
 use Wikimedia\Rdbms\Database;
@@ -185,7 +186,7 @@ class Query {
 			}
 
 			if ( $success === false ) {
-				throw new MWException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . "." );
+				throw new UnexpectedValueException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . "." );
 			}
 
 			$this->parametersProcessed[$parameter] = true;
@@ -359,7 +360,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $e ) {
-			throw new MWException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
+			throw new UnexpectedValueException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
 
 		// Partially taken from intersection
@@ -473,11 +474,11 @@ class Query {
 	 */
 	public function addTable( $table, $alias ) {
 		if ( empty( $table ) ) {
-			throw new MWException( __METHOD__ . ': An empty table name was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty table name was passed.' );
 		}
 
 		if ( empty( $alias ) || is_numeric( $alias ) ) {
-			throw new MWException( __METHOD__ . ': An empty or numeric table alias was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty or numeric table alias was passed.' );
 		}
 
 		if ( !isset( $this->tables[$alias] ) ) {
@@ -509,7 +510,7 @@ class Query {
 	 */
 	public function addWhere( $where ) {
 		if ( empty( $where ) ) {
-			throw new MWException( __METHOD__ . ': An empty where clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty where clause was passed.' );
 		}
 
 		if ( is_string( $where ) ) {
@@ -517,7 +518,7 @@ class Query {
 		} elseif ( is_array( $where ) ) {
 			$this->where = array_merge( $this->where, $where );
 		} else {
-			throw new MWException( __METHOD__ . ': An invalid where clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An invalid where clause was passed.' );
 		}
 
 		return true;
@@ -531,7 +532,7 @@ class Query {
 	 */
 	public function addNotWhere( $where ) {
 		if ( empty( $where ) ) {
-			throw new MWException( __METHOD__ . ': An empty not where clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty not where clause was passed.' );
 		}
 
 		if ( is_array( $where ) ) {
@@ -539,7 +540,7 @@ class Query {
 				$this->where[] = $field . ( count( $values ) > 1 ? ' NOT IN(' . $this->dbr->makeList( $values ) . ')' : ' != ' . $this->dbr->addQuotes( current( $values ) ) );
 			}
 		} else {
-			throw new MWException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
 		}
 
 		return true;
@@ -554,13 +555,13 @@ class Query {
 	 */
 	public function addSelect( $fields ) {
 		if ( !is_array( $fields ) ) {
-			throw new MWException( __METHOD__ . ': A non-array was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-array was passed.' );
 		}
 
 		foreach ( $fields as $alias => $field ) {
 			if ( !is_numeric( $alias ) && array_key_exists( $alias, $this->select ) && $this->select[$alias] != $field ) {
 				// In case of a code bug that is overwriting an existing field alias throw an exception.
-				throw new MWException( __METHOD__ . ": Attempted to overwrite existing field alias `{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`." );
+				throw new UnexpectedValueException( __METHOD__ . ": Attempted to overwrite existing field alias `{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`." );
 			}
 
 			// String alias and does not exist already.
@@ -586,7 +587,7 @@ class Query {
 	 */
 	public function addGroupBy( $groupBy ) {
 		if ( empty( $groupBy ) ) {
-			throw new MWException( __METHOD__ . ': An empty GROUP BY clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty GROUP BY clause was passed.' );
 		}
 
 		$this->groupBy[] = $groupBy;
@@ -602,7 +603,7 @@ class Query {
 	 */
 	public function addOrderBy( $orderBy ) {
 		if ( empty( $orderBy ) ) {
-			throw new MWException( __METHOD__ . ': An empty ORDER BY clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty ORDER BY clause was passed.' );
 		}
 
 		$this->orderBy[] = $orderBy;
@@ -619,11 +620,11 @@ class Query {
 	 */
 	public function addJoin( $tableAlias, $joinConditions ) {
 		if ( empty( $tableAlias ) || empty( $joinConditions ) ) {
-			throw new MWException( __METHOD__ . ': An empty JOIN clause was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': An empty JOIN clause was passed.' );
 		}
 
 		if ( isset( $this->join[$tableAlias] ) ) {
-			throw new MWException( __METHOD__ . ': Attempted to overwrite existing JOIN clause.' );
+			throw new UnexpectedValueException( __METHOD__ . ': Attempted to overwrite existing JOIN clause.' );
 		}
 
 		$this->join[$tableAlias] = $joinConditions;
