@@ -988,7 +988,7 @@ class Lister {
 				}
 			} elseif ( $pageImagesEnabled ) {
 				$pageImage = self::getPageImage( $article->mID ) ?: false;
-				if ( !$pageImage ) { 
+				if ( !$pageImage ) {
 					return '';
 				}
 				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
@@ -1314,7 +1314,13 @@ class Lister {
 	public function getRowCount() {
 		return $this->rowCount;
 	}
-	
+
+	/**
+	 * Get the page image from the page_props table
+	 *
+	 * @param int $pageID
+	 * @return mixed|false
+	 */
 	public function getPageImage( int $pageID ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		// In the future, a check could be made for page_image too, but page_image_free is the default, should do for now
