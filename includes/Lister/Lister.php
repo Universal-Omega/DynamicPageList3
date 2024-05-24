@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
+use ExtensionRegistry;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\LST;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
@@ -970,6 +971,7 @@ class Lister {
 	 */
 	protected function parseImageUrlWithPath( $article ) {
 		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
+		$pageImagesEnabled = ExtensionRegistry::getInstance()->isLoaded( 'PageImages' );
 
 		$imageUrl = '';
 		if ( $article instanceof Article ) {
@@ -983,6 +985,17 @@ class Lister {
 				} else {
 					$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
 					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
+				}
+			} elseif ( $pageImagesEnabled ) {
+				$pageImage = self::getPageImage( $article->mID ) ?: false;
+				if ( !$pageImage ) { 
+					return '';
+				}
+				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
+				if ( $img && $img->exists() ) {
+					$imageUrl = $img->getURL();
+				} else {
+					$imageUrl = '';
 				}
 			}
 		} else {
@@ -1300,5 +1313,24 @@ class Lister {
 	 */
 	public function getRowCount() {
 		return $this->rowCount;
+	}
+	
+	public function getPageImage( int $pageID ) {
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		// In the future, a check could be made for page_image too, but page_image_free is the default, should do for now
+		$propValue = $dbr->selectField(
+			// Table to use
+			'page_props',
+			// Field to select
+			'pp_value',
+			// Where conditions
+			[
+				'pp_page' => $pageID,
+				'pp_propname' => 'page_image_free',
+			],
+			__METHOD__
+		);
+
+		return $propValue;
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
+use ExtensionRegistry;
 use MediaWiki\Extension\DynamicPageList3\Article;
 
 class GalleryList extends Lister {
@@ -50,12 +51,26 @@ class GalleryList extends Lister {
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle;
 
-		if ( $pageText !== null ) {
-			// Include parsed/processed wiki markup content after each item before the closing tag.
-			$item .= $pageText;
-		}
+		// If PageImages is loaded and we are not in the file namespace, attempt to assemble a gallery of PageImages
+		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+			
+			$pageImage = $this->getPageImage( $article->mID ) ?: false;
+			
+			if ( $pageImage ) {
+				// Successfully got a page image, wrapping it
+				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
+			} else {
+				// Failed to get a page image
+				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
+			}
+		} else {
+			if ( $pageText !== null ) {
+				// Include parsed/processed wiki markup content after each item before the closing tag.
+				$item .= $pageText;
+			}
 
-		$item = $this->getItemStart() . $item . $this->itemEnd;
+			$item = $this->getItemStart() . $item . $this->itemEnd;
+		}
 
 		$item = $this->replaceTagParameters( $item, $article );
 
