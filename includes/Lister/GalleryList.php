@@ -53,9 +53,8 @@ class GalleryList extends Lister {
 
 		// If PageImages is loaded and we are not in the file namespace, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
-			
 			$pageImage = $this->getPageImage( $article->mID ) ?: false;
-			
+
 			if ( $pageImage ) {
 				// Successfully got a page image, wrapping it
 				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
