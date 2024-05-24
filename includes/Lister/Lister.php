@@ -994,8 +994,6 @@ class Lister {
 				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
 				if ( $img && $img->exists() ) {
 					$imageUrl = $img->getURL();
-				} else {
-					$imageUrl = '';
 				}
 			}
 		} else {
