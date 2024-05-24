@@ -187,7 +187,7 @@ class Query {
 			}
 
 			if ( $success === false ) {
-				throw new LogicException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . "." );
+				throw new LogicException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . '.' );
 			}
 
 			$this->parametersProcessed[$parameter] = true;
