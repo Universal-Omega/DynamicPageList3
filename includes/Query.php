@@ -7,6 +7,7 @@ use DateTime;
 use Exception;
 use ExtensionRegistry;
 use InvalidArgumentException;
+use LogicException;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserFactory;
 use PoolCounterWorkViaCallback;
@@ -186,7 +187,7 @@ class Query {
 			}
 
 			if ( $success === false ) {
-				throw new UnexpectedValueException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . "." );
+				throw new LogicException( __METHOD__ . ": SQL Build Error returned from {$function} for " . serialize( $option ) . "." );
 			}
 
 			$this->parametersProcessed[$parameter] = true;
@@ -360,7 +361,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $e ) {
-			throw new UnexpectedValueException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
+			throw new LogicException( __METHOD__ . ': ' . wfMessage( 'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError() )->text() );
 		}
 
 		// Partially taken from intersection
