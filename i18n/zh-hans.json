@@ -3,7 +3,8 @@
 		"authors": [
 			"GuoPC",
 			"Lakejason0",
-			"LittlePaw365"
+			"LittlePaw365",
+			"Westgrass"
 		]
 	},
 	"intersection-desc": "输出一个分类或多个分类交集内最新项目的无序列表",
@@ -45,11 +46,11 @@
 	"dpl-tag-tracking-category": "使用DynamicPageList3解析器标签的页面",
 	"dpl-intersection-tracking-category": "使用DynamicPageList3 Intersection解析器标签的页面",
 	"dpl-parserfunc-tracking-category": "使用DynamicPageList3解析器函数的页面",
-	"dplnum-parserfunc-tracking-category": "使用DynamicPageList3 dplnum解析器函数的页面",
-	"dplvar-parserfunc-tracking-category": "使用DynamicPageList3 dplvar解析器函数的页面",
-	"dplreplace-parserfunc-tracking-category": "使用DynamicPageList3 dplreplace解析器函数的页面",
-	"dplchapter-parserfunc-tracking-category": "使用DynamicPageList3 dplchapter解析器函数的页面",
-	"dplmatrix-parserfunc-tracking-category": "使用DynamicPageList3 dplmatrix解析器函数的页面",
+	"dplnum-parserfunc-tracking-category": "使用DynamicPageList3的dplnum解析器函数的页面",
+	"dplvar-parserfunc-tracking-category": "使用DynamicPageList3的dplvar解析器函数的页面",
+	"dplreplace-parserfunc-tracking-category": "使用DynamicPageList3的dplreplace解析器函数的页面",
+	"dplchapter-parserfunc-tracking-category": "使用DynamicPageList3的dplchapter解析器函数的页面",
+	"dplmatrix-parserfunc-tracking-category": "使用DynamicPageList3的dplmatrix解析器函数的页面",
 	"right-dpl_param_delete_rules": "使用DynamicPageList3批量删除页面",
 	"right-dpl_param_update_rules": "使用DynamicPageList3批量更新页面"
 }
