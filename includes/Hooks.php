@@ -219,7 +219,15 @@ class Hooks {
 
 		// we can remove the categories by save/restore
 		if ( $reset['categories'] ?? false ) {
-			$saveCategories = $parser->getOutput()->getCategories();
+			$parserOutput = $parser->getOutput();
+			if ( method_exists( $parserOutput, 'getCategoryNames' ) && method_exists( $parserOutput, 'getCategorySortKey' ) ) {
+				$saveCategories = array_combine(
+					$parserOutput->getCategoryNames(),
+					array_map( fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
+				);
+			} else {
+				$saveCategories = $parserOutput->getCategories();
+			}
 		}
 
 		// we can remove the images by save/restore
@@ -556,9 +564,17 @@ class Hooks {
 		if ( !self::$createdLinks['resetdone'] ) {
 			self::$createdLinks['resetdone'] = true;
 
-			foreach ( $parser->getOutput()->getCategories() as $key => $val ) {
-				if ( array_key_exists( $key, self::$fixedCategories ) ) {
-					self::$fixedCategories[$key] = $val;
+			if ( method_exists( $parser->getOutput(), 'getCategoryNames' ) && method_exists( $parser->getOutput(), 'getCategorySortKey' ) ) {
+				foreach ( $parser->getOutput()->getCategoryNames() as $key ) {
+					if ( array_key_exists( $key, self::$fixedCategories ) ) {
+						self::$fixedCategories[$key] = $parser->getOutput()->getCategorySortKey( $key );
+					}
+				}
+			} else {
+				foreach ( $parser->getOutput()->getCategories() as $key => $val ) {
+					if ( array_key_exists( $key, self::$fixedCategories ) ) {
+						self::$fixedCategories[$key] = $val;
+					}
 				}
 			}
 
@@ -618,7 +634,16 @@ class Hooks {
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
-				$parser->getOutput()->setCategories( array_diff_assoc( $parser->getOutput()->getCategories(), self::$createdLinks[2] ) );
+				$parserOutput = $parser->getOutput();
+				if ( method_exists( $parserOutput, 'getCategoryNames' ) && method_exists( $parserOutput, 'getCategorySortKey' ) ) {
+					$categories = array_combine(
+						$parserOutput->getCategoryNames(),
+						array_map( fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
+					);
+					$parser->getOutput()->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ) );
+				} else {
+					$parser->getOutput()->setCategories( array_diff_assoc( $parserOutput->getCategories(), self::$createdLinks[2] ) );
+				}
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
