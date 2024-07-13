@@ -202,14 +202,15 @@ class Parse {
 		try {
 			$query = new Query( $this->parameters );
 
-			$foundRows = null;
 			$profilingContext = '';
 			$currentTitle = $parser->getPage();
 			if ( $currentTitle instanceof Title ) {
 				$profilingContext
 					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
 			}
-			$rows = $query->buildAndSelect( $calcRows, $foundRows, $profilingContext );
+
+			$rows = $query->buildAndSelect( $calcRows, $profilingContext );
+
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -222,6 +223,11 @@ class Parse {
 		} catch ( MWException $e ) {
 			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
+		}
+
+		if ( isset( $rows['count'] ) ) {
+			$foundRows = $rows['count'];
+			unset( $rows['count'] );
 		}
 
 		$numRows = count( $rows );
@@ -267,7 +273,7 @@ class Parse {
 		}
 
 		// $this->addOutput($lister->format($articles));
-		if ( $foundRows === null ) {
+		if ( !isset( $foundRows ) ) {
 			// Get row count after calling format() otherwise the count will be inaccurate.
 			$foundRows = $lister->getRowCount();
 		}
