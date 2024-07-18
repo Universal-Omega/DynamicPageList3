@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"MacOS Weed",
 			"Verdy p"
 		]
 	},
@@ -21,7 +22,7 @@
 	"dpl_log_8": "Erreur : un seul type de date peut être ajouté à la fois.",
 	"dpl_log_9": "Erreur : le paramètre « $1 » doit être utilisé avec « ordermethod=[ $2 ] »",
 	"dpl_log_10": "Erreur : l’index de la section dominante doit être compris entre 1 et le nombre d’arguments pour « includepage » ($0 dans ce cas)",
-	"dpl_log_11": "Erreur : impossible d’effectuer des opérations logiques sur les Pages non catégorisées (par exemple avec le paramètre « category ») car la vue $0 n’existe pas dans la base de données ! Aide : demandez à l’administrateur de la base de données d’exécuter la requête suivante : <code>$1</code>.",
+	"dpl_log_11": "Erreur : impossible d’effectuer des opérations logiques sur les Pages non catégorisées (par ex. avec le paramètre « category ») car la vue $0 n’existe pas dans la base de données ! Aide : demandez à l’administrateur de la base de données d’exécuter la requête suivante : <code>$1</code>.",
 	"dpl_log_12": "Erreur : la spécification pour « openreferences » est incompatible avec une autre option spécifiée. Veuillez supprimer cette autre option ou « openreferences ». Voir le manuel pour plus de détails.",
 	"dpl_log_13": "Avertissement : le paramètre inconnu « $1 » a été ignoré. Aide : paramètres disponibles : <code>$2</code>.",
 	"dpl_log_14": "Avertissement : ignore l’option « $2 » incorrecte pour le paramètre « $1 ».",
