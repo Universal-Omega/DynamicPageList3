@@ -480,9 +480,7 @@ class LST {
 				}
 
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$mata = [];
-					$no_parenthesis = preg_match_all( '/\(/', $pat, $mata );
-					$begin_off = $m[$no_parenthesis][1];
+					$begin_off = end($m)[1];
 					$head_len = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], "\n =\t" );
 				} elseif ( $nr == -2 ) {
@@ -559,6 +557,11 @@ class LST {
 				if ( $sec == '' ) {
 					$continueSearch = false;
 				} else {
+					if ( $end_off == 0 ) {
+						// we have made no progress - something has gone wrong, but at least don't loop forever
+						break;
+					}
+					// this could lead to quadratic runtime...
 					$text = substr( $text, $end_off );
 				}
 			} else {
