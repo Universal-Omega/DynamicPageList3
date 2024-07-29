@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Deltaspace"
+			"Deltaspace",
+			"Okras"
 		]
 	},
 	"intersection_noresults": "Ошибка: Нет результатов!",
