@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
-use MWException;
+use ConfigException;
 
 class Config {
 	/**
@@ -25,7 +25,7 @@ class Config {
 		}
 
 		if ( !is_array( $settings ) ) {
-			throw new MWException( __METHOD__ . ": Invalid settings passed." );
+			throw new ConfigException( __METHOD__ . ': Invalid settings passed.' );
 		}
 
 		self::$settings = array_merge( self::$settings, $settings );
@@ -58,7 +58,7 @@ class Config {
 	 */
 	public static function setSetting( $setting, $value = null ) {
 		if ( empty( $setting ) || !is_string( $setting ) ) {
-			throw new MWException( __METHOD__ . ": Setting keys can not be blank." );
+			throw new ConfigException( __METHOD__ . ': Setting keys can not be blank.' );
 		}
 
 		self::$settings[$setting] = $value;
