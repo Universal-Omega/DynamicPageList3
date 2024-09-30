@@ -40,7 +40,7 @@
 	"dpl_articlecount": "There {{PLURAL:$1|is one article|are $1 articles}} in this heading.",
 	"action-dpl_param_update_rules": "to use the parameter 'updaterules'",
 	"action-dpl_param_delete_rules": "to use the parameter 'deleterules'",
-	"dpl_query_error": "The DynamicPageList3 extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DynamicPageList3 or an error which you made; especially when using parameters like 'categoryregexp' or 'titleregexp'. Usage of non-greedy *? matching patterns are not supported.<br/>Error message was:<br/><tt>$2</tt>",
+	"dpl_query_error": "The DynamicPageList3 extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DynamicPageList3 or an error which you made; especially when using parameters like 'categoryregexp' or 'titleregexp'. Usage of non-greedy *? matching patterns are not supported.<br/>Error message was:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Pages using DynamicPageList3 parser tag",
 	"dpl-intersection-tracking-category": "Pages using DynamicPageList3 Intersection parser tag",
 	"dpl-parserfunc-tracking-category": "Pages using DynamicPageList3 parser function",
