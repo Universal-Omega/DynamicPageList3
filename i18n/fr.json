@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"MacOS Weed",
 			"Verdy p"
 		]
@@ -40,7 +41,7 @@
 	"dpl_articlecount": "Il y a {{PLURAL:$1|un article|$1 articles}} dans cette rubrique.",
 	"action-dpl_param_update_rules": "faire usage du paramètre « updaterules »",
 	"action-dpl_param_delete_rules": "faire usage du paramètre « deleteterules »",
-	"dpl_query_error": "L’extension DynamicPageList3 (version $1) a produit une instruction SQL ayant entraîné une erreur de la base de données.<br /> La raison peut être une erreur interne de DynamicPageList3 ou une erreur que vous avez commise ; en particulier lors de l’utilisation de paramètres indiquant des expressions régulières tels que « categoryregexp » ou « titleregexp ». L’utilisation de patrons de correspondance non gourmande avec « *? » n’est pas prise en charge.<br /> Le message d’erreur était :<br /> <tt>$2</tt>",
+	"dpl_query_error": "L’extension DynamicPageList3 (version $1) a produit une instruction SQL ayant entraîné une erreur de la base de données.<br /> La raison peut être une erreur interne de DynamicPageList3 ou une erreur que vous avez commise ; en particulier lors de l’utilisation de paramètres indiquant des expressions régulières tels que « categoryregexp » ou « titleregexp ». L’utilisation de patrons de correspondance non gourmande avec « *? » n’est pas prise en charge.<br /> Le message d’erreur était :<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Pages utilisant la balise d’analyseur DynamicPageList3",
 	"dpl-intersection-tracking-category": "Pages utilisant la balise d’analyseur d’Intersection de DynamicPageList3",
 	"dpl-parserfunc-tracking-category": "Pages utilisant la fonction d’analyseur DynamicPageList3",

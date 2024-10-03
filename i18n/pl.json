@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Frisk",
 			"Rail",
 			"Sp5uhe"
@@ -41,7 +42,7 @@
 	"dpl_articlecount": "W tym nagłówku {{PLURAL:$1|znajduje się jeden artykuł|znajdują się $1 artykuły|znajduje się $1 artykułów}}.",
 	"action-dpl_param_update_rules": "używania parametru „updaterules”",
 	"action-dpl_param_delete_rules": "używania parametru „deleterules”",
-	"dpl_query_error": "Rozszerzenie DynamicPageList3 (wersja $1) wyprodukowało wyrażenie SQL które doprowadziło do błędu bazy danych.<br />Powodem może być wewnętrzny błąd DynamicPageList3 lub problem spowodowany przez Ciebie; szczególnie podczas używania takich parametrów jak „categoryregexp” lub „titleregexp”. Używanie wzorców dopasowywania takich jak *? nie jest wspierane.<br />Komunikat błędu:<br /><code>$2</code>",
+	"dpl_query_error": "Rozszerzenie DynamicPageList3 (wersja $1) wyprodukowało wyrażenie SQL, które doprowadziło do błędu bazy danych.<br />Powodem może być wewnętrzny błąd DynamicPageList3 lub problem spowodowany przez Ciebie; szczególnie podczas używania takich parametrów jak „categoryregexp” lub „titleregexp”. Używanie wzorców dopasowywania takich jak *? nie jest wspierane.<br />Komunikat o błędzie:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Strony używające znacznika parsera DynamicPageList3",
 	"dpl-intersection-tracking-category": "Strony używające znacznika parsera DynamicPageList3 Intersection",
 	"dpl-parserfunc-tracking-category": "Strony używające funkcji parsera DynamicPageList3",

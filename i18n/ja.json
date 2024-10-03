@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Ant176"
 		]
 	},
@@ -29,7 +30,7 @@
 	"dpl_log_23": "エラー: サーバーに負荷がかかっているため、このリストは表示できません。後ほどもう一度お試しください。",
 	"dpl_log_24": "エラー: <code>$wgDplSettings['runFromProtectedPagesOnly']</code> が設定されていますが、ページ「$1」は編集保護されていません。",
 	"dpl_log_25": "エラー: $1",
-	"dpl_query_error": "DynamicPageList3 拡張機能 (バージョン $1) は、データベースエラーを引き起こす SQL ステートメントを生成しました。<br/>理由は、DynamicPageList3 の内部エラー、またはあなたが行ったエラーである可能性があります(特に「categoryregexp」や「titleregexp」などの引数を使用する場合、 *? による非貪欲なパターン一致の使用はサポートされていません)。<br/>エラーメッセージは次のとおりです:<br/><tt>$2</tt>",
+	"dpl_query_error": "DynamicPageList3 拡張機能 (バージョン $1) は、データベースエラーを引き起こす SQL ステートメントを生成しました。<br/>理由は、DynamicPageList3 の内部エラー、またはあなたが行ったエラーである可能性があります(特に「categoryregexp」や「titleregexp」などの引数を使用する場合、 *? による非貪欲なパターン一致の使用はサポートされていません)。<br/>エラーメッセージは次のとおりです:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "DynamicPageList3のパーサータグを使用しているページ",
 	"dpl-intersection-tracking-category": "DynamicPageList3のIntersectionパーサータグを使用しているページ",
 	"dpl-parserfunc-tracking-category": "DynamicPageList3のパーサー関数を使用しているページ",

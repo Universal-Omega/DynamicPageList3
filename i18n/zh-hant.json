@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Lakejason0"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "此標題下{{PLURAL:$1|有$1個條目}}。",
 	"action-dpl_param_update_rules": "使用參數「updaterules」",
 	"action-dpl_param_delete_rules": "使用參數「deleterules」",
-	"dpl_query_error": "DynamicPageList3 擴充功能（版本為$1）產生了導致資料庫錯誤的 SQL 語句。<br/>該錯誤可能是 DynamicPageList3 內部產生，也可能是您的誤操作，尤其是使用類似於「categoryregexp」「titleregexp」等參數導致的。不支援使用非貪婪的（*?）比對模式（matching pattern）。<br/>錯誤訊息：<br/><tt>$2</tt>",
+	"dpl_query_error": "DynamicPageList3 擴充功能（版本為$1）產生了導致資料庫錯誤的 SQL 語句。<br/>該錯誤可能是 DynamicPageList3 內部產生，也可能是您的誤操作，尤其是使用類似於「categoryregexp」「titleregexp」等參數導致的。不支援使用非貪婪的（*?）比對模式（matching pattern）。<br/>錯誤訊息：<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "使用 DynamicPageList3 解析器標籤的頁面",
 	"dpl-intersection-tracking-category": "使用 DynamicPageList3 的 Intersection 解析器標籤的頁面",
 	"dpl-parserfunc-tracking-category": "使用 DynamicPageList3 解析器函數的頁面",

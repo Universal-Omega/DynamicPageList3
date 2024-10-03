@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Bjankuloski06"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Во ова заглавие има {{PLURAL:$1|една статија|$1 статии}}.",
 	"action-dpl_param_update_rules": "да го користите параметарот „updaterules“",
 	"action-dpl_param_delete_rules": "да го користите параметарот „deleterules“",
-	"dpl_query_error": "Додатокот DynamicPageList3 (верзија $1) даде SQL-исказ кој доведе до грешка во базата.<br/>Причината може да биде внатрешна грешка на DynamicPageList3, или пак грешка која се ја направиле вие; особено кога користите параметри како „categoryregexp“ или „titleregexp“. Не е поддржана употреба на неизискателни шеми на совпаѓање *?.<br/>Грешката ја даде пораката:<br/><tt>$2</tt>",
+	"dpl_query_error": "Додатокот DynamicPageList3 (верзија $1) даде SQL-исказ кој доведе до грешка во базата.<br/>Причината може да биде внатрешна грешка на DynamicPageList3, или пак грешка која се ја направиле вие; особено кога користите параметри како „categoryregexp“ или „titleregexp“. Не е поддржана употреба на неизискателни шеми на совпаѓање *?.<br/>Грешката ја даде пораката:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Страници што ја користат расчленувачката ознака DynamicPageList3",
 	"dpl-intersection-tracking-category": "Страници што ја користат расчленувачката ознака DynamicPageList3 Intersection",
 	"dpl-parserfunc-tracking-category": "Страници што ја користат расчленувачката функција DynamicPageList3",

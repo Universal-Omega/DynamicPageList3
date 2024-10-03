@@ -40,7 +40,7 @@
 	"dpl_articlecount": "יש {{PLURAL:$1|ערך אחד|$1 ערכים}} בכותרת הזאת.",
 	"action-dpl_param_update_rules": "להשתמש בפרמטר \"updaterules\"",
 	"action-dpl_param_delete_rules": "להשתמש בפרמטר \"deleterule\"",
-	"dpl_query_error": "ההרחבה DynamicPageList3 (גרסה $1) יצרה משפט SQL שהוביל לשגיאה במסד נתונים.<br/>הסיבה עשויה להיות שגיאה פנימית של DynamicPageList3 או שגיאה שלך; במיוחד כאשר משתמשים בפרמטרים כמו \"categoryregexp\" או \"titleregexp\". שימוש בתבניות  <code dir=\"ltr\">*?</code> חמדניות (greedy) אינו נתמך.<br/>הודעת השגיאה הייתה:<br/><tt>$2</tt>",
+	"dpl_query_error": "ההרחבה DynamicPageList3 (גרסה $1) יצרה משפט SQL שהוביל לשגיאה במסד נתונים.<br/>הסיבה עשויה להיות שגיאה פנימית של DynamicPageList3 או שגיאה שלך; במיוחד כאשר משתמשים בפרמטרים כמו \"categoryregexp\" או \"titleregexp\". שימוש בתבניות  <code dir=\"ltr\">*?</code> חמדניות (greedy) אינו נתמך.<br/>הודעת השגיאה הייתה:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "דפים המשתמשים בתג מפענח DynamicPageList3",
 	"dpl-intersection-tracking-category": "דפים המשתמשים בתג המפענח Intersection של DynamicPageList3",
 	"dpl-parserfunc-tracking-category": "דפים המשתמשים בתג מפענח של DynamicPageList3",

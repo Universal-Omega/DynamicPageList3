@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Sabelöga"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Det finns {{PLURAL:$1|en artikel|$1 artiklar}} i den här rubriken.",
 	"action-dpl_param_update_rules": "använda parametern \"updaterules\"",
 	"action-dpl_param_delete_rules": "använda parametern \"deleterules\"",
-	"dpl_query_error": "Tillägget DynamicPageList3 (version $1) producerade ett SQL-uttalande som ledde till ett databasfel.<br/>Orsaken kan vara ett internt fel hos DynamicPageList3 eller ett fel som du gjort; särskilt när du använder parametrar som \"categoryregexp\" eller \"titleregexp\". Användningen av icke-giriga *?-matchande mönster stöds inte.<br/>Felmeddelandet var:<br/><tt>$2</tt>",
+	"dpl_query_error": "Tillägget DynamicPageList3 (version $1) producerade ett SQL-uttalande som ledde till ett databasfel.<br/>Orsaken kan vara ett internt fel hos DynamicPageList3 eller ett fel som du gjort; särskilt när du använder parametrar som \"categoryregexp\" eller \"titleregexp\". Användningen av icke-giriga *?-matchande mönster stöds inte.<br/>Felmeddelandet var:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Sidor som använder DynamicPageList3-parser-tagg",
 	"dpl-intersection-tracking-category": "Sidor som använder DynamicPageList3-insection-parser-tagg",
 	"dpl-parserfunc-tracking-category": "Sidor som använder DynamicPageList3-parser-funktion",

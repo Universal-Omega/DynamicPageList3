@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Hedda",
 			"SaldırganSincap"
 		]
@@ -40,7 +41,7 @@
 	"dpl_articlecount": "Bu başlıkta {{PLURAL:$1|bir madde|$1 madde}} var.",
 	"action-dpl_param_update_rules": "'updaterules' parametresini kullanma",
 	"action-dpl_param_delete_rules": "'updaterules' parametresini kullanma",
-	"dpl_query_error": "DynamicPageList3 uzantısı (sürüm $1), bir Veritabanı hatasına yol açan bir SQL deyimi oluşturdu.<br/>Bunun nedeni, DynamicPageList3'ün dahili bir hatası veya sizin yaptığınız bir hata olabilir; özellikle 'categoryregexp' veya 'titleregexp' gibi parametreler kullanılırken. Açgözlü olmayan *? kullanımı eşleşen kalıplar desteklenmiyor.<br/>Hata mesajı:<br/><tt>$2</tt>",
+	"dpl_query_error": "DynamicPageList3 uzantısı (sürüm $1), bir Veritabanı hatasına yol açan bir SQL deyimi oluşturdu.<br/>Bunun nedeni, DynamicPageList3'ün dahili bir hatası veya sizin yaptığınız bir hata olabilir; özellikle 'categoryregexp' veya 'titleregexp' gibi parametreler kullanılırken. Açgözlü olmayan *? kullanımı eşleşen kalıplar desteklenmiyor.<br/>Hata mesajı:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "DynamicPageList3 ayrıştırıcı etiketi kullanan sayfalar",
 	"dpl-intersection-tracking-category": "DynamicPageList3 Intersection ayrıştırıcı etiketini kullanan sayfalar",
 	"dpl-parserfunc-tracking-category": "DynamicPageList3 ayrıştırıcı işlevini kullanan sayfalar",

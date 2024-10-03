@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Hakimi97"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Terdapat {{PLURAL:$1|satu rencana|$1 rencana}} dalam tajuk ini.",
 	"action-dpl_param_update_rules": "untuk menggunakan parameter 'updaterules'",
 	"action-dpl_param_delete_rules": "untuk menggunakan parameter 'deleterules'",
-	"dpl_query_error": "Sambungan DynamicPageList3 (versi $1) menghasilkan pernyataan SQL yang membawa kepada ralat Pangkalan Data.<br/> Sebabnya mungkin ralat dalaman DynamicPageList3 atau ralat yang anda buat; terutamanya apabila menggunakan parameter seperti 'categoryregexp' atau 'titleregexp'. Penggunaan * yang tidak tamak? corak padanan tidak disokong.<br/>Mesej ralat ialah:<br/><tt>$2</tt>",
+	"dpl_query_error": "Sambungan DynamicPageList3 (versi $1) menghasilkan pernyataan SQL yang membawa kepada ralat Pangkalan Data.<br/> Sebabnya mungkin ralat dalaman DynamicPageList3 atau ralat yang anda buat; terutamanya apabila menggunakan parameter seperti 'categoryregexp' atau 'titleregexp'. Penggunaan * yang tidak tamak? corak padanan tidak disokong.<br/>Mesej ralat ialah:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Halaman menggunakan teg penghurai DynamicPageList3",
 	"dpl-intersection-tracking-category": "Halaman menggunakan teg penghurai DynamicPageList3 Intersection",
 	"dpl-parserfunc-tracking-category": "Halaman menggunakan fungsi penghurai DynamicPageList3",

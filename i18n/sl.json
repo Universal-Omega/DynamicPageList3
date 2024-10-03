@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Eleassar"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "V tej rubriki {{PLURAL:$1|je en članek|sta $1 članka|so $1 članki|je $1 člankov}}.",
 	"action-dpl_param_update_rules": "za uporabo parametra »updaterules«",
 	"action-dpl_param_delete_rules": "za uporabo parametra »deleterules«",
-	"dpl_query_error": "Razširitev DynamicPageList3 (različica $1) je ustvarila stavek SQL, ki je povzročil napako podatkovne zbirke.<br/>Razlog je lahko notranja napaka DynamicPageList3 ali napaka, ki ste jo naredili vi; zlasti pri uporabi parametrov, kot sta »categoryregexp« ali »titleregexp«. Uporaba nepožrešnih vzorcev ujemanja *? ni podprta.<br/>Sporočilo o napaki je bilo:<br/><tt>$2</tt>",
+	"dpl_query_error": "Razširitev DynamicPageList3 (različica $1) je ustvarila stavek SQL, ki je povzročil napako podatkovne zbirke.<br/>Razlog je lahko notranja napaka DynamicPageList3 ali napaka, ki ste jo naredili vi; zlasti pri uporabi parametrov, kot sta »categoryregexp« ali »titleregexp«. Uporaba nepožrešnih vzorcev ujemanja *? ni podprta.<br/>Sporočilo o napaki je bilo:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Strani z razčlembno značko DynamicPageList3",
 	"dpl-intersection-tracking-category": "Strani z razčlembno značko DynamicPageList3 Intersection",
 	"dpl-parserfunc-tracking-category": "Strani, ki uporabljajo funkcijo razčlenjevalnika DynamicPageList3",

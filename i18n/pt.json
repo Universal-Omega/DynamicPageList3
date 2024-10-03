@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Hamilton Abreu"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Há {{PLURAL:$1|um artigo|$1 artigos}} neste cabeçalho.",
 	"action-dpl_param_update_rules": "para usar o parâmetro 'updaterules'",
 	"action-dpl_param_delete_rules": "para usar o parâmetro 'deleterules'",
-	"dpl_query_error": "A extensão DynamicPageList3 (versão $1) produziu uma instrução de SQL que conduziu a um erro na base de dados.<br/>O motivo pode ser um erro interno de DynamicPageList3 ou um erro cometido por si; especialmente, ao usar parâmetros como 'categoryregexp' ou 'titleregexp'. O uso de expressões de busca não-gananciosas *? não é suportado.<br/>A mensagem de erro foi:<br/><tt>$2</tt>",
+	"dpl_query_error": "A extensão DynamicPageList3 (versão $1) produziu uma instrução de SQL que conduziu a um erro na base de dados.<br/>O motivo pode ser um erro interno de DynamicPageList3 ou um erro cometido por si; especialmente, ao usar parâmetros como 'categoryregexp' ou 'titleregexp'. O uso de expressões de busca não-gananciosas *? não é suportado.<br/>A mensagem de erro foi:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Páginas que usam a etiqueta do analisador sintático DynamicPageList3",
 	"dpl-intersection-tracking-category": "Páginas que usam a etiqueta do analisador sintático Intersection de DynamicPageList3",
 	"dpl-parserfunc-tracking-category": "Páginas que usam a função do analisador sintático DynamicPageList3",

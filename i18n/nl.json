@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"McDutchie",
 			"SPQRobin",
 			"Siebrand"
@@ -41,7 +42,7 @@
 	"dpl_articlecount": "Er {{PLURAL:$1|is één pagina|er zijn $1 pagina's}} in deze kop.",
 	"action-dpl_param_update_rules": "om de parameter 'updaterules' te gebruiken",
 	"action-dpl_param_delete_rules": "om de parameter 'deleterules' te gebruiken",
-	"dpl_query_error": "De uitbreiding DynamicPageList3(versie $1) heeft een SQL-instructie gemaakt die heeft geleid tot een databasefout.<br/> De reden kan een interne fout van DynamicPageList3 zijn of een fout die u hebt gemaakt; vooral bij het gebruik van parameters zoals 'categoryregexp' of 'titleregexp'. Het gebruik van niet-gretige *?-matchingpatronen wordt niet ondersteund.<br/> De foutmelding is:<br/><tt>$2</tt>",
+	"dpl_query_error": "De uitbreiding DynamicPageList3(versie $1) heeft een SQL-instructie gemaakt die heeft geleid tot een databasefout.<br/> De reden kan een interne fout van DynamicPageList3 zijn of een fout die u hebt gemaakt; vooral bij het gebruik van parameters zoals 'categoryregexp' of 'titleregexp'. Het gebruik van niet-gretige *?-matchingpatronen wordt niet ondersteund.<br/> De foutmelding is:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Pagina's die het DynamicPageList3 parserlabel gebruiken",
 	"dpl-intersection-tracking-category": "Pagina's die het DynamicPageList3 Intersection parserlabel gebruiken",
 	"dpl-parserfunc-tracking-category": "Pagina's die de parserfunctie DynamicPageList3 gebruiken",

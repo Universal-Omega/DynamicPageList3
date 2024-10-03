@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Jon Harald Søby"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Det er {{PLURAL:$1|én artikkel|$1 artikler}} i denne overskriften.",
 	"action-dpl_param_update_rules": "for å bruke parameteren «updaterules»",
 	"action-dpl_param_delete_rules": "for å bruke parameteren «deleterules»",
-	"dpl_query_error": "Utvidelsen DynamicPageList3 (versjon $1) produserte en SQL-setning som førte til en databasefeil.<br />Årsaken kan være en intern feil i DynamicPageList3 eller en feil du har gjort, spesielt ved bruk av parametre som «categoryregexp» eller «titleregexp». Bruk av ikke-grådige mønstre som *? støttes ikke.<br />Feilmeldingen var:<br/><tt>$2</tt>",
+	"dpl_query_error": "Utvidelsen DynamicPageList3 (versjon $1) produserte en SQL-setning som førte til en databasefeil.<br />Årsaken kan være en intern feil i DynamicPageList3 eller en feil du har gjort, spesielt ved bruk av parametre som «categoryregexp» eller «titleregexp». Bruk av ikke-grådige mønstre som *? støttes ikke.<br />Feilmeldingen var:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Sider som bruker DynamicPageList3-parsertagg",
 	"dpl-intersection-tracking-category": "Sider som bruker DynamicPageList3s intersection-parsertagg",
 	"dpl-parserfunc-tracking-category": "Sider som bruker DynamicPageList3-parserfunksjon",

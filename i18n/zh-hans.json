@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"GuoPC",
 			"Lakejason0",
 			"LittlePaw365",
@@ -42,7 +43,7 @@
 	"dpl_articlecount": "本标题下{{PLURAL:$1|有$1个条目}}。",
 	"action-dpl_param_update_rules": "使用参数“updaterules”",
 	"action-dpl_param_delete_rules": "使用参数“deleterules”",
-	"dpl_query_error": "DynamicPageList3扩展（版本为$1）产生了导致数据库错误的SQL语句。<br/>该错误可能是DynamicPageList3内部产生，也可能是您的误操作，尤其是使用类似于“categoryregexp”“titleregexp”等参数导致的。不支持使用非贪婪的（*?）匹配规则。<br/>错误消息：<br/><tt>$2</tt>",
+	"dpl_query_error": "DynamicPageList3扩展（版本为$1）产生了导致数据库错误的SQL语句。<br/>该错误可能是DynamicPageList3内部产生，也可能是您的误操作，尤其是使用类似于“categoryregexp”“titleregexp”等参数导致的。不支持使用非贪婪的（*?）匹配规则。<br/>错误消息：<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "使用DynamicPageList3解析器标签的页面",
 	"dpl-intersection-tracking-category": "使用DynamicPageList3 Intersection解析器标签的页面",
 	"dpl-parserfunc-tracking-category": "使用DynamicPageList3解析器函数的页面",

@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"McDutchie"
 		]
 	},
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Il ha $1 articulo{{PLURAL:$1||s}} in iste capite.",
 	"action-dpl_param_update_rules": "usar le parametro 'updaterules'",
 	"action-dpl_param_delete_rules": "usar le parametro 'deleterules'",
-	"dpl_query_error": "Le extension DynamicPageList3 (version $1) ha producite un declaration SQL le qual ha conducite a un error del base de datos.<br/>Le ration pote esser un error interne de DynamicPageList3 o un error que tu ha facite; particularmente quando se usa parametros como 'categoryregexp' o 'titleregexp'. Le uso de patronos de correspondentia *? non avide non es supportate. <br/>Le message de error esseva:<br/><tt>$2</tt>",
+	"dpl_query_error": "Le extension DynamicPageList3 (version $1) ha producite un declaration SQL le qual ha conducite a un error del base de datos.<br/>Le ration pote esser un error interne de DynamicPageList3 o un error que tu ha facite; particularmente quando se usa parametros como 'categoryregexp' o 'titleregexp'. Le uso de patronos de correspondentia *? non avide non es supportate. <br/>Le message de error esseva:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Paginas que usa le etiquetta del analysator syntactic DynamicPageList3",
 	"dpl-intersection-tracking-category": "Paginas que usa le etiquetta del analysator syntactic DynamicPageList3 Intersection",
 	"dpl-parserfunc-tracking-category": "Paginas que usa le function del analysator syntactic DynamicPageList3",
