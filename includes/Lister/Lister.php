@@ -770,7 +770,7 @@ class Lister {
 
 		$imageUrl = $this->parseImageUrlWithPath( $article );
 
-		$pagename = $article->mTitle->getPrefixedText();
+		$pagename = $article->getPage()->getTitle()->getPrefixedText();
 		if ( $this->getEscapeLinks() && ( $article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE ) ) {
 			// links to categories or images need an additional ":"
 			$pagename = ':' . $pagename;
@@ -783,7 +783,7 @@ class Lister {
 		$tag = str_replace( '%EXTERNALLINK%', $article->mExternalLink, $tag );
 		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
 
-		$title = $article->mTitle->getText();
+		$title = $article->getPage()->getTitle()->getText();
 		$replaceInTitle = $this->getParameters()->getParameter( 'replaceintitle' );
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
