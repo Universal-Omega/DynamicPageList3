@@ -3,7 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
 use MediaWiki\Extension\DynamicPageList3\Parameters;
-use Parser;
+use MediaWiki\Parser\Parser;
 
 class InlineList extends Lister {
 	/**

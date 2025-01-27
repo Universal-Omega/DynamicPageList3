@@ -3,14 +3,14 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use ExtVariables;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Request\WebRequest;
+use MediaWiki\Title\Title;
 use MWException;
-use Parser;
-use RequestContext;
-use Title;
-use WebRequest;
 
 class Parse {
 	/**

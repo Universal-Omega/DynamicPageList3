@@ -2,16 +2,16 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use ExtensionRegistry;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\LST;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
 use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
 use MediaWiki\MediaWikiServices;
-use Parser;
-use RequestContext;
-use Sanitizer;
-use Title;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\Sanitizer;
+use MediaWiki\Registration\ExtensionRegistry;
+use MediaWiki\Title\Title;
 
 class Lister {
 	public const LIST_DEFINITION = 1;

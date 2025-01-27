@@ -2,12 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
-use CommentStoreComment;
 use LoggedUpdateMaintenance;
+use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
-use Title;
-use User;
+use MediaWiki\Title\Title;
+use MediaWiki\User\User;
 
 $IP = getenv( 'MW_INSTALL_PATH' );
 if ( $IP === false ) {
