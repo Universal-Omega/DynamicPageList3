@@ -480,7 +480,7 @@ class LST {
 				}
 
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$begin_off = end($m)[1];
+					$begin_off = end( $m )[1];
 					$head_len = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], "\n =\t" );
 				} elseif ( $nr == -2 ) {
