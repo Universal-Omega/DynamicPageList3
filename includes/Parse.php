@@ -391,8 +391,8 @@ class Parse {
 					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row->pl_namespace;
-					$pageTitle = $row->pl_title;
+					$pageNamespace = $row->lt_namespace;
+					$pageTitle = $row->lt_title;
 				}
 			} else {
 				// Existing PAGE TITLE

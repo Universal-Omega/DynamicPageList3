@@ -318,6 +318,42 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
+	public function testFindPagesInCategoryOrderedByTitleWithoutNamespace(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory',
+			'ordermethod' => 'titlewithoutnamespace',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticleMultipleCategories',
+				'DPLTestArticle 1',
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesInCategoryOrderedByFullTitle(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory',
+			'ordermethod' => 'title',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 1',
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+				'DPLTestArticleMultipleCategories',
+			],
+			$results,
+			true
+		);
+	}
+
 	public function testGetPageAuthors(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
@@ -372,6 +408,122 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			],
 			$results,
 			true
+		);
+	}
+
+	public function testFindPagesLinkingToPage(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksto' => 'DPLTestArticle 2',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 1',
+				'DPLTestOpenReferences',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesNotLinkingToPage(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'notlinksto' => 'DPLTestArticle 2',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+				'DPLTestArticleNoCategory',
+				'DPLTestArticleMultipleCategories',
+				'DPLTestArticleOtherCategoryWithInfobox',
+				'DPLUncategorizedPage',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesLinkedFromPage(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksfrom' => 'DPLTestArticle 1',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 2',
+				'DPLTestArticleNoCategory',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesLinkedFromPageOrderedByPagesel(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksfrom' => 'DPLTestOpenReferences|DPLTestArticle 1',
+			'ordermethod' => 'pagesel',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticleNoCategory',
+				'DPLTestArticle 1',
+				'DPLTestArticle 2',
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesNotLinkedFromPage(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'notlinksfrom' => 'DPLTestArticle 1',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 1',
+				'DPLTestArticle 3',
+				'DPLTestArticleMultipleCategories',
+				'DPLTestArticleOtherCategoryWithInfobox',
+				'DPLUncategorizedPage',
+				'DPLTestOpenReferences',
+			],
+			$results,
+			true
+		);
+	}
+
+	public function testFindPagesWithOpenReferencesLinkedFromPage(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksfrom' => 'DPLTestOpenReferences',
+			'openreferences' => 'yes',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 1',
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+				'RedLink',
+			],
+			$results
 		);
 	}
 }
