@@ -621,7 +621,7 @@ class Hooks {
 				}
 			}
 
-			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
+			if ( isset( self::$createdLinks ) && isset( self::$createdLinks[2] ) ) {
 				$parserOutput = $parser->getOutput();
 				$categories = array_combine(
 					$parserOutput->getCategoryNames(),
