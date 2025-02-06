@@ -265,8 +265,10 @@ class Article {
 		}
 
 		// STORE initially selected PAGE
-		if ( is_array( $parameters->getParameter( 'linksto' ) ) && count( $parameters->getParameter( 'linksto' ) ) ||
-			 is_array( $parameters->getParameter( 'linksfrom' ) ) && count( $parameters->getParameter( 'linksfrom' ) ) ) {
+		if (
+			( is_array( $parameters->getParameter( 'linksto' ) ) && count( $parameters->getParameter( 'linksto' ) ) ) ||
+			( is_array( $parameters->getParameter( 'linksfrom' ) ) && count( $parameters->getParameter( 'linksfrom' ) ) )
+		) {
 			if ( !isset( $row->sel_title ) ) {
 				$article->mSelTitle = 'unknown page';
 				$article->mSelNamespace = 0;
