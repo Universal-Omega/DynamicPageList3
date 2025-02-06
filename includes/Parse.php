@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use Exception;
 use ExtVariables;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
@@ -10,7 +11,6 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
-use MWException;
 
 class Parse {
 	/**
@@ -219,7 +219,7 @@ class Parse {
 				$this->logger->addMessage( Hooks::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
-		} catch ( MWException $e ) {
+		} catch ( Exception $e ) {
 			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
