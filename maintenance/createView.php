@@ -47,11 +47,11 @@ class CreateView extends LoggedUpdateMaintenance {
 		$dbw = $this->getDB( DB_PRIMARY );
 		$recreate = $this->hasOption( 'recreate' );
 
-		if ( $recreate || !$dbw->tableExists( 'dpl_clview' ) ) {
+		if ( $recreate || !$dbw->tableExists( 'dpl_clview', __METHOD__ ) ) {
 			// Drop the view if --recreate option is set
 			if ( $recreate ) {
 				try {
-					$dbw->query( "DROP VIEW IF EXISTS {$dbw->tablePrefix()}dpl_clview" );
+					$dbw->query( "DROP VIEW IF EXISTS {$dbw->tablePrefix()}dpl_clview", __METHOD__ );
 					$this->output( "Dropped existing view dpl_clview.\n" );
 				} catch ( Exception $e ) {
 					$this->output( "Failed to drop existing view: " . $e->getMessage() . "\n" );
@@ -64,7 +64,7 @@ class CreateView extends LoggedUpdateMaintenance {
 
 			// Create the view
 			try {
-				$dbw->query( "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$dbw->tablePrefix()}page LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks ON {$dbw->tablePrefix()}page.page_id=cl_from;" );
+				$dbw->query( "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$dbw->tablePrefix()}page LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks ON {$dbw->tablePrefix()}page.page_id=cl_from;", __METHOD__ );
 				$this->output( "Created view dpl_clview.\n" );
 			} catch ( Exception $e ) {
 				$this->output( "Failed to create view: " . $e->getMessage() . "\n" );
