@@ -621,13 +621,13 @@ class Hooks {
 				}
 			}
 
-			if ( isset( self::$createdLinks ) && isset( self::$createdLinks[2] ) ) {
+			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
 				$parserOutput = $parser->getOutput();
 				$categories = array_combine(
 					$parserOutput->getCategoryNames(),
 					array_map( fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
 				);
-				$parser->getOutput()->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ) );
+				$parser->getOutput()->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ?? '' ) );
 			}
 
 			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
