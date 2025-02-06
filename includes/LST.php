@@ -29,8 +29,8 @@ namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
-use Parser;
-use Title;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Title\Title;
 
 class LST {
 

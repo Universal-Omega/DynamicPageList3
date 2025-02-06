@@ -2,11 +2,11 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
-use RequestContext;
 use stdClass;
-use Title;
 
 class Article {
 	/**

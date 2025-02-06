@@ -3,12 +3,12 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use Article;
-use CommentStoreComment;
+use MediaWiki\CommentStore\CommentStoreComment;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Title\Title;
 use ReadOnlyError;
-use RequestContext;
-use Title;
 
 class UpdateArticle {
 	/**

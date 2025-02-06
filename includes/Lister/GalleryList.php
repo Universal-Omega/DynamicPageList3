@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use ExtensionRegistry;
 use MediaWiki\Extension\DynamicPageList3\Article;
+use MediaWiki\Registration\ExtensionRegistry;
 
 class GalleryList extends Lister {
 	/**

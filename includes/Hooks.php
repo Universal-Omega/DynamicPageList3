@@ -2,12 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
-use DatabaseUpdater;
-use ExtensionRegistry;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
 use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
-use Parser;
-use PPFrame;
+use MediaWiki\Installer\DatabaseUpdater;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\PPFrame;
+use MediaWiki\Registration\ExtensionRegistry;
 
 class Hooks {
 

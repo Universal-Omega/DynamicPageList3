@@ -3,11 +3,11 @@
 namespace MediaWiki\Extension\DynamicPageList3;
 
 use InvalidArgumentException;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use PermissionsError;
-use RequestContext;
 use StringUtils;
-use Title;
 
 class Parameters extends ParametersData {
 	/**
