@@ -7,6 +7,7 @@ use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\LST;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
 use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\Sanitizer;
@@ -652,8 +653,10 @@ class Lister {
 
 		if ( $article->mCounter > 0 ) {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-
-			$item .= ' ' . $contLang->getDirMark() . '(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')';
+			$item .= ' ' . Html::rawElement( 'bdi',
+				[ 'dir' => $contLang->getDir() ],
+				'(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')'
+			);
 		}
 
 		if ( $article->mUserLink ) {
