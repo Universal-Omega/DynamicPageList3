@@ -466,6 +466,23 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
+	public function testFindPagesLinkedFromPageWithPagesel(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksfrom' => 'DPLTestArticle 1',
+		], '%PAGESEL% to %PAGE%' );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 1 to DPLTestArticle 2',
+				'DPLTestArticle 1 to DPLTestArticleNoCategory',
+			],
+			$results,
+			true
+		);
+	}
+
 	public function testFindPagesLinkedFromPageOrderedByPagesel(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
@@ -478,7 +495,6 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[
 				'DPLTestArticleNoCategory',
 				'DPLTestArticle 1',
-				'DPLTestArticle 2',
 				'DPLTestArticle 2',
 				'DPLTestArticle 3',
 			],

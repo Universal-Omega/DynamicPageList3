@@ -1352,12 +1352,15 @@ class Query {
 			$this->addTable( 'pagelinks', 'plf' );
 			$this->addTable( 'linktarget', 'lt' );
 			$this->addTable( 'page', 'pagesrc' );
-			$this->addSelect(
-				[
-					'sel_title' => 'pagesrc.page_title',
-					'sel_ns' => 'pagesrc.page_namespace'
-				]
-			);
+
+			if ( $this->isPageselFormatUsed() ) {
+				$this->addSelect(
+					[
+						'sel_title' => 'pagesrc.page_title',
+						'sel_ns' => 'pagesrc.page_namespace'
+					]
+				);
+			}
 
 			$where = [
 				$this->tableNames['page'] . '.page_namespace = lt.lt_namespace',
@@ -1388,7 +1391,11 @@ class Query {
 		if ( count( $option ) > 0 ) {
 			$this->addTable( 'pagelinks', 'pl' );
 			$this->addTable( 'linktarget', 'lt' );
-			$this->addSelect( [ 'sel_title' => 'lt.lt_title', 'sel_ns' => 'lt.lt_namespace' ] );
+
+			if ( $this->isPageselFormatUsed() ) {
+				$this->addSelect( [ 'sel_title' => 'lt.lt_title', 'sel_ns' => 'lt.lt_namespace' ] );
+			}
+
 			$this->addWhere( 'pl.pl_target_id = lt.lt_id' );
 
 			foreach ( $option as $index => $linkGroup ) {
@@ -2274,5 +2281,15 @@ class Query {
 		}
 
 		$this->addWhere( $where ?? '' );
+	}
+
+	private function isPageselFormatUsed(): bool {
+		if ( $this->parameters->getParameter( 'listseparators' ) ) {
+			$format = implode( ',', $this->parameters->getParameter( 'listseparators' ) );
+			if ( strstr( $format, '%PAGESEL%' ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
