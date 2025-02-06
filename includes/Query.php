@@ -1709,7 +1709,7 @@ class Query {
 	private function _ordercollation( $option ) {
 		$option = mb_strtolower( $option );
 
-		$res = $this->dbr->query( 'SHOW CHARACTER SET' );
+		$res = $this->dbr->query( 'SHOW CHARACTER SET', __METHOD__ );
 		if ( !$res ) {
 			return false;
 		}
