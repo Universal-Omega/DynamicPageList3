@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
+use Exception;
 use LoggedUpdateMaintenance;
 
 $IP = getenv( 'MW_INSTALL_PATH' );
@@ -15,8 +16,8 @@ class CreateView extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
-
 		$this->addDescription( 'Handle creating DPL3\'s dpl_clview VIEW.' );
+		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
 	}
 
 	/**
@@ -24,7 +25,7 @@ class CreateView extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function getUpdateKey() {
+	protected function getUpdateKey(): string {
 		return 'dynamic-page-list-3-create-view';
 	}
 
@@ -33,7 +34,7 @@ class CreateView extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function updateSkippedMessage() {
+	protected function updateSkippedMessage(): string {
 		return 'VIEW already created.';
 	}
 
@@ -42,12 +43,35 @@ class CreateView extends LoggedUpdateMaintenance {
 	 *
 	 * @return bool
 	 */
-	protected function doDBUpdates() {
+	protected function doDBUpdates(): bool {
 		$dbw = $this->getDB( DB_PRIMARY );
-		if ( !$dbw->tableExists( 'dpl_clview' ) ) {
+		$recreate = $this->hasOption( 'recreate' );
+
+		if ( $recreate || !$dbw->tableExists( 'dpl_clview' ) ) {
+			// Drop the view if --recreate option is set
+			if ( $recreate ) {
+				try {
+					$dbw->query( "DROP VIEW IF EXISTS {$dbw->tablePrefix()}dpl_clview" );
+					$this->output( "Dropped existing view dpl_clview.\n" );
+				} catch ( Exception $e ) {
+					$this->output( "Failed to drop existing view: " . $e->getMessage() . "\n" );
+					return false;
+				}
+			}
+
 			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
 			$sqlNullMethod = ( $dbw->getType() === 'postgres' ? 'COALESCE' : 'IFNULL' );
-			$dbw->query( "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$dbw->tablePrefix()}page LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks ON {$dbw->tablePrefix()}page.page_id=cl_from;" );
+
+			// Create the view
+			try {
+				$dbw->query( "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$dbw->tablePrefix()}page LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks ON {$dbw->tablePrefix()}page.page_id=cl_from;" );
+				$this->output( "Created view dpl_clview.\n" );
+			} catch ( Exception $e ) {
+				$this->output( "Failed to create view: " . $e->getMessage() . "\n" );
+				return false;
+			}
+		} else {
+			$this->output( "VIEW already exists. Use --recreate to drop and recreate it.\n" );
 		}
 
 		return true;
