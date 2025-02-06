@@ -82,7 +82,7 @@ class Parameters extends ParametersData {
 		$success = true;
 		if ( $parameterData !== false ) {
 			// If a parameter specifies options then enforce them.
-			if ( array_key_exists( 'values', $parameterData ) && is_array( $parameterData['values'] ) === true && !in_array( strtolower( $option ), $parameterData['values'] ) ) {
+			if ( array_key_exists( 'values', $parameterData ) && is_array( $parameterData['values'] ) && !in_array( strtolower( $option ), $parameterData['values'] ) ) {
 				$success = false;
 			} else {
 				if ( ( array_key_exists( 'preserve_case', $parameterData ) && !$parameterData['preserve_case'] ) && ( array_key_exists( 'page_name_list', $parameterData ) && $parameterData['page_name_list'] !== true ) ) {
