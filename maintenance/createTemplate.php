@@ -2,25 +2,20 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
-use LoggedUpdateMaintenance;
 use MediaWiki\CommentStore\CommentStoreComment;
+use MediaWiki\Maintenance\LoggedUpdateMaintenance
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 
-$IP = getenv( 'MW_INSTALL_PATH' );
-if ( $IP === false ) {
-	$IP = __DIR__ . '/../../..';
-}
-
+$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
 require_once "$IP/maintenance/Maintenance.php";
 
 class CreateTemplate extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
-
 		$this->addDescription( 'Handle inserting DynamicPageList3\'s necessary template for content inclusion.' );
 	}
 
@@ -29,7 +24,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function getUpdateKey() {
+	protected function getUpdateKey(): string {
 		return 'dynamic-page-list-3-create-template';
 	}
 
@@ -38,7 +33,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function updateSkippedMessage() {
+	protected function updateSkippedMessage(): string {
 		return 'Template already created.';
 	}
 
@@ -47,7 +42,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return bool
 	 */
-	protected function doDBUpdates() {
+	protected function doDBUpdates(): bool {
 		$title = Title::newFromText( 'Template:Extension DPL' );
 
 		// Make sure template does not already exist
