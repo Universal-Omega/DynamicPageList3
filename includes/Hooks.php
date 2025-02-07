@@ -223,7 +223,7 @@ class Hooks {
 		if ( $reset['categories'] ?? false ) {
 			$saveCategories = array_combine(
 				$parserOutput->getCategoryNames(),
-				array_map( fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
+				array_map( static fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
 			);
 		}
 
@@ -629,7 +629,7 @@ class Hooks {
 				$categories = array_combine(
 					$parserOutput->getCategoryNames(),
 					array_map(
-						fn ( $value ) => $parserOutput->getCategorySortKey( $value ) ?? '',
+						static fn ( $value ) => $parserOutput->getCategorySortKey( $value ) ?? '',
 						$parserOutput->getCategoryNames()
 					)
 				);
