@@ -394,6 +394,19 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertStringContainsString( 'TOTALPAGES: 4', $results );
 	}
 
+	public function testShowCurId(): void {
+		$results = $this->runDPLQuery( [
+			'category' => 'DPLTestCategory',
+			'showcurid' => true,
+			'count' => 1,
+		] );
+
+		$this->assertStringContainsString(
+			'curid=4">DPLTestArticle 1</a>',
+			$results
+		);
+	}
+
 	public function testOpenReferencesMissing(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
