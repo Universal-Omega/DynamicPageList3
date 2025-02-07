@@ -48,15 +48,19 @@ class LST {
 	 */
 	public static function open( $parser, $part1 ) {
 		// Infinite loop test
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
 
 			return false;
 		} else {
+			// @phan-suppress-next-line PhanDeprecatedProperty
 			if ( !isset( $parser->mTemplatePath ) ) {
+				// @phan-suppress-next-line PhanDeprecatedProperty
 				$parser->mTemplatePath = [];
 			}
 
+			// @phan-suppress-next-line PhanDeprecatedProperty
 			$parser->mTemplatePath[$part1] = 1;
 
 			return true;
@@ -71,7 +75,9 @@ class LST {
 	 */
 	public static function close( $parser, $part1 ) {
 		// Infinite loop test
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
+			// @phan-suppress-next-line PhanDeprecatedProperty
 			unset( $parser->mTemplatePath[$part1] );
 		} else {
 			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
