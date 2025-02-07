@@ -231,7 +231,7 @@ class Article {
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
-			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
+			$articleLink = '[' . $title->getCanonicalURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
 		} else {
 			$articleLink = '[[' . ( $parameters->getParameter( 'escapelinks' ) && ( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : '' ) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
