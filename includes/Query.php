@@ -1353,13 +1353,13 @@ class Query {
 		} else {
 			$this->addTable( 'pagelinks', 'plf' );
 			$this->addTable( 'linktarget', 'lt' );
-			$this->addTable( 'page', 'pagesrc' );
+			$this->addTable( 'page', $this->tableNames['page'] );
 
 			if ( $this->isPageselFormatUsed() ) {
 				$this->addSelect(
 					[
-						'sel_title' => 'pagesrc.page_title',
-						'sel_ns' => 'pagesrc.page_namespace'
+						'sel_title' => $this->tableNames['page'] . '.page_title',
+						'sel_ns' => $this->tableNames['page'] . '.page_namespace'
 					]
 				);
 			}
@@ -1368,7 +1368,7 @@ class Query {
 				$this->tableNames['page'] . '.page_namespace = lt.lt_namespace',
 				$this->tableNames['page'] . '.page_title = lt.lt_title',
 				'lt.lt_id = plf.pl_target_id',
-				'pagesrc.page_id = plf.pl_from'
+				$this->tableNames['page'] . '.page_id = plf.pl_from'
 			];
 
 			$ors = [];
