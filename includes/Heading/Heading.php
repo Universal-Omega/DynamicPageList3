@@ -5,7 +5,7 @@ namespace MediaWiki\Extension\DynamicPageList3\Heading;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
-use Sanitizer;
+use MediaWiki\Parser\Sanitizer;
 
 class Heading {
 	/**
@@ -182,7 +182,7 @@ class Heading {
 		$headings = Article::getHeadings();
 		$output = '';
 
-		if ( !empty( $headings ) ) {
+		if ( $headings ) {
 			if ( $columns != 1 || $rows != 1 ) {
 				$hspace = 2;
 

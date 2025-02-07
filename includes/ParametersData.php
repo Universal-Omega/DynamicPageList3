@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
-use MWException;
+use UnexpectedValueException;
 
 class ParametersData {
 	/**
@@ -104,7 +104,6 @@ class ParametersData {
 			'lastmodifiedby',
 			'linksfrom',
 			'linksto',
-			'linkstoexternal',
 			'listattr',
 			'minoredits',
 			'modifiedby',
@@ -147,7 +146,11 @@ class ParametersData {
 			'deleterules',
 			'goal',
 			'updaterules'
-		]
+		],
+		// Should never be used; likely broken or will cause exceptions
+		5 => [
+			'linkstoexternal',
+		],
 	];
 
 	/**
@@ -1256,7 +1259,7 @@ class ParametersData {
 			return null;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1274,7 +1277,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1292,7 +1295,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1310,7 +1313,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1328,7 +1331,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1346,7 +1349,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1364,7 +1367,7 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 
 	/**
@@ -1382,6 +1385,6 @@ class ParametersData {
 			return false;
 		}
 
-		throw new MWException( __METHOD__ . ": Attempted to load a parameter that does not exist." );
+		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 	}
 }

@@ -29,8 +29,8 @@ namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
-use Parser;
-use Title;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Title\Title;
 
 class LST {
 
@@ -48,15 +48,19 @@ class LST {
 	 */
 	public static function open( $parser, $part1 ) {
 		// Infinite loop test
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
 
 			return false;
 		} else {
-			if ( !isset( $parser->mTemplatePath ) ) {
+			// @phan-suppress-next-line PhanDeprecatedProperty
+			if ( !$parser->mTemplatePath ) {
+				// @phan-suppress-next-line PhanDeprecatedProperty
 				$parser->mTemplatePath = [];
 			}
 
+			// @phan-suppress-next-line PhanDeprecatedProperty
 			$parser->mTemplatePath[$part1] = 1;
 
 			return true;
@@ -71,7 +75,9 @@ class LST {
 	 */
 	public static function close( $parser, $part1 ) {
 		// Infinite loop test
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
+			// @phan-suppress-next-line PhanDeprecatedProperty
 			unset( $parser->mTemplatePath[$part1] );
 		} else {
 			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
@@ -480,9 +486,7 @@ class LST {
 				}
 
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$mata = [];
-					$no_parenthesis = preg_match_all( '/\(/', $pat, $mata );
-					$begin_off = $m[$no_parenthesis][1];
+					$begin_off = end( $m )[1];
 					$head_len = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], "\n =\t" );
 				} elseif ( $nr == -2 ) {
@@ -531,7 +535,7 @@ class LST {
 				}
 			}
 
-			if ( !isset( $end_off ) ) {
+			if ( !$end_off ) {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
@@ -550,7 +554,7 @@ class LST {
 
 			wfDebug( "LSTH: head offset = $nhead" );
 
-			if ( isset( $end_off ) ) {
+			if ( $end_off ) {
 				if ( $end_off == -1 ) {
 					return $output;
 				}
@@ -559,6 +563,11 @@ class LST {
 				if ( $sec == '' ) {
 					$continueSearch = false;
 				} else {
+					if ( $end_off == 0 ) {
+						// we have made no progress - something has gone wrong, but at least don't loop forever
+						break;
+					}
+					// this could lead to quadratic runtime...
 					$text = substr( $text, $end_off );
 				}
 			} else {
@@ -585,7 +594,7 @@ class LST {
 			}
 
 			if ( $nr == -1 ) {
-				if ( !isset( $end_off ) ) {
+				if ( !$end_off ) {
 					// output last section and done
 					$output[0] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 					break;

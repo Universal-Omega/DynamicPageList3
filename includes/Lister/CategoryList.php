@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
-use CategoryViewer;
+use MediaWiki\Category\CategoryViewer;
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\Config;
 
