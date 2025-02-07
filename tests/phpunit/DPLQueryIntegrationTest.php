@@ -29,6 +29,18 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			true
 		);
 	}
+	
+	public function testFindPagesInCategoryWithShowCurId(): void {
+		$this->assertArrayEquals(
+			[ 'DPLTestArticleMultipleCategories' ],
+			$this->getDPLQueryResults( [
+				'category' => 'DPLTestCategory',
+				'showcurid' => true,
+				'count' => '1'
+			] ),
+			true
+		);
+	}
 
 	public function testFindPagesNotInCategory(): void {
 		$results = $this->getDPLQueryResults( [
