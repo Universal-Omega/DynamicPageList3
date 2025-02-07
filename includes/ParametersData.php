@@ -104,7 +104,6 @@ class ParametersData {
 			'lastmodifiedby',
 			'linksfrom',
 			'linksto',
-			'linkstoexternal',
 			'listattr',
 			'minoredits',
 			'modifiedby',
@@ -147,7 +146,11 @@ class ParametersData {
 			'deleterules',
 			'goal',
 			'updaterules'
-		]
+		],
+		// Should never be used; likely broken or will cause exceptions
+		5 => [
+			'linkstoexternal',
+		],
 	];
 
 	/**
