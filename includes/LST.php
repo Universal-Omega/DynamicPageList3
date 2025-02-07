@@ -55,7 +55,7 @@ class LST {
 			return false;
 		} else {
 			// @phan-suppress-next-line PhanDeprecatedProperty
-			if ( !isset( $parser->mTemplatePath ) ) {
+			if ( !$parser->mTemplatePath ) {
 				// @phan-suppress-next-line PhanDeprecatedProperty
 				$parser->mTemplatePath = [];
 			}
@@ -535,7 +535,7 @@ class LST {
 				}
 			}
 
-			if ( !isset( $end_off ) ) {
+			if ( !$end_off ) {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
@@ -554,7 +554,7 @@ class LST {
 
 			wfDebug( "LSTH: head offset = $nhead" );
 
-			if ( isset( $end_off ) ) {
+			if ( $end_off ) {
 				if ( $end_off == -1 ) {
 					return $output;
 				}
@@ -594,7 +594,7 @@ class LST {
 			}
 
 			if ( $nr == -1 ) {
-				if ( !isset( $end_off ) ) {
+				if ( !$end_off ) {
 					// output last section and done
 					$output[0] = self::parse( $parser, $piece, "#lsth:{$page}|{$sec}", $nhead, $recursionCheck, $maxLength, $link, $trim, $skipPattern );
 					break;
