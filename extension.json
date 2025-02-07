@@ -31,12 +31,9 @@
 	"ExtensionMessagesFiles": {
 		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
 	},
-	"AutoloadClasses": {
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateTemplate": "maintenance/createTemplate.php",
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\CreateView": "maintenance/createView.php"
-	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/"
+		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/",
+		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\": "maintenance/"
 	},
 	"TestAutoloadNamespaces": {
 		"MediaWiki\\Extension\\DynamicPageList3\\Tests\\": "tests/phpunit/"

@@ -2,19 +2,13 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
-use LoggedUpdateMaintenance;
-use MediaWiki\CommentStore\CommentStoreComment;
-use MediaWiki\MediaWikiServices;
-use MediaWiki\Revision\SlotRecord;
-use MediaWiki\Title\Title;
-use MediaWiki\User\User;
-
-$IP = getenv( 'MW_INSTALL_PATH' );
-if ( $IP === false ) {
-	$IP = __DIR__ . '/../../..';
-}
-
+$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
 require_once "$IP/maintenance/Maintenance.php";
+
+use MediaWiki\CommentStore\CommentStoreComment;
+use MediaWiki\Maintenance\LoggedUpdateMaintenance;
+use MediaWiki\Revision\SlotRecord;
+use MediaWiki\User\User;
 
 class CreateTemplate extends LoggedUpdateMaintenance {
 
@@ -22,6 +16,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 		parent::__construct();
 
 		$this->addDescription( 'Handle inserting DynamicPageList3\'s necessary template for content inclusion.' );
+		$this->requireExtension( 'DynamicPageList3' );
 	}
 
 	/**
@@ -29,7 +24,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function getUpdateKey() {
+	protected function getUpdateKey(): string {
 		return 'dynamic-page-list-3-create-template';
 	}
 
@@ -38,7 +33,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return string
 	 */
-	protected function updateSkippedMessage() {
+	protected function updateSkippedMessage(): string {
 		return 'Template already created.';
 	}
 
@@ -47,13 +42,13 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 *
 	 * @return bool
 	 */
-	protected function doDBUpdates() {
-		$title = Title::newFromText( 'Template:Extension DPL' );
+	protected function doDBUpdates(): bool {
+		$title = $this->getServiceContainer()->getTitleFactory()
+			->newFromText( 'Template:Extension DPL' );
 
 		// Make sure template does not already exist
 		if ( !$title->exists() ) {
-			$services = MediaWikiServices::getInstance();
-			$wikiPageFactory = $services->getWikiPageFactory();
+			$wikiPageFactory = $this->getServiceContainer()->getWikiPageFactory();
 			$page = $wikiPageFactory->newFromTitle( $title );
 
 			$updater = $page->newPageUpdater( User::newSystemUser( 'DynamicPageList3 extension' ) );
