@@ -180,7 +180,7 @@ class Parse {
 
 		// Construct internal keys for TableRow according to the structure of "include". This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' );
-		if ( is_array( $secLabels ) && !empty( $this->parameters->getParameter( 'seclabels' ) ) ) {
+		if ( is_array( $secLabels ) && $this->parameters->getParameter( 'seclabels' ) ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys( $this->parameters->getParameter( 'tablerow' ), $this->parameters->getParameter( 'seclabels' ) ) );
 		}
 
@@ -243,7 +243,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows == 0 || empty( $articles ) ) {
+		if ( $numRows == 0 || !$articles ) {
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -440,7 +440,7 @@ class Parse {
 
 		$parameters = [];
 		foreach ( $rawParameters as $parameterOption ) {
-			if ( empty( $parameterOption ) ) {
+			if ( !$parameterOption ) {
 				// Softly ignore blank lines.
 				continue;
 			}
@@ -463,7 +463,7 @@ class Parse {
 
 			// Force lower case for ease of use.
 			$parameter = strtolower( $parameter );
-			if ( empty( $parameter ) || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
+			if ( !$parameter || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
 				continue;
 			}
 

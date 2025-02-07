@@ -132,7 +132,7 @@ class Hooks {
 	private static function init() {
 		Config::init();
 
-		if ( !isset( self::$createdLinks ) ) {
+		if ( !self::$createdLinks ) {
 			self::$createdLinks = [
 				'resetLinks' => false,
 				'resetTemplates' => false,
@@ -593,7 +593,7 @@ class Hooks {
 	 */
 	public static function endEliminate( $parser, &$text ) {
 		// called during the final output phase; removes links created by DPL
-		if ( isset( self::$createdLinks ) ) {
+		if ( self::$createdLinks ) {
 			if ( array_key_exists( 0, self::$createdLinks ) ) {
 				$parserLinks = $parser->getOutput()->getLinkList( ParserOutputLinkTypes::LOCAL );
 				foreach ( $parserLinks as $nsp => $link ) {
@@ -609,7 +609,7 @@ class Hooks {
 				}
 			}
 
-			if ( isset( self::$createdLinks ) && array_key_exists( 1, self::$createdLinks ) ) {
+			if ( array_key_exists( 1, self::$createdLinks ) ) {
 				$parserTemplates = $parser->getOutput()->getLinkList( ParserOutputLinkTypes::TEMPLATE );
 				foreach ( $parserTemplates as $nsp => $tpl ) {
 					if ( !array_key_exists( $nsp, self::$createdLinks[1] ) ) {
@@ -624,7 +624,7 @@ class Hooks {
 				}
 			}
 
-			if ( isset( self::$createdLinks ) && array_key_exists( 2, self::$createdLinks ) ) {
+			if ( array_key_exists( 2, self::$createdLinks ) ) {
 				$parserOutput = $parser->getOutput();
 				$categories = array_combine(
 					$parserOutput->getCategoryNames(),
@@ -636,7 +636,7 @@ class Hooks {
 				$parser->getOutput()->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ) );
 			}
 
-			if ( isset( self::$createdLinks ) && array_key_exists( 3, self::$createdLinks ) ) {
+			if ( array_key_exists( 3, self::$createdLinks ) ) {
 				$parserMedia = $parser->getOutput()->getLinkList( ParserOutputLinkTypes::MEDIA );
 				$parser->getOutput()->mImages = array_diff_assoc( $parserMedia, self::$createdLinks[3] );
 			}
