@@ -182,7 +182,7 @@ class Heading {
 		$headings = Article::getHeadings();
 		$output = '';
 
-		if ( !$headings ) {
+		if ( $headings ) {
 			if ( $columns != 1 || $rows != 1 ) {
 				$hspace = 2;
 
