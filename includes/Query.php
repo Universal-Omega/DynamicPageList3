@@ -171,7 +171,7 @@ class Query {
 	 * @param string $profilingContext Used to see the origin of a query in the profiling
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' )
+	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
