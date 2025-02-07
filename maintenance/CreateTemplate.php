@@ -8,6 +8,7 @@ require_once "$IP/maintenance/Maintenance.php";
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 
 class CreateTemplate extends LoggedUpdateMaintenance {
@@ -43,8 +44,7 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 	 * @return bool
 	 */
 	protected function doDBUpdates(): bool {
-		$title = $this->getServiceContainer()->getTitleFactory()
-			->newFromText( 'Template:Extension DPL' );
+		$title = Title::newFromText( 'Template:Extension DPL' );
 
 		// Make sure template does not already exist
 		if ( !$title->exists() ) {
