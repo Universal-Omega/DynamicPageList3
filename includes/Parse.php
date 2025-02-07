@@ -109,6 +109,7 @@ class Parse {
 		$title = Title::castFromPageReference( $parser->getPage() );
 
 		// Check that we are not in an infinite transclusion loop
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 
