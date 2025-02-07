@@ -30,18 +30,6 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
-	public function testFindPagesInCategoryWithShowCurId(): void {
-		$this->assertArrayEquals(
-			[ 'DPLTestArticleMultipleCategories' ],
-			$this->getDPLQueryResults( [
-				'category' => 'DPLTestCategory',
-				'showcurid' => true,
-				'count' => '1'
-			] ),
-			true
-		);
-	}
-
 	public function testFindPagesNotInCategory(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
@@ -401,6 +389,16 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'category' => 'DPLTestCategory',
 			'resultsheader' => 'TOTALPAGES: %TOTALPAGES%',
 			'count' => 2
+		] );
+
+		$this->assertStringContainsString( 'TOTALPAGES: 4', $results );
+	}
+
+	public function testShowCurId(): void {
+		$results = $this->runDPLQuery( [
+			'category' => 'DPLTestCategory',
+			'showcurid' => true,
+			'count' => 1,
 		] );
 
 		$this->assertStringContainsString( 'TOTALPAGES: 4', $results );
