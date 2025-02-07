@@ -2,20 +2,17 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
-use Exception;
-use LoggedUpdateMaintenance;
-
-$IP = getenv( 'MW_INSTALL_PATH' );
-if ( $IP === false ) {
-	$IP = __DIR__ . '/../../..';
-}
-
+$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
 require_once "$IP/maintenance/Maintenance.php";
+
+use Exception;
+use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 
 class CreateView extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
+
 		$this->addDescription( 'Handle creating DPL3\'s dpl_clview VIEW.' );
 		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
 	}
