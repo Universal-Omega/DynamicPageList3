@@ -401,7 +401,10 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'count' => 1,
 		] );
 
-		$this->assertStringContainsString( 'TOTALPAGES: 4', $results );
+		$this->assertStringContainsString(
+			'curid=4">DPLTestArticle 1</a>',
+			$results
+		);
 	}
 
 	public function testOpenReferencesMissing(): void {
