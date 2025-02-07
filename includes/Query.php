@@ -370,7 +370,7 @@ class Query {
 		}
 
 		$qname = __METHOD__;
-		if ( !empty( $profilingContext ) ) {
+		if ( $profilingContext ) {
 			$qname .= ' - ' . $profilingContext;
 		}
 		$where = $this->where;
@@ -471,11 +471,11 @@ class Query {
 	 * @return bool
 	 */
 	public function addTable( $table, $alias ) {
-		if ( empty( $table ) ) {
+		if ( !$table ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty table name was passed.' );
 		}
 
-		if ( empty( $alias ) || is_numeric( $alias ) ) {
+		if ( !$alias || is_numeric( $alias ) ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty or numeric table alias was passed.' );
 		}
 
@@ -507,7 +507,7 @@ class Query {
 	 * @return bool
 	 */
 	public function addWhere( $where ) {
-		if ( empty( $where ) ) {
+		if ( !$where ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty where clause was passed.' );
 		}
 
@@ -529,7 +529,7 @@ class Query {
 	 * @return bool
 	 */
 	public function addNotWhere( $where ) {
-		if ( empty( $where ) ) {
+		if ( !$where ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty not where clause was passed.' );
 		}
 
@@ -584,7 +584,7 @@ class Query {
 	 * @return bool
 	 */
 	public function addGroupBy( $groupBy ) {
-		if ( empty( $groupBy ) ) {
+		if ( !$groupBy ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty GROUP BY clause was passed.' );
 		}
 
@@ -600,7 +600,7 @@ class Query {
 	 * @return bool
 	 */
 	public function addOrderBy( $orderBy ) {
-		if ( empty( $orderBy ) ) {
+		if ( !$orderBy ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty ORDER BY clause was passed.' );
 		}
 
@@ -617,7 +617,7 @@ class Query {
 	 * @return bool
 	 */
 	public function addJoin( $tableAlias, $joinConditions ) {
-		if ( empty( $tableAlias ) || empty( $joinConditions ) ) {
+		if ( !$tableAlias || !$joinConditions ) {
 			throw new InvalidArgumentException( __METHOD__ . ': An empty JOIN clause was passed.' );
 		}
 
@@ -971,7 +971,9 @@ class Query {
 	 * @param string $tableAlias
 	 */
 	private function _adduser( $option, $tableAlias = '' ) {
-		$tableAlias = ( !empty( $tableAlias ) ? $tableAlias . '.' : '' );
+		if ( $tableAlias ) {
+			$tableAlias .= '.';
+		}
 
 		$this->addSelect(
 			[
@@ -1691,7 +1693,7 @@ class Query {
 	private function _order( $option ) {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
 
-		if ( !empty( $orderMethod ) && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
+		if ( $orderMethod && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
 			if ( $option === 'descending' || $option === 'desc' ) {
 				$this->setOrderDir( 'DESC' );
 			} else {
