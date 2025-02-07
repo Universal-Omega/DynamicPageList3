@@ -228,7 +228,7 @@ class Parse {
 		}
 
 		$foundRows = $rows['count'] ?? null;
-		unset( $rows['count']);
+		unset( $rows['count'] );
 
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
