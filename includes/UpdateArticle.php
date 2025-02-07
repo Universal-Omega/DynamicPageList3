@@ -6,6 +6,7 @@ use Article;
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
 use ReadOnlyError;
@@ -403,9 +404,12 @@ class UpdateArticle {
 		}
 
 		$titleX = Title::newFromText( $title );
-		$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'edit', $user, $titleX );
+		$permissionStatus = MediaWikiServices::getInstance()
+			->getPermissionManager()->getPermissionStatus(
+				'edit', $user, $titleX, PermissionManager::RIGOR_SECURE
+			);
 
-		if ( count( $permission_errors ) == 0 ) {
+		if ( $permissionStatus->isGood() ) {
 			$services = MediaWikiServices::getInstance();
 			$wikiPageFactory = $services->getWikiPageFactory();
 			$page = $wikiPageFactory->newFromTitle( $titleX );
@@ -424,8 +428,7 @@ class UpdateArticle {
 
 			return '';
 		} else {
-			$out->showPermissionsErrorPage( $permission_errors );
-
+			$out->showPermissionStatus( $permissionStatus, 'edit' );
 			return 'permission error';
 		}
 	}
@@ -751,12 +754,14 @@ class UpdateArticle {
 			$user = $context->getUser();
 
 			# Check permissions
-			$permission_errors = MediaWikiServices::getInstance()->getPermissionManager()->getPermissionErrors( 'delete', $user, $titleX );
 			$isReadOnly = MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly();
+			$permissionStatus = MediaWikiServices::getInstance()
+			->getPermissionManager()->getPermissionStatus(
+				'delete', $user, $titleX, PermissionManager::RIGOR_SECURE
+			);
 
-			if ( count( $permission_errors ) > 0 ) {
-				$out->showPermissionsErrorPage( $permission_errors );
-
+			if ( !$permissionStatus->isGood() ) {
+				$out->showPermissionStatus( $permissionStatus, 'delete' );
 				return 'permission error';
 			} elseif ( $isReadOnly ) {
 				throw new ReadOnlyError;

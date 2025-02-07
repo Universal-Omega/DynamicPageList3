@@ -19,9 +19,6 @@ $cfg['suppress_issue_types'] = [
 	'MediaWikiNoEmptyIfDefined',
 	'SecurityCheck-LikelyFalsePositive',
 	'PhanAccessMethodInternal',
-
-	'PhanDeprecatedFunction',
-	'PhanDeprecatedProperty',
 ];
 
 return $cfg;

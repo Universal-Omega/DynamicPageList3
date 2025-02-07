@@ -9,6 +9,7 @@ use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
 
@@ -108,6 +109,7 @@ class Parse {
 		$title = Title::castFromPageReference( $parser->getPage() );
 
 		// Check that we are not in an infinite transclusion loop
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 
@@ -970,7 +972,7 @@ class Parse {
 				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
-				foreach ( $parserOutput->getLinks() as $nsp => $link ) {
+				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) as $nsp => $link ) {
 					Hooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
@@ -978,7 +980,7 @@ class Parse {
 			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Hooks::$createdLinks[1] = [];
 
-				foreach ( $parserOutput->getTemplates() as $nsp => $tpl ) {
+				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE ) as $nsp => $tpl ) {
 					Hooks::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
