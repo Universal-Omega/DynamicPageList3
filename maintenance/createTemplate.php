@@ -2,15 +2,15 @@
 
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
+$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
+require_once "$IP/maintenance/Maintenance.php";
+
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
-
-$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
-require_once "$IP/maintenance/Maintenance.php";
 
 class CreateTemplate extends LoggedUpdateMaintenance {
 
