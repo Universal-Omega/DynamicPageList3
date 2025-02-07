@@ -4,7 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList3\Lister;
 
 use MediaWiki\Extension\DynamicPageList3\Article;
 use MediaWiki\Extension\DynamicPageList3\Parameters;
-use Parser;
+use MediaWiki\Parser\Parser;
 
 class UserFormatList extends Lister {
 	/**
@@ -63,7 +63,7 @@ class UserFormatList extends Lister {
 		for ( $i = $start; $i < $start + $count; $i++ ) {
 			$article = $articles[$i];
 
-			if ( empty( $article ) || empty( $article->mTitle ) ) {
+			if ( !$article || empty( $article->mTitle ) ) {
 				continue;
 			}
 
