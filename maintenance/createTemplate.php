@@ -3,7 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
 
 use MediaWiki\CommentStore\CommentStoreComment;
-use MediaWiki\Maintenance\LoggedUpdateMaintenance
+use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
