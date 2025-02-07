@@ -198,9 +198,9 @@ class Parse {
 			$calcRows = true;
 		}
 
-		/*********/
+		/***/
 		/* Query */
-		/*********/
+		/***/
 		try {
 			$query = new Query( $this->parameters );
 
