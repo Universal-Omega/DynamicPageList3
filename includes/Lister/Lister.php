@@ -598,7 +598,7 @@ class Lister {
 		for ( $i = $start; $i < $start + $count; $i++ ) {
 			$article = $articles[$i];
 
-			if ( empty( $article ) || empty( $article->mTitle ) ) {
+			if ( !$article || empty( $article->mTitle ) ) {
 				continue;
 			}
 
@@ -671,7 +671,7 @@ class Lister {
 			$item .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
 		}
 
-		if ( !empty( $article->mCategoryLinks ) ) {
+		if ( $article->mCategoryLinks ) {
 			$item .= ' . . <small>' . wfMessage( 'categories' ) . ': ' . implode( ' | ', $article->mCategoryLinks ) . '</small>';
 		}
 
@@ -835,7 +835,7 @@ class Lister {
 	 * @return string
 	 */
 	protected function replaceTagCategory( $tag, Article $article ) {
-		if ( !empty( $article->mCategoryLinks ) ) {
+		if ( $article->mCategoryLinks ) {
 			$tag = str_replace( '%CATLIST%', implode( ', ', $article->mCategoryLinks ), $tag );
 			$tag = str_replace( '%CATBULLETS%', '* ' . implode( "\n* ", $article->mCategoryLinks ), $tag );
 			$tag = str_replace( '%CATNAMES%', implode( ', ', $article->mCategoryTexts ), $tag );
@@ -1027,7 +1027,7 @@ class Lister {
 		$septag = [];
 
 		// include whole article
-		if ( empty( $this->pageTextMatch ) || $this->pageTextMatch[0] == '*' ) {
+		if ( !$this->pageTextMatch || $this->pageTextMatch[0] == '*' ) {
 			$title = $article->mTitle->getPrefixedText();
 
 			if ( $this->getStyle() == self::LIST_USERFORMAT ) {
@@ -1048,12 +1048,12 @@ class Lister {
 				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
 				$deleteRules = $this->getParameters()->getParameter( 'deleterules' );
 
-				if ( !empty( $updateRules ) ) {
+				if ( $updateRules ) {
 					$ruleOutput = UpdateArticle::updateArticleByRule( $title, $text, $updateRules );
 
 					// append update message to output
 					$pageText .= $ruleOutput;
-				} elseif ( !empty( $deleteRules ) ) {
+				} elseif ( $deleteRules ) {
 					$ruleOutput = UpdateArticle::deleteArticleByRule( $title, $text, $deleteRules );
 
 					// append delete message to output
