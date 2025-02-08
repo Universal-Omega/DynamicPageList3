@@ -16,7 +16,8 @@ class UpdateArticle {
 	 * This fucntion hast three tasks (depending on $exec):
 	 * (1) show an edit dialogue for template fields (exec = edit)
 	 * (2) set template parameters to values specified in the query (exec=set)v
-	 * (2) preview the source code including any changes of these parameters made in the edit form or with other changes (exec=preview)
+	 * (2) preview the source code including any changes of these parameters made in the
+	 *   edit form or with other changes (exec=preview)
 	 * (3) save the article with the changed value set or with other changes (exec=save)
 	 * "other changes" means that a regexp can be applied to the source text or arbitrary text can be
 	 * inserted before or after a pattern occuring in the text
@@ -287,12 +288,18 @@ class UpdateArticle {
 						}
 
 						if ( $legendText != '' && $myToolTip == '' ) {
-							$myToolTip = preg_replace( '/^.*\<section\s+begin\s*=\s*' . preg_quote( $parm, '/' ) . '\s*\/\>/s', '', $legendText );
+							$myToolTip = preg_replace(
+								'/^.*\<section\s+begin\s*=\s*' . preg_quote( $parm, '/' ) .
+								'\s*\/\>/s', '', $legendText
+							);
 
 							if ( strlen( $myToolTip ) == strlen( $legendText ) ) {
 								$myToolTip = '';
 							} else {
-								$myToolTip = preg_replace( '/\<section\s+end\s*=\s*' . preg_quote( $parm, '/' ) . '\s*\/\>.*/s', '', $myToolTip );
+								$myToolTip = preg_replace(
+									'/\<section\s+end\s*=\s*' . preg_quote( $parm, '/' ) .
+									'\s*\/\>.*/s', '', $myToolTip
+								);
 							}
 						}
 
@@ -301,7 +308,11 @@ class UpdateArticle {
 							$myValue = $tpv[$call][$parm];
 						}
 
-						$form .= self::editTemplateCall( $call, $parm, $myType, $myValue, $myFormat, $myToolTip, $myInstruction, $fieldFormat );
+						$form .= self::editTemplateCall(
+							$call, $parm, $myType,
+							$myValue, $myFormat, $myToolTip,
+							$myInstruction, $fieldFormat
+						);
 					}
 
 					$form .= "</table>\n<br/><br/>";
@@ -345,7 +356,11 @@ class UpdateArticle {
 							$myAfterParm = $afterparm[$nr];
 						}
 
-						$text = self::updateTemplateCall( $matchCount, $text, $template, $call, $parm, $myValue ?? '', $myAfterParm, $myOptional );
+						$text = self::updateTemplateCall(
+							$matchCount, $text, $template,
+							$call, $parm, $myValue ?? '',
+							$myAfterParm, $myOptional
+						);
 					}
 
 					if ( $exec == 'set' ) {
@@ -368,12 +383,17 @@ class UpdateArticle {
 			$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
 
 			$form = '<html>
-	<form id="editform" name="editform" method="post" action="' . $wgScriptPath . '/index.php?title=' . urlencode( $title ) . '&action=submit" enctype="multipart/form-data">
+	<form id="editform" name="editform" method="post" action="' .
+				$wgScriptPath . '/index.php?title=' . urlencode( $title ) .
+				'&action=submit" enctype="multipart/form-data">
 		<input type="hidden" value="" name="wpSection" />
 		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
 		<input type="hidden" value="' . $articleX->getPage()->getTimestamp() . '" name="wpEdittime" />
 		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' . $userOptionsLookup->getIntOption( $user, 'rows' ) . '" cols="' . $userOptionsLookup->getIntOption( $user, 'cols' ) . '" >' . htmlspecialchars( $text ) . '</textarea>
+		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' .
+				$userOptionsLookup->getIntOption( $user, 'rows' ) . '" cols="' .
+				$userOptionsLookup->getIntOption( $user, 'cols' ) . '" >' .
+				htmlspecialchars( $text ) . '</textarea>
 		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
 		<input name="wpAutoSummary" type="hidden" value="" />
 		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
@@ -444,7 +464,16 @@ class UpdateArticle {
 	 * @param string $fieldFormat
 	 * @return string
 	 */
-	private static function editTemplateCall( $call, $parameter, $type, $value, $format, $legend, $instruction, $fieldFormat ) {
+	private static function editTemplateCall(
+		$call,
+		$parameter,
+		$type,
+		$value,
+		$format,
+		$legend,
+		$instruction,
+		$fieldFormat
+	) {
 		$matches = [];
 		$nlCount = preg_match_all( '/\n/', $value, $matches );
 
@@ -463,9 +492,20 @@ class UpdateArticle {
 			$format .= " cols=$cols";
 		}
 
-		$textArea = "<textarea name=\"" . urlencode( $call . '_' . $parameter ) . "\" $format/>" . htmlspecialchars( $value ) . "</textarea>";
+		$textArea = "<textarea name=\"" . urlencode( $call . '_' . $parameter ) .
+			"\" $format/>" . htmlspecialchars( $value ) . "</textarea>";
 
-		return str_replace( '%NAME%', htmlspecialchars( str_replace( '_', ' ', $parameter ) ), str_replace( '%TYPE%', $type, str_replace( '%INPUT%', $textArea, str_replace( '%LEGEND%', "</html>" . htmlspecialchars( $legend ) . "<html>", str_replace( '%INSTRUCTION%', "</html>" . htmlspecialchars( $instruction ) . "<html>", $fieldFormat ) ) ) ) );
+		return str_replace( '%NAME%', htmlspecialchars(
+			str_replace( '_', ' ', $parameter )
+		), str_replace( '%TYPE%', $type, str_replace(
+			'%INPUT%', $textArea, str_replace(
+				'%LEGEND%', "</html>" . htmlspecialchars( $legend ) .
+				"<html>", str_replace(
+					'%INSTRUCTION%', "</html>" . htmlspecialchars( $instruction ) .
+					"<html>", $fieldFormat
+				)
+			)
+		) ) );
 	}
 
 	/**
@@ -475,7 +515,10 @@ class UpdateArticle {
 	 */
 	private static function getTemplateParmValues( $text, $template ) {
 		$matches = [];
-		$noMatches = preg_match_all( '/\{\{\s*' . preg_quote( $template, '/' ) . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE );
+		$noMatches = preg_match_all(
+			'/\{\{\s*' . preg_quote( $template, '/' ) .
+			'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE
+		);
 
 		if ( $noMatches <= 0 ) {
 			return '';
@@ -559,14 +602,26 @@ class UpdateArticle {
 	 * @param bool $optional
 	 * @return string
 	 */
-	private static function updateTemplateCall( &$matchCount, $text, $template, $call, $parameter, $value, $afterParm, $optional ) {
+	private static function updateTemplateCall(
+		&$matchCount,
+		$text,
+		$template,
+		$call,
+		$parameter,
+		$value,
+		$afterParm,
+		$optional
+	) {
 		// if parameter is optional and value is empty we leave everything as it is (i.e. we do not remove the parm)
 		if ( $optional && $value == '' ) {
 			return $text;
 		}
 
 		$matches = [];
-		$noMatches = preg_match_all( '/\{\{\s*' . preg_quote( $template, '/' ) . '\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE );
+		$noMatches = preg_match_all(
+			'/\{\{\s*' . preg_quote( $template, '/' ) .
+			'\s*[|}]/i', $text, $matches, PREG_OFFSET_CAPTURE
+		);
 
 		if ( $noMatches <= 0 ) {
 			return $text;
