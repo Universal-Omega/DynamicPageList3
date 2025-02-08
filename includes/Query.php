@@ -1111,7 +1111,8 @@ class Query {
 							$this->addJoin(
 								$tableAlias, [
 									'INNER JOIN',
-									"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND $tableAlias.cl_to {$comparisonType} " .
+									"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND " .
+										"$tableAlias.cl_to {$comparisonType} " .
 										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
 								]
 							);
@@ -1162,7 +1163,8 @@ class Query {
 				$this->addJoin(
 					$tableAlias, [
 						'LEFT OUTER JOIN',
-						"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND {$tableAlias}.cl_to {$operatorType}" .
+						"{$this->tableNames['page']}.page_id = {$tableAlias}.cl_from AND " .
+							"{$tableAlias}.cl_to {$operatorType}" .
 							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
 					]
 				);
