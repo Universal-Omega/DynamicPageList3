@@ -204,14 +204,15 @@ class Parse {
 		try {
 			$query = new Query( $this->parameters );
 
-			$foundRows = null;
 			$profilingContext = '';
 			$currentTitle = $parser->getPage();
 			if ( $currentTitle instanceof Title ) {
 				$profilingContext
 					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
 			}
-			$rows = $query->buildAndSelect( $calcRows, $foundRows, $profilingContext );
+
+			$rows = $query->buildAndSelect( $calcRows, $profilingContext );
+
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -225,6 +226,9 @@ class Parse {
 			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
+
+		$foundRows = $rows['count'] ?? null;
+		unset( $rows['count'] );
 
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
