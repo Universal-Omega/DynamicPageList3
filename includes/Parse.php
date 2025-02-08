@@ -273,7 +273,7 @@ class Parse {
 		}
 
 		// $this->addOutput($lister->format($articles));
-		if ( !isset( $foundRows ) ) {
+		if ( $foundRows === null ) {
 			// Get row count after calling format() otherwise the count will be inaccurate.
 			$foundRows = $lister->getRowCount();
 		}
