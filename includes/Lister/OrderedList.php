@@ -56,7 +56,9 @@ class OrderedList extends UnorderedList {
 		$offset = $this->getParameters()->getParameter( 'offset' ) + 1;
 
 		if ( $offset != 0 ) {
-			// @TODO: So this adds the total count of articles to the offset. I have not found a case where this does not mess up the displayed count. I am commenting this out for now.
+			// @TODO: So this adds the total count of articles to the offset.
+			// I have not found a case where this does not mess up the displayed count.
+			// I am commenting this out for now.
 			// $offset += $this->offsetCount;
 		}
 
