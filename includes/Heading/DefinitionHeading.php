@@ -83,7 +83,11 @@ class DefinitionHeading extends Heading {
 		}
 
 		$item .= $this->headListEnd;
-		$item .= $this->getItemStart() . $lister->formatList( $articles, $headingStart, $headingCount ) . $this->getItemEnd();
+		$item .= $this->getItemStart() . $lister->formatList(
+			$articles,
+			$headingStart,
+			$headingCount
+		) . $this->getItemEnd();
 
 		return $item;
 	}

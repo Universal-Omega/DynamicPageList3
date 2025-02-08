@@ -67,7 +67,8 @@ class Parameters extends ParametersData {
 			}
 		}
 
-		// Subvert to the real function if it exists. This keeps code elsewhere clean from needed to check if it exists first.
+		// Subvert to the real function if it exists. This keeps code elsewhere
+		// clean from needed to check if it exists first.
 		$function = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
 
@@ -78,14 +79,25 @@ class Parameters extends ParametersData {
 		$option = $arguments[0];
 		$parameter = strtolower( $parameter );
 
-		// Assume by default that these simple parameter options should not failed, but if they do we will set $success to false below.
+		// Assume by default that these simple parameter options should not failed,
+		// but if they do we will set $success to false below.
 		$success = true;
 		if ( $parameterData !== false ) {
 			// If a parameter specifies options then enforce them.
-			if ( array_key_exists( 'values', $parameterData ) && is_array( $parameterData['values'] ) && !in_array( strtolower( $option ), $parameterData['values'] ) ) {
+			if (
+				array_key_exists( 'values', $parameterData ) &&
+				is_array( $parameterData['values'] ) &&
+				!in_array( strtolower( $option ), $parameterData['values'] )
+			) {
 				$success = false;
 			} else {
-				if ( ( array_key_exists( 'preserve_case', $parameterData ) && !$parameterData['preserve_case'] ) && ( array_key_exists( 'page_name_list', $parameterData ) && $parameterData['page_name_list'] !== true ) ) {
+				if ( (
+					array_key_exists( 'preserve_case', $parameterData ) &&
+					!$parameterData['preserve_case']
+				) && (
+					array_key_exists( 'page_name_list', $parameterData ) &&
+					$parameterData['page_name_list'] !== true )
+				) {
 					$option = strtolower( $option );
 				}
 			}
@@ -179,12 +191,18 @@ class Parameters extends ParametersData {
 				$this->setParameter( $parameter, $option );
 
 				// Set that criteria was found for a selection.
-				if ( array_key_exists( 'set_criteria_found', $parameterData ) && $parameterData['set_criteria_found'] === true ) {
+				if (
+					array_key_exists( 'set_criteria_found', $parameterData ) &&
+					$parameterData['set_criteria_found'] === true
+				) {
 					$this->setSelectionCriteriaFound( true );
 				}
 
 				// Set open references conflict possibility.
-				if ( array_key_exists( 'open_ref_conflict', $parameterData ) && $parameterData['open_ref_conflict'] === true ) {
+				if (
+					array_key_exists( 'open_ref_conflict', $parameterData ) &&
+					$parameterData['open_ref_conflict'] === true
+				) {
 					$this->setOpenReferencesConflict( true );
 				}
 			}
@@ -195,7 +213,10 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Sort cleaned parameter arrays by priority.
-	 * Users can not be told to put the parameters into a specific order each time. Some parameters are dependent on each other coming in a certain order due to some procedural legacy issues.
+	 *
+	 * Users can not be told to put the parameters into a specific order each time.
+	 * Some parameters are dependent on each other coming in a certain order due to some
+	 * procedural legacy issues.
 	 *
 	 * @param array	$parameters
 	 * @return array
@@ -287,7 +308,11 @@ class Parameters extends ParametersData {
 
 		$parameters = $this->getParametersForRichness();
 		foreach ( $parameters as $parameter ) {
-			if ( $this->getData( $parameter )['default'] !== null && !( $this->getData( $parameter )['default'] === false && ( $this->getData( $parameter )['boolean'] ?? false ) === true ) ) {
+			if ( $this->getData( $parameter )['default'] !== null && !(
+				$this->getData( $parameter )['default'] === false && (
+					$this->getData( $parameter )['boolean'] ?? false
+				) === true )
+			   ) {
 				if ( $parameter == 'debug' ) {
 					Hooks::setDebugLevel( $this->getData( $parameter )['default'] );
 				}
@@ -472,7 +497,8 @@ class Parameters extends ParametersData {
 						$title = Title::newFromText( $subCategory );
 
 						if ( $title !== null ) {
-							// The * helper is just like listing "Category1|SubCategory1". This gets hard coded here for this purpose.
+							// The * helper is just like listing "Category1|SubCategory1".
+							// This gets hard coded here for this purpose.
 							$categories['OR'][] = $title->getDbKey();
 						}
 					}
@@ -508,11 +534,17 @@ class Parameters extends ParametersData {
 
 			$this->setParameter( 'category', $data );
 			if ( $heading ) {
-				$this->setParameter( 'catheadings', array_unique( array_merge( ( is_array( $this->getParameter( 'catheadings' ) ) ? $this->getParameter( 'catheadings' ) : [] ), $categories ) ) );
+				$this->setParameter( 'catheadings', array_unique( array_merge( (
+					is_array( $this->getParameter( 'catheadings' ) ) ?
+					$this->getParameter( 'catheadings' ) : []
+				), $categories ) ) );
 			}
 
 			if ( $notHeading ) {
-				$this->setParameter( 'catnotheadings', array_unique( array_merge( ( is_array( $this->getParameter( 'catnotheadings' ) ) ? $this->getParameter( 'catnotheadings' ) : [] ), $categories ) ) );
+				$this->setParameter( 'catnotheadings', array_unique( array_merge( (
+					is_array( $this->getParameter( 'catnotheadings' ) ) ?
+					$this->getParameter( 'catnotheadings' ) : []
+				), $categories ) ) );
 			}
 
 			$this->setOpenReferencesConflict( true );
@@ -673,7 +705,10 @@ class Parameters extends ParametersData {
 			$parameter = trim( $parameter );
 			$namespaceId = $contLang->getNsIndex( $parameter );
 
-			if ( $namespaceId === false || ( is_array( Config::getSetting( 'allowedNamespaces' ) ) && !in_array( $parameter, Config::getSetting( 'allowedNamespaces' ) ) ) ) {
+			if ( $namespaceId === false || (
+				is_array( Config::getSetting( 'allowedNamespaces' ) ) &&
+				!in_array( $parameter, Config::getSetting( 'allowedNamespaces' ) )
+			) ) {
 				// Let the user know this namespace is not allowed or does not exist.
 				return false;
 			}
@@ -844,7 +879,9 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _format( $option ) {
-		// Parsing of wikitext will happen at the end of the output phase. Replace '\n' in the input by linefeed because wiki syntax depends on linefeeds.
+		// Parsing of wikitext will happen at the end of the output phase.
+		// Replace '\n' in the input by linefeed because wiki syntax
+		// depends on linefeeds.
 		$option = $this->stripHtmlTags( $option );
 		$option = Parse::replaceNewLines( $option );
 
@@ -1028,14 +1065,16 @@ class Parameters extends ParametersData {
 
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
-			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the Variables extension and in the header/footer replacements.
+			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the
+			// Variables extension and in the header/footer replacements.
 			$this->setParameter( 'scrolldir', $request->getVal( 'DPL_scrollDir', '' ) );
 
 			// Also set count limit from URL if not otherwise set.
 			$this->_count( $request->getInt( 'DPL_count' ) );
 		}
 
-		// We do not return false since they could have just left it out. Who knows why they put the parameter in the list in the first place.
+		// We do not return false since they could have just left it out.
+		// Who knows why they put the parameter in the list in the first place.
 		return true;
 	}
 
@@ -1313,7 +1352,9 @@ class Parameters extends ParametersData {
 	 * @return bool|int|string
 	 */
 	public function _allowcachedresults( $option ) {
-		// If execAndExit was previously set (i.e. if it is not empty) we will ignore all cache settings which are placed AFTER the execandexit statement thus we make sure that the cache will only become invalid if the query is really executed.
+		// If execAndExit was previously set (i.e. if it is not empty) we will ignore all
+		// cache settings which are placed AFTER the execandexit statement thus we make sure
+		// that the cache will only become invalid if the query is really executed.
 		if ( $this->getParameter( 'execandexit' ) === null ) {
 			if ( $option === 'yes+warn' ) {
 				$this->setParameter( 'allowcachedresults', true );

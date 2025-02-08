@@ -118,8 +118,14 @@ class Parse {
 
 		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
-		if ( Config::getSetting( 'runFromProtectedPagesOnly' ) === true && $title && !$restrictionStore->isProtected( $title, 'edit' ) ) {
-			// Ideally we would like to allow using a DPL query if the query istelf is coded on a template page which is protected. Then there would be no need for the article to be protected. However, how can one find out from which wiki source an extension has been invoked???
+		if (
+			Config::getSetting( 'runFromProtectedPagesOnly' ) === true &&
+			$title && !$restrictionStore->isProtected( $title, 'edit' )
+		) {
+			// Ideally we would like to allow using a DPL query if the query istelf is coded on a
+			// template page which is protected. Then there would be no need for the article to
+			// be protected. However, how can one find out from which wiki source an extension
+			// has been invoked???
 			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 
 			return $this->getFullOutput();
@@ -137,7 +143,9 @@ class Parse {
 		$input = $this->resolveUrlArguments( $input, $this->urlArguments );
 		$this->getUrlArgs( $parser );
 
-		$this->parameters->setParameter( 'offset', $this->request->getInt( 'DPL_offset', $this->parameters->getData( 'offset' )['default'] ) );
+		$this->parameters->setParameter( 'offset', $this->request->getInt(
+			'DPL_offset', $this->parameters->getData( 'offset' )['default']
+		) );
 
 		/***************************************/
 		/* User Input preparation and parsing. */
@@ -157,7 +165,8 @@ class Parse {
 
 		foreach ( $cleanParameters as $parameter => $option ) {
 			foreach ( $option as $_option ) {
-				// Parameter functions return true or false. The full parameter data will be passed into the Query object later.
+				// Parameter functions return true or false. The full parameter data will be
+				// passed into the Query object later.
 				if ( $this->parameters->$parameter( $_option ) === false ) {
 					// Do not build this into the output just yet. It will be collected at the end.
 					$this->logger->addMessage( Hooks::WARN_WRONGPARAM, $parameter, $_option );
@@ -178,10 +187,14 @@ class Parse {
 			return $this->parameters->getParameter( 'execandexit' );
 		}
 
-		// Construct internal keys for TableRow according to the structure of "include". This will be needed in the output phase.
+		// Construct internal keys for TableRow according to the structure of "include".
+		// This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' );
 		if ( is_array( $secLabels ) && $this->parameters->getParameter( 'seclabels' ) ) {
-			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys( $this->parameters->getParameter( 'tablerow' ), $this->parameters->getParameter( 'seclabels' ) ) );
+			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys(
+				$this->parameters->getParameter( 'tablerow' ),
+				$this->parameters->getParameter( 'seclabels' )
+			) );
 		}
 
 		/****************/
@@ -194,7 +207,14 @@ class Parse {
 		}
 
 		$calcRows = false;
-		if ( !Config::getSetting( 'allowUnlimitedResults' ) && $this->parameters->getParameter( 'goal' ) != 'categories' && strpos( $this->parameters->getParameter( 'resultsheader' ) . $this->parameters->getParameter( 'noresultsheader' ) . $this->parameters->getParameter( 'resultsfooter' ), '%TOTALPAGES%' ) !== false ) {
+		if (
+			!Config::getSetting( 'allowUnlimitedResults' ) &&
+			$this->parameters->getParameter( 'goal' ) != 'categories' &&
+			strpos( $this->parameters->getParameter( 'resultsheader' ) .
+				$this->parameters->getParameter( 'noresultsheader' ) .
+				$this->parameters->getParameter( 'resultsfooter' ), '%TOTALPAGES%'
+			) !== false
+		) {
 			$calcRows = true;
 		}
 
@@ -252,7 +272,11 @@ class Parse {
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.
-		if ( $this->parameters->getParameter( 'titlelt' ) && !$this->parameters->getParameter( 'titlegt' ) && $this->parameters->getParameter( 'order' ) == 'descending' ) {
+		if (
+			$this->parameters->getParameter( 'titlelt' ) &&
+			!$this->parameters->getParameter( 'titlegt' ) &&
+			$this->parameters->getParameter( 'order' ) == 'descending'
+		) {
 			$articles = array_reverse( $articles );
 		}
 
@@ -282,10 +306,12 @@ class Parse {
 		/* Replacement Variables       */
 		/*******************************/
 
-		// Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used. Otherwise only accurate if results are less than the SQL LIMIT.
+		// Guaranteed to be an accurate count if SQL_CALC_FOUND_ROWS was used.
+		// Otherwise only accurate if results are less than the SQL LIMIT.
 		$this->setVariable( 'TOTALPAGES', (string)$foundRows );
 
-		// This could be different than TOTALPAGES. PAGES represents the total results within the constraints of SQL LIMIT.
+		// This could be different than TOTALPAGES. PAGES represents the total
+		// results within the constraints of SQL LIMIT.
 		$this->setVariable( 'PAGES', $lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
@@ -434,7 +460,8 @@ class Parse {
 	private function prepareUserInput( $input ) {
 		// We replace double angle brackets with single angle brackets to avoid premature tag expansion in the input.
 		// The ¦ symbol is an alias for |.
-		// The combination '²{' and '}²'will be translated to double curly braces; this allows postponed template execution which is crucial for DPL queries which call other DPL queries.
+		// The combination '²{' and '}²'will be translated to double curly braces; this allows postponed template
+		// execution which is crucial for DPL queries which call other DPL queries.
 		$input = str_replace( [ '«', '»', '¦', '²{', '}²' ], [ '<', '>', '|', '{{', '}}' ], $input );
 
 		// Standard new lines into the standard \n and clean up any hanging new lines.
@@ -460,26 +487,42 @@ class Parse {
 			$option = trim( $option );
 
 			if ( strpos( $parameter, '<' ) !== false || strpos( $parameter, '>' ) !== false ) {
-				// Having the actual less than and greater than symbols is nasty for programatic look up. The old parameter is still supported along with the new, but we just fix it here before calling it.
+				// Having the actual less than and greater than symbols is nasty
+				// for programatic look up. The old parameter is still supported
+				// along with the new, but we just fix it here before calling it.
 				$parameter = str_replace( '<', 'lt', $parameter );
 				$parameter = str_replace( '>', 'gt', $parameter );
 			}
 
 			// Force lower case for ease of use.
 			$parameter = strtolower( $parameter );
-			if ( !$parameter || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
+			if (
+				!$parameter || substr( $parameter, 0, 1 ) == '#' ||
+				(
+					$this->parameters->exists( $parameter ) &&
+					!$this->parameters->testRichness( $parameter )
+				)
+			) {
 				continue;
 			}
 
 			if ( !$this->parameters->exists( $parameter ) ) {
-				$this->logger->addMessage( Hooks::WARN_UNKNOWNPARAM, $parameter, implode( ', ', $this->parameters->getParametersForRichness() ) );
+				$this->logger->addMessage(
+					Hooks::WARN_UNKNOWNPARAM, $parameter,
+					implode( ', ', $this->parameters->getParametersForRichness() )
+				);
 
 				continue;
 			}
 
 			// Ignore parameter settings without argument (except namespace and category).
 			if ( !strlen( $option ) ) {
-				if ( $parameter != 'namespace' && $parameter != 'notnamespace' && $parameter != 'category' && $this->parameters->exists( $parameter ) ) {
+				if (
+					$parameter != 'namespace' &&
+					$parameter != 'notnamespace' &&
+					$parameter != 'category' &&
+					$this->parameters->exists( $parameter )
+				) {
 					continue;
 				}
 			}
@@ -505,7 +548,8 @@ class Parse {
 	 * @return string
 	 */
 	private function getOutput() {
-		// @TODO: 2015-08-28 Consider calling $this->replaceVariables() here. Might cause issues with text returned in the results.
+		// @TODO: 2015-08-28 Consider calling $this->replaceVariables() here.
+		// Might cause issues with text returned in the results.
 		return $this->output;
 	}
 
@@ -542,7 +586,8 @@ class Parse {
 
 		$messages = $this->logger->getMessages( false );
 
-		return ( count( $messages ) ? implode( "<br/>\n", $messages ) : null ) . $this->getHeader() . $this->getOutput() . $this->getFooter();
+		return ( count( $messages ) ? implode( "<br/>\n", $messages ) : null ) .
+			$this->getHeader() . $this->getOutput() . $this->getFooter();
 	}
 
 	/**
@@ -590,7 +635,8 @@ class Parse {
 	}
 
 	/**
-	 * Determine the header/footer type to use based on what output format parameters were chosen and the number of results.
+	 * Determine the header/footer type to use based on what output format
+	 * parameters were chosen and the number of results.
 	 *
 	 * @param string $position
 	 * @param int $count
@@ -603,7 +649,16 @@ class Parse {
 			return false;
 		}
 
-		if ( $this->parameters->getParameter( 'results' . $position ) !== null && ( $count >= 2 || ( $this->parameters->getParameter( 'oneresult' . $position ) === null && $count >= 1 ) ) ) {
+		if (
+			$this->parameters->getParameter( 'results' . $position ) !== null &&
+			(
+				$count >= 2 ||
+				(
+					$this->parameters->getParameter( 'oneresult' . $position ) === null &&
+					$count >= 1
+				)
+			)
+		) {
 			$_type = 'results' . $position;
 		} elseif ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
 			$_type = 'oneresult' . $position;
@@ -687,108 +742,175 @@ class Parse {
 		}
 
 		// Too many categories.
-		if ( $totalCategories > Config::getSetting( 'maxCategoryCount' ) && !Config::getSetting( 'allowUnlimitedCategories' ) ) {
+		if (
+			$totalCategories > Config::getSetting( 'maxCategoryCount' ) &&
+			!Config::getSetting( 'allowUnlimitedCategories' )
+		) {
 			$this->logger->addMessage( Hooks::FATAL_TOOMANYCATS, Config::getSetting( 'maxCategoryCount' ) );
-
 			return false;
 		}
 
 		// Not enough categories.(Really?)
 		if ( $totalCategories < Config::getSetting( 'minCategoryCount' ) ) {
 			$this->logger->addMessage( Hooks::FATAL_TOOFEWCATS, Config::getSetting( 'minCategoryCount' ) );
-
 			return false;
 		}
 
 		// Selection criteria needs to be found.
 		if ( !$totalCategories && !$this->parameters->isSelectionCriteriaFound() ) {
 			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
-
 			return false;
 		}
 
 		// ordermethod=sortkey requires ordermethod=category
 		// Delayed to the construction of the SQL query, see near line 2211, gs
-		// if (in_array('sortkey',$aOrderMethods) && ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
+		// if (in_array('sortkey',$aOrderMethods) &&
+		// ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
 
 		$orderMethods = (array)$this->parameters->getParameter( 'ordermethod' );
-		// Throw an error in no categories were selected when using category sorting modes or requesting category information.
-		if ( $totalCategories == 0 && ( in_array( 'categoryadd', $orderMethods ) || $this->parameters->getParameter( 'addfirstcategorydate' ) === true ) ) {
+		// Throw an error in no categories were selected when using category sorting
+		// modes or requesting category information.
+		if (
+			$totalCategories == 0 && (
+				in_array( 'categoryadd', $orderMethods ) ||
+				$this->parameters->getParameter( 'addfirstcategorydate' ) === true
+			)
+		) {
 			$this->logger->addMessage( Hooks::FATAL_CATDATEBUTNOINCLUDEDCATS );
-
 			return false;
 		}
 
 		// No more than one type of date at a time!
 		// @TODO: Can this be fixed to allow all three later after fixing the article class?
-		if ( ( (int)$this->parameters->getParameter( 'addpagetoucheddate' ) + (int)$this->parameters->getParameter( 'addfirstcategorydate' ) + (int)$this->parameters->getParameter( 'addeditdate' ) ) > 1 ) {
+		if (
+			(
+				(int)$this->parameters->getParameter( 'addpagetoucheddate' ) +
+				(int)$this->parameters->getParameter( 'addfirstcategorydate' ) +
+				(int)$this->parameters->getParameter( 'addeditdate' )
+			) > 1
+		) {
 			$this->logger->addMessage( Hooks::FATAL_MORETHAN1TYPEOFDATE );
-
 			return false;
 		}
 
 		// the dominant section must be one of the sections mentioned in includepage
-		if ( $this->parameters->getParameter( 'dominantsection' ) > 0 && count( $this->parameters->getParameter( 'seclabels' ) ) < $this->parameters->getParameter( 'dominantsection' ) ) {
-			$this->logger->addMessage( Hooks::FATAL_DOMINANTSECTIONRANGE, count( $this->parameters->getParameter( 'seclabels' ) ) );
+		if (
+			$this->parameters->getParameter( 'dominantsection' ) > 0 && count(
+				$this->parameters->getParameter( 'seclabels' )
+			) < $this->parameters->getParameter( 'dominantsection' )
+		) {
+			$this->logger->addMessage(
+				Hooks::FATAL_DOMINANTSECTIONRANGE,
+				count( $this->parameters->getParameter( 'seclabels' ) )
+			);
 
 			return false;
 		}
 
 		// category-style output requested with not compatible order method
-		if ( $this->parameters->getParameter( 'mode' ) == 'category' && !array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] ) ) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'mode=category', 'sortkey | title | titlewithoutnamespace' );
+		if (
+			$this->parameters->getParameter( 'mode' ) == 'category' &&
+			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
+		) {
+			$this->logger->addMessage(
+				Hooks::FATAL_WRONGORDERMETHOD,
+				'mode=category',
+				'sortkey | title | titlewithoutnamespace'
+			);
 
 			return false;
 		}
 
 		// addpagetoucheddate=true with unappropriate order methods
-		if ( $this->parameters->getParameter( 'addpagetoucheddate' ) && !array_intersect( $orderMethods, [ 'pagetouched', 'title' ] ) ) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'addpagetoucheddate=true', 'pagetouched | title' );
+		if (
+			$this->parameters->getParameter( 'addpagetoucheddate' ) &&
+			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
+		) {
+			$this->logger->addMessage(
+				Hooks::FATAL_WRONGORDERMETHOD,
+				'addpagetoucheddate=true',
+				'pagetouched | title'
+			);
 
 			return false;
 		}
 
 		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		// firstedit (resp. lastedit) -> add date of first (resp. last) revision
-		if ( $this->parameters->getParameter( 'addeditdate' ) && !array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && ( $this->parameters->getParameter( 'allrevisionsbefore' ) || $this->parameters->getParameter( 'allrevisionssince' ) || $this->parameters->getParameter( 'firstrevisionsince' ) || $this->parameters->getParameter( 'lastrevisionbefore' ) ) ) {
+		if (
+			$this->parameters->getParameter( 'addeditdate' ) &&
+			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && (
+				$this->parameters->getParameter( 'allrevisionsbefore' ) ||
+				$this->parameters->getParameter( 'allrevisionssince' ) ||
+				$this->parameters->getParameter( 'firstrevisionsince' ) ||
+				$this->parameters->getParameter( 'lastrevisionbefore' )
+			)
+		) {
 			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
-
 			return false;
 		}
 
 		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
 		/**
 		 * @todo allow to add user for other order methods.
-		 * The fact is a page may be edited by multiple users. Which user(s) should we show? all? the first or the last one?
+		 * The fact is a page may be edited by multiple users.
+		 * Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
 		 */
-		if ( $this->parameters->getParameter( 'adduser' ) && !array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && !$this->parameters->getParameter( 'allrevisionsbefore' ) && !$this->parameters->getParameter( 'allrevisionssince' ) && !$this->parameters->getParameter( 'firstrevisionsince' ) && !$this->parameters->getParameter( 'lastrevisionbefore' ) ) {
+		if (
+			$this->parameters->getParameter( 'adduser' ) &&
+			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) &&
+			!$this->parameters->getParameter( 'allrevisionsbefore' ) &&
+			!$this->parameters->getParameter( 'allrevisionssince' ) &&
+			!$this->parameters->getParameter( 'firstrevisionsince' ) &&
+			!$this->parameters->getParameter( 'lastrevisionbefore' )
+		) {
 			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
-
 			return false;
 		}
 
-		if ( $this->parameters->getParameter( 'minoredits' ) && !array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) ) {
+		if (
+			$this->parameters->getParameter( 'minoredits' ) &&
+			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] )
+		) {
 			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
-
 			return false;
 		}
 
 		// add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
-		if ( $this->parameters->getParameter( 'mode' ) == 'category' && ( $this->parameters->getParameter( 'addcategories' ) || $this->parameters->getParameter( 'addeditdate' ) || $this->parameters->getParameter( 'addfirstcategorydate' ) || $this->parameters->getParameter( 'addpagetoucheddate' ) || $this->parameters->getParameter( 'incpage' ) || $this->parameters->getParameter( 'adduser' ) || $this->parameters->getParameter( 'addauthor' ) || $this->parameters->getParameter( 'addcontribution' ) || $this->parameters->getParameter( 'addlasteditor' ) ) ) {
+		if (
+			$this->parameters->getParameter( 'mode' ) === 'category' && (
+				$this->parameters->getParameter( 'addcategories' ) ||
+				$this->parameters->getParameter( 'addeditdate' ) ||
+				$this->parameters->getParameter( 'addfirstcategorydate' ) ||
+				$this->parameters->getParameter( 'addpagetoucheddate' ) ||
+				$this->parameters->getParameter( 'incpage' ) ||
+				$this->parameters->getParameter( 'adduser' ) ||
+				$this->parameters->getParameter( 'addauthor' ) ||
+				$this->parameters->getParameter( 'addcontribution' ) ||
+				$this->parameters->getParameter( 'addlasteditor' )
+			)
+		) {
 			$this->logger->addMessage( Hooks::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
 		// headingmode has effects with ordermethod on multiple components only
 		if ( $this->parameters->getParameter( 'headingmode' ) !== 'none' && count( $orderMethods ) < 2 ) {
-			$this->logger->addMessage( Hooks::WARN_HEADINGBUTSIMPLEORDERMETHOD, $this->parameters->getParameter( 'headingmode' ), 'none' );
+			$this->logger->addMessage(
+				Hooks::WARN_HEADINGBUTSIMPLEORDERMETHOD,
+				$this->parameters->getParameter( 'headingmode' ),
+				'none'
+			);
+
 			$this->parameters->setParameter( 'headingmode', 'none' );
 		}
 
 		// The 'openreferences' parameter is incompatible with many other options.
-		if ( $this->parameters->isOpenReferencesConflict() && $this->parameters->getParameter( 'openreferences' ) === true ) {
+		if (
+			$this->parameters->isOpenReferencesConflict() &&
+			$this->parameters->getParameter( 'openreferences' ) === true
+		) {
 			$this->logger->addMessage( Hooks::FATAL_OPENREFERENCES );
-
 			return false;
 		}
 
@@ -862,7 +984,8 @@ class Parse {
 	}
 
 	/**
-	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
+	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form
+	 * of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
 	 *
 	 * @param Parser $parser
 	 */
@@ -883,7 +1006,9 @@ class Parse {
 	}
 
 	/**
-	 * This function uses the Variables extension to provide navigation aids such as DPL_firstTitle, DPL_lastTitle, or DPL_findTitle. These variables can be accessed as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
+	 * This function uses the Variables extension to provide navigation aids such as
+	 * DPL_firstTitle, DPL_lastTitle, or DPL_findTitle. These variables can be accessed
+	 * as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
 	 *
 	 * @param array $scrollVariables
 	 * @param Parser $parser
@@ -973,7 +1098,10 @@ class Parse {
 			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endEliminate' );
 
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
-				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
+				// Trigger the mediawiki parser to find links, images, categories etc.
+				// which are contained in the DPL output. This allows us to remove these
+				// links from the link list later. If the article containing the DPL
+				// statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
 				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) as $nsp => $link ) {

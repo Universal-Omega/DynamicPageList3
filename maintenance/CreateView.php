@@ -61,9 +61,16 @@ class CreateView extends LoggedUpdateMaintenance {
 			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
 			$sqlNullMethod = ( $dbw->getType() === 'postgres' ? 'COALESCE' : 'IFNULL' );
 
+			$query = "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT " .
+				"$sqlNullMethod(cl_from, page_id) AS cl_from, " .
+				"$sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey " .
+				"FROM {$dbw->tablePrefix()}page " .
+				"LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks " .
+				"ON {$dbw->tablePrefix()}page.page_id = cl_from;";
+
 			// Create the view
 			try {
-				$dbw->query( "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT $sqlNullMethod(cl_from, page_id) AS cl_from, $sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey FROM {$dbw->tablePrefix()}page LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks ON {$dbw->tablePrefix()}page.page_id=cl_from;", __METHOD__ );
+				$dbw->query( $query, __METHOD__ );
 				$this->output( "Created view dpl_clview.\n" );
 			} catch ( Exception $e ) {
 				$this->output( "Failed to create view: " . $e->getMessage() . "\n" );

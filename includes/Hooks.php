@@ -98,7 +98,10 @@ class Hooks {
 	public static function onParserFirstCallInit( Parser $parser ) {
 		self::init();
 
-		// DPL offers the same functionality as Intersection. So we register the <DynamicPageList> tag in case LabeledSection Extension is not installed so that the section markers are removed.
+		// DPL offers the same functionality as Intersection.
+		// So we register the <DynamicPageList> tag in case
+		// LabeledSection Extension is not installed so that the
+		// section markers are removed.
 		if ( Config::getSetting( 'handleSectionTag' ) ) {
 			$parser->setHook( 'section', [ __CLASS__, 'dplTag' ] );
 		}
@@ -223,7 +226,10 @@ class Hooks {
 		if ( $reset['categories'] ?? false ) {
 			$saveCategories = array_combine(
 				$parserOutput->getCategoryNames(),
-				array_map( static fn ( $value ) => $parserOutput->getCategorySortKey( $value ), $parserOutput->getCategoryNames() )
+				array_map( static fn ( $value ) =>
+					$parserOutput->getCategorySortKey( $value ),
+					$parserOutput->getCategoryNames()
+				)
 			);
 		}
 
@@ -290,7 +296,10 @@ class Hooks {
 
 	/**
 	 * The #dplnum parser tag entry point.
-	 * From the old documentation: "Tries to guess a number that is buried in the text. Uses a set of heuristic rules which may work or not. The idea is to extract the number so that it can be used as a sorting value in the column of a DPL table output."
+	 *
+	 * From the old documentation: "Tries to guess a number that is buried in the text.
+	 * Uses a set of heuristic rules which may work or not. The idea is to extract the
+	 * number so that it can be used as a sorting value in the column of a DPL table output."
 	 *
 	 * @param Parser $parser
 	 * @param string $text
@@ -401,9 +410,20 @@ class Hooks {
 	 * @param bool $trim
 	 * @return string
 	 */
-	public static function dplChapterParserFunction( &$parser, $text = '', $heading = ' ', $maxLength = -1, $page = '?page?', $link = 'default', $trim = false ) {
+	public static function dplChapterParserFunction(
+		&$parser,
+		$text = '',
+		$heading = ' ',
+		$maxLength = -1,
+		$page = '?page?',
+		$link = 'default',
+		$trim = false
+	) {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
-		$output = LST::extractHeadingFromText( $parser, $page, '?title?', $text, $heading, '', $sectionHeading, true, $maxLength, $link, $trim );
+		$output = LST::extractHeadingFromText(
+			$parser, $page, '?title?', $text, $heading, '',
+			$sectionHeading, true, $maxLength, $link, $trim
+		);
 		return $output[0];
 	}
 
@@ -416,7 +436,14 @@ class Hooks {
 	 * @param string $matrix
 	 * @return string
 	 */
-	public static function dplMatrixParserFunction( &$parser, $name = '', $yes = '', $no = '', $flip = '', $matrix = '' ) {
+	public static function dplMatrixParserFunction(
+		&$parser,
+		$name = '',
+		$yes = '',
+		$no = '',
+		$flip = '',
+		$matrix = ''
+	) {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
 		$lines = explode( "\n", $matrix );
 		$m = [];
@@ -601,7 +628,10 @@ class Hooks {
 						continue;
 					}
 
-					$parser->getOutput()->mLinks[$nsp] = array_diff_assoc( $parserLinks[$nsp], self::$createdLinks[0][$nsp] );
+					$parser->getOutput()->mLinks[$nsp] = array_diff_assoc(
+						$parserLinks[$nsp],
+						self::$createdLinks[0][$nsp]
+					);
 
 					if ( count( $parserLinks[$nsp] ) == 0 ) {
 						unset( $parser->getOutput()->mLinks[$nsp] );
@@ -616,7 +646,10 @@ class Hooks {
 						continue;
 					}
 
-					$parser->getOutput()->mTemplates[$nsp] = array_diff_assoc( $parserTemplates[$nsp], self::$createdLinks[1][$nsp] );
+					$parser->getOutput()->mTemplates[$nsp] = array_diff_assoc(
+						$parserTemplates[$nsp],
+						self::$createdLinks[1][$nsp]
+					);
 
 					if ( count( $parserTemplates[$nsp] ) == 0 ) {
 						unset( $parser->getOutput()->mTemplates[$nsp] );

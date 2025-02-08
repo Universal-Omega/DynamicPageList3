@@ -226,14 +226,21 @@ class Article {
 		}
 
 		// Chop off title if longer than the 'titlemaxlen' parameter.
-		if ( $parameters->getParameter( 'titlemaxlen' ) !== null && strlen( $titleText ) > $parameters->getParameter( 'titlemaxlen' ) ) {
+		if (
+			$parameters->getParameter( 'titlemaxlen' ) !== null &&
+			strlen( $titleText ) > $parameters->getParameter( 'titlemaxlen' )
+		) {
 			$titleText = substr( $titleText, 0, $parameters->getParameter( 'titlemaxlen' ) ) . '...';
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
-			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
+			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' .
+				htmlspecialchars( $titleText ) . ']';
 		} else {
-			$articleLink = '[[' . ( $parameters->getParameter( 'escapelinks' ) && ( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : '' ) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
+			$articleLink = '[[' . (
+				$parameters->getParameter( 'escapelinks' ) &&
+				( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : ''
+			) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
 
 		$article->mLink = $articleLink;
@@ -266,8 +273,14 @@ class Article {
 
 		// STORE initially selected PAGE
 		if (
-			( is_array( $parameters->getParameter( 'linksto' ) ) && count( $parameters->getParameter( 'linksto' ) ) ) ||
-			( is_array( $parameters->getParameter( 'linksfrom' ) ) && count( $parameters->getParameter( 'linksfrom' ) ) )
+			(
+				is_array( $parameters->getParameter( 'linksto' ) ) &&
+				count( $parameters->getParameter( 'linksto' ) )
+			) ||
+			(
+				is_array( $parameters->getParameter( 'linksfrom' ) ) &&
+				count( $parameters->getParameter( 'linksfrom' ) )
+			)
 		) {
 			if ( !isset( $row->sel_title ) ) {
 				$article->mSelTitle = 'unknown page';
@@ -279,17 +292,21 @@ class Article {
 		}
 
 		// STORE selected image
-		if ( is_array( $parameters->getParameter( 'imageused' ) ) && count( $parameters->getParameter( 'imageused' ) ) > 0 ) {
-			if ( !isset( $row->image_sel_title ) ) {
-				$article->mImageSelTitle = 'unknown image';
-			} else {
-				$article->mImageSelTitle = $row->image_sel_title;
-			}
+		if (
+			is_array( $parameters->getParameter( 'imageused' ) ) &&
+			count( $parameters->getParameter( 'imageused' ) ) > 0
+		) {
+			$article->mImageSelTitle = $row->image_sel_title ?? 'unknown image';
 		}
 
 		if ( $parameters->getParameter( 'goal' ) != 'categories' ) {
 			// REVISION SPECIFIED
-			if ( $parameters->getParameter( 'lastrevisionbefore' ) || $parameters->getParameter( 'allrevisionsbefore' ) || $parameters->getParameter( 'firstrevisionsince' ) || $parameters->getParameter( 'allrevisionssince' ) ) {
+			if (
+				$parameters->getParameter( 'lastrevisionbefore' ) ||
+				$parameters->getParameter( 'allrevisionsbefore' ) ||
+				$parameters->getParameter( 'firstrevisionsince' ) ||
+				$parameters->getParameter( 'allrevisionssince' )
+			) {
 				$article->mRevision = $row->rev_id;
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp;
@@ -311,13 +328,15 @@ class Article {
 			// Time zone adjustment
 			if ( $article->mDate ) {
 				$lang = RequestContext::getMain()->getLanguage();
-
 				$article->mDate = $lang->userAdjust( $article->mDate );
 			}
 
 			if ( $article->mDate && $parameters->getParameter( 'userdateformat' ) ) {
 				// Apply the userdateformat
-				$article->myDate = gmdate( $parameters->getParameter( 'userdateformat' ), (int)wfTimestamp( TS_UNIX, $article->mDate ) );
+				$article->myDate = gmdate(
+					$parameters->getParameter( 'userdateformat' ),
+					(int)wfTimestamp( TS_UNIX, $article->mDate )
+				);
 			}
 
 			// CONTRIBUTION, CONTRIBUTOR
@@ -332,7 +351,11 @@ class Article {
 			// USER/AUTHOR(S)
 			// because we are going to do a recursive parse at the end of the output phase
 			// we have to generate wiki syntax for linking to a user´s homepage
-			if ( $parameters->getParameter( 'adduser' ) || $parameters->getParameter( 'addauthor' ) || $parameters->getParameter( 'addlasteditor' ) ) {
+			if (
+				$parameters->getParameter( 'adduser' ) ||
+				$parameters->getParameter( 'addauthor' ) ||
+				$parameters->getParameter( 'addlasteditor' )
+			) {
 				$article->mUserLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
 				$article->mUser = $revActorName;
 			}
@@ -341,7 +364,8 @@ class Article {
 			if ( $parameters->getParameter( 'addcategories' ) && ( $row->cats ) ) {
 				$artCatNames = explode( ' | ', $row->cats );
 				foreach ( $artCatNames as $artCatName ) {
-					$article->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' . str_replace( '_', ' ', $artCatName ) . ']]';
+					$article->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' .
+						str_replace( '_', ' ', $artCatName ) . ']]';
 					$article->mCategoryTexts[] = str_replace( '_', ' ', $artCatName );
 				}
 			}
@@ -351,19 +375,20 @@ class Article {
 				switch ( $parameters->getParameter( 'ordermethod' )[0] ) {
 					case 'category':
 						// Count one more page in this heading
-						self::$headings[$row->cl_to] = ( isset( self::$headings[$row->cl_to] ) ? self::$headings[$row->cl_to] + 1 : 1 );
+						self::$headings[$row->cl_to] = ( self::$headings[$row->cl_to] ?? 0 ) + 1;
 						if ( $row->cl_to == '' ) {
-							// uncategorized page (used if ordermethod=category,...)
-							$article->mParentHLink = '[[:Special:Uncategorizedpages|' . wfMessage( 'uncategorizedpages' ) . ']]';
+							// Uncategorized page (used if ordermethod=category,...)
+							$article->mParentHLink = '[[:Special:Uncategorizedpages|' .
+								wfMessage( 'uncategorizedpages' ) . ']]';
 						} else {
-							$article->mParentHLink = '[[:Category:' . $row->cl_to . '|' . str_replace( '_', ' ', $row->cl_to ) . ']]';
+							$article->mParentHLink = '[[:Category:' . $row->cl_to . '|' .
+								str_replace( '_', ' ', $row->cl_to ) . ']]';
 						}
 
 						break;
 					case 'user':
 						if ( $revActorName && $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
-							self::$headings[$revActorName] = ( isset( self::$headings[$revActorName] ) ? self::$headings[$revActorName] + 1 : 1 );
-
+							self::$headings[$revActorName] = ( self::$headings[$revActorName] ?? 0 ) + 1;
 							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
 						}
 
