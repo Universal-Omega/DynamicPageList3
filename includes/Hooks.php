@@ -98,7 +98,7 @@ class Hooks {
 	public static function onParserFirstCallInit( Parser $parser ) {
 		self::init();
 
-		// DPL offers the same functionality as Intersection. 
+		// DPL offers the same functionality as Intersection.
 		// So we register the <DynamicPageList> tag in case
 		// LabeledSection Extension is not installed so that the
 		// section markers are removed.
