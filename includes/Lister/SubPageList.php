@@ -118,7 +118,8 @@ class SubPageList extends UnorderedList {
 			}
 
 			if ( is_array( $item ) ) {
-				$list .= $this->getItemStart() . $key . $this->getListStart() . $this->implodeItems( $item ) . $this->listEnd . $this->getItemEnd();
+				$list .= $this->getItemStart() . $key . $this->getListStart() .
+					$this->implodeItems( $item ) . $this->listEnd . $this->getItemEnd();
 			}
 		}
 
