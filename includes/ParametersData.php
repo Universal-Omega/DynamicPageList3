@@ -431,8 +431,8 @@ class ParametersData {
 		 * To include sections labeled 'sec1' or 'sec2' or... from the page
 		 *   See the doc of the LabeledSectionTransclusion extension for more info:
 		 *     includepage = sec1,sec2,..
-		 * To include from the first occurrence of the heading 'heading1' (resp. 'heading2') until the next heading of the same or lower level.
-		 *   Note that this comparison is case insensitive.
+		 * To include from the first occurrence of the heading 'heading1' (resp. 'heading2')
+		 *   until the next heading of the same or lower level. Note that this comparison is case insensitive.
 		 *   See https://www.mediawiki.org/wiki/Extension:Labeled_Section_Transclusion#Transcluding_visual_headings:
 		 *     includepage = #heading1,#heading2,....
 		 * You can combine:
