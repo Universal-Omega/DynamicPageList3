@@ -1235,14 +1235,32 @@ class Lister {
 					}
 				} else {
 					// Uses LST::includeSection() from LabeledSectionTransclusion extension to include labeled sections from the page
-					$secPieces = LST::includeSection( $this->parser, $article->mTitle->getPrefixedText(), $sSecLabel, '', false, $this->getTrimIncluded(), $skipPattern ?? [] );
-					$secPiece[$s] = implode( isset( $this->multiSectionSeparators[$s] ) ? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount ) : '', $secPieces );
+					$secPieces = LST::includeSection(
+						$this->parser, $article->mTitle->getPrefixedText(),
+						$sSecLabel, '', false, $this->getTrimIncluded(),
+						$skipPattern ?? []
+					);
+					$secPiece[$s] = implode(
+						$this->replaceTagCount(
+							$this->multiSectionSeparators[$s] ?? '', $filteredCount
+						), $secPieces
+					);
 
-					if ( $this->getDominantSectionCount() >= 0 && $s == $this->getDominantSectionCount() && count( $secPieces ) > 1 ) {
+					if (
+						$this->getDominantSectionCount() >= 0 &&
+						$s == $this->getDominantSectionCount() &&
+						count( $secPieces ) > 1
+					) {
 						$dominantPieces = $secPieces;
 					}
 
-					if ( ( $mustMatch != '' && preg_match( $mustMatch, $secPiece[$s] ) == false ) || ( $mustNotMatch != '' && preg_match( $mustNotMatch, $secPiece[$s] ) != false ) ) {
+					if ( (
+						$mustMatch != '' &&
+						preg_match( $mustMatch, $secPiece[$s] ) == false
+					) || (
+						$mustNotMatch != '' &&
+						preg_match( $mustNotMatch, $secPiece[$s] ) != false
+					) ) {
 						$matchFailed = true;
 						break;
 					}
@@ -1251,15 +1269,27 @@ class Lister {
 				// separator tags
 				if ( is_array( $this->sectionSeparators ) && count( $this->sectionSeparators ) == 1 ) {
 					// If there is only one separator tag use it always
-					$septag[$s * 2] = str_replace( '%SECTION%', $sectionHeading[0], $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount ) );
+					$septag[$s * 2] = str_replace(
+						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
+							$this->sectionSeparators[0], $filteredCount
+						)
+					);
 				} elseif ( isset( $this->sectionSeparators[$s * 2] ) ) {
-					$septag[$s * 2] = str_replace( '%SECTION%', $sectionHeading[0], $this->replaceTagCount( $this->sectionSeparators[$s * 2], $filteredCount ) );
+					$septag[$s * 2] = str_replace(
+						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
+							$this->sectionSeparators[$s * 2], $filteredCount
+						)
+					);
 				} else {
 					$septag[$s * 2] = '';
 				}
 
 				if ( isset( $this->sectionSeparators[$s * 2 + 1] ) ) {
-					$septag[$s * 2 + 1] = str_replace( '%SECTION%', $sectionHeading[0], $this->replaceTagCount( $this->sectionSeparators[$s * 2 + 1], $filteredCount ) );
+					$septag[$s * 2 + 1] = str_replace(
+						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
+							$this->sectionSeparators[$s * 2 + 1], $filteredCount
+						)
+					);
 				} else {
 					$septag[$s * 2 + 1] = '';
 				}
@@ -1279,7 +1309,9 @@ class Lister {
 				foreach ( $dominantPieces as $dominantPiece ) {
 					foreach ( $secPiece as $s => $piece ) {
 						if ( $s == $this->getDominantSectionCount() ) {
-							$pageText .= $this->joinSectionTagPieces( $dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1] );
+							$pageText .= $this->joinSectionTagPieces(
+								$dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]
+							);
 						} else {
 							$pageText .= $this->joinSectionTagPieces( $piece, $septag[$s * 2], $septag[$s * 2 + 1] );
 						}
@@ -1324,7 +1356,8 @@ class Lister {
 	 */
 	public function getPageImage( int $pageID ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
-		// In the future, a check could be made for page_image too, but page_image_free is the default, should do for now
+		// In the future, a check could be made for page_image too,
+		// but page_image_free is the default, should do for now.
 		$propValue = $dbr->selectField(
 			// Table to use
 			'page_props',
