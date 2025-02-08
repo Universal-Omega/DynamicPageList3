@@ -1007,7 +1007,7 @@ class Parse {
 	/**
 	 * This function uses the Variables extension to provide navigation aids such as
 	 * DPL_firstTitle, DPL_lastTitle, or DPL_findTitle. These variables can be accessed
-  	 * as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
+	 * as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
 	 *
 	 * @param array $scrollVariables
 	 * @param Parser $parser
