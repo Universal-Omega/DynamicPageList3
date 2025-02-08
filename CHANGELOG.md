@@ -809,4 +809,23 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Added a PHPUnit test for the `notuses` parameter
 
 # Version 3.5.2
-* Added support for PHP 8.0 and PHP 8.1
+* Add support for PHP 8.0 and PHP 8.1
+* phan: enable `SecurityCheck-ReDoS`
+* Use ExtensionRegistry::getAllThings() to get version
+* Only check for buffer overflow
+* Fix `usedby` query returns all templates
+* Don't return the viewer's IP address as %USER% if rev_actor is 0.
+* Cleanup in en.json
+* Fix minoredits=exclude
+* Fix "PHP Deprecated: Using ${var} in strings is deprecated, use {$var} instead"
+* Fix "PHP Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated"
+
+# Version 3.6.0
+* Added support for `pagelinks` migration
+* Added support for MediaWiki 1.43 and dropped support for older MediaWiki versions (before 1.43.0)
+* Added support for PHP 8.2
+* Fixed many deprecations from MediaWiki 1.40-1.43
+* Code Cleanup
+* Many bug fixes
+* Renamed maintenance scripts to be able to use AutoloadNamespaces
+* Added `--recreate` option to CreateView maintenance script to be able to drop and recreate the view if necessary.

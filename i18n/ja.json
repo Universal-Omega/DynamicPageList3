@@ -1,0 +1,43 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ant176"
+		]
+	},
+	"intersection-desc": "単一カテゴリ内または複数カテゴリ内において最近更新された項目を箇条書きで表示",
+	"intersection_toomanycats": "エラー: カテゴリが多すぎます!",
+	"intersection_toofewcats": "エラー: カテゴリが少なすぎます!",
+	"intersection_noresults": "エラー: 結果がありません!",
+	"intersection_noincludecats": "エラー: カテゴリを少なくとも1つ含めるか、名前空間を指定する必要があります!",
+	"intersection_pcerror": "サーバーに負荷がかかっているため、このリストは表示できません。後ほどもう一度お試しください。",
+	"dpl-desc": "MediaWiki 用の多機能な一覧生成ツール",
+	"dpl_log_1": "エラー: 引数 '$1' に誤りがあります: '$2'! ヘルプ: <code>$1= <i>空文字列</i> (標準)$3</code>。",
+	"dpl_log_3": "エラー: カテゴリが多すぎます! 最大: $1。 ヘルプ: 指定できるカテゴリを増やすには、 <code>$wgDplSettings['maxCategoryCount']</code> の値を増やすか、 <code>$wgDplSettings['allowUnlimitedCategories'] = true;</code> を設定して制限を解除します (ウィキの <code>LocalSettings.php</code> 構成ファイルに変数を設定します)。",
+	"dpl_log_4": "エラー: カテゴリが少なすぎます! 最小: $1。 ヘルプ: 指定できるカテゴリの最小数を減らすには、 <code>$wgDplSettings['minCategoryCount']</code> の値を減らします(ウィキの <code>LocalSettings.php</code> 構成ファイルに変数を設定します)。",
+	"dpl_log_5": "エラー: 選択基準が見つかりません!次の引数のうち少なくとも1つは使用する必要があります: category、namespace、titlematch、linksto、uses、createdby、modifiedby、lastmodifiedby、またはそれらの「not」型",
+	"dpl_log_6": "エラー: 「addfirstcategorydate=true」または「ordermethod=categoryadd」を使用するには、1つ以上のカテゴリを指定する必要があります。",
+	"dpl_log_8": "エラー: 一度に追加できる日付の形式は1つのみです。",
+	"dpl_log_9": "エラー: 引数 '$1' は 'ordermethod=[ $2 ]' と併用する必要があります",
+	"dpl_log_12": "エラー: \"openreferences\" の指定は、指定された別のオプションと互換性がありません。他のオプションまたは \"openreferences\" を除去してください。詳細はマニュアルを参照してください。",
+	"dpl_log_13": "警告: 不明な引数 '$1' は無視されました。ヘルプ: 利用可能な引数: <code>$2</code> 。",
+	"dpl_log_14": "警告: 引数 '$1' の誤ったオプション '$2' をスキップします。",
+	"dpl_log_16": "警告: 結果がありません。",
+	"dpl_log_19": "警告: 'debug=$1' が DPL 要素の最初の位置にありません。新しいデバッグ設定はこれ以前の引数に対しては適用されません。",
+	"dpl_log_20": "警告: ページ '$0' から無限の呼び出しループが発生しました。",
+	"dpl_log_21": "クエリ: <code>$0</code>",
+	"dpl_log_22": "警告: '$1' に引数オプションが指定されていません( '=' がありません)。",
+	"dpl_log_23": "エラー: サーバーに負荷がかかっているため、このリストは表示できません。後ほどもう一度お試しください。",
+	"dpl_log_24": "エラー: <code>$wgDplSettings['runFromProtectedPagesOnly']</code> が設定されていますが、ページ「$1」は編集保護されていません。",
+	"dpl_log_25": "エラー: $1",
+	"dpl_query_error": "DynamicPageList3 拡張機能 (バージョン $1) は、データベースエラーを引き起こす SQL ステートメントを生成しました。<br/>理由は、DynamicPageList3 の内部エラー、またはあなたが行ったエラーである可能性があります(特に「categoryregexp」や「titleregexp」などの引数を使用する場合、 *? による非貪欲なパターン一致の使用はサポートされていません)。<br/>エラーメッセージは次のとおりです:<br/><code>$2</code>",
+	"dpl-tag-tracking-category": "DynamicPageList3のパーサータグを使用しているページ",
+	"dpl-intersection-tracking-category": "DynamicPageList3のIntersectionパーサータグを使用しているページ",
+	"dpl-parserfunc-tracking-category": "DynamicPageList3のパーサー関数を使用しているページ",
+	"dplnum-parserfunc-tracking-category": "DynamicPageList3のdplnumパーサー関数を使用しているページ",
+	"dplvar-parserfunc-tracking-category": "DynamicPageList3のdplvarパーサー関数を使用しているページ",
+	"dplreplace-parserfunc-tracking-category": "DynamicPageList3のdplreplaceパーサー関数を使用しているページ",
+	"dplchapter-parserfunc-tracking-category": "DynamicPageList3のdplchapterパーサー関数を使用しているページ",
+	"dplmatrix-parserfunc-tracking-category": "DynamicPageList3のdplmatrixパーサー関数を使用しているページ",
+	"right-dpl_param_delete_rules": "DynamicPageList3を使用したページを一括削除",
+	"right-dpl_param_update_rules": "DynamicPageList3を使用したページを一括更新"
+}

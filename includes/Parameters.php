@@ -2,12 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use InvalidArgumentException;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
-use MWException;
+use MediaWiki\Title\Title;
 use PermissionsError;
-use RequestContext;
 use StringUtils;
-use Title;
 
 class Parameters extends ParametersData {
 	/**
@@ -82,7 +82,7 @@ class Parameters extends ParametersData {
 		$success = true;
 		if ( $parameterData !== false ) {
 			// If a parameter specifies options then enforce them.
-			if ( array_key_exists( 'values', $parameterData ) && is_array( $parameterData['values'] ) === true && !in_array( strtolower( $option ), $parameterData['values'] ) ) {
+			if ( array_key_exists( 'values', $parameterData ) && is_array( $parameterData['values'] ) && !in_array( strtolower( $option ), $parameterData['values'] ) ) {
 				$success = false;
 			} else {
 				if ( ( array_key_exists( 'preserve_case', $parameterData ) && !$parameterData['preserve_case'] ) && ( array_key_exists( 'page_name_list', $parameterData ) && $parameterData['page_name_list'] !== true ) ) {
@@ -202,7 +202,7 @@ class Parameters extends ParametersData {
 	 */
 	public static function sortByPriority( $parameters ) {
 		if ( !is_array( $parameters ) ) {
-			throw new MWException( __METHOD__ . ': A non-array was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-array was passed.' );
 		}
 
 		// 'category' to get category headings first for ordermethod.
@@ -241,7 +241,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setSelectionCriteriaFound( $found = true ) {
 		if ( !is_bool( $found ) ) {
-			throw new MWException( __METHOD__ . ': A non-boolean was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
 		}
 
 		$this->selectionCriteriaFound = $found;
@@ -264,7 +264,7 @@ class Parameters extends ParametersData {
 	 */
 	private function setOpenReferencesConflict( $conflict = true ) {
 		if ( !is_bool( $conflict ) ) {
-			throw new MWException( __METHOD__ . ': A non-boolean was passed.' );
+			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
 		}
 
 		$this->openReferencesConflict = $conflict;
@@ -363,7 +363,7 @@ class Parameters extends ParametersData {
 			$page = trim( $page );
 			$page = rtrim( $page, '\\' );
 
-			if ( empty( $page ) ) {
+			if ( !$page ) {
 				continue;
 			}
 
@@ -392,7 +392,7 @@ class Parameters extends ParametersData {
 	 */
 	private function isRegexValid( $regexes, $forDb = false ) {
 		foreach ( (array)$regexes as $regex ) {
-			if ( empty( trim( $regex ) ) ) {
+			if ( !trim( $regex ) ) {
 				continue;
 			}
 
@@ -417,7 +417,7 @@ class Parameters extends ParametersData {
 	public function _category( $option ) {
 		$option = trim( $option );
 
-		if ( empty( $option ) ) {
+		if ( !$option ) {
 			return false;
 		}
 
@@ -457,7 +457,7 @@ class Parameters extends ParametersData {
 			if ( $parameter === '_none_' || $parameter === '' ) {
 				$this->setParameter( 'includeuncat', true );
 				$categories[] = '';
-			} elseif ( !empty( $parameter ) ) {
+			} elseif ( $parameter ) {
 				if ( strpos( $parameter, '*' ) === 0 && strlen( $parameter ) >= 2 ) {
 					if ( strpos( $parameter, '*', 1 ) === 1 ) {
 						$parameter = substr( $parameter, 2 );
@@ -486,7 +486,7 @@ class Parameters extends ParametersData {
 			}
 		}
 
-		if ( !empty( $categories ) ) {
+		if ( $categories ) {
 			$data = $this->getParameter( 'category' );
 
 			// Do a bunch of data integrity checks to avoid E_NOTICE.
@@ -819,7 +819,7 @@ class Parameters extends ParametersData {
 	public function _ordercollation( $option ) {
 		if ( $option == 'bridge' ) {
 			$this->setParameter( 'ordersuitsymbols', true );
-		} elseif ( !empty( $option ) ) {
+		} elseif ( $option ) {
 			$this->setParameter( 'ordercollation', $option );
 		} else {
 			return false;
@@ -1013,7 +1013,7 @@ class Parameters extends ParametersData {
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
 			$titlegt = $request->getVal( 'DPL_findTitle', '' );
 
-			if ( !empty( $titlegt ) ) {
+			if ( $titlegt ) {
 				$titlegt = '=_' . ucfirst( $titlegt );
 			} else {
 				$titlegt = $request->getVal( 'DPL_fromTitle', '' );
@@ -1090,7 +1090,7 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _include( $option ) {
-		if ( !empty( $option ) ) {
+		if ( $option ) {
 			$this->setParameter( 'incpage', true );
 			$this->setParameter( 'seclabels', explode( ',', $option ) );
 		} else {
@@ -1296,7 +1296,7 @@ class Parameters extends ParametersData {
 	public function _tablerow( $option ) {
 		$option = Parse::replaceNewLines( trim( $option ) );
 
-		if ( empty( $option ) ) {
+		if ( !$option ) {
 			$this->setParameter( 'tablerow', [] );
 		} else {
 			$this->setParameter( 'tablerow', explode( ',', $option ) );
@@ -1360,7 +1360,7 @@ class Parameters extends ParametersData {
 		foreach ( $arguments as $argument ) {
 			$argument = trim( $argument );
 
-			if ( empty( $argument ) ) {
+			if ( !$argument ) {
 				continue;
 			}
 
@@ -1403,7 +1403,7 @@ class Parameters extends ParametersData {
 		foreach ( $arguments as $argument ) {
 			$argument = trim( $argument );
 
-			if ( empty( $argument ) ) {
+			if ( !$argument ) {
 				continue;
 			}
 

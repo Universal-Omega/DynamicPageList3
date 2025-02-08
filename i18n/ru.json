@@ -1,9 +1,14 @@
 {
 	"@metadata": {
 		"authors": [
-			"Deltaspace"
+			"Amire80",
+			"Deltaspace",
+			"Okras",
+			"Yurina Tatiana"
 		]
 	},
+	"intersection_toomanycats": "Ошибка: Слишком много категорий!",
+	"intersection_toofewcats": "Ошибка: Слишком мало категорий!",
 	"intersection_noresults": "Ошибка: Нет результатов!",
 	"intersection_pcerror": "Этот список не может быть отображен, так как серверы перегружены. Пожалуйста, попробуйте позже.",
 	"dpl_log_1": "Ошибка: неверный параметр '$1': '$2'! Справка: <code>$1= <i>пустая строка</i></code> (Main)$3</code>.",
@@ -19,7 +24,8 @@
 	"dpl_log_21": "Запрос: <code>$0</code>",
 	"dpl_log_23": "Ошибка: Список не может быть отображен, так как серверы перегружены. Пожалуйста, попробуйте позже.",
 	"dpl_log_24": "Ошибка: <code>$wgDplSettings['runFromProtectedPagesOnly']</code> установлен, однако страница '$1' не защищена от редактирования.",
-	"dpl_query_error": "Расширение DynamicPageList3 (версия $1) создало инструкцию SQL, которая привела к ошибке базы данных.<br/> Причиной может быть внутренняя ошибка DynamicPageList3 или ошибка, допущенная вами; особенно при использовании таких параметров, как «categoryregexp» или «titleregexp». Использование нежадных *? сопоставляющих шаблонов не поддерживается.<br/> Сообщение об ошибке:<br/><tt>$2</tt>",
+	"dpl_log_25": "Ошибка: $1",
+	"dpl_query_error": "Расширение DynamicPageList3 (версия $1) создало инструкцию SQL, которая привела к ошибке базы данных.<br/>Причиной может быть внутренняя ошибка DynamicPageList3 или ошибка, допущенная вами; особенно при использовании таких параметров, как «categoryregexp» или «titleregexp». Использование нежадных *? сопоставляющих шаблонов не поддерживается.<br/>Сообщение об ошибке:<br/><code>$2</code>",
 	"dplreplace-parserfunc-tracking-category": "Страницы, использующие функцию парсера DynamicPageList3 dplreplace",
 	"right-dpl_param_delete_rules": "Массовое удаление страниц с помощью DynamicPageList3",
 	"right-dpl_param_update_rules": "Массовое обновление страниц с помощью DynamicPageList3"

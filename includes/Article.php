@@ -2,11 +2,11 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
-use RequestContext;
 use stdClass;
-use Title;
 
 class Article {
 	/**
@@ -211,7 +211,7 @@ class Article {
 		$article = new self( $title, $pageNamespace );
 
 		$revActorName = ActorStore::UNKNOWN_USER_NAME;
-		if ( isset( $row->rev_actor ) ) {
+		if ( isset( $row->rev_actor ) && $row->rev_actor !== '0' ) {
 			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
 		}
 
@@ -231,7 +231,7 @@ class Article {
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
-			$articleLink = '[' . $title->getLinkURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
+			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' . htmlspecialchars( $titleText ) . ']';
 		} else {
 			$articleLink = '[[' . ( $parameters->getParameter( 'escapelinks' ) && ( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : '' ) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
@@ -265,7 +265,10 @@ class Article {
 		}
 
 		// STORE initially selected PAGE
-		if ( is_array( $parameters->getParameter( 'linksto' ) ) && ( count( $parameters->getParameter( 'linksto' ) ) || count( $parameters->getParameter( 'linksfrom' ) ) ) ) {
+		if (
+			( is_array( $parameters->getParameter( 'linksto' ) ) && count( $parameters->getParameter( 'linksto' ) ) ) ||
+			( is_array( $parameters->getParameter( 'linksfrom' ) ) && count( $parameters->getParameter( 'linksfrom' ) ) )
+		) {
 			if ( !isset( $row->sel_title ) ) {
 				$article->mSelTitle = 'unknown page';
 				$article->mSelNamespace = 0;

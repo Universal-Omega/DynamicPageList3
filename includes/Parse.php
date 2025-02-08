@@ -2,15 +2,16 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
+use Exception;
 use ExtVariables;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
-use MWException;
-use Parser;
-use RequestContext;
-use Title;
-use WebRequest;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
+use MediaWiki\Request\WebRequest;
+use MediaWiki\Title\Title;
 
 class Parse {
 	/**
@@ -108,6 +109,7 @@ class Parse {
 		$title = Title::castFromPageReference( $parser->getPage() );
 
 		// Check that we are not in an infinite transclusion loop
+		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 
@@ -182,7 +184,7 @@ class Parse {
 
 		// Construct internal keys for TableRow according to the structure of "include". This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' );
-		if ( is_array( $secLabels ) && !empty( $this->parameters->getParameter( 'seclabels' ) ) ) {
+		if ( is_array( $secLabels ) && $this->parameters->getParameter( 'seclabels' ) ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys( $this->parameters->getParameter( 'tablerow' ), $this->parameters->getParameter( 'seclabels' ) ) );
 		}
 
@@ -200,20 +202,21 @@ class Parse {
 			$calcRows = true;
 		}
 
-		/*********/
+		/***/
 		/* Query */
-		/*********/
+		/***/
 		try {
 			$query = new Query( $this->parameters );
 
-			$foundRows = null;
 			$profilingContext = '';
 			$currentTitle = $parser->getPage();
 			if ( $currentTitle instanceof Title ) {
 				$profilingContext
 					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
 			}
-			$rows = $query->buildAndSelect( $calcRows, $foundRows, $profilingContext );
+
+			$rows = $query->buildAndSelect( $calcRows, $profilingContext );
+
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
@@ -223,10 +226,13 @@ class Parse {
 				$this->logger->addMessage( Hooks::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
-		} catch ( MWException $e ) {
+		} catch ( Exception $e ) {
 			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
+
+		$foundRows = $rows['count'] ?? null;
+		unset( $rows['count'] );
 
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
@@ -245,7 +251,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows == 0 || empty( $articles ) ) {
+		if ( $numRows == 0 || !$articles ) {
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -395,8 +401,8 @@ class Parse {
 					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row->pl_namespace;
-					$pageTitle = $row->pl_title;
+					$pageNamespace = $row->lt_namespace;
+					$pageTitle = $row->lt_title;
 				}
 			} else {
 				// Existing PAGE TITLE
@@ -442,7 +448,7 @@ class Parse {
 
 		$parameters = [];
 		foreach ( $rawParameters as $parameterOption ) {
-			if ( empty( $parameterOption ) ) {
+			if ( !$parameterOption ) {
 				// Softly ignore blank lines.
 				continue;
 			}
@@ -465,7 +471,7 @@ class Parse {
 
 			// Force lower case for ease of use.
 			$parameter = strtolower( $parameter );
-			if ( empty( $parameter ) || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
+			if ( !$parameter || substr( $parameter, 0, 1 ) == '#' || ( $this->parameters->exists( $parameter ) && !$this->parameters->testRichness( $parameter ) ) ) {
 				continue;
 			}
 
@@ -910,10 +916,10 @@ class Parse {
 		$scrollVariables = (array)$scrollVariables;
 
 		foreach ( $scrollVariables as $variable => $value ) {
-			Variables::setVar( [ '', '', $variable, $value ] );
+			Variables::setVar( [ '', '', $variable, $value ?? '' ] );
 
 			if ( defined( 'ExtVariables::VERSION' ) ) {
-				ExtVariables::get( $parser )->setVarValue( $variable, $value );
+				ExtVariables::get( $parser )->setVarValue( $variable, $value ?? '' );
 			}
 		}
 	}
@@ -928,8 +934,6 @@ class Parse {
 	 * @param Parser $parser
 	 */
 	private function triggerEndResets( $output, &$reset, &$eliminate, $isParserTag, Parser $parser ) {
-		global $wgHooks;
-
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
 
 		$page = $parser->getPage();
@@ -977,28 +981,26 @@ class Parse {
 			}
 		}
 
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
 				Hooks::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endReset', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endReset';
-			}
+			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endReset' );
 		}
 
 		if ( array_sum( $eliminate ) ) {
 			// Register a hook to reset links which were produced during parsing DPL output
-			if ( !isset( $wgHooks['ParserAfterTidy'] ) || !is_array( $wgHooks['ParserAfterTidy'] ) || !in_array( 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate', $wgHooks['ParserAfterTidy'] ) ) {
-				$wgHooks['ParserAfterTidy'][] = 'MediaWiki\\Extension\\DynamicPageList3\\Hooks::endEliminate';
-			}
+			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endEliminate' );
 
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc. which are contained in the DPL output. This allows us to remove these links from the link list later. If the article containing the DPL statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
-				foreach ( $parserOutput->getLinks() as $nsp => $link ) {
+				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) as $nsp => $link ) {
 					Hooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
@@ -1006,7 +1008,7 @@ class Parse {
 			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Hooks::$createdLinks[1] = [];
 
-				foreach ( $parserOutput->getTemplates() as $nsp => $tpl ) {
+				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE ) as $nsp => $tpl ) {
 					Hooks::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
