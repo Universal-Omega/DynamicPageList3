@@ -10,6 +10,7 @@ use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOutputLinkTypes;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
 
@@ -999,7 +1000,7 @@ class Parse {
 
 			Variables::setVar( [ '', '', $argName, $argValue ] );
 
-			if ( defined( 'ExtVariables::VERSION' ) ) {
+			if ( ExtensionRegistry::getInstance()->isLoaded( 'Variables' ) ) {
 				ExtVariables::get( $parser )->setVarValue( $argName, $argValue );
 			}
 		}
@@ -1019,7 +1020,7 @@ class Parse {
 		foreach ( $scrollVariables as $variable => $value ) {
 			Variables::setVar( [ '', '', $variable, $value ?? '' ] );
 
-			if ( defined( 'ExtVariables::VERSION' ) ) {
+			if ( ExtensionRegistry::getInstance()->isLoaded( 'Variables' ) ) {
 				ExtVariables::get( $parser )->setVarValue( $variable, $value ?? '' );
 			}
 		}
