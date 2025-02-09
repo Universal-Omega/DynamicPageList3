@@ -811,7 +811,7 @@ class Lister {
 		var_dump( "Page ID + Title:", "$id: $title" );
 		var_dump( "Retrieved displaytitle values:", $values );
 
-		if ( isset( $values[$id] ) ) {
+		/*if ( isset( $values[$id] ) ) {
 			$value = $values[$id];
 
 			var_dump( "Raw displaytitle value:", $value );
@@ -829,7 +829,7 @@ class Lister {
 			}
 		} else {
 			var_dump( "DisplayTitle key not found in retrieved values." );
-		}
+		}*/
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
