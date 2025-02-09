@@ -790,6 +790,7 @@ class Lister {
 		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
 
 		$title = $article->mTitle->getText();
+		$displayTitle = $this->parser->getOutput()->getPageProperty( 'displaytitle' );
 		$replaceInTitle = $this->getParameters()->getParameter( 'replaceintitle' );
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
@@ -801,7 +802,7 @@ class Lister {
 			$title = substr( $title, 0, $titleMaxLength ) . '...';
 		}
 
-		$tag = str_replace( '%TITLE%', $title, $tag );
+		$tag = str_replace( '%TITLE%', $displayTitle ?? $title, $tag );
 
 		$tag = str_replace( '%COUNT%', (string)$article->mCounter, $tag );
 		$tag = str_replace( '%COUNTFS%', (string)( floor( log( $article->mCounter ) * 0.7 ) ), $tag );
