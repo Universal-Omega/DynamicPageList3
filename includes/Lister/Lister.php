@@ -805,10 +805,10 @@ class Lister {
 		} */
 
 		$pageProps = MediaWikiServices::getInstance()->getPageProps();
-		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
+		$values = $pageProps->getProperties( $article->mTitle->createFragmentTarget( '' ), 'displaytitle' );
 		$id = $article->mID;
 
-		var_dump( "Page ID:", $id );
+		var_dump( "Page ID + Title:", "$id: $title" );
 		var_dump( "Retrieved displaytitle values:", $values );
 
 		if ( isset( $values[$id] ) ) {
