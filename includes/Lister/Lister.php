@@ -795,8 +795,7 @@ class Lister {
 		$pageProps = MediaWikiServices::getInstance()->getPageProps();
 
 		// Get DisplayTitle
-		$titleTarget = $article->mTitle->createFragmentTarget( '' );
-		$values = $pageProps->getProperties( $titleTarget, 'displaytitle' );
+		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
 		$id = $titleTarget->getArticleID();
 		if ( array_key_exists( $id, $values ) ) {
 			$value = $values[$id];
