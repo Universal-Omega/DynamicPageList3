@@ -806,7 +806,7 @@ class Lister {
 
 		$pageProps = MediaWikiServices::getInstance()->getPageProps();
 		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
-		$id = $article->mTitle->getArticleID();
+		$id = $article->mID;
 
 		var_dump( "Page ID:", $id );
 		var_dump( "Retrieved displaytitle values:", $values );
