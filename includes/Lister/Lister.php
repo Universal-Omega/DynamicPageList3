@@ -796,7 +796,7 @@ class Lister {
 
 		// Get DisplayTitle
 		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
-		$id = $titleTarget->getArticleID();
+		$id = $article->mTitle->getArticleID();
 		if ( array_key_exists( $id, $values ) ) {
 			$value = $values[$id];
 			if ( trim( str_replace( '&#160;', '', strip_tags( $value ) ) ) !== '' ) {
