@@ -790,8 +790,20 @@ class Lister {
 		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
 
 		$title = $article->mTitle->getText();
-		$displayTitle = $this->parser->getOutput()->getPageProperty( 'displaytitle' );
 		$replaceInTitle = $this->getParameters()->getParameter( 'replaceintitle' );
+
+		$pageProps = MediaWikiServices::getInstance()->getPageProps();
+
+		// Get DisplayTitle
+		$titleTarget = $article->mTitle->createFragmentTarget( '' );
+		$values = $pageProps->getPropeties( $titleTarget, 'displaytitle' );
+		$id = $titleTarget->getArticleID();
+		if ( array_key_exists( $id, $values ) ) {
+			$value = $values[$id];
+			if ( trim( str_replace( '&#160;', '', strip_tags( $value ) ) ) !== '' ) {
+				$displaytitle = $value;
+			}
+		}
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
