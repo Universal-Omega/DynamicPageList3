@@ -107,7 +107,7 @@ class Parameters extends ParametersData {
 				$option = $this->stripHtmlTags( $option );
 			}
 
-			// Simple integer intval().
+			// Integers
 			if ( array_key_exists( 'integer', $parameterData ) && $parameterData['integer'] === true ) {
 				if ( !is_numeric( $option ) ) {
 					if ( $parameterData['default'] !== null ) {
