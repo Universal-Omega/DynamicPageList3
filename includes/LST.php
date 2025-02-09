@@ -986,9 +986,11 @@ class LST {
 									}
 								}
 
-								if ( !$found && is_numeric( $exParm ) && (int)$exParm ) == $exParm {
+								if ( !$found && is_numeric( $exParm ) && (int)$exParm ) {
+									== $exParm {
 									// numeric parameter
 									$np = 0;
+									}
 
 									foreach ( $parms as $parm ) {
 										if ( strstr( $parm, '=' ) === false ) {
@@ -1001,8 +1003,8 @@ class LST {
 
 										$found = true;
 										$output[$n] .= $lister->formatTemplateArg(
-											$parm, $dplNr, $exParmKey,
-											$firstCall, $maxlen, $article
+										$parm, $dplNr, $exParmKey,
+										$firstCall, $maxlen, $article
 										);
 										break;
 									}
@@ -1010,7 +1012,7 @@ class LST {
 
 								if ( !$found ) {
 									$output[$n] .= $lister->formatTemplateArg(
-										'', $dplNr, $exParmKey, $firstCall, $maxlen, $article
+									'', $dplNr, $exParmKey, $firstCall, $maxlen, $article
 									);
 								}
 
