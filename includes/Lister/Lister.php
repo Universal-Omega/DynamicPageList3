@@ -792,7 +792,7 @@ class Lister {
 		$title = $article->mTitle->getText();
 		$replaceInTitle = $this->getParameters()->getParameter( 'replaceintitle' );
 
-		$pageProps = MediaWikiServices::getInstance()->getPageProps();
+		/* $pageProps = MediaWikiServices::getInstance()->getPageProps();
 
 		// Get DisplayTitle
 		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
@@ -802,6 +802,33 @@ class Lister {
 			if ( trim( str_replace( '&#160;', '', strip_tags( $value ) ) ) !== '' ) {
 				$displayTitle = $value;
 			}
+		} */
+
+		$pageProps = MediaWikiServices::getInstance()->getPageProps();
+		$values = $pageProps->getProperties( $article->mTitle, 'displaytitle' );
+		$id = $article->mTitle->getArticleID();
+
+		var_dump( "Page ID:", $id );
+		var_dump( "Retrieved displaytitle values:", $values );
+
+		if ( isset( $values[$id] ) ) {
+			$value = $values[$id];
+
+			var_dump( "Raw displaytitle value:", $value );
+
+			$cleanValue = trim( htmlspecialchars_decode( strip_tags( $value ) ) );
+
+			var_dump( "Cleaned displaytitle value:", $cleanValue );
+
+			if ( $cleanValue !== '' ) {
+				$displayTitle = $value;
+
+				var_dump( "Final displayTitle:", $displayTitle );
+			} else {
+				var_dump( "DisplayTitle not set because the cleaned value is empty." );
+			}
+		} else {
+			var_dump( "DisplayTitle key not found in retrieved values." );
 		}
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
