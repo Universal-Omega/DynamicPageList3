@@ -384,6 +384,19 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		], $results );
 	}
 
+	public function testGetTitleWithDisplayTitle(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory'
+		], '%TITLE%' );
+
+		$this->assertEquals( [
+			'DPLTestArticleDisplayTitle 1',
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+			'DPLTestArticleMultipleCategories',
+		], $results );
+	}
+
 	public function testTotalPagesInHeader(): void {
 		$results = $this->runDPLQuery( [
 			'category' => 'DPLTestCategory',
