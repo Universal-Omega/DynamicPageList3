@@ -111,12 +111,12 @@ class Parameters extends ParametersData {
 			if ( array_key_exists( 'integer', $parameterData ) && $parameterData['integer'] === true ) {
 				if ( !is_numeric( $option ) ) {
 					if ( $parameterData['default'] !== null ) {
-						$option = intval( $parameterData['default'] );
+						$option = (int)$parameterData['default'];
 					} else {
 						$success = false;
 					}
 				} else {
-					$option = intval( $option );
+					$option = (int)$option;
 				}
 			}
 
@@ -683,7 +683,7 @@ class Parameters extends ParametersData {
 				$max = INF;
 			}
 
-			$this->setParameter( 'count', min( max( intval( $option ), 0 ), $max ) );
+			$this->setParameter( 'count', min( max( (int)$option ), 0 ), $max );
 
 			return true;
 		}
@@ -931,7 +931,7 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _titlemaxlength( $option ) {
-		$this->setParameter( 'titlemaxlen', intval( $option ) );
+		$this->setParameter( 'titlemaxlen', (int)$option );
 
 		return true;
 	}
@@ -1164,7 +1164,7 @@ class Parameters extends ParametersData {
 	 * @return bool
 	 */
 	public function _includemaxlength( $option ) {
-		$this->setParameter( 'includemaxlen', intval( $option ) );
+		$this->setParameter( 'includemaxlen', (int)$option );
 
 		return true;
 	}

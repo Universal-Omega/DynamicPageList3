@@ -566,7 +566,7 @@ class Hooks {
 	 * @param int|string $level
 	 */
 	public static function setDebugLevel( $level ) {
-		self::$debugLevel = intval( $level );
+		self::$debugLevel = (int)$level;
 	}
 
 	/**

@@ -372,7 +372,7 @@ class Lister {
 	 * @param int $count
 	 */
 	public function setDominantSectionCount( $count = -1 ) {
-		$this->dominantSectionCount = intval( $count );
+		$this->dominantSectionCount = (int)$count;
 	}
 
 	/**
@@ -454,7 +454,7 @@ class Lister {
 	 * @param int|null $index
 	 */
 	public function setTableSortColumn( $index = null ) {
-		$this->tableSortColumn = $index === null ? null : intval( $index );
+		$this->tableSortColumn = $index === null ? null : (int)$index;
 	}
 
 	/**
@@ -490,7 +490,7 @@ class Lister {
 	 * @param int|null $length
 	 */
 	public function setTitleMaxLength( $length = null ) {
-		$this->titleMaxLength = $length === null ? null : intval( $length );
+		$this->titleMaxLength = $length === null ? null : (int)$length;
 	}
 
 	/**
@@ -535,7 +535,7 @@ class Lister {
 	 * @param int|null $length
 	 */
 	public function setIncludePageMaxLength( $length = null ) {
-		$this->includePageMaxLength = $length === null ? null : intval( $length );
+		$this->includePageMaxLength = $length === null ? null : (int)$length;
 	}
 
 	/**
@@ -1141,7 +1141,7 @@ class Lister {
 						$fmtSec = explode( '~', substr( $sSecLabel, $limpos + 1, strlen( $sSecLabel ) - $limpos - 2 ) );
 						$sSecLabel = substr( $sSecLabel, 0, $limpos );
 						$cutInfo = explode( ' ', $fmtSec[count( $fmtSec ) - 1], 2 );
-						$maxLength = intval( $cutInfo[0] );
+						$maxLength = (int)$cutInfo[0];
 
 						if ( array_key_exists( '1', $cutInfo ) ) {
 							$cutLink = $cutInfo[1];
