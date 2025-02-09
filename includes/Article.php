@@ -254,7 +254,7 @@ class Article {
 			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $pageTitle ) );
 		}
 
-		$article->mID = intval( $row->page_id );
+		$article->mID = (int)$row->page_id;
 
 		// External link
 		if ( isset( $row->el_to ) ) {
@@ -263,12 +263,12 @@ class Article {
 
 		// SHOW PAGE_COUNTER
 		if ( isset( $row->page_counter ) ) {
-			$article->mCounter = intval( $row->page_counter );
+			$article->mCounter = (int)$row->page_counter;
 		}
 
 		// SHOW PAGE_SIZE
 		if ( isset( $row->page_len ) ) {
-			$article->mSize = intval( $row->page_len );
+			$article->mSize = (int)$row->page_len;
 		}
 
 		// STORE initially selected PAGE
