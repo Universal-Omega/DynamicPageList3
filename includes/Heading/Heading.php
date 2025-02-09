@@ -152,7 +152,7 @@ class Heading {
 	 * @param bool $show
 	 */
 	public function setShowHeadingCount( $show = false ) {
-		$this->showHeadingCount = boolval( $show );
+		$this->showHeadingCount = (bool)$show;
 	}
 
 	/**

@@ -417,7 +417,7 @@ class Lister {
 	 * @param bool $trim
 	 */
 	public function setTrimIncluded( $trim = false ) {
-		$this->trimIncluded = boolval( $trim );
+		$this->trimIncluded = (bool)$trim;
 	}
 
 	/**
@@ -436,7 +436,7 @@ class Lister {
 	 * @param bool $escape
 	 */
 	public function setEscapeLinks( $escape = true ) {
-		$this->escapeLinks = boolval( $escape );
+		$this->escapeLinks = (bool)$escape;
 	}
 
 	/**
@@ -526,7 +526,7 @@ class Lister {
 	 * @param bool $include
 	 */
 	public function setIncludePageText( $include = false ) {
-		$this->includePageText = boolval( $include );
+		$this->includePageText = (bool)$include;
 	}
 
 	/**
@@ -571,7 +571,7 @@ class Lister {
 	 * @param bool $parse
 	 */
 	public function setIncludePageParsed( $parse = false ) {
-		$this->includePageParsed = boolval( $parse );
+		$this->includePageParsed = (bool)$parse;
 	}
 
 	/**
