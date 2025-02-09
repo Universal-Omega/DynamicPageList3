@@ -96,7 +96,7 @@
 			<origin>18</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text xml:space="preserve">Donec non dolor ipsum.
+			<text xml:space="preserve">{{DISPLAYTITLE:DPLTestArticleDisplayTitle 1}} Donec non dolor ipsum.
 [[Category:DPLTestCategory]]</text>
 			<sha1 />
 		</revision>
