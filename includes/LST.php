@@ -942,7 +942,7 @@ class LST {
 								$limpos = strpos( $exParm, '[' );
 
 								if ( $limpos > 0 && $exParm[strlen( $exParm ) - 1] == ']' ) {
-									$maxlen = intval( substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 ) );
+									$maxlen = (int)substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 );
 									$exParm = substr( $exParm, 0, $limpos );
 								}
 
@@ -986,7 +986,7 @@ class LST {
 									}
 								}
 
-								if ( !$found && is_numeric( $exParm ) && intval( $exParm ) == $exParm ) {
+								if ( !$found && is_numeric( $exParm ) && (int)$exParm == $exParm ) {
 									// numeric parameter
 									$np = 0;
 

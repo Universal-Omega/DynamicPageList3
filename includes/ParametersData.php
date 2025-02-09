@@ -1208,7 +1208,7 @@ class ParametersData {
 	 * @param int $level
 	 */
 	public function setRichness( $level ) {
-		$this->parameterRichness = intval( $level );
+		$this->parameterRichness = (int)$level;
 	}
 
 	/**
