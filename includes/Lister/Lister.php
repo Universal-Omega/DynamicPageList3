@@ -840,7 +840,7 @@ class Lister {
 			$title = substr( $title, 0, $titleMaxLength ) . '...';
 		}
 
-		$tag = str_replace( '%TITLE%', $displayTitle ?? $title, $tag );
+		$tag = str_replace( '%TITLE%', $title, $tag );
 
 		$tag = str_replace( '%COUNT%', (string)$article->mCounter, $tag );
 		$tag = str_replace( '%COUNTFS%', (string)( floor( log( $article->mCounter ) * 0.7 ) ), $tag );
