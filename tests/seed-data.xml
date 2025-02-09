@@ -112,7 +112,7 @@
 			<origin>19</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text xml:space="preserve">Sed mollis dignissim [[DPLTestArticle 2]] purus, auctor faucibus [[DPLTestArticleNoCategory]] purus tincidunt at. {{DPLInfobox}}
+			<text xml:space="preserve">{{DISPLAYTITLE:DPLTestArticleDisplayTitle 1}} Sed mollis dignissim [[DPLTestArticle 2]] purus, auctor faucibus [[DPLTestArticleNoCategory]] purus tincidunt at. {{DPLInfobox}}
 [[Category:DPLTestCategory]]</text>
 			<sha1 />
 		</revision>
