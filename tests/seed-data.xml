@@ -132,7 +132,7 @@
 			<origin>20</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text bytes="72" sha1="gykofop7mtvar8ajsyppok80uy6fiti" xml:space="preserve">Sed dapibus enim ac quam pharetra suscipit.
+			<text bytes="72" sha1="gykofop7mtvar8ajsyppok80uy6fiti" xml:space="preserve">Sed dapibus enim [[DPLTestArticle 1]] ac quam pharetra suscipit.
 [[Category:DPLTestCategory]]</text>
 			<sha1>gykofop7mtvar8ajsyppok80uy6fiti</sha1>
 		</revision>
