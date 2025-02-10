@@ -555,7 +555,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$results
 		);
 	}
-	
+
 	public function testFindPagesLinkingToAndFromPage(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
