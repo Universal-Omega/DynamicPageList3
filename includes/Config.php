@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
-use ConfigException;
+use MediaWiki\Config\ConfigException;
 
 class Config {
 	/**
