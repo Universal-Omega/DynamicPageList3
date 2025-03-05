@@ -131,19 +131,19 @@ class Heading {
 	/**
 	 * Set extra list attributes.
 	 *
-	 * @param string $attributes
+	 * @param ?string $attributes
 	 */
 	public function setListAttributes( $attributes ) {
-		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
+		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes ?: '', 'ul' );
 	}
 
 	/**
 	 * Set extra item attributes.
 	 *
-	 * @param string $attributes
+	 * @param ?string $attributes
 	 */
 	public function setItemAttributes( $attributes ) {
-		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
+		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes ?: '', 'li' );
 	}
 
 	/**
