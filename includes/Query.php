@@ -16,8 +16,10 @@ use UnexpectedValueException;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\Platform\ISQLPlatform;
 
 class Query {
+	use ExternalDomainPatternParser;
 	/**
 	 * Parameters Object
 	 *
@@ -1588,40 +1590,91 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _linkstoexternal( $option ) {
+		$this->_linkstoexternaldomain( $option );
+	}
+
+	/**
+	 * Set SQL for 'linkstoexternaldomain' parameter.
+	 *
+	 * @param mixed $option
+	 */
+	private function _linkstoexternaldomain( $option ) {
 		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
 			$this->addGroupBy( 'page_title' );
 		}
 
-		if ( count( $option ) > 0 ) {
-			$this->addTable( 'externallinks', 'el' );
-			$this->addSelect( [ 'el_to' => 'el.el_to' ] );
+		if ( count( $option ) == 0 ) {
+			// Nothing to do
+			return;
+		}
+		$this->addTable( 'externallinks', 'el' );
+		$this->addSelect( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
 
-			foreach ( $option as $index => $linkGroup ) {
-				if ( $index == 0 ) {
-					$where = $this->tableNames['page'] . '.page_id=el.el_from AND ';
-					$ors = [];
+		foreach ( $option as $index => $domains ) {
+			$domainPatterns = array_map(
+				fn ( string $domain ) => $this->parseDomainPattern( $domain ),
+				$domains
+			);
+			if ( $index == 0 ) {
+				$ors = array_map(
+					fn ( $pattern ) => "el.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					$domainPatterns
+				);
 
-					foreach ( $linkGroup as $link ) {
-						$ors[] = 'el.el_to LIKE ' . $this->dbr->addQuotes( $link );
-					}
+				$where = "{$this->tableNames['page']}.page_id=el.el_from AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+			} else {
+				$ors = array_map(
+					fn ( $pattern ) => "{$this->tableNames['externallinks']}.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					$domainPatterns
+				);
 
-					$where .= '(' . implode( ' OR ', $ors ) . ')';
-				} else {
-					$where = 'EXISTS(SELECT el_from FROM ' . $this->tableNames['externallinks'] .
-						' WHERE (' . $this->tableNames['externallinks'] . '.el_from=page_id AND ';
-
-					$ors = [];
-
-					foreach ( $linkGroup as $link ) {
-						$ors[] = $this->tableNames['externallinks'] . '.el_to LIKE ' . $this->dbr->addQuotes( $link );
-					}
-
-					$where .= '(' . implode( ' OR ', $ors ) . ')';
-					$where .= '))';
-				}
-
-				$this->addWhere( $where );
+				$where = "EXISTS(SELECT el_from FROM {$this->tableNames['externallinks']} " .
+					" WHERE ({$this->tableNames['externallinks']}.el_from=page_id " .
+					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
 			}
+
+			$this->addWhere( $where );
+		}
+	}
+
+	/**
+	 * Set SQL for 'linkstoexternalpath' parameter.
+	 *
+	 * @param mixed $option
+	 */
+	private function _linkstoexternalpath( $option ) {
+		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
+			$this->addGroupBy( 'page_title' );
+		}
+
+		if ( count( $option ) == 0 ) {
+			// Nothing to do
+			return;
+		}
+
+		$this->addTable( 'externallinks', 'el' );
+		$this->addSelect( [ 'el_to_path' => 'el.el_to_path' ] );
+
+		foreach ( $option as $index => $paths ) {
+			if ( $index == 0 ) {
+				$ors = array_map(
+					fn ( $path ) => "el.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
+					$paths
+				);
+
+				$where = "{$this->tableNames['page']}.page_id=el.el_from AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+			} else {
+				$ors = array_map(
+					fn ( $path ) => "{$this->tableNames['externallinks']}.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
+					$paths
+				);
+
+				$where = "EXISTS(SELECT el_from FROM {$this->tableNames['externallinks']} " .
+					" WHERE ({$this->tableNames['externallinks']}.el_from=page_id " .
+					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
+			}
+
+			$this->addWhere( $where );
 		}
 	}
 
