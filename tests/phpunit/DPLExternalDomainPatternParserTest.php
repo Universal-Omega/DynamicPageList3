@@ -11,6 +11,10 @@ use PHPUnit\Framework\TestCase;
 class DPLExternalDomainPatternParserTest extends TestCase {
 	use ExternalDomainPatternParser;
 
+	/**
+	 * This test documents cases which are correctly supported
+	 * @covers ExternalDomainPatternParser
+	 */
 	#[DataProvider( 'getDomainPattern' )]
 	public function testParseDomainPattern( string $domain, string $expected ): void {
 		$actual = $this->parseDomainPattern( $domain );
@@ -42,7 +46,8 @@ class DPLExternalDomainPatternParserTest extends TestCase {
 	}
 
 	/**
-	 * This test documents cases that are not correctly supported
+	 * This test documents cases that are NOT correctly supported
+	 * @covers ExternalDomainPatternParser
 	 */
 	#[DataProvider( 'getUnsupportedDomainPattern' )]
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {

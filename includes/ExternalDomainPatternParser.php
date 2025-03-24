@@ -8,8 +8,10 @@ trait ExternalDomainPatternParser {
 	/**
 	 * We provide:
 	 * * full support for "standalone" wildcard usage (eg. `%.fandom.com`)
-	 * * partial support for wildcard usage when it is not separated by `.` (eg. `%fandom.com would match starwars.fandom-suffix.com)
-	 * * protocols followed by the `://` are supported, like `http://` or `https://` (`mailto:` on the other hand is not supported)
+	 * * partial support for wildcard usage when it is not separated by `.`
+	 *   (eg. `%fandom.com would match starwars.fandom-suffix.com)
+	 * * protocols followed by the `://` are supported, like `http://` or `https://`
+	 *   (`mailto:` on the other hand is not supported)
 	 *
 	 * @See DPLExternalDomainPatternParserTest for example cases
 	 */

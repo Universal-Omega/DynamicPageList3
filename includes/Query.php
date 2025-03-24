@@ -1621,15 +1621,17 @@ class Query {
 					$domainPatterns
 				);
 
-				$where = "{$this->tableNames['page']}.page_id=el.el_from AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+				$where = "{$this->tableNames['page']}.page_id=el.el_from " .
+					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
 			} else {
+				$linksTable = $this->tableNames['externallinks'];
 				$ors = array_map(
-					fn ( $pattern ) => "{$this->tableNames['externallinks']}.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					fn ( $pattern ) => "$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
-				$where = "EXISTS(SELECT el_from FROM {$this->tableNames['externallinks']} " .
-					" WHERE ({$this->tableNames['externallinks']}.el_from=page_id " .
+				$where = "EXISTS(SELECT el_from FROM $linksTable " .
+					" WHERE ($linksTable.el_from=page_id " .
 					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
 			}
 
@@ -1662,15 +1664,17 @@ class Query {
 					$paths
 				);
 
-				$where = "{$this->tableNames['page']}.page_id=el.el_from AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+				$where = "{$this->tableNames['page']}.page_id=el.el_from " .
+					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
 			} else {
+				$linksTable = $this->tableNames['externallinks'];
 				$ors = array_map(
-					fn ( $path ) => "{$this->tableNames['externallinks']}.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
+					fn ( $path ) => "$linksTable.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
 					$paths
 				);
 
-				$where = "EXISTS(SELECT el_from FROM {$this->tableNames['externallinks']} " .
-					" WHERE ({$this->tableNames['externallinks']}.el_from=page_id " .
+				$where = "EXISTS(SELECT el_from FROM $linksTable " .
+					" WHERE ($linksTable.el_from=page_id " .
 					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
 			}
 
