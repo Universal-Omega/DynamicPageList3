@@ -16,10 +16,10 @@ use UnexpectedValueException;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
-use Wikimedia\Rdbms\Platform\ISQLPlatform;
 
 class Query {
 	use ExternalDomainPatternParser;
+
 	/**
 	 * Parameters Object
 	 *

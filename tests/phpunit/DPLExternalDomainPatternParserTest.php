@@ -1,6 +1,7 @@
 <?php
 
 namespace MediaWiki\Extension\DynamicPageList3\Tests;
+
 use MediaWiki\Extension\DynamicPageList3\ExternalDomainPatternParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
