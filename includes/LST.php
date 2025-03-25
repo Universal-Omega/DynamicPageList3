@@ -599,7 +599,7 @@ class LST {
 				}
 			}
 
-			if ( !isset( $end_off ) ) {
+			if ( ( $end_off ?? null ) === null ) {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
@@ -618,7 +618,7 @@ class LST {
 
 			wfDebug( "LSTH: head offset = $nhead" );
 
-			if ( !empty( $end_off ) ) {
+			if ( $end_off ?? false ) {
 				if ( $end_off == -1 ) {
 					return $output;
 				}
@@ -1100,7 +1100,7 @@ class LST {
 			if ( !array_key_exists( $property, $reflectionCache ) ) {
 				try {
 					$reflectionCache[$property] = ( new ReflectionClass( Parser::class ) )->getProperty( $property );
-				} catch ( ReflectionException ) {
+				} catch ( ReflectionException $e ) {
 					$reflectionCache[$property] = null;
 				}
 			}
