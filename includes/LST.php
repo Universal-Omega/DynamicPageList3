@@ -880,7 +880,10 @@ class LST {
 										)
 									)
 								) . '}}';
-							$output[++$n] = self::callParserPreprocess( $parser, $argChain, $parser->getPage(), $parser->getOptions() );
+	
+							$output[++$n] = self::callParserPreprocess(
+								$parser, $argChain, $parser->getPage(), $parser->getOptions()
+							);
 						}
 						break;
 					}
