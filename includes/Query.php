@@ -16,10 +16,11 @@ use UnexpectedValueException;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
-use Wikimedia\Rdbms\Platform\ISQLPlatform;
 
 class Query {
+
 	use ExternalDomainPatternParser;
+
 	/**
 	 * Parameters Object
 	 *
@@ -1622,7 +1623,7 @@ class Query {
 				);
 
 				$where = "{$this->tableNames['page']}.page_id=el.el_from " .
-					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->tableNames['externallinks'];
 				$ors = array_map(
@@ -1632,7 +1633,7 @@ class Query {
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
 					" WHERE ($linksTable.el_from=page_id " .
-					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
+					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
 			$this->addWhere( $where );
@@ -1665,7 +1666,7 @@ class Query {
 				);
 
 				$where = "{$this->tableNames['page']}.page_id=el.el_from " .
-					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})";
+					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->tableNames['externallinks'];
 				$ors = array_map(
@@ -1675,7 +1676,7 @@ class Query {
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
 					" WHERE ($linksTable.el_from=page_id " .
-					" AND ({$this->dbr->makeList( $ors, ISQLPlatform::LIST_OR )})))";
+					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
 			$this->addWhere( $where );
