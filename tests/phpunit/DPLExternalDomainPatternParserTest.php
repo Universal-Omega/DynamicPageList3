@@ -3,26 +3,26 @@
 namespace MediaWiki\Extension\DynamicPageList3\Tests;
 
 use MediaWiki\Extension\DynamicPageList3\ExternalDomainPatternParser;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use MediaWikiIntegrationTestCase;
 
 /**
  * @group DynamicPageList3
  * @covers \MediaWiki\Extension\DynamicPageList3\ExternalDomainPatternParser
  */
-class DPLExternalDomainPatternParserTest extends TestCase {
+class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
+
 	use ExternalDomainPatternParser;
 
 	/**
 	 * This test documents cases which are correctly supported
+	 * @dataProvider getDomainPattern
 	 */
-	#[DataProvider( 'getDomainPattern' )]
 	public function testParseDomainPattern( string $domain, string $expected ): void {
 		$actual = $this->parseDomainPattern( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
-	public static function getDomainPattern(): array {
+	public function getDomainPattern(): array {
 		return [
 			// Full domain with extra path and without any wildcards
 			[ 'http://www.fandom.com/test123/test?test=%', 'http://com.fandom.www.' ],
@@ -48,14 +48,14 @@ class DPLExternalDomainPatternParserTest extends TestCase {
 
 	/**
 	 * This test documents cases that are NOT correctly supported
+	 * @dataProvider getUnsupportedDomainPattern
 	 */
-	#[DataProvider( 'getUnsupportedDomainPattern' )]
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {
 		$actual = $this->parseDomainPattern( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
-	public static function getUnsupportedDomainPattern(): array {
+	public function getUnsupportedDomainPattern(): array {
 		return [
 			// We are not supporting `_` as a `.`
 			[ 'http://www.fandom_com', 'http://fandom_com.www.' ],
