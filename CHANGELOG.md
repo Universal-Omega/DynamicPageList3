@@ -838,3 +838,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Replaced the deprecated `ExtVariables::VERSION` with using `ExtensionRegistry` to check if the Variables extension is installed.
 * Replaced usages of `intval()` with `(int)` in all remaining places within this extension. This was started in version 3.5.0 and completed in this version.
 * Replaced usages of `boolval()` with `(bool)` throughout the entire extension.
+
+# Version 3.6.2
+* Fixed Heading's attribute setters (hlistattr, hitemattr may be null).
+* Restored partial support for `linkstoexternal` and introduce replacement via `linkstoexternaldomain` and `linkstoexternalpath`.
+* Fixed type mismatch between what is returned by `getLinkList` (list of arrays that contains non-serializable TitleValue) and what is expected by ParserOutput.
