@@ -841,5 +841,5 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 
 # Version 3.6.2
 * Fixed Heading's attribute setters (hlistattr, hitemattr may be null).
-* Restored partial support for `linkstoexternal` and introduce replacement via `linkstoexternaldomain` and `linkstoexternalpath`.
-* Fixed type mismatch between what is returned by `getLinkList` (list of arrays that contains non-serializable TitleValue) and what is expected by ParserOutput.
+* Restored partial support for `linkstoexternal` and introduced replacement via `linkstoexternaldomain` and `linkstoexternalpath`.
+* Fixed type mismatch between what is returned by `getLinkList` (list of arrays that contained non-serializable TitleValue) and what is expected by ParserOutput.
