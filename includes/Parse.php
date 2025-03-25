@@ -9,7 +9,6 @@ use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
-use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
@@ -1105,7 +1104,7 @@ class Parse {
 				// statement itself uses one of these links they will be thrown away!
 				Hooks::$createdLinks[0] = [];
 
-				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL ) as $nsp => $link ) {
+				foreach ( $parserOutput->mLinks as $nsp => $link ) {
 					Hooks::$createdLinks[0][$nsp] = $link;
 				}
 			}
@@ -1113,7 +1112,7 @@ class Parse {
 			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Hooks::$createdLinks[1] = [];
 
-				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE ) as $nsp => $tpl ) {
+				foreach ( $parserOutput->mTemplates as $nsp => $tpl ) {
 					Hooks::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
