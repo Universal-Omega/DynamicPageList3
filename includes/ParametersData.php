@@ -133,6 +133,9 @@ class ParametersData {
 			'categoryregexp',
 			'firstrevisionsince',
 			'lastrevisionbefore',
+			'linkstoexternal',
+			'linkstoexternaldomain',
+			'linkstoexternalpath',
 			'maxrevisions',
 			'minrevisions',
 			'notcategorymatch',
@@ -149,7 +152,6 @@ class ParametersData {
 		],
 		// Should never be used; likely broken or will cause exceptions
 		5 => [
-			'linkstoexternal',
 		],
 	];
 
@@ -578,12 +580,36 @@ class ParametersData {
 			'set_criteria_found' => true
 		],
 		/**
-		 * This parameter restricts the output to articles which contain an external
-		 * reference that conatins a certain pattern.
-		 *
-		 * Examples:   linkstoexternal= www.xyz.com|www.xyz2.com
+		 * Alias for `linkstoexternaldomain`.
+		 * To mimic old behaviour use `linkstoexternaldomain` together with `linkstoexternalpath`
 		 */
 		'linkstoexternal' => [
+			'default' => null,
+			'open_ref_conflict' => true,
+			'page_name_list' => true,
+			'page_name_must_exist' => false,
+			'set_criteria_found' => true
+		],
+		/**
+		 * This parameter restricts the output to articles which contain an external
+		 * domain reference that contains a certain pattern.
+		 *
+		 * Examples:   linkstoexternaldomain=www.xyz.com|www.xyz2.%
+		 */
+		'linkstoexternaldomain' => [
+			'default' => null,
+			'open_ref_conflict' => true,
+			'page_name_list' => true,
+			'page_name_must_exist' => false,
+			'set_criteria_found' => true
+		],
+		/**
+		 * This parameter restricts the output to articles which contain an external
+		 * path reference that contains a certain pattern.
+		 *
+		 * Examples:   linkstoexternalpath=/xyz/%|%/abc/%
+		 */
+		'linkstoexternalpath' => [
 			'default' => null,
 			'open_ref_conflict' => true,
 			'page_name_list' => true,
