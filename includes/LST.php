@@ -1066,7 +1066,12 @@ class LST {
 	 * @param ParserOptions $options
 	 * @return string
 	 */
-	protected static function callParserPreprocess( Parser $parser, $text, $page, $options ): string {
+	protected static function callParserPreprocess(
+		Parser $parser,
+		string $text,
+		?PageReference $page,
+		ParserOptions $options
+	): string {
 		if ( Config::getSetting( 'recursivePreprocess' ) ) {
 			self::softResetParser( $parser );
 			$parser->setOutputType( OT_PREPROCESS );
