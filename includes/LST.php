@@ -1059,12 +1059,6 @@ class LST {
 	 *
 	 * Using Parser::recursivePreprocess() prevents the cache clear, and thus repetitive calls reuse the
 	 * previously generated template DOM which brings a decent performance improvement when called multiple times.
-	 *
-	 * @param Parser $parser
-	 * @param string $text
-	 * @param ?PageReference $page
-	 * @param ParserOptions $options
-	 * @return string
 	 */
 	protected static function callParserPreprocess(
 		Parser $parser,
