@@ -1069,12 +1069,12 @@ class LST {
 		if ( Config::getSetting( 'recursivePreprocess' ) ) {
 			self::softResetParser( $parser );
 			$parser->setOutputType( OT_PREPROCESS );
-			$text = $parser->recursivePreprocess( $text );
 
+			$text = $parser->recursivePreprocess( $text );
 			return $text;
-		} else {
-			return $parser->preprocess( $text, $page, $options );
 		}
+
+		return $parser->preprocess( $text, $page, $options );
 	}
 
 	/**
@@ -1103,6 +1103,7 @@ class LST {
 					$reflectionCache[$property] = null;
 				}
 			}
+
 			if ( $reflectionCache[$property] ) {
 				$reflectionCache[$property]->setValue( $parser, $value );
 			}
