@@ -29,8 +29,13 @@ namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOptions;
+use MediaWiki\Parser\StripState;
 use MediaWiki\Title\Title;
+use ReflectionClass;
+use ReflectionException;
 
 class LST {
 
@@ -123,7 +128,7 @@ class LST {
 
 			// Handle recursion here, so we can break cycles.
 			if ( $recursionCheck == false ) {
-				$text = $parser->preprocess( $text, $parser->getPage(), $parser->getOptions() );
+				$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
 				self::close( $parser, $part1 );
 			}
 
@@ -594,7 +599,7 @@ class LST {
 				}
 			}
 
-			if ( !$end_off ) {
+			if ( ( $end_off ?? null ) === null ) {
 				if ( $nr != 0 ) {
 					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
 				} else {
@@ -613,7 +618,7 @@ class LST {
 
 			wfDebug( "LSTH: head offset = $nhead" );
 
-			if ( $end_off ) {
+			if ( $end_off ?? false ) {
 				if ( $end_off == -1 ) {
 					return $output;
 				}
@@ -804,7 +809,7 @@ class LST {
 				}
 			} else {
 				// put a red link into the output
-				$output[0] = $parser->preprocess(
+				$output[0] = self::callParserPreprocess( $parser,
 					'{{' . $defaultTemplate . '|%PAGE%=' .
 					$page . '|%TITLE%=' . $title->getText() .
 					'|%DATE%=' . $date . '|%USER%=' . $user . '}}',
@@ -875,7 +880,10 @@ class LST {
 										)
 									)
 								) . '}}';
-							$output[++$n] = $parser->preprocess( $argChain, $parser->getPage(), $parser->getOptions() );
+
+							$output[++$n] = self::callParserPreprocess(
+								$parser, $argChain, $parser->getPage(), $parser->getOptions()
+							);
 						}
 						break;
 					}
@@ -1035,5 +1043,70 @@ class LST {
 	public static function spaceOrUnderscore( $pattern ) {
 		// returns a pettern that matches underscores as well as spaces
 		return str_replace( ' ', '[ _]', $pattern );
+	}
+
+	/**
+	 * Preprocess given text according to the globally-configured method
+	 *
+	 * The default method uses Parser::preprocess() which does the job, but clears the internal cache every time.
+	 * The improved method uses Parser::recursivePreprocess() that saves a decent amount of processing time
+	 * by preserving the internal cache leveraging the repetitive call pattern.
+	 *
+	 * Parser::preprocess() was mainly called from LST::includeTemplate() for the same template(s) with different
+	 * set of arguments for each article found. In the original implementation using Parser::preprocess(),
+	 * the internal cache is cleared at each call and parsing the same template text into template DOM is repeated
+	 * multiple times.
+	 *
+	 * Using Parser::recursivePreprocess() prevents the cache clear, and thus repetitive calls reuse the
+	 * previously generated template DOM which brings a decent performance improvement when called multiple times.
+	 */
+	protected static function callParserPreprocess(
+		Parser $parser,
+		string $text,
+		?PageReference $page,
+		ParserOptions $options
+	): string {
+		if ( Config::getSetting( 'recursivePreprocess' ) ) {
+			self::softResetParser( $parser );
+			$parser->setOutputType( OT_PREPROCESS );
+
+			$text = $parser->recursivePreprocess( $text );
+			return $text;
+		}
+
+		return $parser->preprocess( $text, $page, $options );
+	}
+
+	/**
+	 * Reset Parser's internal counters to avoid kicking in the limits when rendering long lists of results.
+	 */
+	private static function softResetParser( Parser $parser ): void {
+		self::setParserProperties( $parser, [
+			'mStripState' => new StripState( $parser ),
+			'mIncludeSizes' => [
+				'post-expand' => 0,
+				'arg' => 0,
+			],
+			'mPPNodeCount' => 0,
+			'mHighestExpansionDepth' => 0,
+			'mExpensiveFunctionCount' => 0,
+		] );
+	}
+
+	private static function setParserProperties( Parser $parser, array $properties ): void {
+		static $reflectionCache = [];
+		foreach ( $properties as $property => $value ) {
+			if ( !array_key_exists( $property, $reflectionCache ) ) {
+				try {
+					$reflectionCache[$property] = ( new ReflectionClass( Parser::class ) )->getProperty( $property );
+				} catch ( ReflectionException $e ) {
+					$reflectionCache[$property] = null;
+				}
+			}
+
+			if ( $reflectionCache[$property] ) {
+				$reflectionCache[$property]->setValue( $parser, $value );
+			}
+		}
 	}
 }

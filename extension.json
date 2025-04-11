@@ -58,6 +58,7 @@
 				"minCategoryCount": 0,
 				"maxResultCount": 500,
 				"recursiveTagParse": false,
+				"recursivePreprocess": false,
 				"runFromProtectedPagesOnly": false,
 				"handleSectionTag": false,
 				"alwaysCacheResults": false,
