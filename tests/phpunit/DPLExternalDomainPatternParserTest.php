@@ -15,14 +15,14 @@ class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * This test documents cases which are correctly supported
-	 * @dataProvider getDomainPattern
+	 * @dataProvider provideDomainPattern
 	 */
 	public function testParseDomainPattern( string $domain, string $expected ): void {
 		$actual = $this->parseDomainPattern( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function getDomainPattern(): array {
+	public function provideDomainPattern(): array {
 		return [
 			// Full domain with extra path and without any wildcards
 			[ 'http://www.fandom.com/test123/test?test=%', 'http://com.fandom.www.' ],
@@ -48,14 +48,14 @@ class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * This test documents cases that are NOT correctly supported
-	 * @dataProvider getUnsupportedDomainPattern
+	 * @dataProvider provideUnsupportedDomainPattern
 	 */
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {
 		$actual = $this->parseDomainPattern( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function getUnsupportedDomainPattern(): array {
+	public function provideUnsupportedDomainPattern(): array {
 		return [
 			// We are not supporting `_` as a `.`
 			[ 'http://www.fandom_com', 'http://fandom_com.www.' ],
