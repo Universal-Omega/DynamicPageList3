@@ -200,7 +200,7 @@ class Query {
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->addTable( 'page', $this->tableNames['page'] );
+			$this->addTable( 'page', 'page' );
 			$this->addSelect(
 				[
 					'page_namespace' => $this->tableNames['page'] . '.page_namespace',
@@ -487,7 +487,7 @@ class Query {
 		}
 
 		if ( !isset( $this->tables[$alias] ) ) {
-			$this->tables[$alias] = $this->dbr->tableName( $table );
+			$this->tables[$alias] = $table;
 
 			return true;
 		} else {
