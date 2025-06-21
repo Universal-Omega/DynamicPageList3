@@ -365,8 +365,12 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $e ) {
+			$errorMessage = $this->dbr->lastError();
+			if ( $errorMessage == '' ) {
+				$errorMessage = strval( $e );
+			}
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Hooks::getVersion(), $this->dbr->lastError()
+				'dpl_query_error', Hooks::getVersion(), $errorMessage
 			)->text() );
 		}
 
