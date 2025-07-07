@@ -146,7 +146,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		);
 
 		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
-
-		return $parserOutput->getText();
+		return $parserOutput->getContentHolderText();
 	}
 }
