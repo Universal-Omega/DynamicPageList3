@@ -256,7 +256,8 @@ class Query {
 				}
 
 				$this->addWhere(
-					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = {$this->dbr->tableName( 'linktarget' )}.lt_id"
+					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
+					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
 				);
 
 				$this->addJoin(
@@ -1448,7 +1449,7 @@ class Query {
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$_or = '(' . $this->dbr->tableName( 'linktarget' ) . '.lt_namespace=' . (int)$link->getNamespace();
+						$_or = "({$this->dbr->tableName( 'linktarget' )}.lt_namespace = {$link->getNamespace()}";
 						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
@@ -1456,7 +1457,7 @@ class Query {
 						}
 
 						if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-							$_or .= ' AND LOWER(CAST(' . $this->dbr->tableName( 'linktarget' ) . '.lt_title AS char)) ' .
+							$_or .= " AND LOWER(CAST({$this->dbr->tableName( 'linktarget' )}.lt_title AS char)) " .
 								$operator . ' LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 						} else {
 							$_or .= ' AND ' . $this->dbr->tableName( 'linktarget' ) . '.lt_title ' .
@@ -2420,7 +2421,7 @@ class Query {
 
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$_or = '(' . $this->dbr->tableName( 'linktarget' ) . '.' . $nsField . '=' . (int)$link->getNamespace();
+					$_or = "({$this->dbr->tableName( 'linktarget' )}.$nsField = {$link->getNamespace()}";
 
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 						$_or .= ' AND LOWER(CAST(' . $this->dbr->tableName( 'linktarget' ) . '.' .
