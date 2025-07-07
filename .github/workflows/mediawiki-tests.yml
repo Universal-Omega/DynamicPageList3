@@ -74,8 +74,8 @@ jobs:
     env:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
       DOCKER_ORG: releng
-      QUIBBLE_DOCKER_IMAGE: quibble-buster-php${{ matrix.php-docker }}
-      COVERAGE_DOCKER_IMAGE: quibble-buster-php${{ matrix.php-docker }}-coverage
+      QUIBBLE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}
+      COVERAGE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}-coverage
       PHAN_DOCKER_IMAGE: mediawiki-phan-php${{ matrix.php-docker }}
       MEDIAWIKI_VERSION: ${{ matrix.mw }}
 
