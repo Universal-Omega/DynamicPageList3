@@ -453,8 +453,7 @@ class Query {
 		}
 
 		if ( !isset( $this->tables[$alias] ) ) {
-			$this->tables[$alias] = $table;
-
+			$this->tables[$alias] = $this->dbr->tableName( $table, 'raw' );
 			return true;
 		} else {
 			return false;
