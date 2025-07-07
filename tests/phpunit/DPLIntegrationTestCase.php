@@ -11,6 +11,7 @@ use MediaWiki\Status\Status;
 use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
+use Wikimedia\TestingAccessWrapper;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
@@ -145,14 +146,16 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 			RequestContext::getMain()
 		);
 
-		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
+		$parserOutput = TestingAccessWrapper::newFromObject(
+			$parser->parse( $invocation, $title, $parserOptions )
+		);
 		$oldText = null;
 		if ( $parserOutput->hasText() ) {
 			$oldText = $parserOutput->getRawText();
 		}
 
 		$options = [ 'allowClone' => false ];
-		$po = $parserOutput->runOutputPipeline( $parserOptions, $options );
+		$po = $parserOutput->runPipelineInternal( null, $options );
 		$newText = $po->getContentHolderText();
 		$parserOutput->setRawText( $oldText );
 		return $newText;
