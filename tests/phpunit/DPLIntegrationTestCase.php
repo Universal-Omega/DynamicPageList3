@@ -149,11 +149,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$parserOutput = TestingAccessWrapper::newFromObject(
 			$parser->parse( $invocation, $title, $parserOptions )
 		);
-		$oldText = null;
-		if ( $parserOutput->hasText() ) {
-			$oldText = $parserOutput->getRawText();
-		}
-
+		$oldText = $parserOutput->mRawText;
 		$options = [ 'allowClone' => false ];
 		$po = $parserOutput->runPipelineInternal( null, $options );
 		$newText = $po->getContentHolderText();
