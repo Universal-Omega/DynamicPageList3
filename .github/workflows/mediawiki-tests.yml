@@ -13,11 +13,18 @@ jobs:
     strategy:
       matrix:
         include:
-          # Latest stable MediaWiki - PHP 8.1 (phan)
+          # Latest MediaWiki LTS - PHP 8.1 (phan)
           - mw: 'REL1_43'
             php: 8.1
             php-docker: 81
             experimental: false
+            stage: phan
+
+          # Latest stable MediaWiki - PHP 8.1 (phan)
+          - mw: 'REL1_44'
+            php: 8.1
+            php-docker: 81
+            experimental: true
             stage: phan
 
           # Latest MediaWiki master - PHP 8.1 (phan)
@@ -34,8 +41,15 @@ jobs:
             experimental: false
             stage: coverage
 
-          # Latest stable MediaWiki - PHP 8.1 (phpunit)
+          # Latest MediaWiki LTS - PHP 8.1 (phpunit)
           - mw: 'REL1_43'
+            php: 8.1
+            php-docker: 81
+            experimental: false
+            stage: phpunit
+            
+          # Latest stable MediaWiki - PHP 8.1 (phpunit)
+          - mw: 'REL1_44'
             php: 8.1
             php-docker: 81
             experimental: false
