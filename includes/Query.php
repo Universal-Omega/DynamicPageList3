@@ -191,12 +191,12 @@ class Query {
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->addTable( 'page', 'page' );
+			$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 			$this->addSelect(
 				[
-					'page_namespace' => $this->dbr->tableName( 'page', 'raw' ) . '.page_namespace',
-					'page_id' => $this->dbr->tableName( 'page', 'raw' ) . '.page_id',
-					'page_title' => $this->dbr->tableName( 'page', 'raw' ) . '.page_title'
+					'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
+					'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
+					'page_title' => $this->dbr->tableName( 'page' ) . '.page_title'
 				]
 			);
 		}
