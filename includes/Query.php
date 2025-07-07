@@ -194,9 +194,9 @@ class Query {
 			$this->addTable( 'page', 'page' );
 			$this->addSelect(
 				[
-					'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
-					'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-					'page_title' => $this->dbr->tableName( 'page' ) . '.page_title'
+					'page_namespace' => $this->dbr->tableName( 'page', 'raw' ) . '.page_namespace',
+					'page_id' => $this->dbr->tableName( 'page', 'raw' ) . '.page_id',
+					'page_title' => $this->dbr->tableName( 'page', 'raw' ) . '.page_title'
 				]
 			);
 		}
