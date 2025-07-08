@@ -2031,12 +2031,10 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
-					$this->addSelect(
-						[
-							'sortkey' => 'CONCAT(COALESCE(ltf.lt_namespace, lt.lt_namespace), ' .
-								"COALESCE(ltf.lt_title, lt.lt_title)) {$this->getCollateSQL()}",
-						]
-					);
+					$this->addSelect( [
+						'sortkey' => 'CONCAT(IFNULL(lt.lt_namespace, ltf.lt_namespace), ' .
+      							'IFNULL(lt.lt_title, ltf.lt_title)) ' . $this->getCollateSQL(),
+					] );
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
