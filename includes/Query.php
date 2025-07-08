@@ -189,8 +189,8 @@ class Query {
 			$this->parametersProcessed[$parameter] = true;
 		}
 
-		$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
+			$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 			// Add things that are always part of the query.
 			$this->addSelect(
 				[
@@ -256,8 +256,8 @@ class Query {
 				}
 
 				$this->addWhere(
-					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
-					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
+					"{$this->dbr->tableName( 'pagelinks', 'raw' )}.pl_target_id = " .
+					"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_id"
 				);
 
 				$this->addJoin(
