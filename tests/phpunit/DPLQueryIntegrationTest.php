@@ -526,10 +526,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 		$this->assertArrayEquals(
 			[
-				'DPLTestArticleNoCategory',
-				'DPLTestArticle 1',
 				'DPLTestArticle 2',
-				'DPLTestArticle 3',
+				'DPLTestOpenReferences',
 			],
 			$results,
 			true
