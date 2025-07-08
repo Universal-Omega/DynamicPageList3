@@ -228,6 +228,8 @@ class Query {
 					]
 				);
 
+				// Reset tables
+				$this->tables = [];
 				$this->addTable( 'imagelinks', 'ic' );
 			} else {
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
@@ -269,6 +271,8 @@ class Query {
 					]
 				);
 
+				// Reset tables
+				$this->tables = [];
 				$this->addTables( [
 					'page' => $this->dbr->tableName( 'page', 'raw' ),
 					'pagelinks' => $this->dbr->tableName( 'pagelinks', 'raw' ),
