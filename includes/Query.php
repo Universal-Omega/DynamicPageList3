@@ -228,29 +228,26 @@ class Query {
 					]
 				);
 
-				// Reset tables
-				$this->tables = [];
 				$this->addTable( 'imagelinks', 'ic' );
 			} else {
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
 					$this->addSelect(
 						[
-							'page_namespace',
-							'page_id',
-							'page_title',
-							'lt_namespace',
-							'lt_title',
+							'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
+							'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
+							'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
+							'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
+							'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
 						]
 					);
 
-					$this->addWhere( [ 'page_namespace' => null ] );
+					$this->addWhere( [ $this->dbr->tableName( 'page' ) . '.page_namespace' => null ] );
 				} else {
 					$this->addSelect(
 						[
-							// this fixes "Undefined property: stdClass::$page_id"
-							'page_id',
-							'lt_namespace',
-							'lt_title',
+							'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
+							'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
+							'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
 						]
 					);
 				}
@@ -261,18 +258,18 @@ class Query {
 				);
 
 				$this->addJoin(
-					'page',
+					$this->dbr->tableName( 'page', 'raw' ),
 					[
 						'LEFT JOIN',
 						[
-							'page_namespace = lt_namespace',
-							'page_title = lt_title',
+							"{$this->dbr->tableName( 'page' )}.page_namespace = " .
+							"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
+							"{$this->dbr->tableName( 'page' )}.page_title = " .
+							"{$this->dbr->tableName( 'linktarget' )}.lt_title",
 						],
 					]
 				);
 
-				// Reset tables
-				$this->tables = [];
 				$this->addTables( [
 					'page' => $this->dbr->tableName( 'page', 'raw' ),
 					'pagelinks' => $this->dbr->tableName( 'pagelinks', 'raw' ),
