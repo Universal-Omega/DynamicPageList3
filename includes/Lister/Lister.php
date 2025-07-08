@@ -816,7 +816,7 @@ class Lister {
 		$tag = str_replace( '%USER%', $article->mUser, $tag );
 
 		if ( $article->mSelTitle ) {
-			if ( $article->mSelNamespace == 0 ) {
+			if ( $article->mSelNamespace === NS_MAIN ) {
 				$tag = str_replace( '%PAGESEL%', str_replace( '_', ' ', $article->mSelTitle ), $tag );
 			} else {
 				$tag = str_replace( '%PAGESEL%', $namespaces[$article->mSelNamespace] . ':' .

@@ -286,13 +286,10 @@ class Article {
 				count( $parameters->getParameter( 'linksfrom' ) )
 			)
 		) {
-			if ( !isset( $row->sel_title ) ) {
-				$article->mSelTitle = 'unknown page';
-				$article->mSelNamespace = 0;
-			} else {
-				$article->mSelTitle = $row->sel_title;
-				$article->mSelNamespace = $row->sel_ns;
-			}
+			$article->mSelTitle = $row->sel_from_title ??
+				$row->sel_to_title ?? 'unknown page';
+			$article->mSelNamespace = $row->sel_from_ns ??
+				$row->sel_to_ns ?? NS_MAIN;
 		}
 
 		// STORE selected image

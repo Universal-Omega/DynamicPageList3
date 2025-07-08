@@ -1379,8 +1379,8 @@ class Query {
 			if ( $this->isPageselFormatUsed() ) {
 				$this->addSelect(
 					[
-						'sel_title' => 'pagesrc.page_title',
-						'sel_ns' => 'pagesrc.page_namespace'
+						'sel_from_title' => 'pagesrc.page_title',
+						'sel_from_ns' => 'pagesrc.page_namespace'
 					]
 				);
 			}
@@ -1416,7 +1416,7 @@ class Query {
 			$this->addTable( 'linktarget', 'lt' );
 
 			if ( $this->isPageselFormatUsed() ) {
-				$this->addSelect( [ 'sel_title' => 'lt.lt_title', 'sel_ns' => 'lt.lt_namespace' ] );
+				$this->addSelect( [ 'sel_to_title' => 'lt.lt_title', 'sel_to_ns' => 'lt.lt_namespace' ] );
 			}
 
 			$this->addWhere( 'pl.pl_target_id = lt.lt_id' );
