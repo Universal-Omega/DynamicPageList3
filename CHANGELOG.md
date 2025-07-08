@@ -843,3 +843,12 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed Heading's attribute setters (hlistattr, hitemattr may be null).
 * Restored partial support for `linkstoexternal` and introduced replacement via `linkstoexternaldomain` and `linkstoexternalpath`.
 * Fixed type mismatch between what is returned by `getLinkList` (list of arrays that contained non-serializable TitleValue) and what is expected by ParserOutput.
+
+# Version 3.6.3
+* Applied some performance improvements to LST from downstream (which added the new configuration option `$wgDplSettings['recursivePreprocess']`).
+* Now shows raw query exception if the request is not made.
+* Fixed CI compatibility with PHP 8.1 (which upstream MediaWiki master now requires).
+* Added REL1_44 to CI.
+* Fixed tests, replacing `ParserOutput::getText` with `ParserOutput::getContentHolderText`.
+* Removed `Query::getTableNames` and associated properties, replacing calls with `$this->dbr->tableName`.
+* Fixed compatability with upstream backported changes to use raw table names where necessary (by passing the second parameter of `$this->dbr->tableName` as `'raw'` where needed).
