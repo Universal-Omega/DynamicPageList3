@@ -29,13 +29,6 @@ class Parse {
 	private $logger = null;
 
 	/**
-	 * Array of prequoted table names.
-	 *
-	 * @var string[]
-	 */
-	private $tableNames = [];
-
-	/**
 	 * Header Output
 	 *
 	 * @var string
@@ -86,7 +79,6 @@ class Parse {
 	public function __construct() {
 		$this->parameters = new Parameters();
 		$this->logger = new Logger();
-		$this->tableNames = Query::getTableNames();
 		$this->request = RequestContext::getMain()->getRequest();
 	}
 
