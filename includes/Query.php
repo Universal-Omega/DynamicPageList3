@@ -2033,8 +2033,8 @@ class Query {
 					$this->addOrderBy( 'sortkey' );
 					$this->addSelect(
 						[
-							'sortkey' => 'CONCAT(CAST(COALESCE(lt.lt_namespace, ltf.lt_namespace) AS CHAR), ' .
-								"COALESCE(lt.lt_title, ltf.lt_title)) {$this->getCollateSQL()}",
+							'sortkey' => 'CONCAT(COALESCE(ltf.lt_namespace, lt.lt_namespace), ' .
+								"COALESCE(ltf.lt_title, lt.lt_title)) {$this->getCollateSQL()}",
 						]
 					);
 					break;
