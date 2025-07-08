@@ -282,7 +282,7 @@ class Query {
 			}
 			if ( count( $this->orderBy ) ) {
 				$options['ORDER BY'] = $this->orderBy;
-				foreach ( $options['ORDER BY'] as $key => $value ) {
+				foreach ( $options['ORDER BY'] as $key => $_ ) {
 					$options['ORDER BY'][$key] .= ' ' . $this->direction;
 				}
 			}
