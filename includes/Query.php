@@ -2031,9 +2031,18 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
-					$this->addSelect( [
-						'sortkey' => 'CONCAT(ltf.lt_namespace, ltf.lt_title) ' . $this->getCollateSQL(),
-					] );
+					if (
+						is_array( $this->parameters->getParameter( 'linksfrom' ) ) &&
+						count( $this->parameters->getParameter( 'linksfrom' ) )
+					) {
+						$this->addSelect( [
+							'sortkey' => 'CONCAT(ltf.lt_namespace, ltf.lt_title) ' . $this->getCollateSQL(),
+						] );
+					} else {
+						$this->addSelect( [
+							'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
+						] );
+					}
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
