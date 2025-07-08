@@ -516,6 +516,26 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
+	public function testFindPagesLinkedToPageOrderedByPagesel(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksto' => 'DPLTestArticle 1',
+			'ordermethod' => 'pagesel',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticleNoCategory',
+				'DPLTestArticle 1',
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+			],
+			$results,
+			true
+		);
+	}
+
 	public function testFindPagesNotLinkedFromPage(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
