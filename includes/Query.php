@@ -189,14 +189,14 @@ class Query {
 			$this->parametersProcessed[$parameter] = true;
 		}
 
+		$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 			$this->addSelect(
 				[
 					'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
 					'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-					'page_title' => $this->dbr->tableName( 'page' ) . '.page_title'
+					'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
 				]
 			);
 		}
@@ -205,7 +205,7 @@ class Query {
 		if ( is_array( $wgNonincludableNamespaces ) && count( $wgNonincludableNamespaces ) ) {
 			$this->addNotWhere(
 				[
-					$this->dbr->tableName( 'page' ) . '.page_namespace' => $wgNonincludableNamespaces
+					$this->dbr->tableName( 'page' ) . '.page_namespace' => $wgNonincludableNamespaces,
 				]
 			);
 		}
@@ -454,11 +454,10 @@ class Query {
 
 		if ( !isset( $this->tables[$alias] ) ) {
 			$this->tables[$alias] = $table;
-
 			return true;
-		} else {
-			return false;
 		}
+
+		return false;
 	}
 
 	/**
