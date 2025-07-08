@@ -288,8 +288,8 @@ class Article {
 		) {
 			$article->mSelTitle = $row->sel_from_title ??
 				$row->sel_to_title ?? 'unknown page';
-			$article->mSelNamespace = $row->sel_from_ns ??
-				$row->sel_to_ns ?? NS_MAIN;
+			$article->mSelNamespace = (int)( $row->sel_from_ns ??
+				$row->sel_to_ns ?? NS_MAIN );
 		}
 
 		// STORE selected image
