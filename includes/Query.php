@@ -270,7 +270,7 @@ class Query {
 				);
 
 				$this->addTables( [
-					'page' => $this->dbr->tableName( 'linktarget', 'raw' ),
+					'page' => $this->dbr->tableName( 'page', 'raw' ),
 					'pagelinks' => $this->dbr->tableName( 'pagelinks', 'raw' ),
 					'linktarget' => $this->dbr->tableName( 'linktarget', 'raw' ),
 				] );
