@@ -256,8 +256,8 @@ class Query {
 				}
 
 				$this->addWhere(
-					"{$this->dbr->tableName( 'pagelinks', 'raw' )}.pl_target_id = " .
-					"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_id"
+					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
+					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
 				);
 
 				$this->addJoin(
@@ -272,9 +272,9 @@ class Query {
 				);
 
 				$tables = [
-					'page',
-					'pagelinks',
-					'linktarget',
+					'page' => $this->dbr->tableName( 'page', 'raw' ),
+					'pagelinks' => $this->dbr->tableName( 'pagelinks', 'raw' ),
+					'linktarget' => $this->dbr->tableName( 'linktarget', 'raw' ),
 				];
 			}
 		} else {
