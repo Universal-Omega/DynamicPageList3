@@ -190,8 +190,8 @@ class Query {
 		}
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
-			$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 			// Add things that are always part of the query.
+			$this->addTable( 'page', $this->dbr->tableName( 'page', 'raw' ) );
 			$this->addSelect(
 				[
 					'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
@@ -228,9 +228,7 @@ class Query {
 					]
 				);
 
-				$tables = [
-					'ic' => 'imagelinks'
-				];
+				$this->addTable( 'imagelinks', 'ic' );
 			} else {
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
 					$this->addSelect(
@@ -271,14 +269,13 @@ class Query {
 					]
 				);
 
-				$tables = [
-					'page' => $this->dbr->tableName( 'page', 'raw' ),
+				$this->addTables( [
+					'page' => $this->dbr->tableName( 'linktarget', 'raw' ),
 					'pagelinks' => $this->dbr->tableName( 'pagelinks', 'raw' ),
 					'linktarget' => $this->dbr->tableName( 'linktarget', 'raw' ),
-				];
+				] );
 			}
 		} else {
-			$tables = $this->tables;
 			if ( count( $this->groupBy ) ) {
 				$options['GROUP BY'] = $this->groupBy;
 			}
@@ -313,7 +310,7 @@ class Query {
 		try {
 			if ( $categoriesGoal ) {
 				$res = $this->dbr->select(
-					$tables,
+					$this->tables,
 					$fields,
 					$this->where,
 					__METHOD__,
@@ -344,7 +341,7 @@ class Query {
 				);
 			} else {
 				$query = $this->dbr->selectSQLText(
-					$tables,
+					$this->tables,
 					$fields,
 					$this->where,
 					__METHOD__,
@@ -378,6 +375,7 @@ class Query {
 		if ( $profilingContext ) {
 			$qname .= ' - ' . $profilingContext;
 		}
+		$tables = $this->tables;
 		$where = $this->where;
 		$join = $this->join;
 		$dbr = $this->dbr;
