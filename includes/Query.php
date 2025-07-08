@@ -1412,22 +1412,22 @@ class Query {
 	 */
 	private function _linksto( $option ) {
 		if ( count( $option ) > 0 ) {
-			$this->addTable( 'pagelinks', 'plt' );
-			$this->addTable( 'linktarget', 'ltt' );
+			$this->addTable( 'pagelinks', 'pl' );
+			$this->addTable( 'linktarget', 'lt' );
 
 			if ( $this->isPageselFormatUsed() ) {
-				$this->addSelect( [ 'sel_to_title' => 'ltt.lt_title', 'sel_to_ns' => 'ltt.lt_namespace' ] );
+				$this->addSelect( [ 'sel_to_title' => 'lt.lt_title', 'sel_to_ns' => 'lt.lt_namespace' ] );
 			}
 
-			$this->addWhere( 'plt.pl_target_id = ltt.lt_id' );
+			$this->addWhere( 'pl.pl_target_id = lt.lt_id' );
 
 			foreach ( $option as $index => $linkGroup ) {
 				if ( $index == 0 ) {
-					$where = $this->dbr->tableName( 'page' ) . '.page_id=plt.pl_from AND ';
+					$where = $this->dbr->tableName( 'page' ) . '.page_id=pl.pl_from AND ';
 					$ors = [];
 
 					foreach ( $linkGroup as $link ) {
-						$_or = '(ltt.lt_namespace=' . (int)$link->getNamespace();
+						$_or = '(lt.lt_namespace=' . (int)$link->getNamespace();
 						if ( strpos( $link->getDBkey(), '%' ) >= 0 ) {
 							$operator = 'LIKE';
 						} else {
@@ -1435,10 +1435,10 @@ class Query {
 						}
 
 						if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-							$_or .= ' AND LOWER(CAST(ltt.lt_title AS char)) ' .
+							$_or .= ' AND LOWER(CAST(lt.lt_title AS char)) ' .
 								$operator . ' LOWER(' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 						} else {
-							$_or .= ' AND ltt.lt_title ' . $operator . ' ' . $this->dbr->addQuotes( $link->getDBkey() );
+							$_or .= ' AND lt.lt_title ' . $operator . ' ' . $this->dbr->addQuotes( $link->getDBkey() );
 						}
 
 						$_or .= ')';
