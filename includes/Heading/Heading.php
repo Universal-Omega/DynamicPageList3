@@ -177,8 +177,6 @@ class Heading {
 		$rowSize = $this->getParameters()->getParameter( 'rowsize' );
 		$rowColFormat = $this->getParameters()->getParameter( 'rowcolformat' );
 
-		$count = 0;
-
 		$headings = Article::getHeadings();
 		$output = '';
 
@@ -212,7 +210,6 @@ class Heading {
 				$output .= $this->getListStart();
 				$nstart = 0;
 				$greml = $nsize;
-				$g = 0;
 				$offset = 0;
 				foreach ( $headings as $headingCount ) {
 					$headingStart = $nstart - $offset;
@@ -246,8 +243,6 @@ class Heading {
 							} else {
 								$output .= "\n|-\n|\n";
 							}
-
-							++$g;
 
 							if ( $nstart + $nsize > $count ) {
 								$nsize = $count - $nstart;

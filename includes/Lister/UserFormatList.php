@@ -122,7 +122,7 @@ class UserFormatList extends Lister {
 			$this->sort( $rowsKey, $sortColumn );
 			$newItems = [];
 
-			foreach ( $rowsKey as $index => $val ) {
+			foreach ( $rowsKey as $index => $_ ) {
 				$newItems[] = $items[$index];
 			}
 
