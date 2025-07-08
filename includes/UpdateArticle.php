@@ -47,7 +47,6 @@ class UpdateArticle {
 		$afterparm = [];
 		$format = [];
 		$preview = [];
-		$save = [];
 		$tooltip = [];
 		$optional = [];
 
@@ -180,10 +179,6 @@ class UpdateArticle {
 				$preview[] = $arg;
 			}
 
-			if ( $cmd[0] == 'save' ) {
-				$save[] = $arg;
-			}
-
 			if ( $cmd[0] == 'summary' ) {
 				$summary = $arg;
 			}
@@ -256,7 +251,7 @@ class UpdateArticle {
 				// construct an edit form containing all template invocations
 				$form = "<html><form method=post action=\"$action\" $editForm>\n";
 
-				foreach ( $tpv as $call => $tplValues ) {
+				foreach ( $tpv as $call => $_ ) {
 					$form .= "<table $table>\n";
 					foreach ( $parameter as $nr => $parm ) {
 						// try to extract legend from the docs of the template

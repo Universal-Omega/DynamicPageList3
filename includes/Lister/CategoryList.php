@@ -50,8 +50,8 @@ class CategoryList extends Lister {
 	/**
 	 * Format a single item.
 	 *
-	 * @param Article $article
-	 * @param string|null $pageText
+	 * @param Article $article @phan-unused-param
+	 * @param string|null $pageText @phan-unused-param
 	 * @return string
 	 */
 	public function formatItem( Article $article, $pageText = null ) {

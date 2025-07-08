@@ -1322,7 +1322,7 @@ class Lister {
 					// include labeled sections from the page
 					$secPieces = LST::includeSection(
 						$this->parser, $article->mTitle->getPrefixedText(),
-						$sSecLabel, '', false, $this->getTrimIncluded(),
+						$sSecLabel, false, $this->getTrimIncluded(),
 						$skipPattern ?? []
 					);
 					$secPiece[$s] = implode(

@@ -307,7 +307,6 @@ class Query {
 			$fields = $this->select;
 		}
 
-		$queryError = false;
 		try {
 			if ( $categoriesGoal ) {
 				$res = $this->dbr->select(
@@ -781,7 +780,7 @@ class Query {
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addauthor( $option ) {
 		// Addauthor can not be used with addlasteditor.
@@ -801,7 +800,7 @@ class Query {
 	/**
 	 * Set SQL for 'addcategories' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addcategories( $option ) {
 		$this->addTable( 'categorylinks', 'cl_gc' );
@@ -825,7 +824,7 @@ class Query {
 	/**
 	 * Set SQL for 'addcontribution' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addcontribution( $option ) {
 		$this->addTable( 'recentchanges', 'rc' );
@@ -849,7 +848,7 @@ class Query {
 	/**
 	 * Set SQL for 'addeditdate' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addeditdate( $option ) {
 		$this->addTable( 'revision', 'rev' );
@@ -865,7 +864,7 @@ class Query {
 	/**
 	 * Set SQL for 'addfirstcategorydate' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addfirstcategorydate( $option ) {
 		// @TODO: This should be programmatically determining which
@@ -880,7 +879,7 @@ class Query {
 	/**
 	 * Set SQL for 'addlasteditor' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addlasteditor( $option ) {
 		// Addlasteditor can not be used with addauthor.
@@ -900,7 +899,7 @@ class Query {
 	/**
 	 * Set SQL for 'addpagecounter' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addpagecounter( $option ) {
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
@@ -926,7 +925,7 @@ class Query {
 	/**
 	 * Set SQL for 'addpagesize' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addpagesize( $option ) {
 		$this->addSelect(
@@ -939,7 +938,7 @@ class Query {
 	/**
 	 * Set SQL for 'addpagetoucheddate' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addpagetoucheddate( $option ) {
 		$this->addSelect(
@@ -952,7 +951,7 @@ class Query {
 	/**
 	 * Set SQL for 'adduser' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 * @param string $tableAlias
 	 */
 	private function _adduser( $option, $tableAlias = '' ) {
@@ -1222,7 +1221,7 @@ class Query {
 	/**
 	 * Set SQL for 'hiddencategories' parameter.
 	 *
-	 * @param mixed $option
+	 * @param mixed $option @phan-unused-param
 	 */
 	private function _hiddencategories( $option ) {
 		// @TODO: Unfinished functionality! Never implemented by original author.

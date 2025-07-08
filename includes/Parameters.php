@@ -242,7 +242,7 @@ class Parameters extends ParametersData {
 		];
 
 		$_first = [];
-		foreach ( $priority as $parameter => $order ) {
+		foreach ( $priority as $parameter => $_ ) {
 			if ( isset( $parameters[$parameter] ) ) {
 				$_first[$parameter] = $parameters[$parameter];
 				unset( $parameters[$parameter] );
@@ -1411,7 +1411,7 @@ class Parameters extends ParametersData {
 					$values = array_diff( $values, [ 'all', 'none' ] );
 					$reset = array_flip( $values );
 
-					foreach ( $reset as $value => $key ) {
+					foreach ( $reset as $value => $_ ) {
 						$reset[$value] = $boolean;
 					}
 				} else {
@@ -1455,7 +1455,7 @@ class Parameters extends ParametersData {
 					$values = array_diff( $values, [ 'all', 'none' ] );
 					$eliminate = array_flip( $values );
 
-					foreach ( $eliminate as $value => $key ) {
+					foreach ( $eliminate as $value => $_ ) {
 						$eliminate[$value] = $boolean;
 					}
 				} else {

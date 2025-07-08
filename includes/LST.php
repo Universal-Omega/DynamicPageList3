@@ -96,7 +96,6 @@ class LST {
 	 * @param Parser $parser
 	 * @param string $text
 	 * @param string $part1
-	 * @param int $skiphead
 	 * @param bool $recursionCheck
 	 * @param int $maxLength
 	 * @param string $link
@@ -108,7 +107,6 @@ class LST {
 		$parser,
 		$text,
 		$part1,
-		$skiphead = 0,
 		$recursionCheck = true,
 		$maxLength = -1,
 		$link = '',
@@ -154,13 +152,11 @@ class LST {
 	 * Generate a regex to match the section(s) we're interested in.
 	 *
 	 * @param string $sec
-	 * @param string $to
 	 * @param bool &$any
 	 * @return string
 	 */
-	private static function createSectionPattern( $sec, $to, &$any ) {
+	private static function createSectionPattern( $sec, &$any ) {
 		$any = false;
-		$to_sec = ( $to == '' ) ? $sec : $to;
 
 		if ( $sec[0] == '*' ) {
 			$any = true;
@@ -173,50 +169,11 @@ class LST {
 			$sec = preg_quote( $sec, '/' );
 		}
 
-		if ( $to_sec[0] == '*' ) {
-			if ( $to_sec == '**' ) {
-				$to_sec = '[^\/>"' . "']+";
-			} else {
-				$to_sec = str_replace( '/', '\/', substr( $to_sec, 1 ) );
-			}
-		} else {
-			$to_sec = preg_quote( $to_sec, '/' );
-		}
-
 		$ws = "(?:\s+[^>]+)?";
 
 		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" .
 			"['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" .
 			"['\"]?\\1['\"]?" . "$ws\/?>/s";
-	}
-
-	/**
-	 * Count headings in skipped text.
-	 *
-	 * Count skipped headings, so parser can skip them, to
-	 * prevent wrong heading links.
-	 *
-	 * @param string $text
-	 * @param int $limit Cutoff point in the text to stop searching
-	 * @return int Number of matches
-	 */
-	private static function countHeadings( $text, $limit ) {
-		$pat = '^(={1,6}).+\1\s*$()';
-
-		$count = 0;
-		$offset = 0;
-		$m = [];
-
-		while ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE, $offset ) ) {
-			if ( $m[2][1] > $limit ) {
-				break;
-			}
-
-			$count++;
-			$offset = $m[2][1];
-		}
-
-		return $count;
 	}
 
 	/**
@@ -254,7 +211,6 @@ class LST {
 	 * @param Parser $parser
 	 * @param string $page
 	 * @param string $sec
-	 * @param string $to
 	 * @param bool $recursionCheck
 	 * @param bool $trim
 	 * @param array $skipPattern
@@ -264,7 +220,6 @@ class LST {
 		$parser,
 		$page = '',
 		$sec = '',
-		$to = '',
 		$recursionCheck = true,
 		$trim = false,
 		$skipPattern = []
@@ -277,14 +232,14 @@ class LST {
 		}
 
 		$any = false;
-		$pat = self::createSectionPattern( $sec, $to, $any );
+		$pat = self::createSectionPattern( $sec, $any );
 
 		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
 
 		foreach ( $m[2] as $nr => $piece ) {
 			$piece = self::parse(
 				$parser, $piece, "#lst:{$page}|{$sec}",
-				0, $recursionCheck, -1, '', $trim, $skipPattern
+				$recursionCheck, -1, '', $trim, $skipPattern
 			);
 
 			if ( $any ) {
@@ -455,15 +410,13 @@ class LST {
 
 		if ( self::text( $parser, $page, $title, $text ) == false ) {
 			$output[0] = $text;
-
 			return $output;
 		}
 
 		// throw away comments
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
-
 		return self::extractHeadingFromText(
-			$parser, $page, $title, $text,
+			$parser, $page, $text,
 			$sec, $to, $sectionHeading,
 			$recursionCheck, $maxLength,
 			$link, $trim, $skipPattern
@@ -475,7 +428,6 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $page
-	 * @param Title|string $title
 	 * @param string $text
 	 * @param string $sec
 	 * @param string $to
@@ -490,7 +442,6 @@ class LST {
 	public static function extractHeadingFromText(
 		$parser,
 		$page,
-		$title,
 		$text,
 		$sec,
 		$to,
@@ -575,7 +526,7 @@ class LST {
 				$piece = substr( $text, 0, $m[1][1] - 1 );
 				$output[0] = self::parse(
 					$parser, $piece, "#lsth:{$page}|{$sec}",
-					0, $recursionCheck, $maxLength,
+					$recursionCheck, $maxLength,
 					$link, $trim, $skipPattern
 				);
 
@@ -614,10 +565,6 @@ class LST {
 				}
 			}
 
-			$nhead = self::countHeadings( $text, $begin_off );
-
-			wfDebug( "LSTH: head offset = $nhead" );
-
 			if ( $end_off ?? false ) {
 				if ( $end_off == -1 ) {
 					return $output;
@@ -655,7 +602,7 @@ class LST {
 				// output n-th section and done
 				$output[0] = self::parse(
 					$parser, $piece, "#lsth:{$page}|{$sec}",
-					$nhead, $recursionCheck, $maxLength,
+					$recursionCheck, $maxLength,
 					$link, $trim, $skipPattern
 				);
 				break;
@@ -666,7 +613,7 @@ class LST {
 					// output last section and done
 					$output[0] = self::parse(
 						$parser, $piece, "#lsth:{$page}|{$sec}",
-						$nhead, $recursionCheck, $maxLength,
+						$recursionCheck, $maxLength,
 						$link, $trim, $skipPattern
 					);
 					break;
@@ -675,7 +622,7 @@ class LST {
 				// output section by name and continue search for another section with the same name
 				$output[$n++] = self::parse(
 					$parser, $piece, "#lsth:{$page}|{$sec}",
-					$nhead, $recursionCheck, $maxLength,
+					$recursionCheck, $maxLength,
 					$link, $trim, $skipPattern
 				);
 			}
@@ -828,7 +775,7 @@ class LST {
 		// loop for all template invocations
 		$firstCall = true;
 
-		foreach ( $tCalls as $iii => $tCall ) {
+		foreach ( $tCalls as $tCall ) {
 			if ( $n == -2 ) {
 				$n++;
 				continue;
@@ -1099,7 +1046,7 @@ class LST {
 			if ( !array_key_exists( $property, $reflectionCache ) ) {
 				try {
 					$reflectionCache[$property] = ( new ReflectionClass( Parser::class ) )->getProperty( $property );
-				} catch ( ReflectionException $e ) {
+				} catch ( ReflectionException ) {
 					$reflectionCache[$property] = null;
 				}
 			}
