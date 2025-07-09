@@ -470,10 +470,10 @@ class Parameters extends ParametersData {
 
 		if ( strpos( $option, '|' ) !== false ) {
 			$parameters = explode( '|', $option );
-			$operator = 'OR';
+			$operator = 4;
 		} else {
 			$parameters = explode( '&', $option );
-			$operator = 'AND';
+			$operator = 1;
 		}
 
 		foreach ( $parameters as $parameter ) {
