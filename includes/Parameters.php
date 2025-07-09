@@ -499,7 +499,7 @@ class Parameters extends ParametersData {
 						if ( $title !== null ) {
 							// The * helper is just like listing "Category1|SubCategory1".
 							// This gets hard coded here for this purpose.
-							$categories['OR'][] = $title->getDbKey();
+							$categories[4][] = $title->getDbKey();
 						}
 					}
 				} else {
