@@ -852,3 +852,8 @@ Many thanks to GreenReaper on GitHub for reporting and finding issues with core 
 * Fixed tests, replacing `ParserOutput::getText` with `ParserOutput::getContentHolderText`.
 * Removed `Query::getTableNames` and associated properties, replacing calls with `$this->dbr->tableName`.
 * Fixed compatability with upstream backported changes to use raw table names where necessary (by passing the second parameter of `$this->dbr->tableName` as `'raw'` where needed).
+
+# Version 3.6.4
+* Fixed a PHP warning in `nottitleregexp` (uninitialised array/key).
+* Removed some unused parameters, methods, and variables.
+* SECURITY: Fixed leakage of hidden/suppressed usernames ([GHSA-7pgw-q3qp-6pgq](https://github.com/Universal-Omega/DynamicPageList3/security/advisories/GHSA-7pgw-q3qp-6pgq)).

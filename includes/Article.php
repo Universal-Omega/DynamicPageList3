@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList3;
 
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use stdClass;
@@ -211,8 +212,11 @@ class Article {
 		$article = new self( $title, $pageNamespace );
 
 		$revActorName = ActorStore::UNKNOWN_USER_NAME;
-		if ( isset( $row->rev_actor ) && $row->rev_actor !== '0' ) {
-			$revActorName = $userFactory->newFromActorId( $row->rev_actor )->getName();
+		if ( isset( $row->rev_actor ) && (int)$row->rev_actor !== 0 ) {
+			$revUser = $userFactory->newFromActorId( $row->rev_actor );
+			$revUserDeleted = $row->rev_deleted & RevisionRecord::DELETED_USER;
+			$revActorName = $revUser->isHidden() || $revUserDeleted ?
+				wfMessage( 'rev-deleted-user' )->escaped() : $revUser->getName();
 		}
 
 		$titleText = $title->getText();
@@ -342,9 +346,10 @@ class Article {
 			// CONTRIBUTION, CONTRIBUTOR
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
 				$article->mContribution = $row->contribution;
-
-				$article->mContributor = $userFactory->newFromActorId( $row->contributor )->getName();
-
+				$contribUser = $userFactory->newFromActorId( $row->contributor );
+				$contribUserDeleted = $row->contrib_deleted & RevisionRecord::DELETED_USER;
+				$article->mContributor = $contribUser->isHidden() || $contribUserDeleted ?
+					wfMessage( 'rev-deleted-user' )->escaped() : $contribUser->getName();
 				$article->mContrib = substr( '*****************', 0, (int)round( log( $row->contribution ) ) );
 			}
 

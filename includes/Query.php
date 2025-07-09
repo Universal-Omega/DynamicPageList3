@@ -832,7 +832,8 @@ class Query {
 		$this->addSelect(
 			[
 				'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
-				'contributor' => 'rc.rc_actor'
+				'contributor' => 'rc.rc_actor',
+				'contrib_deleted' => 'rc.rc_deleted',
 			]
 		);
 
@@ -962,6 +963,7 @@ class Query {
 		$this->addSelect(
 			[
 				$tableAlias . 'rev_actor',
+				$tableAlias . 'rev_deleted',
 			]
 		);
 	}
@@ -1150,15 +1152,19 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _createdby( $option ) {
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
 		$this->addTable( 'revision', 'creation_rev' );
 		$this->_adduser( null, 'creation_rev' );
 
 		$this->addWhere( [
-			$this->dbr->addQuotes(
-				$this->userFactory->newFromName( $option )->getActorId()
-			) . ' = creation_rev.rev_actor',
+			$this->dbr->addQuotes( $user->getActorId() ) . ' = creation_rev.rev_actor',
 			'creation_rev.rev_page = page_id',
-			'creation_rev.rev_parent_id = 0'
+			'creation_rev.rev_deleted = 0',
+			'creation_rev.rev_parent_id = 0',
 		] );
 	}
 
@@ -1308,12 +1314,17 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _lastmodifiedby( $option ) {
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
 		$this->addWhere(
-			$this->dbr->addQuotes(
-				$this->userFactory->newFromName( $option )->getActorId()
-			) . ' = (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
-			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page=page_id ORDER BY ' .
-			$this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
+			$this->dbr->addQuotes( $user->getActorId() ) .
+			' = (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
+			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
+			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
+			' ORDER BY ' . $this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
 		);
 	}
 
@@ -1676,12 +1687,16 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _modifiedby( $option ) {
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
 		$this->addTable( 'revision', 'change_rev' );
 
 		$this->addWhere(
-			$this->dbr->addQuotes(
-				$this->userFactory->newFromName( $option )->getActorId()
-			) . ' = change_rev.rev_actor AND change_rev.rev_page = page_id'
+			$this->dbr->addQuotes( $user->getActorId() ) .
+			' = change_rev.rev_actor AND change_rev.rev_deleted = 0 AND change_rev.rev_page = page_id'
 		);
 	}
 
@@ -1714,13 +1729,17 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notcreatedby( $option ) {
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
 		$this->addTable( 'revision', 'no_creation_rev' );
 
 		$this->addWhere(
-			$this->dbr->addQuotes(
-				$this->userFactory->newFromName( $option )->getActorId()
-			) . ' != no_creation_rev.rev_actor AND no_creation_rev.rev_page = ' .
-			'page_id AND no_creation_rev.rev_parent_id = 0'
+			$this->dbr->addQuotes( $user->getActorId() ) .
+			' != no_creation_rev.rev_actor AND no_creation_rev.rev_deleted = 0 ' .
+			'AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0'
 		);
 	}
 
@@ -1730,11 +1749,17 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notlastmodifiedby( $option ) {
-		$this->addWhere( $this->dbr->addQuotes(
-			$this->userFactory->newFromName( $option )->getActorId()
-		) . ' != (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
-			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page=page_id ORDER BY ' .
-			$this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
+		$this->addWhere(
+			$this->dbr->addQuotes( $user->getActorId() ) .
+			' != (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
+			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
+			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
+			' ORDER BY ' . $this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
 		);
 	}
 
@@ -1744,12 +1769,18 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _notmodifiedby( $option ) {
-		$this->addWhere( 'NOT EXISTS (SELECT 1 FROM ' .
-			$this->dbr->tableName( 'revision' ) . ' WHERE ' . $this->dbr->tableName( 'revision' ) .
-			'.rev_page=page_id AND ' . $this->dbr->tableName( 'revision' ) . '.rev_actor = ' .
-			$this->dbr->addQuotes(
-				$this->userFactory->newFromName( $option )->getActorId()
-			) . ' LIMIT 1)'
+		$user = $this->userFactory->newFromName( $option );
+		if ( $user->isHidden() ) {
+			return;
+		}
+
+		$this->addWhere(
+			'NOT EXISTS (SELECT 1 FROM ' .
+			$this->dbr->tableName( 'revision' ) .
+			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
+			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_actor = ' . $this->dbr->addQuotes( $user->getActorId() ) .
+			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
+			' LIMIT 1)'
 		);
 	}
 
