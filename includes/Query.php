@@ -1898,13 +1898,22 @@ class Query {
 					);
 
 					if (
-						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catheadings' ) )
+						is_array( $this->parameters->getParameter( 'catorheadings' ) ) &&
+						count( $this->parameters->getParameter( 'catorheadings' ) )
 					) {
-						$catheadings = $this->parameters->getParameter( 'catheadings' );
-						$operator = array_key_first( $catheadings );
+						$catheadings = $this->parameters->getParameter( 'catorheadings' );
 						$this->addWhere( [
-							'cl_head.cl_to' => $this->dbr->makeList( $catheadings[ $operator ], $operator ),
+							'cl_head.cl_to' => $this->dbr->makeList( $catheadings, 4 ),
+						] );
+					}
+
+					if (
+						is_array( $this->parameters->getParameter( 'catandheadings' ) ) &&
+						count( $this->parameters->getParameter( 'catandheadings' ) )
+					) {
+						$catheadings = $this->parameters->getParameter( 'catandheadings' );
+						$this->addWhere( [
+							'cl_head.cl_to' => $this->dbr->makeList( $catheadings, 1 ),
 						] );
 					}
 
