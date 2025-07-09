@@ -1774,11 +1774,12 @@ class Query {
 			return;
 		}
 
+		$actorID = $this->dbr->addQuotes( $user->getActorId() );
 		$this->addWhere(
 			'NOT EXISTS (SELECT 1 FROM ' .
 			$this->dbr->tableName( 'revision' ) .
 			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
-			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_actor = ' . $this->dbr->addQuotes( $user->getActorId() ) .
+			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_actor = ' . $actorID .
 			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
 			' LIMIT 1)'
 		);
