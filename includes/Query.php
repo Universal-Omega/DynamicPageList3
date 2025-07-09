@@ -1901,11 +1901,11 @@ class Query {
 						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
 						count( $this->parameters->getParameter( 'catheadings' ) )
 					) {
-						$this->addWhere(
-							[
-								'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' )
-							]
-						);
+						$catheadings = $this->parameters->getParameter( 'catheadings' );
+						$operator = array_key_first( $catheadings );
+						$this->addWhere( [
+							'cl_head.cl_to' => $this->dbr->makeList( $catheadings[ $operator ], $operator ),
+						] );
 					}
 
 					if (
