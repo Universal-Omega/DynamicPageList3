@@ -470,10 +470,10 @@ class Parameters extends ParametersData {
 
 		if ( strpos( $option, '|' ) !== false ) {
 			$parameters = explode( '|', $option );
-			$operator = 4;
+			$defaultOperator = 'OR';
 		} else {
 			$parameters = explode( '&', $option );
-			$operator = 1;
+			$operator = 'AND';
 		}
 
 		foreach ( $parameters as $parameter ) {
@@ -499,7 +499,7 @@ class Parameters extends ParametersData {
 						if ( $title !== null ) {
 							// The * helper is just like listing "Category1|SubCategory1".
 							// This gets hard coded here for this purpose.
-							$categories[4][] = $title->getDbKey();
+							$categories['OR'][] = $title->getDbKey();
 						}
 					}
 				} else {
@@ -534,10 +534,15 @@ class Parameters extends ParametersData {
 
 			$this->setParameter( 'category', $data );
 			if ( $heading ) {
-				$this->setParameter( 'catheadings', array_unique( array_merge( (
-					is_array( $this->getParameter( 'catheadings' ) ) ?
-					$this->getParameter( 'catheadings' ) : []
-				), $categories ) ) );
+				$this->setParameter( 'catorheadings', array_unique( array_merge( (
+					is_array( $this->getParameter( 'catorheadings' ) ) ?
+					$this->getParameter( 'catorheadings' ) : []
+				), $categories['OR'] ?? [] ) ) );
+
+				$this->setParameter( 'catandheadings', array_unique( array_merge( (
+					is_array( $this->getParameter( 'catandheadings' ) ) ?
+					$this->getParameter( 'catandheadings' ) : []
+				), $categories['AND'] ?? [] ) ) );
 			}
 
 			if ( $notHeading ) {
