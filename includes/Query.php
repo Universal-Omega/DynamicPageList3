@@ -174,11 +174,9 @@ class Query {
 
 		// Always add nonincludeable namespaces.
 		if ( is_array( $wgNonincludableNamespaces ) && count( $wgNonincludableNamespaces ) ) {
-			$this->addNotWhere(
-				[
-					$this->dbr->tableName( 'page' ) . '.page_namespace' => $wgNonincludableNamespaces,
-				]
-			);
+			$this->addNotWhere( [
+				$this->dbr->tableName( 'page' ) . '.page_namespace' => $wgNonincludableNamespaces,
+			] );
 		}
 
 		if ( $this->offset !== false ) {
@@ -197,15 +195,13 @@ class Query {
 				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
-					$this->queryBuilder->select(
-						[
-							'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
-							'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-							'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
-							'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
-							'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
-						]
-					);
+					$this->queryBuilder->select( [
+						'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
+						'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
+						'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
+						'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
+						'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
+					] );
 
 					$this->queryBuilder->where( [ $this->dbr->tableName( 'page' ) . '.page_namespace' => null ] );
 				} else {
@@ -222,8 +218,7 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					'page',
-					$this->dbr->tableName( 'page', 'raw' ), [
+					'page', $this->dbr->tableName( 'page', 'raw' ), [
 						"{$this->dbr->tableName( 'page' )}.page_namespace = " .
 						"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
 						"{$this->dbr->tableName( 'page' )}.page_title = " .
@@ -272,7 +267,7 @@ class Query {
 				}
 
 				$query = $this->dbr->newSelectQueryBuilder()
-					->table( [ 'clgoal' => 'categorylinks' ] )
+					->table( 'categorylinks', 'clgoal' )
 					->select( 'clgoal.cl_to' )
 					->where( [ 'clgoal.cl_from' => $pageIds ] )
 					->caller( __METHOD__ )
@@ -280,7 +275,7 @@ class Query {
 					->getSQL();
 			} else {
 				$this->queryBuilder->caller( __METHOD__ );
-				$query = $this->qqueryBuilder->getSQL();
+				$query = $this->queryBuilder->getSQL();
 			}
 
 			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
