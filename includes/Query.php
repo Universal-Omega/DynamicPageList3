@@ -1315,7 +1315,6 @@ class Query {
 				$this->dbr->tableName( 'linktarget' ) . ' lt ON pl.pl_target_id = lt.lt_id WHERE ';
 
 			$ors = [];
-
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$_or = '(lt.lt_namespace=' . (int)$link->getNamespace();
@@ -1338,9 +1337,8 @@ class Query {
 			}
 
 			$where .= '(' . implode( ' OR ', $ors ) . '))';
+			$this->queryBuilder->where( $where );
 		}
-
-		$this->addWhere( $where ?? '' );
 	}
 
 	/**
