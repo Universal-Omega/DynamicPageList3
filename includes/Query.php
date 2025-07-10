@@ -2359,7 +2359,6 @@ class Query {
 	private function _usedby( $option ) {
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
-
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$ors[] = 'tpl_from = ' . (int)$link->getArticleID();
@@ -2368,10 +2367,7 @@ class Query {
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
-			$this->addTables( [
-				'linktarget' => 'lt',
-				'templatelinks' => 'tpl',
-			] );
+			$this->addTable( 'templatelinks', 'tpl' );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
@@ -2382,11 +2378,10 @@ class Query {
 			] );
 
 			$this->addJoin(
-				'lt',
+				$this->dbr->tableName( 'linktarget', 'raw' ),
 				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
 			);
-			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id', ]
-			);
+			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id' ] );
 			$ors = [];
 
 			foreach ( $option as $linkGroup ) {
@@ -2407,11 +2402,11 @@ class Query {
 	 */
 	private function _uses( $option ) {
 		$this->addTables( [
-			'linktarget' => 'lt',
+			'linktarget' => 'ltu',
 			'templatelinks' => 'tl',
 		] );
 
-		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
+		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND ltu.lt_id = tl.tl_target_id AND (';
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -2419,10 +2414,10 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = '(ltu.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS char)) = LOWER(' .
+					$_or .= ' AND LOWER(CAST(ltu.' . $titleField . ' AS char)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
 					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
