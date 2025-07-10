@@ -576,11 +576,24 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesLinkingToAndFromPage(): void {
 		$this->assertArrayEquals(
+			[ 'DPLTestArticle 2', 'DPLTestArticle 3' ],
+			$this->getDPLQueryResults( [
+				'linksfrom' => 'DPLTestOpenReferences',
+				'linksto' => 'DPLTestArticle 1',
+			] ),
+			true
+		);
+	}
+
+	public function testFindPagesLinkingToAndFromPageWithUses(): void {
+		$this->assertArrayEquals(
 			// Only this page links both from DPLTestOpenReferences and to DPLTestArticle 1
+			// while also using Template:DPLInfobox
 			[ 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
 				'linksfrom' => 'DPLTestOpenReferences',
 				'linksto' => 'DPLTestArticle 1',
+				'uses' => 'Template:DPLInfobox',
 			] ),
 			true
 		);
