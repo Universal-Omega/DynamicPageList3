@@ -85,9 +85,9 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1', 'DPLTestArticleOtherCategoryWithInfobox' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticleOtherCategoryWithInfobox' ],
 			$this->getDPLQueryResults( [
-				'uses' => 'Template:DPLInfobox'
+				'uses' => 'Template:DPLInfobox',
 			] ),
 			true
 		);
@@ -117,7 +117,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesNotInCategoryUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
 				'notcategory' => 'DPLTestOtherCategory',
 				'uses' => 'Template:DPLInfobox'
@@ -527,6 +527,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertArrayEquals(
 			[
 				'DPLTestArticle 2',
+				'DPLTestArticle 3',
 				'DPLTestOpenReferences',
 			],
 			$results,
