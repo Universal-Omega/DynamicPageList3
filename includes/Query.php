@@ -2368,7 +2368,7 @@ class Query {
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
 			$this->addTables( [
-				'linktarget' => 'ltub',
+				'linktarget' => 'lt',
 				'templatelinks' => 'tpl',
 			] );
 
@@ -2381,7 +2381,7 @@ class Query {
 			] );
 
 			$this->addJoin(
-				'ltub',
+				'lt',
 				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
 			);
 
