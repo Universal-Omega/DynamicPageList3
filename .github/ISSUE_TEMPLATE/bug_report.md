@@ -10,6 +10,7 @@ assignees: ''
 **DynamicPageList3 version**:
 **MediaWiki version**:
 **PHP version**:
+**Database version**:
 
 **List of steps to reproduce** (step by step, including full links if applicable):
 * 
