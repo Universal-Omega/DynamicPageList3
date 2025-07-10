@@ -14,6 +14,7 @@ use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 
@@ -1274,7 +1275,7 @@ class Query {
 				);
 
 				$where = "{$this->dbr->tableName( 'page' )}.page_id = el.el_from " .
-					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
+					' AND (' . $this->dbr->makeList( $ors, IDatabase::LIST_OR ) . ')';
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
 				$ors = array_map(
@@ -1518,20 +1519,44 @@ class Query {
 	 */
 	private function _ordercollation( $option ) {
 		$option = mb_strtolower( $option );
+		$dbType = $this->dbr->getType();
 
-		$res = $this->dbr->query( 'SHOW CHARACTER SET;', __METHOD__ );
-		if ( !$res ) {
+		if ( $dbType === 'mysql' ) {
+			$res = $this->dbr->newSelectQueryBuilder()
+				->select( 'DEFAULT_COLLATE_NAME' )
+				->from( 'information_schema.CHARACTER_SETS' )
+				->caller( __METHOD__ )
+				->fetchResultSet();
+
+			foreach ( $res as $row ) {
+				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ) {
+					$this->setCollation( $row->DEFAULT_COLLATE_NAME );
+					return true;
+				}
+			}
+
 			return false;
 		}
 
-		foreach ( $res as $row ) {
-			if ( $option == $row->{'Default collation'} ) {
-				$this->setCollation( $option );
-				break;
+		if ( $dbType === 'postgres' ) {
+			// Fetch the current DB encoding using pg_encoding_to_char()
+			$collation = $this->dbr->newSelectQueryBuilder()
+				->select( 'pg_encoding_to_char(encoding)' )
+				->from( 'pg_database' )
+				->where( [ 'datname' => $this->dbr->getDBname() ] )
+				->caller( __METHOD__ )
+				->fetchField();
+
+			if ( $collation !== false && $option === mb_strtolower( $collation ) ) {
+				$this->setCollation( $collation );
+				return true;
 			}
+
+			return false;
 		}
 
-		return true;
+		// Not supported on SQLite or mystery engines
+		return false;
 	}
 
 	/**
