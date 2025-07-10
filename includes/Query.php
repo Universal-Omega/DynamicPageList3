@@ -2031,25 +2031,16 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
-					if (
-						is_array( $this->parameters->getParameter( 'linksfrom' ) ) &&
-						count( $this->parameters->getParameter( 'linksfrom' ) )
-					) {
-						$this->addSelect( [
-							'sortkey' => 'CONCAT(ltf.lt_namespace, ltf.lt_title) ' . $this->getCollateSQL(),
-						] );
-					} elseif (
-						is_array( $this->parameters->getParameter( 'uses' ) ) &&
-						count( $this->parameters->getParameter( 'uses' ) )
-					) {
-						$this->addSelect( [
-							'sortkey' => 'CONCAT(ltu.lt_namespace, ltu.lt_title) ' . $this->getCollateSQL(),
-						] );
-					} else {
-						$this->addSelect( [
-							'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
-						] );
-					}
+					$alias = match ( true ) {
+						count( $this->parameters->getParameter( 'linksfrom' ) ?? [] ) > 0 => 'ltf',
+						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
+						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'ltu',
+						default => 'lt',
+					};
+
+					$this->addSelect( [
+						'sortkey' => "CONCAT($alias.lt_namespace, $alias.lt_title) {$this->getCollateSQL()}",
+					] );
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
@@ -2407,7 +2398,7 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'uses' parameter.
+ 	 * Set SQL for 'uses' parameter.
 	 *
 	 * @param mixed $option
 	 */
