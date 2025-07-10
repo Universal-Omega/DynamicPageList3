@@ -66,13 +66,6 @@ class Query {
 	private $selectedFields = [];
 
 	/**
-	 * Prefixed and escaped table names.
-	 *
-	 * @var array
-	 */
-	private $tables = [];
-
-	/**
 	 * Where Clauses
 	 *
 	 * @var array
@@ -224,7 +217,7 @@ class Query {
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
 				$this->queryBuilder->select( 'il_to' );
-				$this->queryBuilder->from( 'imagelinks', 'ic' );
+				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
 					$this->queryBuilder->select(
@@ -397,41 +390,6 @@ class Query {
 	 */
 	public function getSqlQuery() {
 		return $this->sqlQuery;
-	}
-
-	/**
-	 * Add a table to the output.
-	 *
-	 * @param string $table
-	 * @param string $alias
-	 * @return bool
-	 */
-	public function addTable( $table, $alias ) {
-		if ( !$table ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty table name was passed.' );
-		}
-
-		if ( !$alias || is_numeric( $alias ) ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty or numeric table alias was passed.' );
-		}
-
-		if ( !isset( $this->tables[$alias] ) ) {
-			$this->tables[$alias] = $table;
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Add multiple tables to the output.
-	 *
-	 * @param array $tablesByAlias [ table => alias ]
-	 */
-	public function addTables( array $tablesByAlias ) {
-		foreach ( $tablesByAlias as $table => $alias ) {
-			$this->addTable( $table, $alias );
-		}
 	}
 
 	/**
@@ -769,20 +727,11 @@ class Query {
 	 */
 	private function _addcategories( $option ) {
 		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
-		$this->addSelect(
-			[
-				'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')"
-			]
-		);
+		$this->queryBuilder->select( [
+			'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')",
+		] );
 
-		$this->addJoin(
-			'cl_gc',
-			[
-				'LEFT OUTER JOIN',
-				'page_id = cl_gc.cl_from'
-			]
-		);
-
+		$this->queryBuilder->leftJoin( 'cl_gc', null, [ 'page_id = cl_gc.cl_from' ] );
 		$this->addGroupBy( $this->dbr->tableName( 'page' ) . '.page_id' );
 	}
 
@@ -793,7 +742,6 @@ class Query {
 	 */
 	private function _addcontribution( $option ) {
 		$this->queryBuilder->table( 'recentchanges', 'rc' );
-
 		$this->addSelect(
 			[
 				'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
@@ -1041,7 +989,7 @@ class Query {
 						foreach ( $categories as $category ) {
 							$i++;
 							$tableAlias = "cl{$i}";
-							$this->addTable( $tableName, $tableAlias );
+							$this->queryBuilder->table( $tableName, $tableAlias );
 							$this->addJoin(
 								$tableAlias, [
 									'INNER JOIN',
@@ -1054,7 +1002,7 @@ class Query {
 					} elseif ( $operatorType == 'OR' ) {
 						$i++;
 						$tableAlias = "cl{$i}";
-						$this->addTable( $tableName, $tableAlias );
+						$this->queryBuilder->table( $tableName, $tableAlias );
 
 						$joinOn = "{$this->dbr->tableName( 'page' )}.page_id = {$tableAlias}.cl_from AND (";
 						$ors = [];
@@ -1541,7 +1489,7 @@ class Query {
 			// Nothing to do
 			return;
 		}
-		$this->addTable( 'externallinks', 'el' );
+		$this->queryBuilder->table( 'externallinks', 'el' );
 		$this->addSelect( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
 
 		foreach ( $option as $index => $domains ) {
@@ -1589,7 +1537,7 @@ class Query {
 			return;
 		}
 
-		$this->addTable( 'externallinks', 'el' );
+		$this->queryBuilder->table( 'externallinks', 'el' );
 		$this->addSelect( [ 'el_to_path' => 'el.el_to_path' ] );
 
 		foreach ( $option as $index => $paths ) {
@@ -1653,7 +1601,7 @@ class Query {
 			return;
 		}
 
-		$this->addTable( 'revision', 'change_rev' );
+		$this->queryBuilder->table( 'revision', 'change_rev' );
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			' = change_rev.rev_actor AND change_rev.rev_deleted = 0' .
@@ -1695,7 +1643,7 @@ class Query {
 			return;
 		}
 
-		$this->addTable( 'revision', 'no_creation_rev' );
+		$this->queryBuilder->table( 'revision', 'no_creation_rev' );
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			' != no_creation_rev.rev_actor AND no_creation_rev.rev_deleted = 0' .
@@ -1856,7 +1804,6 @@ class Query {
 		$_namespaceIdToText .= ' END';
 
 		$option = (array)$option;
-
 		foreach ( $option as $orderMethod ) {
 			switch ( $orderMethod ) {
 				case 'category':
@@ -1880,7 +1827,7 @@ class Query {
 						$_clTableAlias = 'cl_head';
 					}
 
-					$this->addTable( $_clTableName, $_clTableAlias );
+					$this->queryBuilder->table( $_clTableName, $_clTableAlias );
 					$this->addJoin(
 						$_clTableAlias,
 						[
@@ -1918,10 +1865,9 @@ class Query {
 				case 'counter':
 					if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 						// If the "addpagecounter" parameter was not used the table and join need to be added now.
-						if ( !array_key_exists( 'hit_counter', $this->tables ) ) {
-							$this->addTable( 'hit_counter', 'hit_counter' );
-
-							if ( !isset( $this->join['hit_counter'] ) ) {
+						if ( !array_key_exists( 'hit_counter', $this->queryBuilder->getQueryInfo()['tables'] ?? [] ) ) {
+							$this->queryBuilder->table( 'hit_counter' );
+							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
 								$this->addJoin(
 									'hit_counter',
 									[
@@ -1937,7 +1883,7 @@ class Query {
 					break;
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
-					$this->addTable( 'revision', 'rev' );
+					$this->queryBuilder->table( 'revision', 'rev' );
 
 					$this->addSelect(
 						[
@@ -1966,7 +1912,7 @@ class Query {
 						);
 					} else {
 						$this->addOrderBy( 'rev.rev_timestamp' );
-						$this->addTable( 'revision', 'rev' );
+						$this->queryBuilder->table( 'revision', 'rev' );
 						$this->addSelect( [ 'rev.rev_timestamp' ] );
 
 						if ( !$this->revisionAuxWhereAdded ) {
@@ -2078,7 +2024,7 @@ class Query {
 					break;
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
-					$this->addTable( 'revision', 'rev' );
+					$this->queryBuilder->table( 'revision', 'rev' );
 					$this->_adduser( null, 'rev' );
 					break;
 				case 'none':
@@ -2322,9 +2268,9 @@ class Query {
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
-			$this->addTables( [
-				'linktarget' => 'lt',
-				'templatelinks' => 'tpl',
+			$this->queryBuilder->tables( [
+				'lt' => 'linktarget',
+				'tpl' => 'templatelinks',
 			] );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -2360,9 +2306,9 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _uses( $option ) {
-		$this->addTables( [
-			'linktarget' => 'lt',
-			'templatelinks' => 'tl',
+		$this->queryBuilder->tables( [
+			'lt' => 'linktarget',
+			'tl' => 'templatelinks',
 		] );
 
 		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
