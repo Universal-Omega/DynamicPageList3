@@ -304,8 +304,8 @@ class Query {
 
 			if ( $calcRows ) {
 				$res['count'] = $this->dbr->newSelectQueryBuilder()
+					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
 					->select( 'FOUND_ROWS()' )
-					->from( $this->queryBuilder->getQueryInfo()['tables'] )
 					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
 					->fetchField();
 			}
