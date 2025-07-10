@@ -2367,23 +2367,27 @@ class Query {
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
-			$this->addTable( 'templatelinks', 'tpl' );
+			$this->addTables( [
+				'linktarget' => 'ltub',
+				'templatelinks' => 'tpl',
+			] );
 
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
 			$this->addSelect( [
 				'tpl_sel_title' => "{$this->dbr->tableName( 'page' )}.page_title",
-				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace"
+				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace",
 			] );
 
 			$this->addJoin(
-				$this->dbr->tableName( 'linktarget', 'raw' ),
+				'ltub',
 				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
 			);
-			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id' ] );
-			$ors = [];
 
+			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id' ] );
+
+			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$ors[] = 'tpl.tl_from = ' . (int)$link->getArticleID();
