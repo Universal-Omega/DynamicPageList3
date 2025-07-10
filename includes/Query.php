@@ -192,7 +192,7 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					'page', $this->dbr->tableName( 'page', 'raw' ), [
+					$this->dbr->tableName( 'page', 'raw' ), null, [
 						"{$this->dbr->tableName( 'page' )}.page_namespace = " .
 						"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
 						"{$this->dbr->tableName( 'page' )}.page_title = " .
@@ -200,7 +200,7 @@ class Query {
 					]
 				);
 
-				$this->queryBuilder->rawTables( [
+				$this->queryBuilder->tables( [
 					$this->dbr->tableName( 'page', 'raw' ) => 'page',
 					$this->dbr->tableName( 'pagelinks', 'raw' ) => 'pagelinks',
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
