@@ -52,13 +52,6 @@ class Query {
 	private $sqlQuery = '';
 
 	/**
-	 * Where Clauses
-	 *
-	 * @var array
-	 */
-	private $where = [];
-
-	/**
 	 * Group By Clauses
 	 *
 	 * @var array
@@ -149,8 +142,6 @@ class Query {
 	 */
 	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
-
-		$options = [];
 
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
@@ -379,30 +370,6 @@ class Query {
 	}
 
 	/**
-	 * Add a where clause to the output.
-	 * Where clauses get imploded together with AND at the end. Any custom where clauses
-	 * should be preformed before placed into here.
-	 *
-	 * @param array|string $where
-	 * @return bool
-	 */
-	public function addWhere( $where ) {
-		if ( !$where ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty where clause was passed.' );
-		}
-
-		if ( is_string( $where ) ) {
-			$this->where[] = $where;
-		} elseif ( is_array( $where ) ) {
-			$this->where = array_merge( $this->where, $where );
-		} else {
-			throw new InvalidArgumentException( __METHOD__ . ': An invalid where clause was passed.' );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Add a where clause to the output that uses NOT IN or !=.
 	 *
 	 * @param array $where
@@ -415,11 +382,11 @@ class Query {
 
 		if ( is_array( $where ) ) {
 			foreach ( $where as $field => $values ) {
-				$this->where[] = $field . (
+				$this->queryBuilder->where( $field . (
 					count( $values ) > 1 ? ' NOT IN(' .
 						$this->dbr->makeList( $values ) . ')' : ' != ' .
 					$this->dbr->addQuotes( current( $values ) )
-				);
+				) );
 			}
 		} else {
 			throw new InvalidArgumentException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
@@ -692,11 +659,9 @@ class Query {
 			'contrib_deleted' => 'rc.rc_deleted',
 		] );
 
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rc.rc_cur_id'
-			]
-		);
+		$this->queryBuilder->where( [
+			$this->dbr->tableName( 'page' ) . '.page_id = rc.rc_cur_id',
+		] );
 
 		$this->addGroupBy( 'rc.rc_cur_id' );
 	}
@@ -710,11 +675,9 @@ class Query {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( 'rev.rev_timestamp' );
 
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-			]
-		);
+		$this->queryBuilder->where( [
+			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+		] );
 	}
 
 	/**
@@ -739,12 +702,11 @@ class Query {
 		// Addlasteditor can not be used with addauthor.
 		if ( !isset( $this->parametersProcessed['addauthor'] ) || !$this->parametersProcessed['addauthor'] ) {
 			$this->queryBuilder->table( 'revision', 'rev' );
-
-			$this->addWhere( [
+			$this->queryBuilder->where( [
 				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
 				'rev.rev_timestamp = (SELECT MAX(rev_aux_max.rev_timestamp) FROM ' .
 					$this->dbr->tableName( 'revision' ) . ' AS rev_aux_max WHERE rev_aux_max.rev_page = ' .
-					"{$this->dbr->tableName( 'page' )}.page_id)"
+					"{$this->dbr->tableName( 'page' )}.page_id)",
 			] );
 
 			$this->_adduser( null, 'rev' );
@@ -829,12 +791,10 @@ class Query {
 		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
 
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-				'rev.rev_timestamp < ' . $this->convertTimestamp( $option )
-			]
-		);
+		$this->queryBuilder->where( [
+			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			'rev.rev_timestamp < ' . $this->convertTimestamp( $option ),
+		] );
 	}
 
 	/**
@@ -852,12 +812,10 @@ class Query {
 		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
 
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-				'rev.rev_timestamp >= ' . $this->convertTimestamp( $option )
-			]
-		);
+		$this->queryBuilder->where( [
+			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			'rev.rev_timestamp >= ' . $this->convertTimestamp( $option ),
+		] );
 	}
 
 	/**
@@ -866,7 +824,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _articlecategory( $option ) {
-		$this->addWhere(
+		$this->queryBuilder->where(
 			$this->dbr->tableName( 'page' ) . '.page_title IN (SELECT p2.page_title FROM ' .
 			$this->dbr->tableName( 'page' ) . ' p2 INNER JOIN ' .
 			$this->dbr->tableName( 'categorylinks' ) . ' clstc ON (clstc.cl_from = p2.page_id AND clstc.cl_to = ' .
@@ -881,7 +839,7 @@ class Query {
 	 */
 	private function _categoriesminmax( $option ) {
 		if ( is_numeric( $option[0] ) ) {
-			$this->addWhere(
+			$this->queryBuilder->where(
 				(int)$option[0] . ' <= (SELECT count(*) FROM ' .
 				$this->dbr->tableName( 'categorylinks' ) . ' WHERE ' .
 				$this->dbr->tableName( 'categorylinks' ) . '.cl_from=page_id)'
@@ -889,7 +847,7 @@ class Query {
 		}
 
 		if ( isset( $option[1] ) && is_numeric( $option[1] ) ) {
-			$this->addWhere(
+			$this->queryBuilder->where(
 				(int)$option[1] . ' >= (SELECT count(*) FROM ' .
 				$this->dbr->tableName( 'categorylinks' ) . ' WHERE ' .
 				$this->dbr->tableName( 'categorylinks' ) . '.cl_from=page_id)'
@@ -979,11 +937,7 @@ class Query {
 					]
 				);
 
-				$this->addWhere(
-					[
-						"{$tableAlias}.cl_to" => null
-					]
-				);
+				$this->queryBuilder->where( [ "$tableAlias.cl_to" => null ] );
 			}
 		}
 	}
@@ -1002,7 +956,7 @@ class Query {
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
 		$this->_adduser( null, 'creation_rev' );
 
-		$this->addWhere( [
+		$this->queryBuilder->where( [
 			"{$this->dbr->addQuotes( $user->getActorId() )} = creation_rev.rev_actor",
 			"creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 			'creation_rev.rev_deleted = 0',
@@ -1036,12 +990,12 @@ class Query {
 		] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
-		$this->addWhere( [
+		$this->queryBuilder->where( [
 			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 			"rev.rev_timestamp >= {$this->dbr->addQuotes( $option )}",
 		] );
 
-		$this->addWhere( [
+		$this->queryBuilder->where( [
 			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 			'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' .
 				"{$this->dbr->tableName( 'revision' )} AS rev_aux_snc WHERE rev_aux_snc.rev_page = " .
@@ -1102,7 +1056,7 @@ class Query {
 		}
 
 		$where[] = '(' . implode( ' OR ', $ors ) . ')';
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -1136,7 +1090,7 @@ class Query {
 		}
 
 		$where[] = '(' . implode( ' OR ', $ors ) . ')';
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -1150,7 +1104,7 @@ class Query {
 			return;
 		}
 
-		$this->addWhere(
+		$this->queryBuilder->where(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			" = (SELECT rev_actor FROM {$this->dbr->tableName( 'revision' )}" .
 			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
@@ -1169,19 +1123,17 @@ class Query {
 		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-				'rev.rev_timestamp < ' . $this->convertTimestamp( $option )
-			]
-		);
+		$this->queryBuilder->where( [
+			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			'rev.rev_timestamp < ' . $this->convertTimestamp( $option ),
+		] );
 
-		$this->addWhere( [
+		$this->queryBuilder->where( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
 			'rev.rev_timestamp = (SELECT MAX(rev_aux_bef.rev_timestamp) FROM ' .
 				$this->dbr->tableName( 'revision' ) . ' AS rev_aux_bef WHERE rev_aux_bef.rev_page = ' .
 				"{$this->dbr->tableName( 'page' )}.page_id AND rev_aux_bef.rev_timestamp < " .
-				$this->convertTimestamp( $option ) . ')'
+				$this->convertTimestamp( $option ) . ')',
 		] );
 	}
 
@@ -1231,7 +1183,7 @@ class Query {
 			$where[] = '(' . implode( ' OR ', $ors ) . ')';
 		}
 
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -1251,7 +1203,7 @@ class Query {
 				] );
 			}
 
-			$this->addWhere( 'pl.pl_target_id = lt.lt_id' );
+			$this->queryBuilder->where( 'pl.pl_target_id = lt.lt_id' );
 
 			foreach ( $option as $index => $linkGroup ) {
 				if ( $index == 0 ) {
@@ -1312,7 +1264,7 @@ class Query {
 					$where .= '))';
 				}
 
-				$this->addWhere( $where );
+				$this->queryBuilder->where( $where );
 			}
 		}
 	}
@@ -1348,7 +1300,7 @@ class Query {
 			$where .= implode( ' OR ', $ors ) . ')';
 		}
 
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -1443,7 +1395,7 @@ class Query {
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
-			$this->addWhere( $where );
+			$this->queryBuilder->where( $where );
 		}
 	}
 
@@ -1487,7 +1439,7 @@ class Query {
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
-			$this->addWhere( $where );
+			$this->queryBuilder->where( $where );
 		}
 	}
 
@@ -1497,7 +1449,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _maxrevisions( $option ) {
-		$this->addWhere(
+		$this->queryBuilder->where(
 			"((SELECT count(rev_aux3.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
 			" AS rev_aux3 WHERE rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id) <= $option)"
 		);
@@ -1509,7 +1461,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _minrevisions( $option ) {
-		$this->addWhere(
+		$this->queryBuilder->where(
 			"((SELECT count(rev_aux2.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
 			" AS rev_aux2 WHERE rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id) >= $option)"
 		);
@@ -1527,7 +1479,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'revision', 'change_rev' );
-		$this->addWhere(
+		$this->queryBuilder->where(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			' = change_rev.rev_actor AND change_rev.rev_deleted = 0' .
 			" AND change_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id"
@@ -1542,17 +1494,13 @@ class Query {
 	private function _namespace( $option ) {
 		if ( is_array( $option ) && count( $option ) ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->addWhere(
-					[
-						"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option
-					]
-				);
+				$this->queryBuilder->where( [
+					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option,
+				] );
 			} else {
-				$this->addWhere(
-					[
-						"{$this->dbr->tableName( 'page' )}.page_namespace" => $option
-					]
-				);
+				$this->queryBuilder->where( [
+					"{$this->dbr->tableName( 'page' )}.page_namespace" => $option,
+				] );
 			}
 		}
 	}
@@ -1569,7 +1517,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'revision', 'no_creation_rev' );
-		$this->addWhere(
+		$this->queryBuilder->where(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			' != no_creation_rev.rev_actor AND no_creation_rev.rev_deleted = 0' .
 			" AND no_creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
@@ -1588,7 +1536,7 @@ class Query {
 			return;
 		}
 
-		$this->addWhere(
+		$this->queryBuilder->where(
 			$this->dbr->addQuotes( $user->getActorId() ) .
 			" != (SELECT rev_actor FROM {$this->dbr->tableName( 'revision' )}" .
 			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
@@ -1609,7 +1557,7 @@ class Query {
 		}
 
 		$actorID = $this->dbr->addQuotes( $user->getActorId() );
-		$this->addWhere(
+		$this->queryBuilder->where(
 			"NOT EXISTS (SELECT 1 FROM {$this->dbr->tableName( 'revision' )}" .
 			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
 			" AND {$this->dbr->tableName( 'revision' )}.rev_actor = $actorID" .
@@ -1765,11 +1713,9 @@ class Query {
 						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
 						count( $this->parameters->getParameter( 'catheadings' ) )
 					) {
-						$this->addWhere(
-							[
-								'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' )
-							]
-						);
+						$this->queryBuilder->where( [
+							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' ),
+						] );
 					}
 
 					if (
@@ -1812,11 +1758,11 @@ class Query {
 					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 					if ( !$this->revisionAuxWhereAdded ) {
-						$this->addWhere( [
+						$this->queryBuilder->where( [
 							"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 							"rev.rev_timestamp = (SELECT MIN(rev_aux.rev_timestamp) FROM " .
 							"{$this->dbr->tableName( 'revision' )} AS rev_aux WHERE rev_aux.rev_page = " .
-							"{$this->dbr->tableName( 'page' )}.page_id)"
+							"{$this->dbr->tableName( 'page' )}.page_id)",
 						] );
 					}
 
@@ -1834,17 +1780,17 @@ class Query {
 						$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 						if ( !$this->revisionAuxWhereAdded ) {
-							$this->addWhere( "{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page" );
+							$this->queryBuilder->where( "{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page" );
 
 							if ( $this->parameters->getParameter( 'minoredits' ) == 'exclude' ) {
-								$this->addWhere(
+								$this->queryBuilder->where(
 									'rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM ' .
 									$this->dbr->tableName( 'revision' ) .
 									' AS rev_aux WHERE rev_aux.rev_page = ' .
 									"{$this->dbr->tableName( 'page' )}.page_id AND rev_aux.rev_minor_edit = 0)"
 								);
 							} else {
-								$this->addWhere(
+								$this->queryBuilder->where(
 									'rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM ' .
 									$this->dbr->tableName( 'revision' ) .
 									" AS rev_aux WHERE rev_aux.rev_page = {$this->dbr->tableName( 'page' )}.page_id)"
@@ -1949,18 +1895,14 @@ class Query {
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			switch ( $option ) {
 				case 'only':
-					$this->addWhere(
-						[
-							$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 1
-						]
-					);
+					$this->queryBuilder->where( [
+						$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 1,
+					] );
 					break;
 				case 'exclude':
-					$this->addWhere(
-						[
-							$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 0
-						]
-					);
+					$this->queryBuilder->where( [
+						$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 0,
+					] );
 					break;
 			}
 		}
@@ -1986,18 +1928,10 @@ class Query {
 
 			switch ( $option ) {
 				case 'only':
-					$this->addWhere(
-						[
-							'fp_stable IS NOT NULL'
-						]
-					);
+					$this->queryBuilder->where( 'fp_stable IS NOT NULL' );
 					break;
 				case 'exclude':
-					$this->addWhere(
-						[
-							'fp_stable' => null
-						]
-					);
+					$this->queryBuilder->where( [ 'fp_stable' => null ] );
 					break;
 			}
 		}
@@ -2023,10 +1957,10 @@ class Query {
 
 			switch ( $option ) {
 				case 'only':
-					$this->addWhere( 'fp_quality >= 1' );
+					$this->queryBuilder->where( 'fp_quality >= 1' );
 					break;
 				case 'exclude':
-					$this->addWhere( 'fp_quality = 0' );
+					$this->queryBuilder->where( [ 'fp_quality' => 0 ] );
 					break;
 			}
 		}
@@ -2064,7 +1998,7 @@ class Query {
 		}
 
 		$where = '(' . implode( ' OR ', $ors ) . ')';
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2099,7 +2033,7 @@ class Query {
 		}
 
 		$where = 'NOT (' . implode( ' OR ', $ors ) . ')';
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2127,7 +2061,7 @@ class Query {
 			$where = "({$this->dbr->tableName( 'page' )}.page_title {$operator} {$option})";
 		}
 
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2155,7 +2089,7 @@ class Query {
 			$where = "({$this->dbr->tableName( 'page' )}.page_title {$operator} {$option})";
 		}
 
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2204,7 +2138,8 @@ class Query {
 
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		}
-		$this->addWhere( $where );
+
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2240,7 +2175,7 @@ class Query {
 		}
 
 		$where .= implode( ' OR ', $ors ) . ')';
-		$this->addWhere( $where );
+		$this->queryBuilder->where( $where );
 	}
 
 	/**
@@ -2281,7 +2216,7 @@ class Query {
 			$where .= implode( ' OR ', $ors ) . '))';
 		}
 
-		$this->addWhere( $where ?? '' );
+		$this->queryBuilder->where( $where ?? '' );
 	}
 
 	private function isPageselFormatUsed(): bool {
