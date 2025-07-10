@@ -2034,8 +2034,9 @@ class Query {
 					$alias = match ( true ) {
 						count( $this->parameters->getParameter( 'linksfrom' ) ?? [] ) > 0 => 'ltf',
 						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
+						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'ltub',
 						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'ltu',
-						default => 'lt',
+						default => $this->dbr->tableName( 'linktarget' ),
 					};
 
 					$this->addSelect( [
@@ -2366,7 +2367,7 @@ class Query {
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
 			$this->addTables( [
-				'linktarget' => 'lt',
+				'linktarget' => 'ltub',
 				'templatelinks' => 'tpl',
 			] );
 
@@ -2379,7 +2380,7 @@ class Query {
 			] );
 
 			$this->addJoin(
-				'lt',
+				'ltub',
 				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
 			);
 
