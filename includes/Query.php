@@ -199,7 +199,7 @@ class Query {
 					]
 				);
 
-				$this->queryBuilder->tables( [
+				$this->queryBuilder->rawTables( [
 					$this->dbr->tableName( 'page', 'raw' ) => 'page',
 					$this->dbr->tableName( 'pagelinks', 'raw' ) => 'pagelinks',
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
