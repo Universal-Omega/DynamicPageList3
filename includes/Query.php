@@ -1636,7 +1636,6 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _minrevisions( $option ) {
-
 		$this->addWhere(
 			"((SELECT count(rev_aux2.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
 			" AS rev_aux2 WHERE rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id) >= $option)"
