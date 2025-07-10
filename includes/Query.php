@@ -1162,8 +1162,8 @@ class Query {
 		$this->_adduser( null, 'creation_rev' );
 
 		$this->addWhere( [
-			$this->dbr->addQuotes( $user->getActorId() ) . ' = creation_rev.rev_actor',
-			'creation_rev.rev_page = page_id',
+			"{$this->dbr->addQuotes( $user->getActorId() )} = creation_rev.rev_actor",
+			"creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 			'creation_rev.rev_deleted = 0',
 			'creation_rev.rev_parent_id = 0',
 		] );
@@ -1189,25 +1189,21 @@ class Query {
 	 */
 	private function _firstrevisionsince( $option ) {
 		$this->addTable( 'revision', 'rev' );
-		$this->addSelect(
-			[
-				'rev.rev_id',
-				'rev.rev_timestamp'
-			]
-		);
+		$this->addSelect( [
+			'rev.rev_id',
+			'rev.rev_timestamp',
+		] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
-		$this->addWhere(
-			[
-				$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-				'rev.rev_timestamp >= ' . $this->dbr->addQuotes( $option )
-			]
-		);
+		$this->addWhere( [
+			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+			"rev.rev_timestamp >= {$this->dbr->addQuotes( $option )}",
+		] );
 
 		$this->addWhere( [
-			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 			'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' .
-				$this->dbr->tableName( 'revision' ) . ' AS rev_aux_snc WHERE rev_aux_snc.rev_page = ' .
+				"{$this->dbr->tableName( 'revision' )} AS rev_aux_snc WHERE rev_aux_snc.rev_page = " .
 					"{$this->dbr->tableName( 'page' )}.page_id AND rev_aux_snc.rev_timestamp >= " .
 					$this->convertTimestamp( $option ) . ')'
 		] );
@@ -1279,17 +1275,14 @@ class Query {
 	 */
 	private function _imageused( $option ) {
 		$where = [];
-
 		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
 			$this->addGroupBy( 'page_title' );
 		}
 
 		$this->addTable( 'imagelinks', 'il' );
-		$this->addSelect(
-			[
-				'image_sel_title' => 'il.il_to'
-			]
-		);
+		$this->addSelect( [
+			'image_sel_title' => 'il.il_to',
+		] );
 
 		$where[] = $this->dbr->tableName( 'page' ) . '.page_id = il.il_from';
 		$ors = [];
@@ -1322,10 +1315,10 @@ class Query {
 
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
-			' = (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
-			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
-			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
-			' ORDER BY ' . $this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
+			" = (SELECT rev_actor FROM {$this->dbr->tableName( 'revision' )}" .
+			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
+			" AND {$this->dbr->tableName( 'revision' )}.rev_deleted = 0" .
+			" ORDER BY {$this->dbr->tableName( 'revision' )}.rev_timestamp DESC LIMIT 1)"
 		);
 	}
 
@@ -1381,16 +1374,16 @@ class Query {
 				$this->addSelect(
 					[
 						'sel_title' => 'pagesrc.page_title',
-						'sel_ns' => 'pagesrc.page_namespace'
+						'sel_ns' => 'pagesrc.page_namespace',
 					]
 				);
 			}
 
 			$where = [
-				$this->dbr->tableName( 'page' ) . '.page_namespace = lt.lt_namespace',
-				$this->dbr->tableName( 'page' ) . '.page_title = lt.lt_title',
+				'pagesrc.page_namespace = lt.lt_namespace',
+				'pagesrc.page_title = lt.lt_title',
 				'lt.lt_id = plf.pl_target_id',
-				'pagesrc.page_id = plf.pl_from'
+				'pagesrc.page_id = plf.pl_from',
 			];
 
 			$ors = [];
@@ -1597,17 +1590,18 @@ class Query {
 					$domainPatterns
 				);
 
-				$where = "{$this->dbr->tableName( 'page' )}.page_id=el.el_from " .
+				$where = "{$this->dbr->tableName( 'page' )}.page_id = el.el_from " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
+				$pageTable = $this->dbr->tableName( 'page' );
 				$ors = array_map(
 					fn ( $pattern ) => "$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
-					" WHERE ($linksTable.el_from=page_id " .
+					" WHERE ($linksTable.el_from = $pageTable.page_id " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
@@ -1640,17 +1634,18 @@ class Query {
 					$paths
 				);
 
-				$where = "{$this->dbr->tableName( 'page' )}.page_id=el.el_from " .
+				$where = "{$this->dbr->tableName( 'page' )}.page_id = el.el_from " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
+				$pageTable = $this->dbr->tableName( 'page' );
 				$ors = array_map(
 					fn ( $path ) => "$linksTable.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
 					$paths
 				);
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
-					" WHERE ($linksTable.el_from=page_id " .
+					" WHERE ($linksTable.el_from = $pageTable.page_id " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
@@ -1666,7 +1661,7 @@ class Query {
 	private function _maxrevisions( $option ) {
 		$this->addWhere(
 			"((SELECT count(rev_aux3.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
-			" AS rev_aux3 WHERE rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id) <= {$option})"
+			" AS rev_aux3 WHERE rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id) <= $option)"
 		);
 	}
 
@@ -1676,9 +1671,10 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _minrevisions( $option ) {
+
 		$this->addWhere(
 			"((SELECT count(rev_aux2.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
-			" AS rev_aux2 WHERE rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id) >= {$option})"
+			" AS rev_aux2 WHERE rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id) >= $option)"
 		);
 	}
 
@@ -1694,10 +1690,10 @@ class Query {
 		}
 
 		$this->addTable( 'revision', 'change_rev' );
-
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
-			' = change_rev.rev_actor AND change_rev.rev_deleted = 0 AND change_rev.rev_page = page_id'
+			' = change_rev.rev_actor AND change_rev.rev_deleted = 0' .
+			" AND change_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id"
 		);
 	}
 
@@ -1736,11 +1732,11 @@ class Query {
 		}
 
 		$this->addTable( 'revision', 'no_creation_rev' );
-
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
-			' != no_creation_rev.rev_actor AND no_creation_rev.rev_deleted = 0 ' .
-			'AND no_creation_rev.rev_page = page_id AND no_creation_rev.rev_parent_id = 0'
+			' != no_creation_rev.rev_actor AND no_creation_rev.rev_deleted = 0' .
+			" AND no_creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
+			' AND no_creation_rev.rev_parent_id = 0'
 		);
 	}
 
@@ -1757,10 +1753,10 @@ class Query {
 
 		$this->addWhere(
 			$this->dbr->addQuotes( $user->getActorId() ) .
-			' != (SELECT rev_actor FROM ' . $this->dbr->tableName( 'revision' ) .
-			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
-			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
-			' ORDER BY ' . $this->dbr->tableName( 'revision' ) . '.rev_timestamp DESC LIMIT 1)'
+			" != (SELECT rev_actor FROM {$this->dbr->tableName( 'revision' )}" .
+			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
+			" AND {$this->dbr->tableName( 'revision' )}.rev_deleted = 0" .
+			" ORDER BY {$this->dbr->tableName( 'revision' )}.rev_timestamp DESC LIMIT 1)"
 		);
 	}
 
@@ -1777,11 +1773,10 @@ class Query {
 
 		$actorID = $this->dbr->addQuotes( $user->getActorId() );
 		$this->addWhere(
-			'NOT EXISTS (SELECT 1 FROM ' .
-			$this->dbr->tableName( 'revision' ) .
-			' WHERE ' . $this->dbr->tableName( 'revision' ) . '.rev_page = page_id' .
-			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_actor = ' . $actorID .
-			' AND ' . $this->dbr->tableName( 'revision' ) . '.rev_deleted = 0' .
+			"NOT EXISTS (SELECT 1 FROM {$this->dbr->tableName( 'revision' )}" .
+			" WHERE {$this->dbr->tableName( 'revision' )}.rev_page = {$this->dbr->tableName( 'page' )}.page_id" .
+			" AND {$this->dbr->tableName( 'revision' )}.rev_actor = $actorID" .
+			" AND {$this->dbr->tableName( 'revision' )}.rev_deleted = 0" .
 			' LIMIT 1)'
 		);
 	}
@@ -2102,7 +2097,7 @@ class Query {
 					$this->addOrderBy( 'sortkey' );
 					if ( $this->parameters->getParameter( 'openreferences' ) ) {
 						$this->addSelect( [
-							'sortkey' => "REPLACE(CONCAT(IF(lt_namespace =0, '', CONCAT(" .
+							'sortkey' => "REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
 								 $_namespaceIdToText . ", ':')), lt_title), '_', ' ') " .
 								 $this->getCollateSQL()
 						] );
@@ -2120,7 +2115,6 @@ class Query {
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
 					$this->addTable( 'revision', 'rev' );
-
 					$this->_adduser( null, 'rev' );
 					break;
 				case 'none':
@@ -2374,17 +2368,17 @@ class Query {
 
 			$this->addSelect( [
 				'tpl_sel_title' => "{$this->dbr->tableName( 'page' )}.page_title",
-				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace"
+				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace",
 			] );
 
 			$this->addJoin(
 				'lt',
 				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
 			);
-			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id', ]
-			);
-			$ors = [];
 
+			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id' ] );
+
+			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$ors[] = 'tpl.tl_from = ' . (int)$link->getArticleID();
