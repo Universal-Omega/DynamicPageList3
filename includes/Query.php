@@ -2398,7 +2398,7 @@ class Query {
 	}
 
 	/**
- 	 * Set SQL for 'uses' parameter.
+	 * Set SQL for 'uses' parameter.
 	 *
 	 * @param mixed $option
 	 */
