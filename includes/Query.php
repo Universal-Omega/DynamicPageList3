@@ -2038,6 +2038,13 @@ class Query {
 						$this->addSelect( [
 							'sortkey' => 'CONCAT(ltf.lt_namespace, ltf.lt_title) ' . $this->getCollateSQL(),
 						] );
+					} elseif (
+						is_array( $this->parameters->getParameter( 'uses' ) ) &&
+						count( $this->parameters->getParameter( 'uses' ) )
+					) {
+						$this->addSelect( [
+							'sortkey' => 'CONCAT(ltu.lt_namespace, ltu.lt_title) ' . $this->getCollateSQL(),
+						] );
 					} else {
 						$this->addSelect( [
 							'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
@@ -2410,7 +2417,7 @@ class Query {
 			'templatelinks' => 'tl',
 		] );
 
-		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND ltu.lt_id = tl.tl_target_id AND (';
+		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND ltu.ltu_id = tl.tl_target_id AND (';
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
