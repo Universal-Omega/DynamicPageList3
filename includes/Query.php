@@ -45,25 +45,11 @@ class Query {
 	private $parametersProcessed = [];
 
 	/**
-	 * Select Fields
-	 *
-	 * @var array
-	 */
-	private $select = [];
-
-	/**
 	 * The generated SQL Query.
 	 *
 	 * @var string
 	 */
 	private $sqlQuery = '';
-
-	/**
-	 * Selected Fields - An array to look up keys against for speed optimization.
-	 *
-	 * @var array
-	 */
-	private $selectedFields = [];
 
 	/**
 	 * Where Clauses
@@ -239,7 +225,7 @@ class Query {
 					] );
 				}
 
-				$this->where( [
+				$this->queryBuilder->where( [
 					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id" =>
 						"{$this->dbr->tableName( 'linktarget' )}.lt_id",
 				] );
@@ -437,48 +423,6 @@ class Query {
 			}
 		} else {
 			throw new InvalidArgumentException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Add a field to select.
-	 * Will ignore duplicate values if the exact same alias and exact same field are passed.
-	 *
-	 * @param array $fields
-	 * @return bool
-	 */
-	public function addSelect( $fields ) {
-		if ( !is_array( $fields ) ) {
-			throw new InvalidArgumentException( __METHOD__ . ': A non-array was passed.' );
-		}
-
-		foreach ( $fields as $alias => $field ) {
-			if (
-				!is_numeric( $alias ) &&
-				array_key_exists( $alias, $this->select ) &&
-				$this->select[$alias] != $field
-			) {
-				// In case of a code bug that is overwriting an existing field alias throw an exception.
-				throw new UnexpectedValueException(
-					__METHOD__ . ": Attempted to overwrite existing field alias " .
-					"`{$this->select[$alias]}` AS `{$alias}` with `{$field}` AS `{$alias}`."
-				);
-			}
-
-			// String alias and does not exist already.
-			if ( !is_numeric( $alias ) && !array_key_exists( $alias, $this->select ) ) {
-				$this->select[$alias] = $field;
-			}
-
-			// Speed up by not using in_array() or array_key_exists().
-			// Toss the field names into their own array as keys => true
-			// to exploit a speedy look up with isset().
-			if ( is_numeric( $alias ) && !isset( $this->selectedFields[$field] ) ) {
-				$this->select[] = $field;
-				$this->selectedFields[$field] = true;
-			}
 		}
 
 		return true;
@@ -742,13 +686,11 @@ class Query {
 	 */
 	private function _addcontribution( $option ) {
 		$this->queryBuilder->table( 'recentchanges', 'rc' );
-		$this->addSelect(
-			[
-				'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
-				'contributor' => 'rc.rc_actor',
-				'contrib_deleted' => 'rc.rc_deleted',
-			]
-		);
+		$this->queryBuilder->select( [
+			'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
+			'contributor' => 'rc.rc_actor',
+			'contrib_deleted' => 'rc.rc_deleted',
+		] );
 
 		$this->addWhere(
 			[
@@ -766,7 +708,7 @@ class Query {
 	 */
 	private function _addeditdate( $option ) {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->addSelect( [ 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 		$this->addWhere(
 			[
@@ -783,11 +725,9 @@ class Query {
 	private function _addfirstcategorydate( $option ) {
 		// @TODO: This should be programmatically determining which
 		// categorylink table to use instead of assuming the first one.
-		$this->addSelect(
-			[
-				'cl_timestamp' => "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')"
-			]
-		);
+		$this->queryBuilder->select( [
+			'cl_timestamp' => "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')",
+		] );
 	}
 
 	/**
@@ -819,11 +759,9 @@ class Query {
 	private function _addpagecounter( $option ) {
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 			$this->queryBuilder->table( 'hit_counter' );
-			$this->addSelect(
-				[
-					'page_counter' => 'hit_counter.page_counter'
-				]
-			);
+			$this->queryBuilder->select( [
+				'page_counter' => 'hit_counter.page_counter',
+			] );
 
 			if ( !isset( $this->join['hit_counter'] ) ) {
 				$this->addJoin(
@@ -843,11 +781,9 @@ class Query {
 	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addpagesize( $option ) {
-		$this->addSelect(
-			[
-				'page_len' => "{$this->dbr->tableName( 'page' )}.page_len"
-			]
-		);
+		$this->queryBuilder->select( [
+			'page_len' => "{$this->dbr->tableName( 'page' )}.page_len",
+		] );
 	}
 
 	/**
@@ -856,11 +792,9 @@ class Query {
 	 * @param mixed $option @phan-unused-param
 	 */
 	private function _addpagetoucheddate( $option ) {
-		$this->addSelect(
-			[
-				'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched"
-			]
-		);
+		$this->queryBuilder->select( [
+			'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched",
+		] );
 	}
 
 	/**
@@ -874,12 +808,10 @@ class Query {
 			$tableAlias .= '.';
 		}
 
-		$this->addSelect(
-			[
-				$tableAlias . 'rev_actor',
-				$tableAlias . 'rev_deleted',
-			]
-		);
+		$this->queryBuilder->select( [
+			"{$tableAlias}rev_actor",
+			"{$tableAlias}rev_deleted",
+		] );
 	}
 
 	/**
@@ -889,12 +821,10 @@ class Query {
 	 */
 	private function _allrevisionsbefore( $option ) {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->addSelect(
-			[
-				'rev.rev_id',
-				'rev.rev_timestamp'
-			]
-		);
+		$this->queryBuilder->select( [
+			'rev.rev_id',
+			'rev.rev_timestamp',
+		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
@@ -914,12 +844,10 @@ class Query {
 	 */
 	private function _allrevisionssince( $option ) {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->addSelect(
-			[
-				'rev.rev_id',
-				'rev.rev_timestamp'
-			]
-		);
+		$this->queryBuilder->select( [
+			'rev.rev_id',
+			'rev.rev_timestamp',
+		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
 		$this->setOrderDir( 'DESC' );
@@ -1102,7 +1030,7 @@ class Query {
 	 */
 	private function _firstrevisionsince( $option ) {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->addSelect( [
+		$this->queryBuilder->select( [
 			'rev.rev_id',
 			'rev.rev_timestamp',
 		] );
@@ -1152,11 +1080,7 @@ class Query {
 		$where = [];
 
 		$this->queryBuilder->table( 'imagelinks', 'ic' );
-		$this->addSelect(
-			[
-				'sortkey' => 'ic.il_to'
-			]
-		);
+		$this->queryBuilder->select( [ 'sortkey' => 'ic.il_to' ] );
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			$where = [
@@ -1193,7 +1117,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'imagelinks', 'il' );
-		$this->addSelect( [
+		$this->queryBuilder->select( [
 			'image_sel_title' => 'il.il_to',
 		] );
 
@@ -1242,7 +1166,7 @@ class Query {
 	 */
 	private function _lastrevisionbefore( $option ) {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->addSelect( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
 
 		// tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->addWhere(
@@ -1284,12 +1208,10 @@ class Query {
 			$this->queryBuilder->table( 'page', 'pagesrc' );
 
 			if ( $this->isPageselFormatUsed() ) {
-				$this->addSelect(
-					[
-						'sel_title' => 'pagesrc.page_title',
-						'sel_ns' => 'pagesrc.page_namespace',
-					]
-				);
+				$this->queryBuilder->select( [
+					'sel_title' => 'pagesrc.page_title',
+					'sel_ns' => 'pagesrc.page_namespace',
+				] );
 			}
 
 			$where = [
@@ -1323,7 +1245,10 @@ class Query {
 			$this->queryBuilder->table( 'linktarget', 'lt' );
 
 			if ( $this->isPageselFormatUsed() ) {
-				$this->addSelect( [ 'sel_title' => 'lt.lt_title', 'sel_ns' => 'lt.lt_namespace' ] );
+				$this->queryBuilder->select( [
+					'sel_title' => 'lt.lt_title',
+					'sel_ns' => 'lt.lt_namespace',
+				] );
 			}
 
 			$this->addWhere( 'pl.pl_target_id = lt.lt_id' );
@@ -1490,7 +1415,7 @@ class Query {
 			return;
 		}
 		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->addSelect( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
+		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
 
 		foreach ( $option as $index => $domains ) {
 			$domainPatterns = array_map(
@@ -1538,7 +1463,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->addSelect( [ 'el_to_path' => 'el.el_to_path' ] );
+		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
 
 		foreach ( $option as $index => $paths ) {
 			if ( $index == 0 ) {
@@ -1808,7 +1733,7 @@ class Query {
 			switch ( $orderMethod ) {
 				case 'category':
 					$this->addOrderBy( 'cl_head.cl_to' );
-					$this->addSelect( [ 'cl_head.cl_to' ] );
+					$this->queryBuilder->select( 'cl_head.cl_to' );
 
 					if (
 						(
@@ -1884,12 +1809,7 @@ class Query {
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
 					$this->queryBuilder->table( 'revision', 'rev' );
-
-					$this->addSelect(
-						[
-							'rev.rev_timestamp'
-						]
-					);
+					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 					if ( !$this->revisionAuxWhereAdded ) {
 						$this->addWhere( [
@@ -1905,15 +1825,13 @@ class Query {
 				case 'lastedit':
 					if ( Hooks::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
-						$this->addSelect(
-							[
-								'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched"
-							]
-						);
+						$this->queryBuilder->select( [
+							'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched"
+						] );
 					} else {
 						$this->addOrderBy( 'rev.rev_timestamp' );
 						$this->queryBuilder->table( 'revision', 'rev' );
-						$this->addSelect( [ 'rev.rev_timestamp' ] );
+						$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 						if ( !$this->revisionAuxWhereAdded ) {
 							$this->addWhere( "{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page" );
@@ -1939,19 +1857,15 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
-					$this->addSelect(
-						[
-							'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL()
-						]
-					);
+					$this->queryBuilder->select( [
+						'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
+					] );
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
-					$this->addSelect(
-						[
-							'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched"
-						]
-					);
+					$this->queryBuilder->select( [
+						'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched",
+					] );
 					break;
 				case 'size':
 					$this->addOrderBy( 'page_len' );
@@ -1969,25 +1883,20 @@ class Query {
 					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
 					if ( count( $category ) + count( $notCategory ) > 0 ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ) ) ) {
-							$this->addSelect( [
-								'sortkey' => "IFNULL(cl_head.cl_sortkey, {$replaceConcat}) " .
-									 $this->getCollateSQL()
+							$this->queryBuilder->select( [
+								'sortkey' => "IFNULL(cl_head.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
 						} else {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
-							$this->addSelect(
-								[
-									'sortkey' => "IFNULL(cl1.cl_sortkey, {$replaceConcat}) " . $this->getCollateSQL()
-								]
-							);
+							$this->queryBuilder->select( [
+								'sortkey' => "IFNULL(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}"
+							] );
 						}
 					} else {
-						$this->addSelect(
-							[
-								'sortkey' => $replaceConcat . $this->getCollateSQL()
-							]
-						);
+						$this->queryBuilder->select( [
+							'sortkey' => $replaceConcat . $this->getCollateSQL(),
+						] );
 					}
 					break;
 				case 'titlewithoutnamespace':
@@ -1997,28 +1906,26 @@ class Query {
 						$this->addOrderBy( 'page_title' );
 					}
 
-					$this->addSelect(
-						[
-							'sortkey' => "{$this->dbr->tableName( 'page' )}.page_title " . $this->getCollateSQL()
-						]
-					);
+					$this->queryBuilder->select( [
+						'sortkey' => "{$this->dbr->tableName( 'page' )}.page_title {$this->getCollateSQL()}",
+					] );
 					break;
 				case 'title':
 					$this->addOrderBy( 'sortkey' );
 					if ( $this->parameters->getParameter( 'openreferences' ) ) {
-						$this->addSelect( [
+						$this->queryBuilder->select( [
 							'sortkey' => "REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
 								 $_namespaceIdToText . ", ':')), lt_title), '_', ' ') " .
-								 $this->getCollateSQL()
+								 $this->getCollateSQL(),
 						] );
 					} else {
 						// Generate sortkey like for category links.
 						// UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->addSelect( [
+						$this->queryBuilder->select( [
 							'sortkey' => "REPLACE(CONCAT(IF(" . $this->dbr->tableName( 'page' ) .
 								".page_namespace = 0, '', CONCAT(" . $_namespaceIdToText . ", ':')), " .
 								$this->dbr->tableName( 'page' ) . ".page_title), '_', ' ') " .
-								$this->getCollateSQL()
+								$this->getCollateSQL(),
 						] );
 					}
 					break;
@@ -2276,7 +2183,7 @@ class Query {
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
-			$this->addSelect( [
+			$this->queryBuilder->select( [
 				'tpl_sel_title' => "{$this->dbr->tableName( 'page' )}.page_title",
 				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace",
 			] );
