@@ -15,6 +15,7 @@ use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 
 class Query {
@@ -28,12 +29,7 @@ class Query {
 	 */
 	private $parameters;
 
-	/**
-	 * Mediawiki DB Object
-	 *
-	 * @var IDatabase
-	 */
-	private $dbr;
+	private IReadableDatabase $dbr;
 	private SelectQueryBuilder $queryBuilder;
 
 	/**
@@ -118,10 +114,10 @@ class Query {
 	 */
 	public function __construct( Parameters $parameters ) {
 		$this->parameters = $parameters;
+		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
+			->getReplicaDatabase( false, 'dpl3' );
 
-		$this->dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA, 'dpl' );
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
-
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
@@ -210,7 +206,7 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					$this->dbr->tableName( 'page', 'raw' ), null, [
+					'page', $this->dbr->tableName( 'page', 'raw' ), [
 						"{$this->dbr->tableName( 'page' )}.page_namespace = " .
 						"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
 						"{$this->dbr->tableName( 'page' )}.page_title = " .
