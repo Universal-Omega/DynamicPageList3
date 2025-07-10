@@ -46,13 +46,6 @@ class Query {
 	private $sqlQuery = '';
 
 	/**
-	 * Group By Clauses
-	 *
-	 * @var array
-	 */
-	private $groupBy = [];
-
-	/**
 	 * Order By Clauses
 	 *
 	 * @var array
@@ -78,14 +71,7 @@ class Query {
 	 *
 	 * @var string
 	 */
-	private $direction = 'ASC';
-
-	/**
-	 * Distinct Results
-	 *
-	 * @var bool
-	 */
-	private $distinct = true;
+	private $direction = SelectQueryBuilder::SORT_ASC;
 
 	/**
 	 * Character Set Collation
@@ -220,24 +206,18 @@ class Query {
 				] );
 			}
 		} else {
-			if ( count( $this->groupBy ) ) {
-				$this->queryBuilder->groupBy( $this->groupBy );
-			}
 			if ( count( $this->orderBy ) ) {
 				$this->queryBuilder->orderBy( $this->orderBy, $this->direction );
 			}
 		}
-		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
+
+		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			$categoriesGoal = true;
 			$this->queryBuilder->select( $this->dbr->tableName( 'page' ) . '.page_id' );
 			$this->queryBuilder->distinct();
 		} else {
 			if ( $calcRows ) {
 				$this->queryBuilder->calcFoundRows();
-			}
-
-			if ( $this->distinct ) {
-				$this->queryBuilder->distinct();
 			}
 
 			$categoriesGoal = false;
@@ -378,22 +358,6 @@ class Query {
 	}
 
 	/**
-	 * Add a GROUP BY clause to the output.
-	 *
-	 * @param string $groupBy
-	 * @return bool
-	 */
-	public function addGroupBy( $groupBy ) {
-		if ( !$groupBy ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty GROUP BY clause was passed.' );
-		}
-
-		$this->groupBy[] = $groupBy;
-
-		return true;
-	}
-
-	/**
 	 * Add a ORDER BY clause to the output.
 	 *
 	 * @param string $orderBy
@@ -479,41 +443,33 @@ class Query {
 	 * @return array
 	 */
 	public static function getSubcategories( $categoryName, $depth = 1 ) {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA, 'dpl' );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
+			->getReplicaDatabase( false, 'dpl3' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
 			$depth = 2;
 		}
 
-		$categories = [];
-		$res = $dbr->select(
-			[ 'page', 'categorylinks' ],
-			[ 'page_title' ],
-			[
+		$categories = $dbr->newSelectQueryBuilder()
+			->tables( [ 'categorylinks', 'page' ] )
+			->field( 'page_title' )
+			->where( [
 				'page_namespace' => NS_CATEGORY,
-				'cl_to' => str_replace( ' ', '_', $categoryName )
-			],
-			__METHOD__,
-			[ 'DISTINCT' ],
-			[
-				'categorylinks' => [
-					'INNER JOIN',
-					'page_id = cl_from'
-				]
-			]
-		);
+				'cl_to' => str_replace( ' ', '_', $categoryName ),
+			] )
+			->caller( __METHOD__ )
+			->distinct()
+			->join( 'categorylinks', null, 'page_id = cl_from' )
+			->fetchFieldValues();
 
-		foreach ( $res as $row ) {
-			$categories[] = $row->page_title;
+		foreach ( $categories as $category ) {
 			if ( $depth > 1 ) {
-				$categories = array_merge( $categories, self::getSubcategories( $row->page_title, $depth - 1 ) );
+				$categories = array_merge( $categories, self::getSubcategories( $category, $depth - 1 ) );
 			}
 		}
 
 		$categories = array_unique( $categories );
-		$res->free();
-
 		return $categories;
 	}
 
@@ -594,8 +550,8 @@ class Query {
 			'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')",
 		] );
 
-		$this->queryBuilder->leftJoin( 'cl_gc', null, [ 'page_id = cl_gc.cl_from' ] );
-		$this->addGroupBy( $this->dbr->tableName( 'page' ) . '.page_id' );
+		$this->queryBuilder->leftJoin( 'cl_gc', null, 'page_id = cl_gc.cl_from' );
+		$this->queryBuilder->groupBy( $this->dbr->tableName( 'page' ) . '.page_id' );
 	}
 
 	/**
@@ -615,7 +571,7 @@ class Query {
 			$this->dbr->tableName( 'page' ) . '.page_id = rc.rc_cur_id',
 		] );
 
-		$this->addGroupBy( 'rc.rc_cur_id' );
+		$this->queryBuilder->groupBy( 'rc.rc_cur_id' );
 	}
 
 	/**
@@ -911,10 +867,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _distinct( $option ) {
-		if ( $option == 'strict' || $option === true ) {
-			$this->distinct = true;
-		} else {
-			$this->distinct = false;
+		if ( $option === 'strict' || $option === true ) {
+			$this->queryBuilder->distinct();
 		}
 	}
 
@@ -951,7 +905,7 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _goal( $option ) {
-		if ( $option == 'categories' ) {
+		if ( $option === 'categories' ) {
 			$this->setLimit( false );
 			$this->setOffset( false );
 		}
@@ -1007,8 +961,8 @@ class Query {
 	 */
 	private function _imageused( $option ) {
 		$where = [];
-		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
-			$this->addGroupBy( 'page_title' );
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page_title' );
 		}
 
 		$this->queryBuilder->table( 'imagelinks', 'il' );
@@ -1297,8 +1251,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _linkstoexternaldomain( $option ) {
-		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
-			$this->addGroupBy( 'page_title' );
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page_title' );
 		}
 
 		if ( count( $option ) == 0 ) {
@@ -1343,8 +1297,8 @@ class Query {
 	 * @param mixed $option
 	 */
 	private function _linkstoexternalpath( $option ) {
-		if ( $this->parameters->getParameter( 'distinct' ) == 'strict' ) {
-			$this->addGroupBy( 'page_title' );
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page_title' );
 		}
 
 		if ( count( $option ) == 0 ) {
@@ -1549,9 +1503,9 @@ class Query {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
 		if ( $orderMethod && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
 			if ( $option === 'descending' || $option === 'desc' ) {
-				$this->setOrderDir( 'DESC' );
+				$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 			} else {
-				$this->setOrderDir( 'ASC' );
+				$this->setOrderDir( SelectQueryBuilder::SORT_ASC );
 			}
 		}
 	}
@@ -1565,7 +1519,7 @@ class Query {
 	private function _ordercollation( $option ) {
 		$option = mb_strtolower( $option );
 
-		$res = $this->dbr->query( 'SHOW CHARACTER SET', __METHOD__ );
+		$res = $this->dbr->query( 'SHOW CHARACTER SET;', __METHOD__ );
 		if ( !$res ) {
 			return false;
 		}
@@ -1587,7 +1541,7 @@ class Query {
 	 * @return bool
 	 */
 	private function _ordermethod( $option ) {
-		if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
+		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			// No order methods for returning categories.
 			return true;
 		}
@@ -1926,17 +1880,17 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS char)) {$comparisonType}" .
+						$_or = "LOWER(CAST(lt_title AS char)) $comparisonType" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "lt_title {$comparisonType} " . $this->dbr->addQuotes( $title );
+						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS char)) {$comparisonType}" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->dbr->tableName( 'page' )}.page_title {$comparisonType}" .
+						$_or = "{$this->dbr->tableName( 'page' )}.page_title $comparisonType" .
 							$this->dbr->addQuotes( $title );
 					}
 				}
@@ -1969,9 +1923,9 @@ class Query {
 		$option = $this->dbr->addQuotes( $option );
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$where = "(lt_title {$operator} {$option})";
+			$where = "(lt_title $operator $option)";
 		} else {
-			$where = "({$this->dbr->tableName( 'page' )}.page_title {$operator} {$option})";
+			$where = "({$this->dbr->tableName( 'page' )}.page_title $operator $option)";
 		}
 
 		$this->queryBuilder->where( $where );
@@ -2127,9 +2081,8 @@ class Query {
 			}
 
 			$where .= implode( ' OR ', $ors ) . '))';
+			$this->queryBuilder->where( $where );
 		}
-
-		$this->queryBuilder->where( $where ?? '' );
 	}
 
 	private function isPageselFormatUsed(): bool {
