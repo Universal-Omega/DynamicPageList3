@@ -12,7 +12,6 @@ use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
-use UnexpectedValueException;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
@@ -64,13 +63,6 @@ class Query {
 	 * @var array
 	 */
 	private $orderBy = [];
-
-	/**
-	 * Join Clauses
-	 *
-	 * @var array
-	 */
-	private $join = [];
 
 	/**
 	 * Limit
@@ -423,36 +415,6 @@ class Query {
 	}
 
 	/**
-	 * Add a JOIN clause to the output.
-	 *
-	 * @param string $tableAlias
-	 * @param array $joinConditions
-	 * @return bool
-	 */
-	public function addJoin( $tableAlias, $joinConditions ) {
-		if ( !$tableAlias || !$joinConditions ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty JOIN clause was passed.' );
-		}
-
-		if ( isset( $this->join[$tableAlias] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to overwrite existing JOIN clause.' );
-		}
-
-		$this->join[$tableAlias] = $joinConditions;
-
-		return true;
-	}
-
-	/**
-	 * @param array $joins
-	 */
-	public function addJoins( array $joins ) {
-		foreach ( $joins as $alias => $conds ) {
-			$this->addJoin( $alias, $conds );
-		}
-	}
-
-	/**
 	 * Set the limit.
 	 *
 	 * @param mixed $limit
@@ -720,12 +682,10 @@ class Query {
 				'page_counter' => 'hit_counter.page_counter',
 			] );
 
-			if ( !isset( $this->join['hit_counter'] ) ) {
-				$this->addJoin(
-					'hit_counter',
-					[
-						'LEFT JOIN',
-						'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id'
+			if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
+				$this->queryBuilder->leftJoin(
+					'hit_counter', null, [
+						'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id',
 					]
 				);
 			}
@@ -871,12 +831,11 @@ class Query {
 							$i++;
 							$tableAlias = "cl{$i}";
 							$this->queryBuilder->table( $tableName, $tableAlias );
-							$this->addJoin(
-								$tableAlias, [
-									'INNER JOIN',
-									"{$this->dbr->tableName( 'page' )}.page_id = {$tableAlias}.cl_from AND " .
-										"$tableAlias.cl_to {$comparisonType} " .
-										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
+							$this->queryBuilder->join(
+								$tableName, $tableAlias, [
+									"{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND " .
+										"$tableAlias.cl_to $comparisonType " .
+										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 								]
 							);
 						}
@@ -885,24 +844,18 @@ class Query {
 						$tableAlias = "cl{$i}";
 						$this->queryBuilder->table( $tableName, $tableAlias );
 
-						$joinOn = "{$this->dbr->tableName( 'page' )}.page_id = {$tableAlias}.cl_from AND (";
+						$joinOn = "{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND (";
 						$ors = [];
 
 						foreach ( $categories as $category ) {
-							$ors[] = "{$tableAlias}.cl_to {$comparisonType} " .
+							$ors[] = "$tableAlias.cl_to $comparisonType " .
 								$this->dbr->addQuotes( str_replace( ' ', '_', $category ) );
 						}
 
-						$joinOn .= implode( " {$operatorType} ", $ors );
+						$joinOn .= implode( " $operatorType ", $ors );
 						$joinOn .= ')';
 
-						$this->addJoin(
-							$tableAlias,
-							[
-								'INNER JOIN',
-								$joinOn
-							]
-						);
+						$this->queryBuilder->join( 'categorylinks', $tableAlias, $joinOn );
 					}
 				}
 			}
@@ -922,13 +875,11 @@ class Query {
 
 				$tableAlias = "ecl{$i}";
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
-
-				$this->addJoin(
-					$tableAlias, [
-						'LEFT OUTER JOIN',
+				$this->queryBuilder->leftJoin(
+					'categorylinks', $tableAlias, [
 						"{$this->dbr->tableName( 'page' )}.page_id = {$tableAlias}.cl_from AND " .
 							"{$tableAlias}.cl_to {$operatorType}" .
-							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) )
+							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 					]
 				);
 
@@ -1567,17 +1518,13 @@ class Query {
 	private function _notnamespace( $option ) {
 		if ( is_array( $option ) && count( $option ) ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->addNotWhere(
-					[
-						"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option
-					]
-				);
+				$this->addNotWhere( [
+					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option,
+				] );
 			} else {
-				$this->addNotWhere(
-					[
-						"{$this->dbr->tableName( 'page' )}.page_namespace" => $option
-					]
-				);
+				$this->addNotWhere( [
+					"{$this->dbr->tableName( 'page' )}.page_namespace" => $option,
+				] );
 			}
 		}
 	}
@@ -1607,7 +1554,6 @@ class Query {
 	 */
 	private function _order( $option ) {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
-
 		if ( $orderMethod && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
 			if ( $option === 'descending' || $option === 'desc' ) {
 				$this->setOrderDir( 'DESC' );
@@ -1694,12 +1640,9 @@ class Query {
 					}
 
 					$this->queryBuilder->table( $_clTableName, $_clTableAlias );
-					$this->addJoin(
-						$_clTableAlias,
-						[
-							'LEFT OUTER JOIN',
-							'page_id = cl_head.cl_from'
-						]
+					$this->queryBuilder->leftJoin(
+						$_clTableName, $_clTableAlias,
+						'page_id = cl_head.cl_from'
 					);
 
 					if (
@@ -1715,11 +1658,9 @@ class Query {
 						is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
 						count( $this->parameters->getParameter( 'catnotheadings' ) )
 					) {
-						$this->addNotWhere(
-							[
-								'cl_head.cl_to' => $this->parameters->getParameter( 'catnotheadings' )
-							]
-						);
+						$this->addNotWhere( [
+							'cl_head.cl_to' => $this->parameters->getParameter( 'catnotheadings' ),
+						] );
 					}
 					break;
 				case 'categoryadd':
@@ -1732,11 +1673,9 @@ class Query {
 						if ( !array_key_exists( 'hit_counter', $this->queryBuilder->getQueryInfo()['tables'] ?? [] ) ) {
 							$this->queryBuilder->table( 'hit_counter' );
 							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-								$this->addJoin(
-									'hit_counter',
-									[
-										'LEFT JOIN',
-										'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id'
+								$this->queryBuilder->leftJoin(
+									'hit_counter', null, [
+										'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id',
 									]
 								);
 							}
@@ -1910,13 +1849,7 @@ class Query {
 		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
 			// Do not add this again if 'qualitypages' has already added it.
 			if ( !$this->parametersProcessed['qualitypages'] ) {
-				$this->addJoin(
-					'flaggedpages',
-					[
-						'LEFT JOIN',
-						'page_id = fp_page_id'
-					]
-				);
+				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
 			}
 
 			switch ( $option ) {
@@ -1939,13 +1872,7 @@ class Query {
 		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
 			// Do not add this again if 'stablepages' has already added it.
 			if ( !$this->parametersProcessed['stablepages'] ) {
-				$this->addJoin(
-					'flaggedpages',
-					[
-						'LEFT JOIN',
-						'page_id = fp_page_id'
-					]
-				);
+				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
 			}
 
 			switch ( $option ) {
@@ -2115,12 +2042,12 @@ class Query {
 				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace",
 			] );
 
-			$this->addJoin(
-				'lt',
-				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
-			);
+			$this->queryBuilder->join( 'linktarget', 'lt', [
+				"page_title = $titleField",
+				"page_namespace = $nsField",
+			] );
 
-			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id' ] );
+			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_id = tl_target_id' );
 
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
