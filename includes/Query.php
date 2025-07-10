@@ -855,7 +855,7 @@ class Query {
 						$joinOn .= implode( " $operatorType ", $ors );
 						$joinOn .= ')';
 
-						$this->queryBuilder->join( 'categorylinks', $tableAlias, $joinOn );
+						$this->queryBuilder->join( $tableName, $tableAlias, $joinOn );
 					}
 				}
 			}
