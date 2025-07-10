@@ -1113,8 +1113,8 @@ class Query {
 			}
 
 			$where = [
-				'pagesrc.page_namespace = lt.lt_namespace',
-				'pagesrc.page_title = lt.lt_title',
+				"{$this->dbr->tableName( 'page' )}.page_namespace = lt.lt_namespace",
+				"{$this->dbr->tableName( 'page' )}.page_title = lt.lt_title",
 				'lt.lt_id = plf.pl_target_id',
 				'pagesrc.page_id = plf.pl_from',
 			];
@@ -1328,14 +1328,13 @@ class Query {
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
-				$pageTable = $this->dbr->tableName( 'page' );
 				$ors = array_map(
 					fn ( $pattern ) => "$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
-					" WHERE ($linksTable.el_from = $pageTable.page_id " .
+					" WHERE ($linksTable.el_from = page_id " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
@@ -1372,14 +1371,13 @@ class Query {
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})";
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
-				$pageTable = $this->dbr->tableName( 'page' );
 				$ors = array_map(
 					fn ( $path ) => "$linksTable.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
 					$paths
 				);
 
 				$where = "EXISTS(SELECT el_from FROM $linksTable " .
-					" WHERE ($linksTable.el_from = $pageTable.page_id " .
+					" WHERE ($linksTable.el_from = page_id " .
 					" AND ({$this->dbr->makeList( $ors, IDatabase::LIST_OR )})))";
 			}
 
