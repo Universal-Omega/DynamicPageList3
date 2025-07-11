@@ -1734,8 +1734,7 @@ class Query {
 			}
 		}
 
-		$where = '(' . implode( ' OR ', $ors ) . ')';
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 	}
 
 	/**
@@ -1834,7 +1833,7 @@ class Query {
 				}
 			}
 
-			$where = '(' . implode( ' OR ', $ors ) . ')';
+			$where = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		} else {
 			$this->queryBuilder->tables( [
 				'lt' => 'linktarget',
@@ -1863,7 +1862,7 @@ class Query {
 				}
 			}
 
-			$where = '(' . implode( ' OR ', $ors ) . ')';
+			$where = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		}
 
 		$this->queryBuilder->where( $where );
@@ -1886,7 +1885,7 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = 'lt.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS char)) = LOWER(' .
@@ -1899,7 +1898,7 @@ class Query {
 			}
 		}
 
-		$where .= implode( ' OR ', $ors ) . ')';
+		$where .= $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		$this->queryBuilder->where( $where );
 	}
 
