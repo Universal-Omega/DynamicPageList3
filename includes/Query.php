@@ -177,7 +177,7 @@ class Query {
 					] );
 				}
 
-				$this->queryBuilder->rawTables( [ 'pagelinks', 'linktarget' ] );
+				$this->queryBuilder->tables( [ 'pagelinks', 'linktarget' ] );
 				$this->queryBuilder->where(
 					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
 					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
@@ -232,9 +232,9 @@ class Query {
 
 			// if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 			$this->sqlQuery = $query;
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				var_dump( $query );
-			}
+			// if ( $this->parameters->getParameter( 'openreferences' ) ) {
+				// var_dump( $query );
+			// }
 			// }
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
