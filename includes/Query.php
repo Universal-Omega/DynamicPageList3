@@ -7,7 +7,7 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
-use MediaWiki\Config\Config as CoreConfig;
+use MediaWiki\Config\Config as MainConfig;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -24,8 +24,8 @@ class Query {
 
 	use ExternalDomainPatternParser;
 
-	private CoreConfig $config;
 	private IReadableDatabase $dbr;
+	private MainConfig $mainConfig;
 	private Parameters $parameters;
 	private SelectQueryBuilder $queryBuilder;
 	private UserFactory $userFactory;
@@ -95,7 +95,7 @@ class Query {
 			->getReplicaDatabase( false, 'dpl3' );
 
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
-		$this->config = MediaWikiServices::getInstance()->getMainConfig();
+		$this->mainConfig = MediaWikiServices::getInstance()->getMainConfig();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
@@ -137,10 +137,10 @@ class Query {
 		}
 
 		// Always add nonincludeable namespaces.
-		if ( $this->config->get( MainConfigNames::NonincludableNamespaces ) ) {
+		if ( $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ) ) {
 			$this->addNotWhere( [
 				$this->dbr->tableName( 'page' ) . '.page_namespace' =>
-					   $this->config->get( MainConfigNames::NonincludableNamespaces ),
+					   $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ),
 			] );
 		}
 
@@ -237,7 +237,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			// if ( Hooks::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
+			// if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 			$this->sqlQuery = $query;
 			var_dump( $query );
 			// }
