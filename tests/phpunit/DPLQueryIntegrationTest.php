@@ -408,12 +408,6 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 	}
 
 	public function testOpenReferencesMissing(): void {
-		var_dump( $this->runDPLQuery( [
-			// NS_MAIN
-			'namespace' => '',
-			'openreferences' => 'missing',
-			'count' => 1
-		] ) );
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
 			'namespace' => '',
