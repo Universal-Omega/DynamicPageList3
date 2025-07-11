@@ -896,7 +896,7 @@ class Query {
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
-			'page.page_id = rev.rev_page',
+			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 			'rev.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 		] );
 
@@ -1002,7 +1002,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					'page.page_id = pl.pl_from',
+					"{$this->dbr->tableName( 'page' )}.page_id = pl.pl_from",
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -1132,7 +1132,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
+					"{$this->dbr->tableName( 'page' )}.page_id = el.el_from",
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -1514,12 +1514,12 @@ class Query {
 						$subquery = $this->queryBuilder->newSubquery()
 							->select( 'MIN(rev_aux.rev_timestamp)' )
 							->from( 'revision', 'rev_aux' )
-							->where( 'rev_aux.rev_page = page.page_id' )
+							->where( "rev_aux.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
 							->caller( __METHOD__ )
 							->getSQL();
 
 						$this->queryBuilder->where( [
-							'page.page_id = rev.rev_page',
+							"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 							"rev.rev_timestamp = ($subquery)",
 						] );
 					}
@@ -1538,12 +1538,12 @@ class Query {
 						$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 						if ( !$this->revisionAuxWhereAdded ) {
-							$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
+							$this->queryBuilder->where( "{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page" );
 
 							$subqueryBuilder = $this->queryBuilder->newSubquery()
 								->select( 'MAX(rev_aux.rev_timestamp)' )
 								->from( 'revision', 'rev_aux' )
-								->where( 'rev_aux.rev_page = page.page_id' );
+								->where( "rev_aux.rev_page = {$this->dbr->tableName( 'page' )}.page_id" );
 
 							if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
 								$subqueryBuilder->where( 'rev_aux.rev_minor_edit = 0' );
@@ -1937,7 +1937,7 @@ class Query {
 		$subquery->caller( __METHOD__ );
 
 		$this->queryBuilder->where(
-			'page.page_id NOT IN (' . $subquery->getSQL() . ')'
+			"{$this->dbr->tableName( 'page' )}.page_id NOT IN (" . $subquery->getSQL() . ')'
 		);
 	}
 
