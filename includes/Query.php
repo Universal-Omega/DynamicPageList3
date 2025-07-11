@@ -159,13 +159,9 @@ class Query {
 				$this->queryBuilder->select( 'il_to' );
 				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
-				$pagelinks = $this->dbr->tableName( 'pagelinks', 'raw' );
-				$linktarget = $this->dbr->tableName( 'linktarget', 'raw' );
-				$page = $this->dbr->tableName( 'page', 'raw' );
-
-				$this->queryBuilder->from( $pagelinks, 'pl' );
-				$this->queryBuilder->join( $linktarget, 'lt', 'pl.pl_target_id = lt.lt_id' );
-				$this->queryBuilder->leftJoin( $page, 'page', [
+				$this->queryBuilder->table( 'pagelinks', 'pl' );
+				$this->queryBuilder->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
+				$this->queryBuilder->leftJoin( 'page', 'page', [
 					'lt.lt_namespace = page.page_namespace',
 					'lt.lt_title = page.page_title',
 				] );
