@@ -612,14 +612,20 @@ class Query {
 	 * Set SQL for 'categoriesminmax' parameter.
 	 */
 	private function _categoriesminmax( array $option ): void {
-		if ( is_numeric( $option[0] ) || ( isset( $option[1] ) && is_numeric( $option[1] ) ) ) {
-			$countSubquery = $this->queryBuilder->newSubquery()
-				->select( 'COUNT(*)' )
-				->from( 'categorylinks' )
-				->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
-				->caller( __METHOD__ )
-				->getSQL();
+		if (
+			!is_numeric( $option[0] ) &&
+			( !isset( $option[1] ) || !is_numeric( $option[1] ) )
+		) {
+			// Prevent running the subquery if we aren't doing anything with it.
+			return;
 		}
+
+		$countSubquery = $this->queryBuilder->newSubquery()
+			->select( 'COUNT(*)' )
+			->from( 'categorylinks' )
+			->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
+			->caller( __METHOD__ )
+			->getSQL();
 
 		if ( is_numeric( $option[0] ) ) {
 			$this->queryBuilder->where( (int)$option[0] . " <= ($countSubquery)" );
