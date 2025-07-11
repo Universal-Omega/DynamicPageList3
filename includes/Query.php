@@ -189,7 +189,7 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					'page', $this->dbr->tableName( 'page', 'raw' ), [
+					'page', null, [
 						"lt_namespace = {$this->dbr->tableName( 'page' )}.page_namespace",
 						"lt_title = {$this->dbr->tableName( 'page' )}.page_title",
 					]
