@@ -192,11 +192,11 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					'linktarget', 'ltor', [
+					'page', $this->dbr->tableName( 'page', 'raw' ), [
 						"{$this->dbr->tableName( 'page' )}.page_namespace = " .
-						"ltor.lt_namespace",
+							"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
 						"{$this->dbr->tableName( 'page' )}.page_title = " .
-						"ltor.lt_title",
+							"{$this->dbr->tableName( 'linktarget' )}.lt_title",
 					]
 				);
 
