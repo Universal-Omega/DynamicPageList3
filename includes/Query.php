@@ -159,9 +159,13 @@ class Query {
 				$this->queryBuilder->select( 'il_to' );
 				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
-				$this->queryBuilder->from( 'pagelinks', 'pl' );
-				$this->queryBuilder->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
-				$this->queryBuilder->leftJoin( 'page', null, [
+				$pagelinks = $this->dbr->tableName( 'pagelinks', 'raw' );
+				$linktarget = $this->dbr->tableName( 'linktarget', 'raw' );
+				$page = $this->dbr->tableName( 'page', 'raw' );
+
+				$this->queryBuilder->from( $pagelinks, 'pl' );
+				$this->queryBuilder->join( $linktarget, 'lt', 'pl.pl_target_id = lt.lt_id' );
+				$this->queryBuilder->leftJoin( $page, 'page', [
 					'lt.lt_namespace = page.page_namespace',
 					'lt.lt_title = page.page_title',
 				] );
@@ -1370,7 +1374,7 @@ class Query {
 		if ( is_array( $option ) && count( $option ) ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option,
+					'lt.lt_namespace' => $option,
 				] );
 			} else {
 				$this->queryBuilder->where( [
