@@ -1217,7 +1217,6 @@ class Query {
 		$this->queryBuilder->where( "($subquery) >= $option" );
 	}
 
-
 	/**
 	 * Set SQL for 'modifiedby' parameter.
 	 */
