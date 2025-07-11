@@ -246,10 +246,10 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
-				$this->sqlQuery = $query;
-				var_dump( $query );
-			}
+			// if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+			$this->sqlQuery = $query;
+			var_dump( $query );
+			// }
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
 			if ( $errorMessage == '' ) {
