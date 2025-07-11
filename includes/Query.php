@@ -668,8 +668,8 @@ class Query {
 						$this->queryBuilder->table( $tableName, $tableAlias );
 
 						$joinOn = "{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND (";
-						$ors = [];
 
+						$ors = [];
 						foreach ( $categories as $category ) {
 							$ors[] = "$tableAlias.cl_to $comparisonType " .
 								$this->dbr->addQuotes( str_replace( ' ', '_', $category ) );
@@ -1020,7 +1020,7 @@ class Query {
 				}
 			}
 
-			$where = '(' . implode( ' AND ', $ands ) . ')';
+			$where = $this->dbr->makeList( $ands, IDatabase::LIST_AND );
 		} else {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'CONCAT(lt.lt_namespace, lt.lt_title)' )
@@ -1701,17 +1701,17 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) {$comparisonType}" .
+						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "lt_title {$comparisonType} " . $this->dbr->addQuotes( $title );
+						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) {$comparisonType}" .
+						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) $comparisonType" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->dbr->tableName( 'page' )}.page_title {$comparisonType}" .
+						$_or = "{$this->dbr->tableName( 'page' )}.page_title $comparisonType" .
 							$this->dbr->addQuotes( $title );
 					}
 				}
@@ -1751,7 +1751,7 @@ class Query {
 			}
 		}
 
-		$where = 'NOT (' . implode( ' OR ', $ors ) . ')';
+		$where = 'NOT ' . $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		$this->queryBuilder->where( $where );
 	}
 
@@ -1771,7 +1771,6 @@ class Query {
 		}
 
 		$option = $this->dbr->addQuotes( $option );
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$where = "(lt_title $operator $option)";
 		} else {
@@ -1797,7 +1796,6 @@ class Query {
 		}
 
 		$option = $this->dbr->addQuotes( $option );
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$where = "(lt_title $operator $option)";
 		} else {
