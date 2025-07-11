@@ -177,7 +177,7 @@ class Query {
 					] );
 				}
 
-				$this->queryBuilder->rawTables( [
+				$this->queryBuilder->tables( [
 					$this->dbr->tableName( 'page', 'raw' ) => 'page',
 					$this->dbr->tableName( 'pagelinks', 'raw' ) => 'pagelinks',
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
@@ -189,11 +189,9 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					'page', $this->dbr->tableName( 'page', 'raw' ), [
-						"{$this->dbr->tableName( 'page', 'raw' )}.page_namespace = " .
-							"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_namespace",
-						"{$this->dbr->tableName( 'page', 'raw' )}.page_title = " .
-							"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_title",
+					$this->dbr->tableName( 'page', 'raw' ), null, [
+						"lt_namespace = {$this->dbr->tableName( 'page' )}.page_namespace",
+						"lt_title = {$this->dbr->tableName( 'page' )}.page_title",
 					]
 				);
 			}
