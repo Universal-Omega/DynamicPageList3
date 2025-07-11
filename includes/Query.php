@@ -189,7 +189,7 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					$this->dbr->tableName( 'page', 'raw' ), null, [
+					'page', $this->dbr->tableName( 'page', 'raw' ), [
 						"lt_namespace = {$this->dbr->tableName( 'page' )}.page_namespace",
 						"lt_title = {$this->dbr->tableName( 'page' )}.page_title",
 					]
@@ -244,6 +244,9 @@ class Query {
 			if ( $errorMessage == '' ) {
 				$errorMessage = strval( $e );
 			}
+			var_dump( __METHOD__ . ': ' . wfMessage(
+				'dpl_query_error', Hooks::getVersion(), $errorMessage
+			)->text() );
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
 				'dpl_query_error', Hooks::getVersion(), $errorMessage
 			)->text() );
