@@ -182,10 +182,10 @@ class Query {
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
 				] );
 
-				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id" =>
-						"{$this->dbr->tableName( 'linktarget' )}.lt_id",
-				] );
+				$this->queryBuilder->where(
+					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
+					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
+				);
 
 				$this->queryBuilder->leftJoin(
 					'page', null, [
