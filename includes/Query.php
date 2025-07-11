@@ -186,7 +186,7 @@ class Query {
 					] );
 				}
 
-				$this->queryBuilder->tables( [
+				$this->queryBuilder->rawTables( [
 					$this->dbr->tableName( 'page', 'raw' ) => 'page',
 					$this->dbr->tableName( 'pagelinks', 'raw' ) => 'pagelinks',
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
@@ -248,6 +248,7 @@ class Query {
 
 			if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
 				$this->sqlQuery = $query;
+				var_dump( $query );
 			}
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
