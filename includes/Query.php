@@ -189,11 +189,11 @@ class Query {
 				] );
 
 				$this->queryBuilder->leftJoin(
-					$this->dbr->tableName( 'page', 'raw' ), null, [
-						"{$this->dbr->tableName( 'page' )}.page_namespace = " .
-							"{$this->dbr->tableName( 'linktarget' )}.lt_namespace",
-						"{$this->dbr->tableName( 'page' )}.page_title = " .
-							"{$this->dbr->tableName( 'linktarget' )}.lt_title",
+					'page', $this->dbr->tableName( 'page', 'raw' ), [
+						"{$this->dbr->tableName( 'page', 'raw' )}.page_namespace = " .
+							"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_namespace",
+						"{$this->dbr->tableName( 'page', 'raw' )}.page_title = " .
+							"{$this->dbr->tableName( 'linktarget', 'raw' )}.lt_title",
 					]
 				);
 			}
