@@ -570,7 +570,7 @@ class Query {
 		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
-		$this->setOrderDir( 'DESC' );
+		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
@@ -589,7 +589,7 @@ class Query {
 		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
-		$this->setOrderDir( 'DESC' );
+		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
@@ -1282,8 +1282,6 @@ class Query {
 
 	/**
 	 * Set SQL for 'notnamespace' parameter.
-	 *
-	 * @param mixed $option
 	 */
 	private function _notnamespace( array $option ): void {
 		if ( count( $option ) > 0 ) {
@@ -1394,7 +1392,6 @@ class Query {
 
 		$_namespaceIdToText .= ' END';
 
-		$option = (array)$option;
 		foreach ( $option as $orderMethod ) {
 			switch ( $orderMethod ) {
 				case 'category':
