@@ -629,7 +629,7 @@ class Query {
 			$countSubquery = $this->queryBuilder->newSubquery()
 				->select( 'COUNT(*)' )
 				->from( 'categorylinks' )
-				->where( 'cl_from = page.page_id' )
+				->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
 				->caller( __METHOD__ )
 				->getSQL();
 
@@ -640,7 +640,7 @@ class Query {
 			$countSubquery = $this->queryBuilder->newSubquery()
 				->select( 'COUNT(*)' )
 				->from( 'categorylinks' )
-				->where( 'cl_from = page.page_id' )
+				->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
 				->caller( __METHOD__ )
 				->getSQL();
 
@@ -767,7 +767,7 @@ class Query {
 			->select( 'MIN(rev_aux_snc.rev_timestamp)' )
 			->from( 'revision', 'rev_aux_snc' )
 			->where( [
-				'rev_aux_snc.rev_page = page.page_id',
+				"rev_aux_snc.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 				'rev_aux_snc.rev_timestamp >= ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 			] )
 			->caller( __METHOD__ )
@@ -857,7 +857,7 @@ class Query {
 			}
 		}
 
-		$where[] = '(' . implode( ' OR ', $ors ) . ')';
+		$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		$this->queryBuilder->where( $where );
 	}
 
@@ -874,7 +874,7 @@ class Query {
 			->select( 'rev_actor' )
 			->from( 'revision' )
 			->where( [
-				'rev_page = page.page_id',
+				"rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 				'rev_deleted = 0',
 			] )
 			->orderBy( 'rev_timestamp', SelectQueryBuilder::SORT_DESC )
@@ -904,7 +904,7 @@ class Query {
 			->select( 'MAX(rev_aux_bef.rev_timestamp)' )
 			->from( 'revision', 'rev_aux_bef' )
 			->where( [
-				'rev_aux_bef.rev_page = page.page_id',
+				"rev_aux_bef.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 				'rev_aux_bef.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 			] )
 			->caller( __METHOD__ )
@@ -1011,7 +1011,7 @@ class Query {
 					->from( 'pagelinks', 'pl' )
 					->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
 					->where( [
-						'pl.pl_from = page.page_id',
+						"pl.pl_from = {$this->dbr->tableName( 'page' )}.page_id",
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1092,7 +1092,7 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where( "page.page_id NOT IN ($subquery)" );
+		$this->queryBuilder->where( "{$this->dbr->tableName( 'page' )}.page_id NOT IN ($subquery)" );
 	}
 
 	/**
@@ -1140,7 +1140,7 @@ class Query {
 					->select( 'el_from' )
 					->from( 'externallinks', 'el' )
 					->where( [
-						'el.el_from = page.page_id',
+						"el.el_from = {$this->dbr->tableName( 'page' )}.page_id",
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1175,7 +1175,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
+					"{$this->dbr->tableName( 'page' )}.page_id = el.el_from",
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -1183,7 +1183,7 @@ class Query {
 					->select( 'el_from' )
 					->from( 'externallinks', 'el' )
 					->where( [
-						'el.el_from = page.page_id',
+						"el.el_from = {$this->dbr->tableName( 'page' )}.page_id",
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1201,7 +1201,7 @@ class Query {
 		$subquery = $this->queryBuilder->newSubquery()
 			->select( 'COUNT(rev_aux3.rev_page)' )
 			->from( 'revision', 'rev_aux3' )
-			->where( 'rev_aux3.rev_page = page.page_id' )
+			->where( "rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -1215,7 +1215,7 @@ class Query {
 		$subquery = $this->queryBuilder->newSubquery()
 			->select( 'COUNT(rev_aux2.rev_page)' )
 			->from( 'revision', 'rev_aux2' )
-			->where( 'rev_aux2.rev_page = page.page_id' )
+			->where( "rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -1287,7 +1287,7 @@ class Query {
 			->select( 'rev_actor' )
 			->from( 'revision' )
 			->where( [
-				'revision.rev_page = page.page_id',
+				"revision.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 				'revision.rev_deleted = 0',
 			] )
 			->orderBy( 'revision.rev_timestamp', SelectQueryBuilder::SORT_DESC )
@@ -1314,7 +1314,7 @@ class Query {
 			->select( '1' )
 			->from( 'revision' )
 			->where( [
-				'revision.rev_page = page.page_id',
+				"revision.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
 				"revision.rev_actor = $actorID",
 				'revision.rev_deleted = 0',
 			] )
