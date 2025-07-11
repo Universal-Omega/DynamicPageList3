@@ -177,7 +177,7 @@ class Query {
 					] );
 				}
 
-				$this->queryBuilder->tables( [ 'pagelinks', 'linktarget' ] );
+				$this->queryBuilder->rawTables( [ 'pagelinks', 'linktarget' ] );
 				$this->queryBuilder->where(
 					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
 					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
