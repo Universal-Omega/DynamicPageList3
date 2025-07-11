@@ -1116,7 +1116,8 @@ class Query {
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
 				$ors = array_map(
-					fn ( string $pattern ): string => "$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					fn ( string $pattern ): string =>
+						"$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
