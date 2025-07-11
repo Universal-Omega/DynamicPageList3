@@ -7,7 +7,7 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
-use MediaWiki\Config\Config;
+use MediaWiki\Config\Config as CoreConfig;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -24,16 +24,11 @@ class Query {
 
 	use ExternalDomainPatternParser;
 
-	/**
-	 * Parameters Object
-	 *
-	 * @var Parameters
-	 */
-	private $parameters;
-
-	private Config $config;
+	private CoreConfig $config;
 	private IReadableDatabase $dbr;
+	private Parameters $parameters;
 	private SelectQueryBuilder $queryBuilder;
+	private UserFactory $userFactory;
 
 	/**
 	 * Parameters that have already been processed.
@@ -90,13 +85,6 @@ class Query {
 	 * @var bool
 	 */
 	private $revisionAuxWhereAdded = false;
-
-	/**
-	 * UserFactory object
-	 *
-	 * @var UserFactory
-	 */
-	private $userFactory;
 
 	/**
 	 * @param Parameters $parameters
