@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\DynamicPageList3;
 use DateInterval;
 use DateTime;
 use Exception;
-use InvalidArgumentException;
 use LogicException;
 use MediaWiki\Config\Config as MainConfig;
 use MediaWiki\MainConfigNames;
@@ -32,63 +31,29 @@ class Query {
 
 	/**
 	 * Parameters that have already been processed.
-	 *
-	 * @var array
 	 */
-	private $parametersProcessed = [];
+	private array $parametersProcessed = [];
 
 	/**
 	 * The generated SQL Query.
-	 *
-	 * @var string
 	 */
-	private $sqlQuery = '';
+	private string $sqlQuery = '';
 
-	/**
-	 * Order By Clauses
-	 *
-	 * @var array
-	 */
-	private $orderBy = [];
+	private array $orderBy = [];
 
-	/**
-	 * Limit
-	 *
-	 * @var int|bool
-	 */
-	private $limit = false;
+	private ?int $limit = null;
 
-	/**
-	 * Offset
-	 *
-	 * @var int|bool
-	 */
-	private $offset = false;
+	private ?int $offset = null;
 
-	/**
-	 * Order By Direction
-	 *
-	 * @var string
-	 */
-	private $direction = SelectQueryBuilder::SORT_ASC;
+	private string $direction = SelectQueryBuilder::SORT_ASC;
 
-	/**
-	 * Character Set Collation
-	 *
-	 * @var string|bool
-	 */
-	private $collation = false;
+	private ?string $collation = null;
 
 	/**
 	 * Was the revision auxiliary table select added for firstedit and lastedit?
-	 *
-	 * @var bool
 	 */
-	private $revisionAuxWhereAdded = false;
+	private bool $revisionAuxWhereAdded = false;
 
-	/**
-	 * @param Parameters $parameters
-	 */
 	public function __construct( Parameters $parameters ) {
 		$this->parameters = $parameters;
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
@@ -102,25 +67,16 @@ class Query {
 	/**
 	 * Start a query build. Returns found rows.
 	 *
-	 * @param bool $calcRows
-	 * @param string $profilingContext Used to see the origin of a query in the profiling
-	 * @return array|bool
+	 * @param bool $calcRows Whether we need to calculate the found rows count.
+	 * @param string $profilingContext Used to see the origin of a query in the profiling.
 	 */
-	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' ) {
+	public function buildAndSelect( bool $calcRows, string $profilingContext ): array|false {
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
 			$function = '_' . $parameter;
 			// Some parameters do not modify the query so we check if the function to modify the query exists first.
-			$success = true;
 			if ( method_exists( $this, $function ) ) {
-				$success = $this->$function( $option );
-			}
-
-			if ( $success === false ) {
-				throw new LogicException(
-					__METHOD__ . ": SQL Build Error returned from {$function} for " .
-					serialize( $option ) . '.'
-				);
+				$this->$function( $option );
 			}
 
 			$this->parametersProcessed[$parameter] = true;
@@ -144,13 +100,13 @@ class Query {
 			] );
 		}
 
-		if ( $this->offset !== false ) {
+		if ( $this->offset !== null ) {
 			$this->queryBuilder->offset( $this->offset );
 		}
 
-		if ( $this->limit !== false ) {
+		if ( $this->limit !== null ) {
 			$this->queryBuilder->limit( $this->limit );
-		} elseif ( $this->offset !== false ) {
+		} elseif ( $this->offset !== null ) {
 			$this->queryBuilder->limit( $this->parameters->getParameter( 'count' ) );
 		}
 
@@ -174,6 +130,7 @@ class Query {
 						'lt_namespace' => 'lt.lt_namespace',
 						'lt_title' => 'lt.lt_title',
 					] );
+
 					$this->queryBuilder->where( [ 'page.page_namespace' => null ] );
 				} else {
 					$this->queryBuilder->select( [
@@ -184,7 +141,7 @@ class Query {
 				}
 			}
 		} else {
-			if ( count( $this->orderBy ) ) {
+			if ( count( $this->orderBy ) > 0 ) {
 				$this->queryBuilder->orderBy( $this->orderBy, $this->direction );
 			}
 		}
@@ -226,10 +183,10 @@ class Query {
 			if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
-		} catch ( Exception $e ) {
+		} catch ( Exception $ex ) {
 			$errorMessage = $this->dbr->lastError();
 			if ( $errorMessage === '' ) {
-				$errorMessage = strval( $e );
+				$errorMessage = (string)$ex;
 			}
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
@@ -252,7 +209,7 @@ class Query {
 
 		$this->queryBuilder->caller( $qname );
 
-		$doQuery = function () use ( $calcRows ) {
+		$doQuery = function () use ( $calcRows ): array {
 			$res = $this->queryBuilder->fetchResultSet();
 			$res = iterator_to_array( $res );
 
@@ -281,7 +238,7 @@ class Query {
 		return $cache->getWithSetCallback(
 			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
-			function ( $oldVal, &$ttl, &$setOpts ) use ( $worker ){
+			function ( mixed $oldVal, int &$ttl, array &$setOpts ) use ( $worker ): array|false {
 				$setOpts += Database::getCacheSetOptions( $this->dbr );
 				$res = $worker->execute();
 				if ( $res === false ) {
@@ -302,126 +259,71 @@ class Query {
 	}
 
 	/**
-	 * Returns the generated SQL Query
-	 *
-	 * @return string
+	 * Returns the generated SQL Query.
 	 */
-	public function getSqlQuery() {
+	public function getSqlQuery(): string {
 		return $this->sqlQuery;
 	}
 
 	/**
-	 * Add a where clause to the output that uses NOT IN or !=.
-	 *
-	 * @param array $where
-	 * @return bool
+	 * Add a where clause to the query builder that uses NOT IN or !=.
 	 */
-	public function addNotWhere( $where ) {
-		if ( !$where ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty not where clause was passed.' );
+	private function addNotWhere( array $where ): void {
+		foreach ( $where as $field => $values ) {
+			$this->queryBuilder->where( $field . (
+				count( $values ) > 1 ? ' NOT IN(' .
+					$this->dbr->makeList( $values ) . ')' : ' != ' .
+				$this->dbr->addQuotes( current( $values ) )
+			) );
 		}
-
-		if ( is_array( $where ) ) {
-			foreach ( $where as $field => $values ) {
-				$this->queryBuilder->where( $field . (
-					count( $values ) > 1 ? ' NOT IN(' .
-						$this->dbr->makeList( $values ) . ')' : ' != ' .
-					$this->dbr->addQuotes( current( $values ) )
-				) );
-			}
-		} else {
-			throw new InvalidArgumentException( __METHOD__ . ': An invalid NOT WHERE clause was passed.' );
-		}
-
-		return true;
 	}
 
 	/**
-	 * Add a ORDER BY clause to the output.
-	 *
-	 * @param string $orderBy
-	 * @return bool
+	 * Add a ORDER BY clause to the query builder.
 	 */
-	public function addOrderBy( $orderBy ) {
-		if ( !$orderBy ) {
-			throw new InvalidArgumentException( __METHOD__ . ': An empty ORDER BY clause was passed.' );
-		}
-
+	private function addOrderBy( string $orderBy ): void {
 		$this->orderBy[] = $orderBy;
-
-		return true;
 	}
 
 	/**
-	 * Set the limit.
-	 *
-	 * @param mixed $limit
-	 * @return bool
+	 * Set the limit to the query builder.
 	 */
-	public function setLimit( $limit ) {
-		if ( is_numeric( $limit ) ) {
-			$this->limit = (int)$limit;
-		} else {
-			$this->limit = false;
-		}
-
-		return true;
+	private function setLimit( ?int $limit ): void {
+		$this->limit = $limit;
 	}
 
 	/**
-	 * Set the offset.
-	 *
-	 * @param mixed $offset
-	 * @return bool
+	 * Set the offset to the query builder.
 	 */
-	public function setOffset( $offset ) {
-		if ( is_numeric( $offset ) ) {
-			$this->offset = (int)$offset;
-		} else {
-			$this->offset = false;
-		}
-
-		return true;
+	private function setOffset( ?int $offset ): void {
+		$this->offset = $offset;
 	}
 
 	/**
-	 * Set the ORDER BY direction
-	 *
-	 * @param string $direction
-	 * @return bool
+	 * Set the ORDER BY direction to the query builder.
 	 */
-	public function setOrderDir( $direction ) {
+	private function setOrderDir( string $direction ): void {
 		$this->direction = $direction;
-
-		return true;
 	}
 
 	/**
 	 * Set the character set collation.
-	 *
-	 * @param string $collation
 	 */
-	public function setCollation( $collation ) {
+	private function setCollation( string $collation ): void {
 		$this->collation = $collation;
 	}
 
 	/**
 	 * Return SQL prefixed collation.
-	 *
-	 * @return string|null
 	 */
-	public function getCollateSQL() {
-		return ( $this->collation !== false ? 'COLLATE ' . $this->collation : null );
+	private function getCollateSQL(): ?string {
+		return ( $this->collation !== null ? 'COLLATE ' . $this->collation : null );
 	}
 
 	/**
 	 * Recursively get and return an array of subcategories.
-	 *
-	 * @param string $categoryName
-	 * @param int $depth
-	 * @return array
 	 */
-	public static function getSubcategories( $categoryName, $depth = 1 ) {
+	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
 			->getReplicaDatabase( false, 'dpl3' );
 
@@ -454,11 +356,8 @@ class Query {
 
 	/**
 	 * Helper method to handle relative timestamps.
-	 *
-	 * @param mixed $inputDate
-	 * @return int|string
 	 */
-	private function convertTimestamp( $inputDate ) {
+	private function convertTimestamp( string $inputDate ): int|string {
 		$timestamp = $inputDate;
 		switch ( $inputDate ) {
 			case 'today':
@@ -501,9 +400,9 @@ class Query {
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addauthor( $option ) {
+	private function _addauthor( bool $option ): void {
 		// Addauthor can not be used with addlasteditor.
 		if ( !isset( $this->parametersProcessed['addlasteditor'] ) || !$this->parametersProcessed['addlasteditor'] ) {
 			$this->queryBuilder->table( 'revision', 'rev' );
@@ -521,9 +420,9 @@ class Query {
 	/**
 	 * Set SQL for 'addcategories' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addcategories( $option ) {
+	private function _addcategories( bool $option ): void {
 		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
 		$this->queryBuilder->select( [
 			'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')",
@@ -536,9 +435,9 @@ class Query {
 	/**
 	 * Set SQL for 'addcontribution' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addcontribution( $option ) {
+	private function _addcontribution( bool $option ): void {
 		$this->queryBuilder->table( 'recentchanges', 'rc' );
 		$this->queryBuilder->select( [
 			'contribution' => 'SUM(ABS(rc.rc_new_len - rc.rc_old_len))',
@@ -556,9 +455,9 @@ class Query {
 	/**
 	 * Set SQL for 'addeditdate' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addeditdate( $option ) {
+	private function _addeditdate( bool $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( 'rev.rev_timestamp' );
 
@@ -570,9 +469,9 @@ class Query {
 	/**
 	 * Set SQL for 'addfirstcategorydate' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addfirstcategorydate( $option ) {
+	private function _addfirstcategorydate( bool $option ): void {
 		// @TODO: This should be programmatically determining which
 		// categorylink table to use instead of assuming the first one.
 		$this->queryBuilder->select( [
@@ -583,9 +482,9 @@ class Query {
 	/**
 	 * Set SQL for 'addlasteditor' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addlasteditor( $option ) {
+	private function _addlasteditor( bool $option ): void {
 		// Addlasteditor can not be used with addauthor.
 		if ( !isset( $this->parametersProcessed['addauthor'] ) || !$this->parametersProcessed['addauthor'] ) {
 			$this->queryBuilder->table( 'revision', 'rev' );
@@ -603,9 +502,9 @@ class Query {
 	/**
 	 * Set SQL for 'addpagecounter' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addpagecounter( $option ) {
+	private function _addpagecounter( bool $option ): void {
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 			$this->queryBuilder->table( 'hit_counter' );
 			$this->queryBuilder->select( [
@@ -625,9 +524,9 @@ class Query {
 	/**
 	 * Set SQL for 'addpagesize' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addpagesize( $option ) {
+	private function _addpagesize( bool $option ): void {
 		$this->queryBuilder->select( [
 			'page_len' => "{$this->dbr->tableName( 'page' )}.page_len",
 		] );
@@ -636,9 +535,9 @@ class Query {
 	/**
 	 * Set SQL for 'addpagetoucheddate' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _addpagetoucheddate( $option ) {
+	private function _addpagetoucheddate( bool $option ): void {
 		$this->queryBuilder->select( [
 			'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched",
 		] );
@@ -647,10 +546,9 @@ class Query {
 	/**
 	 * Set SQL for 'adduser' parameter.
 	 *
-	 * @param mixed $option @phan-unused-param
-	 * @param string $tableAlias
+	 * @param ?bool $option @phan-unused-param
 	 */
-	private function _adduser( $option, $tableAlias = '' ) {
+	private function _adduser( ?bool $option, string $tableAlias = '' ): void {
 		if ( $tableAlias ) {
 			$tableAlias .= '.';
 		}
@@ -663,10 +561,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'allrevisionsbefore' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _allrevisionsbefore( $option ) {
+	private function _allrevisionsbefore( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( [
 			'rev.rev_id',
@@ -674,7 +570,7 @@ class Query {
 		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
-		$this->setOrderDir( 'DESC' );
+		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
@@ -684,10 +580,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'allrevisionssince' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _allrevisionssince( $option ) {
+	private function _allrevisionssince( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( [
 			'rev.rev_id',
@@ -695,7 +589,7 @@ class Query {
 		] );
 
 		$this->addOrderBy( 'rev.rev_id' );
-		$this->setOrderDir( 'DESC' );
+		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
@@ -705,10 +599,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'articlecategory' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _articlecategory( $option ) {
+	private function _articlecategory( string $option ): void {
 		$this->queryBuilder->where(
 			$this->dbr->tableName( 'page' ) . '.page_title IN (SELECT p2.page_title FROM ' .
 			$this->dbr->tableName( 'page' ) . ' p2 INNER JOIN ' .
@@ -719,10 +611,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'categoriesminmax' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _categoriesminmax( $option ) {
+	private function _categoriesminmax( array $option ): void {
 		if ( is_numeric( $option[0] ) ) {
 			$this->queryBuilder->where(
 				(int)$option[0] . ' <= (SELECT count(*) FROM ' .
@@ -742,12 +632,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'category' parameter. This includes 'category', 'categorymatch', and 'categoryregexp'.
-	 *
-	 * @param mixed $option
 	 */
-	private function _category( $option ) {
+	private function _category( array $option ): void {
 		$i = 0;
-
 		foreach ( $option as $comparisonType => $operatorTypes ) {
 			foreach ( $operatorTypes as $operatorType => $categoryGroups ) {
 				foreach ( $categoryGroups as $categories ) {
@@ -794,10 +681,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notcategory' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notcategory( $option ) {
+	private function _notcategory( array $option ): void {
 		$i = 0;
 		foreach ( $option as $operatorType => $categories ) {
 			foreach ( $categories as $category ) {
@@ -820,10 +705,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'createdby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _createdby( $option ) {
+	private function _createdby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -841,11 +724,9 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'distinct' parameter.
-	 *
-	 * @param mixed $option
+	 * Set SQL for 'distinct' parameter. Either 'strict' or true
 	 */
-	private function _distinct( $option ) {
+	private function _distinct( string|bool $option ): void {
 		if ( $option === 'strict' || $option === true ) {
 			$this->queryBuilder->distinct();
 		}
@@ -853,10 +734,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'firstrevisionsince' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _firstrevisionsince( $option ) {
+	private function _firstrevisionsince( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( [
 			'rev.rev_id',
@@ -881,12 +760,12 @@ class Query {
 	/**
 	 * Set SQL for 'goal' parameter.
 	 *
-	 * @param mixed $option
+	 * @param string $option 'pages' or 'categories'.
 	 */
-	private function _goal( $option ) {
+	private function _goal( string $option ): void {
 		if ( $option === 'categories' ) {
-			$this->setLimit( false );
-			$this->setOffset( false );
+			$this->setLimit( null );
+			$this->setOffset( null );
 		}
 	}
 
@@ -895,16 +774,14 @@ class Query {
 	 *
 	 * @param mixed $option @phan-unused-param
 	 */
-	private function _hiddencategories( $option ) {
+	private function _hiddencategories( mixed $option ): void {
 		// @TODO: Unfinished functionality! Never implemented by original author.
 	}
 
 	/**
 	 * Set SQL for 'imagecontainer' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _imagecontainer( $option ) {
+	private function _imagecontainer( array $option ): void {
 		$where = [];
 
 		$this->queryBuilder->table( 'imagelinks', 'ic' );
@@ -913,7 +790,7 @@ class Query {
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			$where = [
 				"{$this->dbr->tableName( 'page' )}.page_namespace = " . NS_FILE,
-				"{$this->dbr->tableName( 'page' )}.page_title = ic.il_to"
+				"{$this->dbr->tableName( 'page' )}.page_title = ic.il_to",
 			];
 		}
 
@@ -935,10 +812,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'imageused' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _imageused( $option ) {
+	private function _imageused( array $option ): void {
 		$where = [];
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page_title' );
@@ -950,8 +825,8 @@ class Query {
 		] );
 
 		$where[] = $this->dbr->tableName( 'page' ) . '.page_id = il.il_from';
-		$ors = [];
 
+		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
@@ -969,10 +844,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'lastmodifiedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _lastmodifiedby( $option ) {
+	private function _lastmodifiedby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -989,10 +862,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'lastrevisionbefore' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _lastrevisionbefore( $option ) {
+	private function _lastrevisionbefore( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
 
@@ -1013,12 +884,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'linksfrom' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _linksfrom( $option ) {
+	private function _linksfrom( array $option ): void {
 		$where = [];
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -1062,10 +930,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'linksto' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _linksto( $option ) {
+	private function _linksto( array $option ): void {
 		if ( count( $option ) > 0 ) {
 			$this->queryBuilder->table( 'pagelinks', 'pl' );
 			$this->queryBuilder->table( 'linktarget', 'lt' );
@@ -1145,10 +1011,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notlinksfrom' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notlinksfrom( $option ) {
+	private function _notlinksfrom( array $option ): void {
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ands = [];
 			foreach ( $option as $linkGroup ) {
@@ -1164,7 +1028,6 @@ class Query {
 				$this->dbr->tableName( 'linktarget' ) . ' lt ON pl.pl_target_id = lt.lt_id WHERE ';
 
 			$ors = [];
-
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$ors[] = 'pl.pl_from = ' . (int)$link->getArticleID();
@@ -1179,11 +1042,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'notlinksto' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notlinksto( $option ) {
-		if ( count( $option ) ) {
+	private function _notlinksto( array $option ): void {
+		if ( count( $option ) > 0 ) {
 			$where = $this->dbr->tableName( 'page' ) . '.page_id NOT IN (SELECT pl.pl_from FROM ' .
 				$this->dbr->tableName( 'pagelinks' ) . ' pl JOIN ' .
 				$this->dbr->tableName( 'linktarget' ) . ' lt ON pl.pl_target_id = lt.lt_id WHERE ';
@@ -1217,38 +1078,36 @@ class Query {
 
 	/**
 	 * Set SQL for 'linkstoexternal' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _linkstoexternal( $option ) {
+	private function _linkstoexternal( array $option ): void {
 		$this->_linkstoexternaldomain( $option );
 	}
 
 	/**
 	 * Set SQL for 'linkstoexternaldomain' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _linkstoexternaldomain( $option ) {
+	private function _linkstoexternaldomain( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page_title' );
 		}
 
-		if ( count( $option ) == 0 ) {
+		if ( count( $option ) === 0 ) {
 			// Nothing to do
 			return;
 		}
+
 		$this->queryBuilder->table( 'externallinks', 'el' );
 		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
 
 		foreach ( $option as $index => $domains ) {
 			$domainPatterns = array_map(
-				fn ( string $domain ) => $this->parseDomainPattern( $domain ),
+				fn ( string $domain ): string => $this->parseDomainPattern( $domain ),
 				$domains
 			);
-			if ( $index == 0 ) {
+
+			if ( $index === 0 ) {
 				$ors = array_map(
-					fn ( $pattern ) => "el.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					fn ( string $pattern ): string => "el.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
@@ -1257,7 +1116,8 @@ class Query {
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
 				$ors = array_map(
-					fn ( $pattern ) => "$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
+					fn ( string $pattern ): string =>
+						"$linksTable.el_to_domain_index LIKE {$this->dbr->addQuotes( $pattern )}",
 					$domainPatterns
 				);
 
@@ -1272,15 +1132,13 @@ class Query {
 
 	/**
 	 * Set SQL for 'linkstoexternalpath' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _linkstoexternalpath( $option ) {
+	private function _linkstoexternalpath( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page_title' );
 		}
 
-		if ( count( $option ) == 0 ) {
+		if ( count( $option ) === 0 ) {
 			// Nothing to do
 			return;
 		}
@@ -1289,9 +1147,9 @@ class Query {
 		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
 
 		foreach ( $option as $index => $paths ) {
-			if ( $index == 0 ) {
+			if ( $index === 0 ) {
 				$ors = array_map(
-					fn ( $path ) => "el.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
+					fn ( string $path ): string => "el.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
 					$paths
 				);
 
@@ -1300,7 +1158,7 @@ class Query {
 			} else {
 				$linksTable = $this->dbr->tableName( 'externallinks' );
 				$ors = array_map(
-					fn ( $path ) => "$linksTable.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
+					fn ( string $path ): string => "$linksTable.el_to_path LIKE {$this->dbr->addQuotes( $path )}",
 					$paths
 				);
 
@@ -1315,10 +1173,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'maxrevisions' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _maxrevisions( $option ) {
+	private function _maxrevisions( int $option ): void {
 		$this->queryBuilder->where(
 			"((SELECT count(rev_aux3.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
 			" AS rev_aux3 WHERE rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id) <= $option)"
@@ -1327,10 +1183,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'minrevisions' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _minrevisions( $option ) {
+	private function _minrevisions( int $option ): void {
 		$this->queryBuilder->where(
 			"((SELECT count(rev_aux2.rev_page) FROM {$this->dbr->tableName( 'revision' )}" .
 			" AS rev_aux2 WHERE rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id) >= $option)"
@@ -1339,10 +1193,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'modifiedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _modifiedby( $option ) {
+	private function _modifiedby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -1358,11 +1210,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'namespace' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _namespace( $option ) {
-		if ( is_array( $option ) && count( $option ) ) {
+	private function _namespace( array $option ): void {
+		if ( count( $option ) > 0 ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$this->queryBuilder->where( [
 					'lt.lt_namespace' => $option,
@@ -1377,10 +1227,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notcreatedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notcreatedby( $option ) {
+	private function _notcreatedby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -1397,10 +1245,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notlastmodifiedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notlastmodifiedby( $option ) {
+	private function _notlastmodifiedby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -1417,10 +1263,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notmodifiedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notmodifiedby( $option ) {
+	private function _notmodifiedby( string $option ): void {
 		$user = $this->userFactory->newFromName( $option );
 		if ( $user->isHidden() ) {
 			return;
@@ -1438,11 +1282,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'notnamespace' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notnamespace( $option ) {
-		if ( is_array( $option ) && count( $option ) ) {
+	private function _notnamespace( array $option ): void {
+		if ( count( $option ) > 0 ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$this->addNotWhere( [
 					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option,
@@ -1457,45 +1299,37 @@ class Query {
 
 	/**
 	 * Set SQL for 'count' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _count( $option ) {
+	private function _count( int $option ): void {
 		$this->setLimit( $option );
 	}
 
 	/**
 	 * Set SQL for 'offset' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _offset( $option ) {
+	private function _offset( int $option ): void {
 		$this->setOffset( $option );
 	}
 
 	/**
 	 * Set SQL for 'order' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _order( $option ) {
+	private function _order( string $option ): void {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
 		if ( $orderMethod && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
 			if ( $option === 'descending' || $option === 'desc' ) {
 				$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
-			} else {
-				$this->setOrderDir( SelectQueryBuilder::SORT_ASC );
+				return;
 			}
+
+			$this->setOrderDir( SelectQueryBuilder::SORT_ASC );
 		}
 	}
 
 	/**
 	 * Set SQL for 'ordercollation' parameter.
-	 *
-	 * @param mixed $option
-	 * @return bool
 	 */
-	private function _ordercollation( $option ) {
+	private function _ordercollation( string $option ): void {
 		$option = mb_strtolower( $option );
 		$dbType = $this->dbr->getType();
 
@@ -1509,11 +1343,11 @@ class Query {
 			foreach ( $res as $row ) {
 				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ) {
 					$this->setCollation( $row->DEFAULT_COLLATE_NAME );
-					return true;
+					return;
 				}
 			}
 
-			return false;
+			throw new LogicException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'postgres' ) {
@@ -1527,34 +1361,27 @@ class Query {
 
 			if ( $collation !== false && $option === mb_strtolower( $collation ) ) {
 				$this->setCollation( $collation );
-				return true;
+				return;
 			}
 
-			return false;
+			throw new LogicException( "No default order collation found matching $option." );
 		}
 
 		// Not supported on SQLite or mystery engines
-		return false;
+		throw new LogicException( 'Order collation is not supported on the database type you are using.' );
 	}
 
 	/**
 	 * Set SQL for 'ordermethod' parameter.
-	 *
-	 * @param mixed $option
-	 * @return bool
 	 */
-	private function _ordermethod( $option ) {
+	private function _ordermethod( array $option ): void {
 		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			// No order methods for returning categories.
-			return true;
+			return;
 		}
 
 		$services = MediaWikiServices::getInstance();
 		$namespaces = $services->getContentLanguage()->getNamespaces();
-
-		// $aStrictNs = array_slice(
-		// (array)Config::getSetting( 'allowedNamespaces' ), 1,
-		// count( Config::getSetting( 'allowedNamespaces' ) ), true );
 
 		$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
 		$_namespaceIdToText = "CASE {$this->dbr->tableName( 'page' )}.page_namespace";
@@ -1565,7 +1392,6 @@ class Query {
 
 		$_namespaceIdToText .= ' END';
 
-		$option = (array)$option;
 		foreach ( $option as $orderMethod ) {
 			switch ( $orderMethod ) {
 				case 'category':
@@ -1770,10 +1596,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'redirects' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _redirects( $option ) {
+	private function _redirects( string $option ): void {
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			switch ( $option ) {
 				case 'only':
@@ -1792,10 +1616,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'stablepages' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _stablepages( $option ) {
+	private function _stablepages( string $option ): void {
 		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
 			// Do not add this again if 'qualitypages' has already added it.
 			if ( !$this->parametersProcessed['qualitypages'] ) {
@@ -1815,10 +1637,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'qualitypages' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _qualitypages( $option ) {
+	private function _qualitypages( string $option ): void {
 		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
 			// Do not add this again if 'stablepages' has already added it.
 			if ( !$this->parametersProcessed['stablepages'] ) {
@@ -1838,12 +1658,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'title' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _title( $option ) {
+	private function _title( array $option ): void {
 		$ors = [];
-
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
@@ -1873,12 +1690,9 @@ class Query {
 
 	/**
 	 * Set SQL for 'nottitle' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _nottitle( $option ) {
+	private function _nottitle( array $option ): void {
 		$ors = [];
-
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
@@ -1908,10 +1722,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'titlegt' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _titlegt( $option ) {
+	private function _titlegt( string $option ): void {
 		$operator = '>';
 		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
@@ -1936,10 +1748,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'titlelt' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _titlelt( $option ) {
+	private function _titlelt( string $option ): void {
 		$operator = '<';
 		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
@@ -1964,13 +1774,10 @@ class Query {
 
 	/**
 	 * Set SQL for 'usedby' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _usedby( $option ) {
+	private function _usedby( array $option ): void {
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
-
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$ors[] = 'tpl_from = ' . (int)$link->getArticleID();
@@ -2014,21 +1821,19 @@ class Query {
 
 	/**
 	 * Set SQL for 'uses' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _uses( $option ) {
+	private function _uses( array $option ): void {
 		$this->queryBuilder->tables( [
 			'lt' => 'linktarget',
 			'tl' => 'templatelinks',
 		] );
 
 		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
-		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
+		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
@@ -2050,10 +1855,8 @@ class Query {
 
 	/**
 	 * Set SQL for 'notuses' parameter.
-	 *
-	 * @param mixed $option
 	 */
-	private function _notuses( $option ) {
+	private function _notuses( array $option ): void {
 		if ( count( $option ) > 0 ) {
 			$where = $this->dbr->tableName( 'page' ) . '.page_id NOT IN (SELECT ' .
 				$this->dbr->tableName( 'templatelinks' ) . '.tl_from FROM ' .
@@ -2062,11 +1865,10 @@ class Query {
 				$this->dbr->tableName( 'linktarget' ) . '.lt_id = ' .
 				$this->dbr->tableName( 'templatelinks' ) . '.tl_target_id WHERE (';
 
-			$ors = [];
-
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
+			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
 					$_or = "({$this->dbr->tableName( 'linktarget' )}.$nsField = {$link->getNamespace()}";
@@ -2095,6 +1897,7 @@ class Query {
 				return true;
 			}
 		}
+
 		return false;
 	}
 }
