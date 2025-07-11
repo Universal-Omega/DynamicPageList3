@@ -92,12 +92,12 @@ class Query {
 			] );
 		}
 
-		// Always add nonincludeable namespaces.
+		// Never add nonincludeable namespaces.
 		if ( $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ) ) {
-			$this->addNotWhere( [
-				$this->dbr->tableName( 'page' ) . '.page_namespace' =>
-					   $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ),
-			] );
+			$this->queryBuilder->andWhere( $this->dbr->expr(
+				$this->dbr->tableName( 'page' ) . '.page_namespace', '!=',
+				$this->mainConfig->get( MainConfigNames::NonincludableNamespaces )
+			) );
 		}
 
 		if ( $this->offset !== null ) {
@@ -266,19 +266,6 @@ class Query {
 	}
 
 	/**
-	 * Add a where clause to the query builder that uses NOT IN or !=.
-	 */
-	private function addNotWhere( array $where ): void {
-		foreach ( $where as $field => $values ) {
-			$this->queryBuilder->where( $field . (
-				count( $values ) > 1 ? ' NOT IN(' .
-					$this->dbr->makeList( $values ) . ')' : ' != ' .
-				$this->dbr->addQuotes( current( $values ) )
-			) );
-		}
-	}
-
-	/**
 	 * Add a ORDER BY clause to the query builder.
 	 */
 	private function addOrderBy( string $orderBy ): void {
@@ -409,12 +396,12 @@ class Query {
 			$minTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MIN(rev_aux_min.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_min' )
-				->where( 'rev_aux_min.rev_page = page.page_id' )
+				->where( "rev_aux_min.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( [
-				'page.page_id = rev.rev_page',
+				"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 				"rev.rev_timestamp = ($minTimestampSubquery)",
 			] );
 
@@ -496,12 +483,12 @@ class Query {
 			$maxTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MAX(rev_aux_max.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_max' )
-				->where( 'rev_aux_max.rev_page = page.page_id' )
+				->where( "rev_aux_max.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( [
-				'page.page_id = rev.rev_page',
+				"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 				"rev.rev_timestamp = ($maxTimestampSubquery)",
 			] );
 
@@ -625,25 +612,20 @@ class Query {
 	 * Set SQL for 'categoriesminmax' parameter.
 	 */
 	private function _categoriesminmax( array $option ): void {
-		if ( is_numeric( $option[0] ) ) {
+		if ( is_numeric( $option[0] ) || ( isset( $option[1] ) && is_numeric( $option[1] ) ) ) {
 			$countSubquery = $this->queryBuilder->newSubquery()
 				->select( 'COUNT(*)' )
 				->from( 'categorylinks' )
 				->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
 				->caller( __METHOD__ )
 				->getSQL();
+		}
 
+		if ( is_numeric( $option[0] ) ) {
 			$this->queryBuilder->where( (int)$option[0] . " <= ($countSubquery)" );
 		}
 
 		if ( isset( $option[1] ) && is_numeric( $option[1] ) ) {
-			$countSubquery = $this->queryBuilder->newSubquery()
-				->select( 'COUNT(*)' )
-				->from( 'categorylinks' )
-				->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
-				->caller( __METHOD__ )
-				->getSQL();
-
 			$this->queryBuilder->where( (int)$option[1] . " >= ($countSubquery)" );
 		}
 	}
@@ -660,8 +642,8 @@ class Query {
 						continue;
 					}
 
-					$tableName = ( in_array( '', $categories ) ? 'dpl_clview' : 'categorylinks' );
-					if ( $operatorType == 'AND' ) {
+					$tableName = in_array( '', $categories ) ? 'dpl_clview' : 'categorylinks';
+					if ( $operatorType === 'AND' ) {
 						foreach ( $categories as $category ) {
 							$i++;
 							$tableAlias = "cl{$i}";
@@ -674,7 +656,7 @@ class Query {
 								]
 							);
 						}
-					} elseif ( $operatorType == 'OR' ) {
+					} elseif ( $operatorType === 'OR' ) {
 						$i++;
 						$tableAlias = "cl{$i}";
 						$this->queryBuilder->table( $tableName, $tableAlias );
@@ -705,13 +687,12 @@ class Query {
 		foreach ( $option as $operatorType => $categories ) {
 			foreach ( $categories as $category ) {
 				$i++;
-
 				$tableAlias = "ecl{$i}";
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
 				$this->queryBuilder->leftJoin(
 					'categorylinks', $tableAlias, [
-						"{$this->dbr->tableName( 'page' )}.page_id = {$tableAlias}.cl_from AND " .
-							"{$tableAlias}.cl_to {$operatorType}" .
+						"{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND " .
+							"$tableAlias.cl_to $operatorType" .
 							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 					]
 				);
@@ -759,7 +740,7 @@ class Query {
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
-			'page.page_id = rev.rev_page',
+			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
 			'rev.rev_timestamp >= ' . $this->dbr->addQuotes( $option ),
 		] );
 
@@ -801,11 +782,10 @@ class Query {
 	 * Set SQL for 'imagecontainer' parameter.
 	 */
 	private function _imagecontainer( array $option ): void {
-		$where = [];
-
 		$this->queryBuilder->table( 'imagelinks', 'ic' );
 		$this->queryBuilder->select( [ 'sortkey' => 'ic.il_to' ] );
 
+		$where = [];
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			$where = [
 				"{$this->dbr->tableName( 'page' )}.page_namespace = " . NS_FILE,
@@ -817,7 +797,7 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(ic.il_from AS char) = LOWER(' .
+					$ors[] = 'LOWER(CAST(ic.il_from AS CHAR) = LOWER(' .
 						$this->dbr->addQuotes( $link->getArticleID() ) . ')';
 				} else {
 					$ors[] = 'ic.il_from = ' . $this->dbr->addQuotes( $link->getArticleID() );
@@ -825,7 +805,7 @@ class Query {
 			}
 		}
 
-		$where[] = '(' . implode( ' OR ', $ors ) . ')';
+		$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		$this->queryBuilder->where( $where );
 	}
 
@@ -833,7 +813,6 @@ class Query {
 	 * Set SQL for 'imageused' parameter.
 	 */
 	private function _imageused( array $option ): void {
-		$where = [];
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page_title' );
 		}
@@ -843,13 +822,14 @@ class Query {
 			'image_sel_title' => 'il.il_to',
 		] );
 
+		$where = [];
 		$where[] = $this->dbr->tableName( 'page' ) . '.page_id = il.il_from';
 
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(il.il_to AS char)) = LOWER(' .
+					$ors[] = 'LOWER(CAST(il.il_to AS CHAR)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				} else {
 					$ors[] = 'il.il_to = ' . $this->dbr->addQuotes( $link->getDBkey() );
@@ -1331,13 +1311,13 @@ class Query {
 	private function _notnamespace( array $option ): void {
 		if ( count( $option ) > 0 ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->addNotWhere( [
-					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace" => $option,
-				] );
+				$this->queryBuilder->andWhere( $this->dbr->expr(
+					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace", '!=', $option
+				) );
 			} else {
-				$this->addNotWhere( [
-					"{$this->dbr->tableName( 'page' )}.page_namespace" => $option,
-				] );
+				$this->queryBuilder->andWhere( $this->dbr->expr(
+					"{$this->dbr->tableName( 'page' )}.page_namespace", '!=', $option
+				) );
 			}
 		}
 	}
@@ -1468,7 +1448,7 @@ class Query {
 
 					if (
 						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catheadings' ) )
+						count( $this->parameters->getParameter( 'catheadings' ) ) > 0
 					) {
 						$this->queryBuilder->where( [
 							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' ),
@@ -1477,11 +1457,11 @@ class Query {
 
 					if (
 						is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catnotheadings' ) )
+						count( $this->parameters->getParameter( 'catnotheadings' ) ) > 0
 					) {
-						$this->addNotWhere( [
-							'cl_head.cl_to' => $this->parameters->getParameter( 'catnotheadings' ),
-						] );
+						$this->queryBuilder->andWhere( $this->dbr->expr(
+							'cl_head.cl_to', '!=', $this->parameters->getParameter( 'catnotheadings' )
+						) );
 					}
 					break;
 				case 'categoryadd':
@@ -1715,14 +1695,14 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS char)) {$comparisonType}" .
+						$_or = "LOWER(CAST(lt_title AS CHAR)) {$comparisonType}" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "lt_title {$comparisonType} " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS char)) {$comparisonType}" .
+						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) {$comparisonType}" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "{$this->dbr->tableName( 'page' )}.page_title {$comparisonType}" .
@@ -1746,14 +1726,14 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS char)) $comparisonType" .
+						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS char)) {$comparisonType}" .
+						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) $comparisonType" .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "{$this->dbr->tableName( 'page' )}.page_title $comparisonType" .
@@ -1888,7 +1868,7 @@ class Query {
 				$_or = 'lt.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS char)) = LOWER(' .
+					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS CHAR)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
 					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
@@ -1926,7 +1906,7 @@ class Query {
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 					$ors[] = "(linktarget.$nsField = $ns AND " .
-						"LOWER(CAST(linktarget.$titleField AS char)) = LOWER($dbkey))";
+						"LOWER(CAST(linktarget.$titleField AS CHAR)) = LOWER($dbkey))";
 				} else {
 					$ors[] = "(linktarget.$nsField = $ns AND linktarget.$titleField = $dbkey)";
 				}
