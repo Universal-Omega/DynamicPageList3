@@ -159,36 +159,29 @@ class Query {
 				$this->queryBuilder->select( 'il_to' );
 				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
+				$this->queryBuilder->from( 'pagelinks', 'pl' );
+				$this->queryBuilder->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
+				$this->queryBuilder->leftJoin( 'page', null, [
+					'lt.lt_namespace = page.page_namespace',
+					'lt.lt_title = page.page_title',
+				] );
+
 				if ( $this->parameters->getParameter( 'openreferences' ) === 'missing' ) {
 					$this->queryBuilder->select( [
-						'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
-						'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-						'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
-						'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
-						'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
+						'page_namespace' => 'page.page_namespace',
+						'page_id' => 'page.page_id',
+						'page_title' => 'page.page_title',
+						'lt_namespace' => 'lt.lt_namespace',
+						'lt_title' => 'lt.lt_title',
 					] );
-
-					$this->queryBuilder->where( [ $this->dbr->tableName( 'page' ) . '.page_namespace' => null ] );
+					$this->queryBuilder->where( [ 'page.page_namespace' => null ] );
 				} else {
 					$this->queryBuilder->select( [
-						'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-						'lt_namespace' => $this->dbr->tableName( 'linktarget' ) . '.lt_namespace',
-						'lt_title' => $this->dbr->tableName( 'linktarget' ) . '.lt_title',
+						'page_id' => 'page.page_id',
+						'lt_namespace' => 'lt.lt_namespace',
+						'lt_title' => 'lt.lt_title',
 					] );
 				}
-
-				$this->queryBuilder->tables( [ 'pagelinks', 'linktarget' ] );
-				$this->queryBuilder->where(
-					"{$this->dbr->tableName( 'pagelinks' )}.pl_target_id = " .
-					"{$this->dbr->tableName( 'linktarget' )}.lt_id"
-				);
-
-				$this->queryBuilder->leftJoin(
-					'page', null, [
-						"lt_namespace = {$this->dbr->tableName( 'page' )}.page_namespace",
-						"lt_title = {$this->dbr->tableName( 'page' )}.page_title",
-					]
-				);
 			}
 		} else {
 			if ( count( $this->orderBy ) ) {
@@ -232,9 +225,9 @@ class Query {
 
 			// if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 			$this->sqlQuery = $query;
-			// if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				// var_dump( $query );
-			// }
+			if ( $this->parameters->getParameter( 'openreferences' ) ) {
+				var_dump( $query );
+			}
 			// }
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
