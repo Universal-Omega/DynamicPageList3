@@ -425,7 +425,9 @@ class Query {
 	private function _addcategories( bool $option ): void {
 		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
 		$this->queryBuilder->select( [
-			'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')",
+			'cats' => $this->dbr->getType() === 'mysql' ?
+				"GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')" :
+				"STRING_AGG(DISTINCT cl_gc.cl_to, ' | ' ORDER BY cl_gc.cl_to ASC)",
 		] );
 
 		$this->queryBuilder->leftJoin( 'cl_gc', null, 'page_id = cl_gc.cl_from' );
@@ -474,9 +476,7 @@ class Query {
 	private function _addfirstcategorydate( bool $option ): void {
 		// @TODO: This should be programmatically determining which
 		// categorylink table to use instead of assuming the first one.
-		$this->queryBuilder->select( [
-			'cl_timestamp' => "DATE_FORMAT(cl1.cl_timestamp, '%Y%m%d%H%i%s')",
-		] );
+		$this->queryBuilder->select( [ 'cl_timestamp' => 'cl1.cl_timestamp' ] );
 	}
 
 	/**
@@ -1538,13 +1538,13 @@ class Query {
 					if ( count( $category ) + count( $notCategory ) > 0 ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ) ) ) {
 							$this->queryBuilder->select( [
-								'sortkey' => "IFNULL(cl_head.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
+								'sortkey' => "COALESCE(cl_head.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
 						} else {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
 							$this->queryBuilder->select( [
-								'sortkey' => "IFNULL(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}"
+								'sortkey' => "COALESCE(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}"
 							] );
 						}
 					} else {
