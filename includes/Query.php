@@ -993,7 +993,8 @@ class Query {
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) $operator LOWER($quotedTitle))";
+					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
+						"$operator LOWER($quotedTitle))";
 				} else {
 					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
 				}
@@ -1075,7 +1076,8 @@ class Query {
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) $operator LOWER($quotedTitle))";
+					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
+						"$operator LOWER($quotedTitle))";
 				} else {
 					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
 				}
@@ -1924,7 +1926,8 @@ class Query {
 				$dbkey = $this->dbr->addQuotes( $link->getDBkey() );
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(linktarget.$nsField = $ns AND LOWER(CAST(linktarget.$titleField AS char)) = LOWER($dbkey))";
+					$ors[] = "(linktarget.$nsField = $ns AND " .
+						"LOWER(CAST(linktarget.$titleField AS char)) = LOWER($dbkey))";
 				} else {
 					$ors[] = "(linktarget.$nsField = $ns AND linktarget.$titleField = $dbkey)";
 				}
