@@ -223,20 +223,15 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			// if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
-			$this->sqlQuery = $query;
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				var_dump( $query );
+			if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
+				$this->sqlQuery = $query;
 			}
-			// }
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
-			if ( $errorMessage == '' ) {
+			if ( $errorMessage === '' ) {
 				$errorMessage = strval( $e );
 			}
-			var_dump( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Hooks::getVersion(), $errorMessage
-			)->text() );
+
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
 				'dpl_query_error', Hooks::getVersion(), $errorMessage
 			)->text() );
