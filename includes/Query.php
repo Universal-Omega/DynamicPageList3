@@ -926,7 +926,7 @@ class Query {
 				}
 			}
 
-			$where[] = '(' . implode( ' OR ', $ors ) . ')';
+			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		} else {
 			$this->queryBuilder->tables( [
 				'lt' => 'linktarget',
@@ -955,7 +955,7 @@ class Query {
 				}
 			}
 
-			$where[] = '(' . implode( ' OR ', $ors ) . ')';
+			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		}
 
 		$this->queryBuilder->where( $where );
@@ -1000,16 +1000,19 @@ class Query {
 			}
 
 			if ( $index === 0 ) {
-				$where = 'page.page_id = pl.pl_from AND (' . implode( ' OR ', $ors ) . ')';
-				$this->queryBuilder->where( $where );
+				$this->queryBuilder->where( [
+					'page.page_id = pl.pl_from',
+					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+				] );
 			} else {
 				$subquery = $this->queryBuilder->newSubquery()
 					->select( 'pl_from' )
 					->from( 'pagelinks', 'pl' )
 					->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
-					->where( array_merge( [
+					->where( [
 						'pl.pl_from = page.page_id',
-					], [ implode( ' OR ', $ors ) ] ) )
+						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+					] )
 					->caller( __METHOD__ )
 					->getSQL();
 
@@ -1045,7 +1048,7 @@ class Query {
 			}
 
 			if ( $ors ) {
-				$subquery->where( implode( ' OR ', $ors ) );
+				$subquery->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 			}
 
 			$subquery->caller( __METHOD__ );
