@@ -7,6 +7,8 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use MediaWiki\Config\Config;
+use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
@@ -29,6 +31,7 @@ class Query {
 	 */
 	private $parameters;
 
+	private Config $config;
 	private IReadableDatabase $dbr;
 	private SelectQueryBuilder $queryBuilder;
 
@@ -104,6 +107,7 @@ class Query {
 			->getReplicaDatabase( false, 'dpl3' );
 
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
+		$this->config = MediaWikiServices::getInstance()->getMainConfig();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
@@ -115,8 +119,6 @@ class Query {
 	 * @return array|bool
 	 */
 	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' ) {
-		global $wgNonincludableNamespaces, $wgDebugDumpSql;
-
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
 			$function = '_' . $parameter;
@@ -147,9 +149,10 @@ class Query {
 		}
 
 		// Always add nonincludeable namespaces.
-		if ( is_array( $wgNonincludableNamespaces ) && count( $wgNonincludableNamespaces ) ) {
+		if ( $this->config->get( MainConfigNames::NonincludableNamespaces ) ) {
 			$this->addNotWhere( [
-				$this->dbr->tableName( 'page' ) . '.page_namespace' => $wgNonincludableNamespaces,
+				$this->dbr->tableName( 'page' ) . '.page_namespace' =>
+					   $this->config->get( MainConfigNames::NonincludableNamespaces ),
 			] );
 		}
 
@@ -246,7 +249,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			// if ( Hooks::getDebugLevel() >= 4 && $wgDebugDumpSql ) {
+			// if ( Hooks::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 			$this->sqlQuery = $query;
 			var_dump( $query );
 			// }
