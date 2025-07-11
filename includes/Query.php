@@ -178,7 +178,6 @@ class Query {
 				}
 
 				$this->queryBuilder->tables( [
-					$this->dbr->tableName( 'page', 'raw' ) => 'page',
 					$this->dbr->tableName( 'pagelinks', 'raw' ) => 'pagelinks',
 					$this->dbr->tableName( 'linktarget', 'raw' ) => 'linktarget',
 				] );
@@ -237,7 +236,9 @@ class Query {
 
 			// if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 			$this->sqlQuery = $query;
-			var_dump( $query );
+			if ( $this->parameters->getParameter( 'openreferences' ) ) {
+				var_dump( $query );
+			}
 			// }
 		} catch ( Exception $e ) {
 			$errorMessage = $this->dbr->lastError();
