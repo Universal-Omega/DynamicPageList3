@@ -1851,7 +1851,7 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = 'lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
 					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS CHAR)) = LOWER(' .
