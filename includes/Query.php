@@ -84,18 +84,18 @@ class Query {
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->queryBuilder->table( 'page', $this->dbr->tableName( 'page', 'raw' ) );
+			$this->queryBuilder->table( 'page' );
 			$this->queryBuilder->select( [
-				'page_namespace' => $this->dbr->tableName( 'page' ) . '.page_namespace',
-				'page_id' => $this->dbr->tableName( 'page' ) . '.page_id',
-				'page_title' => $this->dbr->tableName( 'page' ) . '.page_title',
+				'page_namespace' => 'page.page_namespace',
+				'page_id' => 'page.page_id',
+				'page_title' => 'page.page_title',
 			] );
 		}
 
 		// Never add nonincludeable namespaces.
 		if ( $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ) ) {
 			$this->queryBuilder->andWhere( $this->dbr->expr(
-				$this->dbr->tableName( 'page' ) . '.page_namespace', '!=',
+				'page.page_namespace', '!=',
 				$this->mainConfig->get( MainConfigNames::NonincludableNamespaces )
 			) );
 		}
@@ -148,7 +148,7 @@ class Query {
 
 		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			$categoriesGoal = true;
-			$this->queryBuilder->select( $this->dbr->tableName( 'page' ) . '.page_id' );
+			$this->queryBuilder->select( 'page.page_id' );
 			$this->queryBuilder->distinct();
 		} else {
 			if ( $calcRows ) {
@@ -396,12 +396,12 @@ class Query {
 			$minTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MIN(rev_aux_min.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_min' )
-				->where( "rev_aux_min.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
+				->where( 'rev_aux_min.rev_page = page.page_id' )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( [
-				"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+				'page.page_id = rev.rev_page',
 				"rev.rev_timestamp = ($minTimestampSubquery)",
 			] );
 
@@ -423,7 +423,7 @@ class Query {
 		] );
 
 		$this->queryBuilder->leftJoin( 'cl_gc', null, 'page_id = cl_gc.cl_from' );
-		$this->queryBuilder->groupBy( $this->dbr->tableName( 'page' ) . '.page_id' );
+		$this->queryBuilder->groupBy( 'page.page_id' );
 	}
 
 	/**
@@ -439,10 +439,7 @@ class Query {
 			'contrib_deleted' => 'rc.rc_deleted',
 		] );
 
-		$this->queryBuilder->where( [
-			$this->dbr->tableName( 'page' ) . '.page_id = rc.rc_cur_id',
-		] );
-
+		$this->queryBuilder->where( 'page.page_id = rc.rc_cur_id' );
 		$this->queryBuilder->groupBy( 'rc.rc_cur_id' );
 	}
 
@@ -454,10 +451,7 @@ class Query {
 	private function _addeditdate( bool $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( 'rev.rev_timestamp' );
-
-		$this->queryBuilder->where( [
-			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
-		] );
+		$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
 	}
 
 	/**
@@ -483,12 +477,12 @@ class Query {
 			$maxTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MAX(rev_aux_max.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_max' )
-				->where( "rev_aux_max.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
+				->where( 'rev_aux_max.rev_page = page.page_id' )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( [
-				"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+				'page.page_id = rev.rev_page',
 				"rev.rev_timestamp = ($maxTimestampSubquery)",
 			] );
 
@@ -511,7 +505,7 @@ class Query {
 			if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
 				$this->queryBuilder->leftJoin(
 					'hit_counter', null, [
-						'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id',
+						'hit_counter.page_id = page.page_id',
 					]
 				);
 			}
@@ -525,7 +519,7 @@ class Query {
 	 */
 	private function _addpagesize( bool $option ): void {
 		$this->queryBuilder->select( [
-			'page_len' => "{$this->dbr->tableName( 'page' )}.page_len",
+			'page_len' => 'page.page_len',
 		] );
 	}
 
@@ -536,7 +530,7 @@ class Query {
 	 */
 	private function _addpagetoucheddate( bool $option ): void {
 		$this->queryBuilder->select( [
-			'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched",
+			'page_touched' => 'page.page_touched',
 		] );
 	}
 
@@ -567,7 +561,7 @@ class Query {
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
-			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			'page.page_id = rev.rev_page',
 			'rev.rev_timestamp < ' . $this->convertTimestamp( $option ),
 		] );
 	}
@@ -583,7 +577,7 @@ class Query {
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
-			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
+			'page.page_id = rev.rev_page',
 			'rev.rev_timestamp >= ' . $this->convertTimestamp( $option ),
 		] );
 	}
@@ -604,7 +598,7 @@ class Query {
 			->getSQL();
 
 		$this->queryBuilder->where(
-			"{$this->dbr->tableName( 'page' )}.page_title IN ($subquery)"
+			"page.page_title IN ($subquery)"
 		);
 	}
 
@@ -623,7 +617,7 @@ class Query {
 		$countSubquery = $this->queryBuilder->newSubquery()
 			->select( 'COUNT(*)' )
 			->from( 'categorylinks' )
-			->where( "cl_from = {$this->dbr->tableName( 'page' )}.page_id" )
+			->where( 'cl_from = page.page_id' )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -656,7 +650,7 @@ class Query {
 							$this->queryBuilder->table( $tableName, $tableAlias );
 							$this->queryBuilder->join(
 								$tableName, $tableAlias, [
-									"{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND " .
+									"page.page_id = $tableAlias.cl_from AND " .
 										"$tableAlias.cl_to $comparisonType " .
 										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 								]
@@ -667,7 +661,7 @@ class Query {
 						$tableAlias = "cl{$i}";
 						$this->queryBuilder->table( $tableName, $tableAlias );
 
-						$joinOn = "{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND (";
+						$joinOn = "page.page_id = $tableAlias.cl_from AND (";
 
 						$ors = [];
 						foreach ( $categories as $category ) {
@@ -697,7 +691,7 @@ class Query {
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
 				$this->queryBuilder->leftJoin(
 					'categorylinks', $tableAlias, [
-						"{$this->dbr->tableName( 'page' )}.page_id = $tableAlias.cl_from AND " .
+						"page.page_id = $tableAlias.cl_from AND " .
 							"$tableAlias.cl_to $operatorType" .
 							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 					]
@@ -722,7 +716,7 @@ class Query {
 
 		$this->queryBuilder->where( [
 			"{$this->dbr->addQuotes( $user->getActorId() )} = creation_rev.rev_actor",
-			"creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+			'creation_rev.rev_page = page.page_id',
 			'creation_rev.rev_deleted = 0',
 			'creation_rev.rev_parent_id = 0',
 		] );
@@ -746,7 +740,7 @@ class Query {
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
-			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+			'page.page_id = rev.rev_page',
 			'rev.rev_timestamp >= ' . $this->dbr->addQuotes( $option ),
 		] );
 
@@ -754,7 +748,7 @@ class Query {
 			->select( 'MIN(rev_aux_snc.rev_timestamp)' )
 			->from( 'revision', 'rev_aux_snc' )
 			->where( [
-				"rev_aux_snc.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+				'rev_aux_snc.rev_page = page.page_id',
 				'rev_aux_snc.rev_timestamp >= ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 			] )
 			->caller( __METHOD__ )
@@ -794,8 +788,8 @@ class Query {
 		$where = [];
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			$where = [
-				"{$this->dbr->tableName( 'page' )}.page_namespace = " . NS_FILE,
-				"{$this->dbr->tableName( 'page' )}.page_title = ic.il_to",
+				'page.page_namespace = ' . NS_FILE,
+				'page.page_title = ic.il_to',
 			];
 		}
 
@@ -829,7 +823,7 @@ class Query {
 		] );
 
 		$where = [];
-		$where[] = $this->dbr->tableName( 'page' ) . '.page_id = il.il_from';
+		$where[] = 'page.page_id = il.il_from';
 
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
@@ -860,7 +854,7 @@ class Query {
 			->select( 'rev_actor' )
 			->from( 'revision' )
 			->where( [
-				"rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+				'rev_page = page.page_id',
 				'rev_deleted = 0',
 			] )
 			->orderBy( 'rev_timestamp', SelectQueryBuilder::SORT_DESC )
@@ -882,7 +876,7 @@ class Query {
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
-			"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+			'page.page_id = rev.rev_page',
 			'rev.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 		] );
 
@@ -890,7 +884,7 @@ class Query {
 			->select( 'MAX(rev_aux_bef.rev_timestamp)' )
 			->from( 'revision', 'rev_aux_bef' )
 			->where( [
-				"rev_aux_bef.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+				'rev_aux_bef.rev_page = page.page_id',
 				'rev_aux_bef.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
 			] )
 			->caller( __METHOD__ )
@@ -928,8 +922,8 @@ class Query {
 			}
 
 			$where = [
-				"{$this->dbr->tableName( 'page' )}.page_namespace = lt.lt_namespace",
-				"{$this->dbr->tableName( 'page' )}.page_title = lt.lt_title",
+				'page.page_namespace = lt.lt_namespace',
+				'page.page_title = lt.lt_title',
 				'lt.lt_id = plf.pl_target_id',
 				'pagesrc.page_id = plf.pl_from',
 			];
@@ -988,7 +982,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'page' )}.page_id = pl.pl_from",
+					'page.page_id = pl.pl_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -997,7 +991,7 @@ class Query {
 					->from( 'pagelinks', 'pl' )
 					->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
 					->where( [
-						"pl.pl_from = {$this->dbr->tableName( 'page' )}.page_id",
+						'pl.pl_from = page.page_id',
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1078,7 +1072,7 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where( "{$this->dbr->tableName( 'page' )}.page_id NOT IN ($subquery)" );
+		$this->queryBuilder->where( "page.page_id NOT IN ($subquery)" );
 	}
 
 	/**
@@ -1118,7 +1112,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'page' )}.page_id = el.el_from",
+					'page.page_id = el.el_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -1126,7 +1120,7 @@ class Query {
 					->select( 'el_from' )
 					->from( 'externallinks', 'el' )
 					->where( [
-						"el.el_from = {$this->dbr->tableName( 'page' )}.page_id",
+						'el.el_from = page.page_id',
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1161,7 +1155,7 @@ class Query {
 
 			if ( $index === 0 ) {
 				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'page' )}.page_id = el.el_from",
+					'page.page_id = el.el_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
 			} else {
@@ -1169,7 +1163,7 @@ class Query {
 					->select( 'el_from' )
 					->from( 'externallinks', 'el' )
 					->where( [
-						"el.el_from = {$this->dbr->tableName( 'page' )}.page_id",
+						'el.el_from = page.page_id',
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 					] )
 					->caller( __METHOD__ )
@@ -1187,7 +1181,7 @@ class Query {
 		$subquery = $this->queryBuilder->newSubquery()
 			->select( 'COUNT(rev_aux3.rev_page)' )
 			->from( 'revision', 'rev_aux3' )
-			->where( "rev_aux3.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
+			->where( 'rev_aux3.rev_page = page.page_id' )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -1201,7 +1195,7 @@ class Query {
 		$subquery = $this->queryBuilder->newSubquery()
 			->select( 'COUNT(rev_aux2.rev_page)' )
 			->from( 'revision', 'rev_aux2' )
-			->where( "rev_aux2.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
+			->where( 'rev_aux2.rev_page = page.page_id' )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -1221,7 +1215,7 @@ class Query {
 		$this->queryBuilder->where( [
 			$this->dbr->addQuotes( $user->getActorId() ) . ' = change_rev.rev_actor',
 			'change_rev.rev_deleted = 0',
-			"change_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+			'change_rev.rev_page = page.page_id',
 		] );
 	}
 
@@ -1231,14 +1225,11 @@ class Query {
 	private function _namespace( array $option ): void {
 		if ( count( $option ) > 0 ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->queryBuilder->where( [
-					'lt.lt_namespace' => $option,
-				] );
-			} else {
-				$this->queryBuilder->where( [
-					"{$this->dbr->tableName( 'page' )}.page_namespace" => $option,
-				] );
+				$this->queryBuilder->where( [ 'lt.lt_namespace' => $option ] );
+				return;
 			}
+
+			$this->queryBuilder->where( [ 'page.page_namespace' => $option ] );
 		}
 	}
 
@@ -1255,7 +1246,7 @@ class Query {
 		$this->queryBuilder->where( [
 			$this->dbr->addQuotes( $user->getActorId() ) . ' != no_creation_rev.rev_actor',
 			'no_creation_rev.rev_deleted = 0',
-			"no_creation_rev.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+			'no_creation_rev.rev_page = page.page_id',
 			'no_creation_rev.rev_parent_id = 0',
 		] );
 	}
@@ -1273,7 +1264,7 @@ class Query {
 			->select( 'rev_actor' )
 			->from( 'revision' )
 			->where( [
-				"revision.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+				'revision.rev_page = page.page_id',
 				'revision.rev_deleted = 0',
 			] )
 			->orderBy( 'revision.rev_timestamp', SelectQueryBuilder::SORT_DESC )
@@ -1300,7 +1291,7 @@ class Query {
 			->select( '1' )
 			->from( 'revision' )
 			->where( [
-				"revision.rev_page = {$this->dbr->tableName( 'page' )}.page_id",
+				'revision.rev_page = page.page_id',
 				"revision.rev_actor = $actorID",
 				'revision.rev_deleted = 0',
 			] )
@@ -1317,14 +1308,11 @@ class Query {
 	private function _notnamespace( array $option ): void {
 		if ( count( $option ) > 0 ) {
 			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->queryBuilder->andWhere( $this->dbr->expr(
-					"{$this->dbr->tableName( 'linktarget' )}.lt_namespace", '!=', $option
-				) );
-			} else {
-				$this->queryBuilder->andWhere( $this->dbr->expr(
-					"{$this->dbr->tableName( 'page' )}.page_namespace", '!=', $option
-				) );
+				$this->queryBuilder->andWhere( $this->dbr->expr( 'lt.lt_namespace', '!=', $option ) );
+				return;
 			}
+
+			$this->queryBuilder->andWhere( $this->dbr->expr( 'page.page_namespace', '!=', $option ) );
 		}
 	}
 
@@ -1415,7 +1403,7 @@ class Query {
 		$namespaces = $services->getContentLanguage()->getNamespaces();
 
 		$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
-		$_namespaceIdToText = "CASE {$this->dbr->tableName( 'page' )}.page_namespace";
+		$_namespaceIdToText = 'CASE page.page_namespace';
 
 		foreach ( $namespaces as $id => $name ) {
 			$_namespaceIdToText .= ' WHEN ' . (int)$id . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
@@ -1482,7 +1470,7 @@ class Query {
 							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
 								$this->queryBuilder->leftJoin(
 									'hit_counter', null, [
-										'hit_counter.page_id = ' . $this->dbr->tableName( 'page' ) . '.page_id',
+										'hit_counter.page_id = page.page_id',
 									]
 								);
 							}
@@ -1500,12 +1488,12 @@ class Query {
 						$subquery = $this->queryBuilder->newSubquery()
 							->select( 'MIN(rev_aux.rev_timestamp)' )
 							->from( 'revision', 'rev_aux' )
-							->where( "rev_aux.rev_page = {$this->dbr->tableName( 'page' )}.page_id" )
+							->where( 'rev_aux.rev_page = page.page_id' )
 							->caller( __METHOD__ )
 							->getSQL();
 
 						$this->queryBuilder->where( [
-							"{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page",
+							'page.page_id = rev.rev_page',
 							"rev.rev_timestamp = ($subquery)",
 						] );
 					}
@@ -1515,24 +1503,22 @@ class Query {
 				case 'lastedit':
 					if ( Hooks::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
-						$this->queryBuilder->select( [
-							'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched"
-						] );
+						$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 					} else {
 						$this->addOrderBy( 'rev.rev_timestamp' );
 						$this->queryBuilder->table( 'revision', 'rev' );
 						$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 						if ( !$this->revisionAuxWhereAdded ) {
-							$this->queryBuilder->where( "{$this->dbr->tableName( 'page' )}.page_id = rev.rev_page" );
+							$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
 
 							$subqueryBuilder = $this->queryBuilder->newSubquery()
 								->select( 'MAX(rev_aux.rev_timestamp)' )
 								->from( 'revision', 'rev_aux' )
-								->where( "rev_aux.rev_page = {$this->dbr->tableName( 'page' )}.page_id" );
+								->where( 'rev_aux.rev_page = page.page_id' );
 
 							if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
-								$subqueryBuilder->where( 'rev_aux.rev_minor_edit = 0' );
+								$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
 							}
 
 							$subquery = $subqueryBuilder
@@ -1554,7 +1540,7 @@ class Query {
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
 					$this->queryBuilder->select( [
-						'page_touched' => "{$this->dbr->tableName( 'page' )}.page_touched",
+						'page_touched' => 'page.page_touched',
 					] );
 					break;
 				case 'size':
@@ -1566,8 +1552,7 @@ class Query {
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in
 					// the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					$replaceConcat = "REPLACE(CONCAT({$_namespaceIdToText}, " .
-						$this->dbr->tableName( 'page' ) . ".page_title), '_', ' ')";
+					$replaceConcat = "REPLACE(CONCAT($_namespaceIdToText, page.page_title), '_', ' ')";
 
 					$category = (array)$this->parameters->getParameter( 'category' );
 					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
@@ -1580,7 +1565,7 @@ class Query {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
 							$this->queryBuilder->select( [
-								'sortkey' => "COALESCE(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}"
+								'sortkey' => "COALESCE(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
 						}
 					} else {
@@ -1597,7 +1582,7 @@ class Query {
 					}
 
 					$this->queryBuilder->select( [
-						'sortkey' => "{$this->dbr->tableName( 'page' )}.page_title {$this->getCollateSQL()}",
+						'sortkey' => "page.page_title {$this->getCollateSQL()}",
 					] );
 					break;
 				case 'title':
@@ -1612,10 +1597,9 @@ class Query {
 						// Generate sortkey like for category links.
 						// UTF-8 created problems with non-utf-8 MySQL databases.
 						$this->queryBuilder->select( [
-							'sortkey' => "REPLACE(CONCAT(IF(" . $this->dbr->tableName( 'page' ) .
-								".page_namespace = 0, '', CONCAT(" . $_namespaceIdToText . ", ':')), " .
-								$this->dbr->tableName( 'page' ) . ".page_title), '_', ' ') " .
-								$this->getCollateSQL(),
+							'sortkey' => "REPLACE(CONCAT(IF(" .
+								"page.page_namespace = 0, '', CONCAT(" . $_namespaceIdToText . ", ':')), " .
+								"page.page_title), '_', ' ') " . $this->getCollateSQL(),
 						] );
 					}
 					break;
@@ -1638,12 +1622,12 @@ class Query {
 			switch ( $option ) {
 				case 'only':
 					$this->queryBuilder->where( [
-						$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 1,
+						'page.page_is_redirect' => 1,
 					] );
 					break;
 				case 'exclude':
 					$this->queryBuilder->where( [
-						$this->dbr->tableName( 'page' ) . '.page_is_redirect' => 0,
+						'page.page_is_redirect' => 0,
 					] );
 					break;
 			}
@@ -1701,18 +1685,17 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType" .
+						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) $comparisonType" .
+						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->dbr->tableName( 'page' )}.page_title $comparisonType" .
-							$this->dbr->addQuotes( $title );
+						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				}
 
@@ -1732,18 +1715,17 @@ class Query {
 			foreach ( $titles as $title ) {
 				if ( $this->parameters->getParameter( 'openreferences' ) ) {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType" .
+						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
 						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				} else {
 					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST({$this->dbr->tableName( 'page' )}.page_title AS CHAR)) $comparisonType" .
+						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
 							strtolower( $this->dbr->addQuotes( $title ) );
 					} else {
-						$_or = "{$this->dbr->tableName( 'page' )}.page_title $comparisonType" .
-							$this->dbr->addQuotes( $title );
+						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
 					}
 				}
 
@@ -1751,8 +1733,7 @@ class Query {
 			}
 		}
 
-		$where = 'NOT ' . $this->dbr->makeList( $ors, IDatabase::LIST_OR );
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->where( 'NOT ' . $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 	}
 
 	/**
@@ -1772,12 +1753,11 @@ class Query {
 
 		$option = $this->dbr->addQuotes( $option );
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$where = "(lt_title $operator $option)";
-		} else {
-			$where = "({$this->dbr->tableName( 'page' )}.page_title $operator $option)";
+			$this->queryBuilder->where( "(lt_title $operator $option)" );
+			return;
 		}
 
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->where( "(page.page_title $operator $option)" );
 	}
 
 	/**
@@ -1797,12 +1777,11 @@ class Query {
 
 		$option = $this->dbr->addQuotes( $option );
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$where = "(lt_title $operator $option)";
-		} else {
-			$where = "({$this->dbr->tableName( 'page' )}.page_title $operator $option)";
+			$this->queryBuilder->where( "(lt_title $operator $option)" );
+			return;
 		}
 
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->where( "(page.page_title $operator $option)" );
 	}
 
 	/**
@@ -1828,8 +1807,8 @@ class Query {
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
 			$this->queryBuilder->select( [
-				'tpl_sel_title' => "{$this->dbr->tableName( 'page' )}.page_title",
-				'tpl_sel_ns' => "{$this->dbr->tableName( 'page' )}.page_namespace",
+				'tpl_sel_title' => 'page.page_title',
+				'tpl_sel_ns' => 'page.page_namespace',
 			] );
 
 			$this->queryBuilder->join( 'linktarget', 'lt', [
@@ -1861,7 +1840,10 @@ class Query {
 			'tl' => 'templatelinks',
 		] );
 
-		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
+		$where = [
+			'page.page_id = tl.tl_from',
+			'lt.lt_id = tl.tl_target_id',
+		];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
@@ -1882,7 +1864,7 @@ class Query {
 			}
 		}
 
-		$where .= $this->dbr->makeList( $ors, IDatabase::LIST_OR );
+		$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		$this->queryBuilder->where( $where );
 	}
 
@@ -1920,9 +1902,7 @@ class Query {
 		$subquery->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 		$subquery->caller( __METHOD__ );
 
-		$this->queryBuilder->where(
-			"{$this->dbr->tableName( 'page' )}.page_id NOT IN (" . $subquery->getSQL() . ')'
-		);
+		$this->queryBuilder->where( "page.page_id NOT IN ({$subquery->getSQL()})" );
 	}
 
 	private function isPageselFormatUsed(): bool {
