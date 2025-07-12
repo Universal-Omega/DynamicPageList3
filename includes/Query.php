@@ -416,14 +416,41 @@ class Query {
 	 */
 	private function _addcategories( bool $option ): void {
 		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
-		$this->queryBuilder->select( [
-			'cats' => $this->dbr->getType() === 'mysql' ?
-				"GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')" :
-				"STRING_AGG(DISTINCT cl_gc.cl_to, ' | ' ORDER BY cl_gc.cl_to ASC)",
-		] );
-
 		$this->queryBuilder->leftJoin( 'cl_gc', null, 'page_id = cl_gc.cl_from' );
 		$this->queryBuilder->groupBy( 'page.page_id' );
+
+		$dbType = $this->dbr->getType();
+		if ( $dbType === 'mysql' ) {
+			$this->queryBuilder->select( [
+				'cats' => "GROUP_CONCAT(DISTINCT cl_gc.cl_to ORDER BY cl_gc.cl_to ASC SEPARATOR ' | ')",
+			] );
+			return;
+		}
+
+		if ( $dbType === 'postgres' ) {
+			$this->queryBuilder->select( [
+				'cats' => "STRING_AGG(cl_gc.cl_to, ' | ' ORDER BY cl_gc.cl_to ASC)",
+			] );
+			return;
+		}
+
+		if ( $dbType === 'sqlite' ) {
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'cl_to' )
+				->from( 'categorylinks' )
+				->where( 'cl_from = page.page_id' )
+				->distinct()
+				->orderBy( 'cl_to', SelectQueryBuilder::SORT_ASC )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->select( [
+				'cats' => "(SELECT GROUP_CONCAT(cl_to, ' | ') FROM ($subquery))",
+			] );
+			return;
+		}
+
+		throw new LogicException( 'You are using an unsupported database type for addcategories.' );
 	}
 
 	/**
