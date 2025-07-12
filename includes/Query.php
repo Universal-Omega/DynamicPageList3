@@ -1842,6 +1842,7 @@ class Query {
 				'tpl_sel_ns' => 'page.page_namespace',
 			] );
 
+			$this->queryBuilder->table( 'linktarget', 'lt_usedby' );
 			$this->queryBuilder->join( 'linktarget', 'lt_usedby', [
 				"page_title = lt_usedby.$titleField",
 				"page_namespace = lt_usedby.$nsField",
