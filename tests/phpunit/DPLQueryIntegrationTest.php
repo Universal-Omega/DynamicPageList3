@@ -85,9 +85,9 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1', 'DPLTestArticleOtherCategoryWithInfobox' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticleOtherCategoryWithInfobox' ],
 			$this->getDPLQueryResults( [
-				'uses' => 'Template:DPLInfobox'
+				'uses' => 'Template:DPLInfobox',
 			] ),
 			true
 		);
@@ -117,7 +117,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesNotInCategoryUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
 				'notcategory' => 'DPLTestOtherCategory',
 				'uses' => 'Template:DPLInfobox'
@@ -516,6 +516,25 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		);
 	}
 
+	public function testFindPagesLinkedToPageOrderedByPagesel(): void {
+		$results = $this->getDPLQueryResults( [
+			// NS_MAIN
+			'namespace' => '',
+			'linksto' => 'DPLTestArticle 1',
+			'ordermethod' => 'pagesel',
+		] );
+
+		$this->assertArrayEquals(
+			[
+				'DPLTestArticle 2',
+				'DPLTestArticle 3',
+				'DPLTestOpenReferences',
+			],
+			$results,
+			true
+		);
+	}
+
 	public function testFindPagesNotLinkedFromPage(): void {
 		$results = $this->getDPLQueryResults( [
 			// NS_MAIN
@@ -553,6 +572,31 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 				'RedLink',
 			],
 			$results
+		);
+	}
+
+	public function testFindPagesLinkingToAndFromPage(): void {
+		$this->assertArrayEquals(
+			[ 'DPLTestArticle 2', 'DPLTestArticle 3' ],
+			$this->getDPLQueryResults( [
+				'linksfrom' => 'DPLTestOpenReferences',
+				'linksto' => 'DPLTestArticle 1',
+			] ),
+			true
+		);
+	}
+
+	public function testFindPagesLinkingToAndFromPageWithUses(): void {
+		$this->assertArrayEquals(
+			// Only this page links both from DPLTestOpenReferences and to DPLTestArticle 1
+			// while also using Template:DPLInfobox
+			[ 'DPLTestArticle 2' ],
+			$this->getDPLQueryResults( [
+				'linksfrom' => 'DPLTestOpenReferences',
+				'linksto' => 'DPLTestArticle 1',
+				'uses' => 'Template:DPLInfobox',
+			] ),
+			true
 		);
 	}
 }
