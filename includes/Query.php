@@ -1393,7 +1393,8 @@ class Query {
 				}
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			$escaped = htmlspecialchars( $option );
+			throw new LogicException( "No default order collation found matching $escaped." );
 		}
 
 		if ( $dbType === 'postgres' ) {
@@ -1410,7 +1411,8 @@ class Query {
 				return;
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			$escaped = htmlspecialchars( $option );
+			throw new LogicException( "No default order collation found matching $escaped." );
 		}
 
 		// Not supported on SQLite or mystery engines
