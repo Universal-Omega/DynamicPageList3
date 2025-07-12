@@ -84,7 +84,7 @@ class Query {
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->queryBuilder->tables( [ 'page', 'linktarget' ] );
+			$this->queryBuilder->rawTables( [ 'page', 'linktarget' ] );
 			$this->queryBuilder->select( [
 				'page_namespace' => 'page.page_namespace',
 				'page_id' => 'page.page_id',
@@ -678,7 +678,7 @@ class Query {
 							$this->queryBuilder->table( $tableName, $tableAlias );
 							$this->queryBuilder->join(
 								$tableName, $tableAlias, [
-									"page_id = $tableAlias.cl_from AND " .
+									"page.page_id = $tableAlias.cl_from AND " .
 										"$tableAlias.cl_to $comparisonType " .
 										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 								]
