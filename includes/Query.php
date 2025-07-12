@@ -84,7 +84,7 @@ class Query {
 
 		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
 			// Add things that are always part of the query.
-			$this->queryBuilder->table( 'linktarget' );
+			$this->queryBuilder->table( 'page' );
 			$this->queryBuilder->select( [
 				'page_namespace' => 'page.page_namespace',
 				'page_id' => 'page.page_id',
