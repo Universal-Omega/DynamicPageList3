@@ -934,7 +934,7 @@ class Query {
 			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		} else {
 			$this->queryBuilder->tables( [
-				'lt' => 'linktarget',
+				'ltf' => 'linktarget',
 				'pagesrc' => 'page',
 				'plf' => 'pagelinks',
 			] );
@@ -947,9 +947,9 @@ class Query {
 			}
 
 			$where = [
-				'page.page_namespace = lt.lt_namespace',
-				'page.page_title = lt.lt_title',
-				'lt.lt_id = plf.pl_target_id',
+				'page.page_namespace = ltf.lt_namespace',
+				'page.page_title = ltf.lt_title',
+				'ltf.lt_id = plf.pl_target_id',
 				'pagesrc.page_id = plf.pl_from',
 			];
 
@@ -1560,15 +1560,24 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
+					$alias = match ( true ) {
+						count( $this->parameters->getParameter( 'linksfrom' ) ?? [] ) > 0 => 'ltf',
+						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
+						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
+						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
+						default => throw new LogicException(
+							'The ordermethod \'pagesel\' is only supported when using at least one of the ' .
+							'following parameters: linksfrom, linksto, usedby, or uses.'
+						),
+					};
+
 					$this->queryBuilder->select( [
-						'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
+						'sortkey' => "CONCAT($alias.lt_namespace, $alias.lt_title) {$this->getCollateSQL()}",
 					] );
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
-					$this->queryBuilder->select( [
-						'page_touched' => 'page.page_touched',
-					] );
+					$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 					break;
 				case 'size':
 					$this->addOrderBy( 'page_len' );
@@ -1825,11 +1834,6 @@ class Query {
 
 			$where = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		} else {
-			$this->queryBuilder->tables( [
-				'lt' => 'linktarget',
-				'tpl' => 'templatelinks',
-			] );
-
 			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
@@ -1838,12 +1842,13 @@ class Query {
 				'tpl_sel_ns' => 'page.page_namespace',
 			] );
 
-			$this->queryBuilder->join( 'linktarget', 'lt', [
-				"page_title = $titleField",
-				"page_namespace = $nsField",
+			$this->queryBuilder->table( 'linktarget', 'lt_usedby' );
+			$this->queryBuilder->join( 'linktarget', 'lt_usedby', [
+				"page_title = lt_usedby.$titleField",
+				"page_namespace = lt_usedby.$nsField",
 			] );
 
-			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_id = tl_target_id' );
+			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_usedby.lt_id = tl_target_id' );
 
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -1863,13 +1868,13 @@ class Query {
 	 */
 	private function _uses( array $option ): void {
 		$this->queryBuilder->tables( [
-			'lt' => 'linktarget',
+			'lt_uses' => 'linktarget',
 			'tl' => 'templatelinks',
 		] );
 
 		$where = [
 			'page.page_id = tl.tl_from',
-			'lt.lt_id = tl.tl_target_id',
+			'lt_uses.lt_id = tl.tl_target_id',
 		];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -1878,13 +1883,13 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = '(lt_uses.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS CHAR)) = LOWER(' .
+					$_or .= ' AND LOWER(CAST(lt_uses.' . $titleField . ' AS CHAR)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= ' AND lt.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$_or .= ' AND lt_uses.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
