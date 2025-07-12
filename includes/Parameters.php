@@ -700,7 +700,16 @@ class Parameters extends ParametersData {
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
+			if ( strtolower( $parameter ) === 'main' || strtolower( $parameter ) === '(main)' ) {
+				$parameter = '';
+			}
+
 			$namespaceId = $contLang->getNsIndex( $parameter );
+			if ( $namespaceID === false && is_numeric( $parameter ) &&
+			    in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+			) {
+				$namespaceID = (int)$parameter;
+			}
 
 			if ( $namespaceId === false || (
 				is_array( Config::getSetting( 'allowedNamespaces' ) ) &&
@@ -733,7 +742,16 @@ class Parameters extends ParametersData {
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
+			if ( strtolower( $parameter ) === 'main' || strtolower( $parameter ) === '(main)' ) {
+				$parameter = '';
+			}
+
 			$namespaceId = $contLang->getNsIndex( $parameter );
+			if ( $namespaceID === false && is_numeric( $parameter ) &&
+			    in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+			) {
+				$namespaceID = (int)$parameter;
+			}
 
 			if ( $namespaceId === false ) {
 				// Let the user know this namespace is not allowed or does not exist.
