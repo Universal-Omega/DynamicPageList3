@@ -1566,7 +1566,7 @@ class Query {
 						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
 						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
 						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
-						default => 'linktarget',
+						default => throw new LogicException( 'pagesel ordermethod is only supported by linksfrom, linksto, usedby, and uses parameters' ),
 					};
 
 					$this->queryBuilder->select( [
