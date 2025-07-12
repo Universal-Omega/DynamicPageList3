@@ -899,8 +899,10 @@ class Parse {
 
 		// The 'openreferences' parameter is incompatible with many other options.
 		if (
-			$this->parameters->isOpenReferencesConflict() &&
-			$this->parameters->getParameter( 'openreferences' ) === true
+			$this->parameters->isOpenReferencesConflict() && (
+			$this->parameters->getParameter( 'openreferences' ) === true ||
+				$this->parameters->getParameter( 'openreferences' ) === 'missing'
+			)
 		) {
 			$this->logger->addMessage( Hooks::FATAL_OPENREFERENCES );
 			return false;
