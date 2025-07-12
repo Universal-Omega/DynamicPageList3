@@ -937,7 +937,7 @@ class Query {
 			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
 		} else {
 			$this->queryBuilder->tables( [
-				'lt' => 'linktarget',
+				'lt_linksfrom' => 'linktarget',
 				'pagesrc' => 'page',
 				'plf' => 'pagelinks',
 			] );
@@ -950,9 +950,9 @@ class Query {
 			}
 
 			$where = [
-				'page.page_namespace = lt.lt_namespace',
-				'page.page_title = lt.lt_title',
-				'lt.lt_id = plf.pl_target_id',
+				'page.page_namespace = lt_linksfrom.lt_namespace',
+				'page.page_title = lt_linksfrom.lt_title',
+				'lt_linksfrom.lt_id = plf.pl_target_id',
 				'pagesrc.page_id = plf.pl_from',
 			];
 
@@ -978,18 +978,18 @@ class Query {
 		}
 
 		$this->queryBuilder->tables( [
-			'lt' => 'linktarget',
+			'lt_linksto' => 'linktarget',
 			'pl' => 'pagelinks',
 		] );
 
 		if ( $this->isPageselFormatUsed() ) {
 			$this->queryBuilder->select( [
-				'sel_title' => 'lt.lt_title',
-				'sel_ns' => 'lt.lt_namespace',
+				'sel_title' => 'lt_linksto.lt_title',
+				'sel_ns' => 'lt_linksto.lt_namespace',
 			] );
 		}
 
-		$this->queryBuilder->where( 'pl.pl_target_id = lt.lt_id' );
+		$this->queryBuilder->where( 'pl.pl_target_id = lt_linksto.lt_id' );
 
 		foreach ( $option as $index => $linkGroup ) {
 			$ors = [];
@@ -1001,10 +1001,10 @@ class Query {
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
+					$ors[] = "(lt_linksto.lt_namespace = $ns AND LOWER(CAST(lt_linksto.lt_title AS CHAR)) " .
 						"$operator LOWER($quotedTitle))";
 				} else {
-					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
+					$ors[] = "(lt_linksto.lt_namespace = $ns AND lt_linksto.lt_title $operator $quotedTitle)";
 				}
 			}
 
@@ -1017,7 +1017,7 @@ class Query {
 				$subquery = $this->queryBuilder->newSubquery()
 					->select( 'pl_from' )
 					->from( 'pagelinks', 'pl' )
-					->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
+					->join( 'linktarget', 'lt_linksto', 'pl.pl_target_id = lt_linksto.lt_id' )
 					->where( [
 						'pl.pl_from = page.page_id',
 						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
@@ -1563,8 +1563,15 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
+					$alias = match ( true ) {
+						count( $this->parameters->getParameter( 'linksfrom' ) ?? [] ) > 0 => 'lt_linksfrom',
+						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt_linksto',
+						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
+						default => 'lt',
+					};
+
 					$this->queryBuilder->select( [
-						'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL(),
+						'sortkey' => "CONCAT($alias.lt_namespace, $alias.lt_title) {$this->getCollateSQL()}",
 					] );
 					break;
 				case 'pagetouched':
@@ -1842,11 +1849,11 @@ class Query {
 			] );
 
 			$this->queryBuilder->join( 'linktarget', 'lt', [
-				"page_title = $titleField",
-				"page_namespace = $nsField",
+				"page_title = lt.$titleField",
+				"page_namespace = lt.$nsField",
 			] );
 
-			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_id = tl_target_id' );
+			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt.lt_id = tl_target_id' );
 
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -1866,13 +1873,13 @@ class Query {
 	 */
 	private function _uses( array $option ): void {
 		$this->queryBuilder->tables( [
-			'lt' => 'linktarget',
+			'lt_uses' => 'linktarget',
 			'tl' => 'templatelinks',
 		] );
 
 		$where = [
 			'page.page_id = tl.tl_from',
-			'lt.lt_id = tl.tl_target_id',
+			'lt_uses.lt_id = tl.tl_target_id',
 		];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -1881,13 +1888,13 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = '(lt_uses.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS CHAR)) = LOWER(' .
+					$_or .= ' AND LOWER(CAST(lt_uses.' . $titleField . ' AS CHAR)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= ' AND lt.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$_or .= ' AND lt_uses.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
