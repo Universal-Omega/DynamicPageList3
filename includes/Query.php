@@ -180,6 +180,8 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
+			var_dump( $query )
+
 			if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
