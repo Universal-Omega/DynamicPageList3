@@ -705,6 +705,7 @@ class Parameters extends ParametersData {
 			}
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
+			var_dump( $parameter );
 			if ( $namespaceID === false && is_numeric( $parameter ) &&
 				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
