@@ -814,7 +814,7 @@ class Query {
 	 */
 	private function _imageused( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page_title' );
+			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		$this->queryBuilder->table( 'imagelinks', 'il' );
@@ -1087,7 +1087,7 @@ class Query {
 	 */
 	private function _linkstoexternaldomain( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page_title' );
+			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		if ( count( $option ) === 0 ) {
@@ -1136,7 +1136,7 @@ class Query {
 	 */
 	private function _linkstoexternalpath( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page_title' );
+			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		if ( count( $option ) === 0 ) {
