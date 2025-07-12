@@ -1566,7 +1566,10 @@ class Query {
 						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
 						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
 						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
-						default => throw new LogicException( 'pagesel ordermethod is only supported by linksfrom, linksto, usedby, and uses parameters' ),
+						default => throw new LogicException(
+							'The ordermethod \'pagesel\' is only supported when using at least one of the ' .
+							'following parameters: linksfrom, linksto, usedby, or uses.'
+						),
 					};
 
 					$this->queryBuilder->select( [
@@ -1575,9 +1578,7 @@ class Query {
 					break;
 				case 'pagetouched':
 					$this->addOrderBy( 'page_touched' );
-					$this->queryBuilder->select( [
-						'page_touched' => 'page.page_touched',
-					] );
+					$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 					break;
 				case 'size':
 					$this->addOrderBy( 'page_len' );
