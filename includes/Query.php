@@ -117,7 +117,7 @@ class Query {
 			} else {
 				$this->queryBuilder->table( 'pagelinks', 'pl' );
 				$this->queryBuilder->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
-				$this->queryBuilder->leftJoin( 'page', 'page', [
+				$this->queryBuilder->leftJoin( 'page', null, [
 					'lt.lt_namespace = page.page_namespace',
 					'lt.lt_title = page.page_title',
 				] );
