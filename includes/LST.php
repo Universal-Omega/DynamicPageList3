@@ -25,9 +25,9 @@
  * -- Algorithmix
  */
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\Parser;

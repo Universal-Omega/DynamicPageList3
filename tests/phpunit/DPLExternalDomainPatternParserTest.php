@@ -1,13 +1,13 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Tests;
+namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
-use MediaWiki\Extension\DynamicPageList3\ExternalDomainPatternParser;
+use MediaWiki\Extension\DynamicPageList4\ExternalDomainPatternParser;
 use MediaWikiIntegrationTestCase;
 
 /**
- * @group DynamicPageList3
- * @covers \MediaWiki\Extension\DynamicPageList3\ExternalDomainPatternParser
+ * @group DynamicPageList4
+ * @covers \MediaWiki\Extension\DynamicPageList4\ExternalDomainPatternParser
  */
 class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 

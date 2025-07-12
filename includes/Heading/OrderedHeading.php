@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
 class OrderedHeading extends UnorderedHeading {
 	/**

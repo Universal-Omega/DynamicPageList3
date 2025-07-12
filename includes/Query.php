@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 use DateInterval;
 use DateTime;
@@ -57,7 +57,7 @@ class Query {
 	public function __construct( Parameters $parameters ) {
 		$this->parameters = $parameters;
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl3' );
+			->getReplicaDatabase( false, 'dpl4' );
 
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
 		$this->mainConfig = MediaWikiServices::getInstance()->getMainConfig();
@@ -224,8 +224,8 @@ class Query {
 			return $res;
 		};
 
-		$poolCounterKey = 'nowait:dpl3-query:' . WikiMap::getCurrentWikiId();
-		$worker = new PoolCounterWorkViaCallback( 'DPL3', $poolCounterKey, [
+		$poolCounterKey = 'nowait:dpl4-query:' . WikiMap::getCurrentWikiId();
+		$worker = new PoolCounterWorkViaCallback( 'DPL4', $poolCounterKey, [
 			'doWork' => $doQuery,
 		] );
 
@@ -236,7 +236,7 @@ class Query {
 		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
 
 		return $cache->getWithSetCallback(
-			$cache->makeKey( 'DPL3Query', hash( 'sha256', $query ) ),
+			$cache->makeKey( 'DPL4Query', hash( 'sha256', $query ) ),
 			$queryCacheTime,
 			function ( mixed $oldVal, int &$ttl, array &$setOpts ) use ( $worker ): array|false {
 				$setOpts += Database::getCacheSetOptions( $this->dbr );
@@ -312,7 +312,7 @@ class Query {
 	 */
 	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl3' );
+			->getReplicaDatabase( false, 'dpl4' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.

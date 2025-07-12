@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
-use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
-use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
+use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateTemplate;
+use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateView;
 use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\PPFrame;
@@ -83,7 +83,7 @@ class Hooks {
 		static $version = null;
 
 		if ( $version === null ) {
-			$version = ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
+			$version = ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList4']['version'];
 		}
 
 		return $version;
