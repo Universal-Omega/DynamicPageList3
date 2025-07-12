@@ -706,7 +706,7 @@ class Parameters extends ParametersData {
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
 			if ( $namespaceID === false && is_numeric( $parameter ) &&
-			    in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
 				$namespaceID = (int)$parameter;
 			}
@@ -748,7 +748,7 @@ class Parameters extends ParametersData {
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
 			if ( $namespaceID === false && is_numeric( $parameter ) &&
-			    in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
 				$namespaceID = (int)$parameter;
 			}
