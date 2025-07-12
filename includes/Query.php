@@ -415,8 +415,7 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addcategories( bool $option ): void {
-		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
-		$this->queryBuilder->leftJoin( 'cl_gc', null, 'page_id = cl_gc.cl_from' );
+		$this->queryBuilder->leftJoin( 'categorylinks', 'cl_gc', 'page_id = cl_gc.cl_from' );
 		$this->queryBuilder->groupBy( 'page.page_id' );
 
 		$dbType = $this->dbr->getType();
