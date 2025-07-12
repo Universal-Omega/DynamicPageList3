@@ -678,7 +678,7 @@ class Query {
 							$this->queryBuilder->table( $tableName, $tableAlias );
 							$this->queryBuilder->join(
 								$tableName, $tableAlias, [
-									"page.page_id = $tableAlias.cl_from AND " .
+									"page_id = $tableAlias.cl_from AND " .
 										"$tableAlias.cl_to $comparisonType " .
 										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
 								]
