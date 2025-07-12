@@ -320,15 +320,15 @@ class Query {
 		}
 
 		$categories = $dbr->newSelectQueryBuilder()
-			->tables( [ 'categorylinks', 'page' ] )
-			->field( 'page_title' )
+			->select( 'page_title' )
+			->from( 'page' )
+			->join( 'categorylinks', 'cl', 'page_id = cl.cl_from' )
 			->where( [
 				'page_namespace' => NS_CATEGORY,
-				'cl_to' => str_replace( ' ', '_', $categoryName ),
+				'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
 			] )
 			->caller( __METHOD__ )
 			->distinct()
-			->join( 'categorylinks', null, 'page_id = cl_from' )
 			->fetchFieldValues();
 
 		foreach ( $categories as $category ) {
@@ -337,8 +337,7 @@ class Query {
 			}
 		}
 
-		$categories = array_unique( $categories );
-		return $categories;
+		return array_unique( $categories );
 	}
 
 	/**
