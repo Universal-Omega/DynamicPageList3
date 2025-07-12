@@ -117,7 +117,7 @@ class Query {
 			} else {
 				$this->queryBuilder->table( 'pagelinks', 'pl' );
 				$this->queryBuilder->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
-				$this->queryBuilder->leftJoin( 'page', 'page', [
+				$this->queryBuilder->leftJoin( 'page', null, [
 					'lt.lt_namespace = page.page_namespace',
 					'lt.lt_title = page.page_title',
 				] );
@@ -415,7 +415,7 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addcategories( bool $option ): void {
-		$this->queryBuilder->leftJoin( 'categorylinks', 'cl_gc', 'page.page_id = cl_gc.cl_from' );
+		$this->queryBuilder->leftJoin( 'categorylinks', 'cl_gc', 'page_id = cl_gc.cl_from' );
 		$this->queryBuilder->groupBy( 'page.page_id' );
 
 		$dbType = $this->dbr->getType();
