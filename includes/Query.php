@@ -1857,7 +1857,7 @@ class Query {
 					$_or .= ' AND LOWER(CAST(lt.' . $titleField . ' AS CHAR)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$_or .= ' AND lt.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
