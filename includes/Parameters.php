@@ -705,11 +705,10 @@ class Parameters extends ParametersData {
 			}
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
-			var_dump( $parameter );
-			if ( $namespaceID === false && is_numeric( $parameter ) &&
+			if ( $namespaceId === false && is_numeric( $parameter ) &&
 				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
-				$namespaceID = (int)$parameter;
+				$namespaceId = (int)$parameter;
 			}
 
 			if ( $namespaceId === false || (
@@ -748,10 +747,10 @@ class Parameters extends ParametersData {
 			}
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
-			if ( $namespaceID === false && is_numeric( $parameter ) &&
+			if ( $namespaceId === false && is_numeric( $parameter ) &&
 				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
-				$namespaceID = (int)$parameter;
+				$namespaceId = (int)$parameter;
 			}
 
 			if ( $namespaceId === false ) {
