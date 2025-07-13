@@ -402,9 +402,7 @@ class Query {
 			return "$fieldExpr $operator $quotedValue";
 		}
 
-		// Default fallback
-		$fieldExpr = "LOWER($field)";
-		return "$fieldExpr $operator $quotedValue";
+		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
 	}
 
 	/**
