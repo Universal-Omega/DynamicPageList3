@@ -396,6 +396,8 @@ class Query {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
 			$value = mb_strtolower( $value, 'UTF-8' );
+		} else {
+			$value = $value->toSql( $this->dbr );
 		}
 
 		if ( $dbType === 'mysql' ) {
@@ -403,7 +405,7 @@ class Query {
 			if ( $operator === 'REGEXP' ) {
 				return $this->buildRegexpExpression( $fieldExpr, $value );
 			}
-			return $this->dbr->expr( $fieldExpr, $operator, $value );
+			return "$fieldExpr $operator $value";
 		}
 
 		if ( $dbType === 'postgres' ) {
