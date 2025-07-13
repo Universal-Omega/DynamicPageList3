@@ -383,24 +383,28 @@ class Query {
 		return 0;
 	}
 
-	private function caseInsensitiveComparison( string $field, string $value, string $operator = '=' ): string {
+	private function caseInsensitiveComparison( string $field, string $value, string $operator ): string {
 		$dbType = $this->dbr->getType();
-		$quotedValue = $this->dbr->addQuotes( $value );
+		$quotedValue = $this->dbr->addQuotes( mb_strtolower( $value, 'UTF-8' ) );
 
 		if ( $dbType === 'mysql' ) {
-			$fieldExpr = "$field COLLATE utf8mb4_general_ci";
+			$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		if ( $dbType === 'postgres' ) {
+			$fieldExpr = "LOWER($field::TEXT)";
 			return "$fieldExpr $operator $quotedValue";
 		}
 
 		if ( $dbType === 'sqlite' ) {
-			$fieldExpr = "$field COLLATE NOCASE";
+			$fieldExpr = "LOWER($field)";
 			return "$fieldExpr $operator $quotedValue";
 		}
 
-		// Default and PostgreSQL fallback
+		// Default fallback
 		$fieldExpr = "LOWER($field)";
-		$valueExpr = "LOWER($quotedValue)";
-		return "$fieldExpr $operator $valueExpr";
+		return "$fieldExpr $operator $quotedValue";
 	}
 
 	/**
@@ -838,22 +842,12 @@ class Query {
 			];
 		}
 
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
-
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$articleId = (string)$link->getArticleID();
-
-				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(ic.il_from AS CHAR CHARACTER SET utf8mb4))";
-					$idExpr = $this->dbr->addQuotes( mb_strtolower( $articleId, 'UTF-8' ) );
-				} else {
-					$fieldExpr = 'ic.il_from';
-					$idExpr = $this->dbr->addQuotes( $articleId );
-				}
-
-				$ors[] = "$fieldExpr = $idExpr";
+				$articleId = (int)$link->getArticleID();
+				$comparison = "ic.il_from = $articleId";
+				$ors[] = $comparison;
 			}
 		}
 
@@ -881,16 +875,16 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$dbkey = $link->getDBkey();
+				$fieldExpr = 'il.il_to';
 
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(il.il_to AS CHAR CHARACTER SET utf8mb4))";
-					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$fieldExpr = 'il.il_to';
 					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
 
-				$ors[] = "$fieldExpr = $dbkeyExpr";
+				$ors[] = $comparison;
 			}
 		}
 
@@ -1029,15 +1023,16 @@ class Query {
 				$title = $link->getDBkey();
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
+				$fieldExpr = 'lt.lt_title';
+
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(lt.lt_title AS CHAR CHARACTER SET utf8mb4))";
-					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
 				} else {
-					$fieldExpr = 'lt.lt_title';
 					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$fieldExpr $operator $titleExpr";
 				}
 
-				$ors[] = "(lt.lt_namespace = $ns AND $fieldExpr $operator $titleExpr)";
+				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
 			}
 
 			if ( $index === 0 ) {
@@ -1116,15 +1111,16 @@ class Query {
 				$title = $link->getDBkey();
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
+				$fieldExpr = 'lt.lt_title';
+
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(lt.lt_title AS CHAR CHARACTER SET utf8mb4))";
-					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
 				} else {
-					$fieldExpr = 'lt.lt_title';
 					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$fieldExpr $operator $titleExpr";
 				}
 
-				$ors[] = "(lt.lt_namespace = $ns AND $fieldExpr $operator $titleExpr)";
+				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
 			}
 		}
 
@@ -1789,14 +1785,13 @@ class Query {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
-					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
 				} else {
-					$fieldExpr = $field;
 					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$field $comparisonType $titleExpr";
 				}
 
-				$ors[] = "$fieldExpr $comparisonType $titleExpr";
+				$ors[] = $comparison;
 			}
 		}
 
@@ -1918,16 +1913,16 @@ class Query {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$dbkey = $link->getDBkey();
+				$fieldExpr = "lt_uses.$titleField";
 
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(lt_uses.$titleField AS CHAR CHARACTER SET utf8mb4))";
-					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$fieldExpr = "lt_uses.$titleField";
 					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
 
-				$ors[] = "(lt_uses.$nsField = $ns AND $fieldExpr = $dbkeyExpr)";
+				$ors[] = "(lt_uses.$nsField = $ns AND $comparison)";
 			}
 		}
 
@@ -1958,16 +1953,16 @@ class Query {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$dbkey = $link->getDBkey();
+				$fieldExpr = "linktarget.$titleField";
 
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST(linktarget.$titleField AS CHAR CHARACTER SET utf8mb4))";
-					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$fieldExpr = "linktarget.$titleField";
 					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
 
-				$ors[] = "(linktarget.$nsField = $ns AND $fieldExpr = $dbkeyExpr)";
+				$ors[] = "(linktarget.$nsField = $ns AND $comparison)";
 			}
 		}
 
