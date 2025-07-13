@@ -385,7 +385,11 @@ class Query {
 		throw new LogicException( "Invalid timestamp: $timestamp" );
 	}
 
-	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): Expression|string {
+	private function caseInsensitiveComparison(
+		string $field,
+		string $operator,
+		string|LikeValue $value
+	): Expression|string {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
 			$value = mb_strtolower( $value, 'UTF-8' );
