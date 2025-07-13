@@ -440,6 +440,9 @@ class Query {
 		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
 	}
 
+	/**
+	 * @return non-empty-array<string|LikeMatch>
+	 */
 	private function splitLikePattern( string $pattern ): array {
 		$segments = preg_split( '/(%)/', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 		$parts = array_map(
