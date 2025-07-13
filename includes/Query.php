@@ -193,7 +193,7 @@ class Query {
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
 				'dpl_query_error', Hooks::getVersion(), $errorMessage
-			)->escaped() );
+			)->text() );
 		}
 
 		// Partially taken from intersection
@@ -381,7 +381,6 @@ class Query {
 			return $timestamp;
 		}
 
-		$timestamp = htmlspecialchars( $timestamp );
 		throw new LogicException( "Invalid timestamp: $timestamp" );
 	}
 
@@ -644,9 +643,7 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where(
-			"page.page_title IN ($subquery)"
-		);
+		$this->queryBuilder->where( "page.page_title IN ($subquery)" );
 	}
 
 	/**
@@ -1440,8 +1437,7 @@ class Query {
 				}
 			}
 
-			$escaped = htmlspecialchars( $option );
-			throw new LogicException( "No default order collation found matching $escaped." );
+			throw new LogicException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'postgres' ) {
@@ -1458,8 +1454,7 @@ class Query {
 				return;
 			}
 
-			$escaped = htmlspecialchars( $option );
-			throw new LogicException( "No default order collation found matching $escaped." );
+			throw new LogicException( "No default order collation found matching $option." );
 		}
 
 		// Not supported on SQLite or mystery engines
