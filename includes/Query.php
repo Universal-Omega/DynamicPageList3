@@ -394,7 +394,7 @@ class Query {
 	): string {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
-			$value = mb_strtolower( $value, 'UTF-8' );
+			$value = $this->dbr->addQuotes( mb_strtolower( $value, 'UTF-8' ) );
 		} else {
 			$value = $value->toSql( $this->dbr );
 		}
