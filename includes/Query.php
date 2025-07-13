@@ -1717,25 +1717,21 @@ class Query {
 	 */
 	private function _title( array $option ): void {
 		$ors = [];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
-				if ( $this->parameters->getParameter( 'openreferences' ) ) {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+				$field = $openReferences ? 'lt_title' : 'page.page_title';
+
+				if ( $ignoreCase ) {
+					$field = "LOWER(CAST($field AS CHAR))";
+					$titleValue = "LOWER({$this->dbr->addQuotes( $title )})";
 				} else {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+					$titleValue = $this->dbr->addQuotes( $title );
 				}
 
-				$ors[] = $_or;
+				$ors[] = "$field $comparisonType $titleValue";
 			}
 		}
 
