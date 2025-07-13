@@ -383,6 +383,28 @@ class Query {
 		return 0;
 	}
 
+	private function caseInsensitiveComparison( string $field, string $value, string $operator ): string {
+		$dbType = $this->dbr->getType();
+		$quotedValue = $this->dbr->addQuotes( mb_strtolower( $value, 'UTF-8' ) );
+
+		if ( $dbType === 'mysql' ) {
+			$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		if ( $dbType === 'postgres' ) {
+			$fieldExpr = "LOWER($field::TEXT)";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		if ( $dbType === 'sqlite' ) {
+			$fieldExpr = "LOWER($field)";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
+	}
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -821,12 +843,9 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(ic.il_from AS CHAR) = LOWER(' .
-						$this->dbr->addQuotes( $link->getArticleID() ) . ')';
-				} else {
-					$ors[] = 'ic.il_from = ' . $this->dbr->addQuotes( $link->getArticleID() );
-				}
+				$articleId = (int)$link->getArticleID();
+				$comparison = "ic.il_from = $articleId";
+				$ors[] = $comparison;
 			}
 		}
 
@@ -847,18 +866,23 @@ class Query {
 			'image_sel_title' => 'il.il_to',
 		] );
 
-		$where = [];
-		$where[] = 'page.page_id = il.il_from';
+		$where = [ 'page.page_id = il.il_from' ];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(il.il_to AS CHAR)) = LOWER(' .
-						$this->dbr->addQuotes( $link->getDBkey() ) . ')';
+				$dbkey = $link->getDBkey();
+				$fieldExpr = 'il.il_to';
+
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$ors[] = 'il.il_to = ' . $this->dbr->addQuotes( $link->getDBkey() );
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
+
+				$ors[] = $comparison;
 			}
 		}
 
@@ -987,6 +1011,7 @@ class Query {
 		}
 
 		$this->queryBuilder->where( 'pl.pl_target_id = lt.lt_id' );
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		foreach ( $option as $index => $linkGroup ) {
 			$ors = [];
@@ -994,15 +1019,18 @@ class Query {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$quotedTitle = $this->dbr->addQuotes( $title );
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
-						"$operator LOWER($quotedTitle))";
+				$fieldExpr = 'lt.lt_title';
+
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
 				} else {
-					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
+					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$fieldExpr $operator $titleExpr";
 				}
+
+				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
 			}
 
 			if ( $index === 0 ) {
@@ -1072,20 +1100,25 @@ class Query {
 			return;
 		}
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$quotedTitle = $this->dbr->addQuotes( $title );
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
-						"$operator LOWER($quotedTitle))";
+				$fieldExpr = 'lt.lt_title';
+
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
 				} else {
-					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
+					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$fieldExpr $operator $titleExpr";
 				}
+
+				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
 			}
 		}
 
@@ -1717,25 +1750,20 @@ class Query {
 	 */
 	private function _title( array $option ): void {
 		$ors = [];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
-				if ( $this->parameters->getParameter( 'openreferences' ) ) {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
-				} else {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
-				}
+				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
-				$ors[] = $_or;
+				if ( $ignoreCase ) {
+					$ors[] = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
+				} else {
+					$fieldExpr = $field;
+					$titleExpr = $this->dbr->addQuotes( $title );
+					$ors[] = "$fieldExpr $comparisonType $titleExpr";
+				}
 			}
 		}
 
@@ -1747,25 +1775,21 @@ class Query {
 	 */
 	private function _nottitle( array $option ): void {
 		$ors = [];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
-				if ( $this->parameters->getParameter( 'openreferences' ) ) {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+				$field = $openReferences ? 'lt_title' : 'page.page_title';
+
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
 				} else {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+					$titleExpr = $this->dbr->addQuotes( $title );
+					$comparison = "$field $comparisonType $titleExpr";
 				}
 
-				$ors[] = $_or;
+				$ors[] = $comparison;
 			}
 		}
 
@@ -1880,19 +1904,23 @@ class Query {
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt_uses.' . $nsField . '=' . (int)$link->getNamespace();
+				$ns = (int)$link->getNamespace();
+				$dbkey = $link->getDBkey();
+				$fieldExpr = "lt_uses.$titleField";
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt_uses.' . $titleField . ' AS CHAR)) = LOWER(' .
-						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$_or .= ' AND lt_uses.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
 
-				$ors[] = $_or;
+				$ors[] = "(lt_uses.$nsField = $ns AND $comparison)";
 			}
 		}
 
@@ -1916,18 +1944,23 @@ class Query {
 			->from( 'templatelinks' )
 			->join( 'linktarget', null, 'linktarget.lt_id = templatelinks.tl_target_id' );
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
-				$dbkey = $this->dbr->addQuotes( $link->getDBkey() );
+				$dbkey = $link->getDBkey();
+				$fieldExpr = "linktarget.$titleField";
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(linktarget.$nsField = $ns AND " .
-						"LOWER(CAST(linktarget.$titleField AS CHAR)) = LOWER($dbkey))";
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
 				} else {
-					$ors[] = "(linktarget.$nsField = $ns AND linktarget.$titleField = $dbkey)";
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
+					$comparison = "$fieldExpr = $dbkeyExpr";
 				}
+
+				$ors[] = "(linktarget.$nsField = $ns AND $comparison)";
 			}
 		}
 
