@@ -387,7 +387,9 @@ class Query {
 
 	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): Expression {
 		$dbType = $this->dbr->getType();
-		$value = mb_strtolower( $value, 'UTF-8' );
+		if ( is_string( $value ) ) {
+			$value = mb_strtolower( $value, 'UTF-8' );
+		}
 
 		if ( $dbType === 'mysql' ) {
 			$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
@@ -693,8 +695,11 @@ class Query {
 						foreach ( $categories as $category ) {
 							$i++;
 							$tableAlias = "cl{$i}";
-							$category = str_replace( ' ', '_', $category );
 							$this->queryBuilder->table( $tableName, $tableAlias );
+							$category = str_replace( ' ', '_', $category );
+							if ( $comparisonType === IExpression::LIKE ) {
+								$category = new LikeValue( $category );
+							}
 
 							$condition = $this->dbr->makeList( [
 								"page.page_id = $tableAlias.cl_from",
@@ -714,6 +719,9 @@ class Query {
 						$ors = [];
 						foreach ( $categories as $category ) {
 							$category = str_replace( ' ', '_', $category );
+							if ( $comparisonType === IExpression::LIKE ) {
+								$category = new LikeValue( $category );
+							}
 							$ors[] = $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category );
 						}
 
@@ -738,8 +746,11 @@ class Query {
 			foreach ( $categories as $category ) {
 				$i++;
 				$tableAlias = "ecl{$i}";
-				$category = str_replace( ' ', '_', $category );
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
+				$category = str_replace( ' ', '_', $category );
+				if ( $operatorType === IExpression::LIKE ) {
+					$category = new LikeValue( $category );
+				}
 
 				$condition = $this->dbr->makeList( [
 					"page.page_id = $tableAlias.cl_from",
@@ -1026,6 +1037,9 @@ class Query {
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
+					if ( $ignoreCase ) {
+						$title = mb_strtolower( $title, 'UTF-8' );
+					}
 					$title = new LikeValue( $title );
 				}
 
@@ -1118,6 +1132,9 @@ class Query {
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
+					if ( $ignoreCase ) {
+						$title = mb_strtolower( $title, 'UTF-8' );
+					}
 					$title = new LikeValue( $title );
 				}
 
@@ -1768,6 +1785,12 @@ class Query {
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
+				if ( $comparisonType === IExpression::LIKE ) {
+					if ( $ignoreCase ) {
+						$title = mb_strtolower( $title, 'UTF-8' );
+					}
+					$title = new LikeValue( $title );
+				}
 
 				if ( $ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
@@ -1792,6 +1815,12 @@ class Query {
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
+				if ( $comparisonType === IExpression::LIKE ) {
+					if ( $ignoreCase ) {
+						$title = mb_strtolower( $title, 'UTF-8' );
+					}
+					$title = new LikeValue( $title );
+				}
 
 				if ( $ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
