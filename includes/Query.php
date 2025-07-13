@@ -15,6 +15,7 @@ use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\Expression;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -384,7 +385,7 @@ class Query {
 		throw new LogicException( "Invalid timestamp: $timestamp" );
 	}
 
-	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): string {
+	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): Expression {
 		$dbType = $this->dbr->getType();
 		$value = mb_strtolower( $value, 'UTF-8' );
 
@@ -1219,7 +1220,7 @@ class Query {
 
 		foreach ( $option as $index => $paths ) {
 			$ors = array_map(
-				fn ( string $path ): string =>
+				fn ( string $path ): Expression =>
 					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) ),
 				$paths
 			);
@@ -1499,7 +1500,7 @@ class Query {
 						)
 					) {
 						$clTableName = 'dpl_clview';
-						$clTableAlias = $_clTableName;
+						$clTableAlias = $clTableName;
 					} else {
 						$clTableName = 'categorylinks';
 						$clTableAlias = 'cl_head';
