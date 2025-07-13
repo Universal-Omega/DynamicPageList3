@@ -16,7 +16,9 @@ use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 
 class Query {
@@ -191,7 +193,7 @@ class Query {
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
 				'dpl_query_error', Hooks::getVersion(), $errorMessage
-			)->text() );
+			)->escaped() );
 		}
 
 		// Partially taken from intersection
@@ -253,7 +255,7 @@ class Query {
 			},
 			[
 				'lowTTL' => min( $cache::TTL_MINUTE, floor( $queryCacheTime * 0.75 ) ),
-				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime )
+				'pcTTL' => min( $cache::TTL_PROC_LONG, $queryCacheTime ),
 			]
 		);
 	}
@@ -343,7 +345,7 @@ class Query {
 	/**
 	 * Helper method to handle relative timestamps.
 	 */
-	private function convertTimestamp( string $inputDate ): int|string {
+	private function convertTimestamp( string $inputDate ): string {
 		$timestamp = $inputDate;
 		switch ( $inputDate ) {
 			case 'today':
@@ -373,33 +375,33 @@ class Query {
 				$date = new DateTime();
 				$date->sub( new DateInterval( 'P1Y' ) );
 				$timestamp = $date->format( 'YmdHis' );
-				break;
 		}
 
 		if ( is_numeric( $timestamp ) ) {
-			return $this->dbr->addQuotes( $timestamp );
+			return $timestamp;
 		}
 
-		return 0;
+		$timestamp = htmlspecialchars( $timestamp );
+		throw new LogicException( "Invalid timestamp: $timestamp" );
 	}
 
-	private function caseInsensitiveComparison( string $field, string $value, string $operator ): string {
+	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): string {
 		$dbType = $this->dbr->getType();
-		$quotedValue = $this->dbr->addQuotes( mb_strtolower( $value, 'UTF-8' ) );
+		$value = mb_strtolower( $value, 'UTF-8' );
 
 		if ( $dbType === 'mysql' ) {
 			$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
-			return "$fieldExpr $operator $quotedValue";
+			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		if ( $dbType === 'postgres' ) {
 			$fieldExpr = "LOWER($field::TEXT)";
-			return "$fieldExpr $operator $quotedValue";
+			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		if ( $dbType === 'sqlite' ) {
 			$fieldExpr = "LOWER($field)";
-			return "$fieldExpr $operator $quotedValue";
+			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
@@ -550,10 +552,8 @@ class Query {
 			] );
 
 			if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-				$this->queryBuilder->leftJoin(
-					'hit_counter', null, [
-						'hit_counter.page_id = page.page_id',
-					]
+				$this->queryBuilder->leftJoin( 'hit_counter', null,
+					'hit_counter.page_id = page.page_id'
 				);
 			}
 		}
@@ -609,7 +609,7 @@ class Query {
 
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			'rev.rev_timestamp < ' . $this->convertTimestamp( $option ),
+			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 	}
 
@@ -625,7 +625,7 @@ class Query {
 
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			'rev.rev_timestamp >= ' . $this->convertTimestamp( $option ),
+			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 	}
 
@@ -689,37 +689,42 @@ class Query {
 						continue;
 					}
 
-					$tableName = in_array( '', $categories ) ? 'dpl_clview' : 'categorylinks';
+					$tableName = in_array( '', $categories, true ) ? 'dpl_clview' : 'categorylinks';
+
 					if ( $operatorType === 'AND' ) {
 						foreach ( $categories as $category ) {
 							$i++;
 							$tableAlias = "cl{$i}";
+							$category = str_replace( ' ', '_', $category );
 							$this->queryBuilder->table( $tableName, $tableAlias );
-							$this->queryBuilder->join(
-								$tableName, $tableAlias, [
-									"page.page_id = $tableAlias.cl_from AND " .
-										"$tableAlias.cl_to $comparisonType " .
-										$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
-								]
-							);
+
+							$condition = $this->dbr->makeList( [
+								"page.page_id = $tableAlias.cl_from",
+								$this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category )
+							], IDatabase::LIST_AND );
+
+							$this->queryBuilder->join( $tableName, $tableAlias, $condition );
 						}
-					} elseif ( $operatorType === 'OR' ) {
+						continue;
+					}
+
+					if ( $operatorType === 'OR' ) {
 						$i++;
 						$tableAlias = "cl{$i}";
 						$this->queryBuilder->table( $tableName, $tableAlias );
 
-						$joinOn = "page.page_id = $tableAlias.cl_from AND (";
-
 						$ors = [];
 						foreach ( $categories as $category ) {
-							$ors[] = "$tableAlias.cl_to $comparisonType " .
-								$this->dbr->addQuotes( str_replace( ' ', '_', $category ) );
+							$category = str_replace( ' ', '_', $category );
+							$ors[] = $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category );
 						}
 
-						$joinOn .= implode( " $operatorType ", $ors );
-						$joinOn .= ')';
+						$condition = $this->dbr->makeList( [
+							"page.page_id = $tableAlias.cl_from",
+							$this->dbr->makeList( $ors, IDatabase::LIST_OR )
+						], IDatabase::LIST_AND );
 
-						$this->queryBuilder->join( $tableName, $tableAlias, $joinOn );
+						$this->queryBuilder->join( $tableName, $tableAlias, $condition );
 					}
 				}
 			}
@@ -735,15 +740,15 @@ class Query {
 			foreach ( $categories as $category ) {
 				$i++;
 				$tableAlias = "ecl{$i}";
+				$category = str_replace( ' ', '_', $category );
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
-				$this->queryBuilder->leftJoin(
-					'categorylinks', $tableAlias, [
-						"page.page_id = $tableAlias.cl_from AND " .
-							"$tableAlias.cl_to $operatorType" .
-							$this->dbr->addQuotes( str_replace( ' ', '_', $category ) ),
-					]
-				);
 
+				$condition = $this->dbr->makeList( [
+					"page.page_id = $tableAlias.cl_from",
+					$this->dbr->expr( "$tableAlias.cl_to", $operatorType, $category )
+				], IDatabase::LIST_AND );
+
+				$this->queryBuilder->leftJoin( 'categorylinks', $tableAlias, $condition );
 				$this->queryBuilder->where( [ "$tableAlias.cl_to" => null ] );
 			}
 		}
@@ -762,7 +767,7 @@ class Query {
 		$this->_adduser( null, 'creation_rev' );
 
 		$this->queryBuilder->where( [
-			"{$this->dbr->addQuotes( $user->getActorId() )} = creation_rev.rev_actor",
+			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
 			'creation_rev.rev_page = page.page_id',
 			'creation_rev.rev_deleted = 0',
 			'creation_rev.rev_parent_id = 0',
@@ -788,7 +793,7 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			'rev.rev_timestamp >= ' . $this->dbr->addQuotes( $option ),
+			$this->dbr->expr( 'rev.rev_timestamp', '>=', $option ),
 		] );
 
 		$minTimestampSinceSubquery = $this->queryBuilder->newSubquery()
@@ -796,7 +801,9 @@ class Query {
 			->from( 'revision', 'rev_aux_snc' )
 			->where( [
 				'rev_aux_snc.rev_page = page.page_id',
-				'rev_aux_snc.rev_timestamp >= ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
+				$this->dbr->expr( 'rev_aux_snc.rev_timestamp', '>=',
+					$this->convertTimestamp( $option )
+				),
 			] )
 			->caller( __METHOD__ )
 			->getSQL();
@@ -843,9 +850,7 @@ class Query {
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$articleId = (int)$link->getArticleID();
-				$comparison = "ic.il_from = $articleId";
-				$ors[] = $comparison;
+				$ors[] = $this->dbr->expr( 'ic.il_from', '=', $link->getArticleID() );
 			}
 		}
 
@@ -876,13 +881,11 @@ class Query {
 				$fieldExpr = 'il.il_to';
 
 				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
-				} else {
-					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
-					$comparison = "$fieldExpr = $dbkeyExpr";
+					$ors[] = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
+					continue;
 				}
 
-				$ors[] = $comparison;
+				$ors[] = $this->dbr->expr( $fieldExpr, '=', $dbkey );
 			}
 		}
 
@@ -926,7 +929,9 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			'rev.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
+			$this->dbr->expr( 'rev.rev_timestamp', '<',
+				$this->convertTimestamp( $option )
+			),
 		] );
 
 		$subquery = $this->queryBuilder->newSubquery()
@@ -934,7 +939,9 @@ class Query {
 			->from( 'revision', 'rev_aux_bef' )
 			->where( [
 				'rev_aux_bef.rev_page = page.page_id',
-				'rev_aux_bef.rev_timestamp < ' . $this->dbr->addQuotes( $this->convertTimestamp( $option ) ),
+				$this->dbr->expr( 'rev_aux_bef.rev_timestamp', '<',
+					$this->convertTimestamp( $option )
+				),
 			] )
 			->caller( __METHOD__ )
 			->getSQL();
@@ -951,7 +958,7 @@ class Query {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = '(pl_from = ' . $link->getArticleID() . ')';
+					$ors[] = $this->dbr->expr( 'pl_from', '=', $link->getArticleID() );
 				}
 			}
 
@@ -980,7 +987,7 @@ class Query {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'plf.pl_from = ' . $link->getArticleID();
+					$ors[] = $this->dbr->expr( 'plf.pl_from', '=', $link->getArticleID() );
 				}
 			}
 
@@ -1015,22 +1022,25 @@ class Query {
 
 		foreach ( $option as $index => $linkGroup ) {
 			$ors = [];
-
 			foreach ( $linkGroup as $link ) {
-				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
-
+				$operator = strpos( $title, '%' ) !== false ? IExpression::LIKE : '=';
 				$fieldExpr = 'lt.lt_title';
 
-				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
-				} else {
-					$titleExpr = $this->dbr->addQuotes( $title );
-					$comparison = "$fieldExpr $operator $titleExpr";
+				if ( $operator === IExpression::LIKE ) {
+					$title = new LikeValue( $title );
 				}
 
-				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $operator, $title );
+				} else {
+					$comparison = $this->dbr->expr( $fieldExpr, $operator, $title );
+				}
+
+				$ors[] = $this->dbr->makeList( [
+					$this->dbr->expr( 'lt.lt_namespace', '=', $link->getNamespace() ),
+					$comparison,
+				], IDatabase::LIST_AND );
 			}
 
 			if ( $index === 0 ) {
@@ -1077,7 +1087,7 @@ class Query {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'pl.pl_from = ' . (int)$link->getArticleID();
+					$ors[] = $this->dbr->expr( 'pl.pl_from', '=', $link->getArticleID() );
 				}
 			}
 
@@ -1086,7 +1096,7 @@ class Query {
 			}
 
 			$subquery->caller( __METHOD__ );
-			$where = 'CONCAT(page_namespace,page_title) NOT IN (' . $subquery->getSQL() . ')';
+			$where = "CONCAT(page_namespace,page_title) NOT IN ({$subquery->getSQL()})";
 		}
 
 		$this->queryBuilder->where( $where );
@@ -1105,20 +1115,24 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
-
+				$operator = strpos( $title, '%' ) !== false ? IExpression::LIKE : '=';
 				$fieldExpr = 'lt.lt_title';
 
-				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $title, $operator );
-				} else {
-					$titleExpr = $this->dbr->addQuotes( $title );
-					$comparison = "$fieldExpr $operator $titleExpr";
+				if ( $operator === IExpression::LIKE ) {
+					$title = new LikeValue( $title );
 				}
 
-				$ors[] = "(lt.lt_namespace = $ns AND $comparison)";
+				if ( $ignoreCase ) {
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $operator, $title );
+				} else {
+					$comparison = $this->dbr->expr( $fieldExpr, $operator, $title );
+				}
+
+				$ors[] = $this->dbr->makeList( [
+					$this->dbr->expr( 'lt.lt_namespace', '=', $link->getNamespace() ),
+					$comparison,
+				], IDatabase::LIST_AND );
 			}
 		}
 
@@ -1164,8 +1178,9 @@ class Query {
 
 			$ors = [];
 			foreach ( $patterns as $pattern ) {
-				$quoted = $this->dbr->addQuotes( $pattern );
-				$ors[] = "el.el_to_domain_index LIKE $quoted";
+				$ors[] = $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE,
+					new LikeValue( $pattern )
+				);
 			}
 
 			if ( $index === 0 ) {
@@ -1207,7 +1222,8 @@ class Query {
 
 		foreach ( $option as $index => $paths ) {
 			$ors = array_map(
-				fn ( string $path ): string => 'el.el_to_path LIKE ' . $this->dbr->addQuotes( $path ),
+				fn ( string $path ): string =>
+					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) ),
 				$paths
 			);
 
@@ -1271,7 +1287,7 @@ class Query {
 
 		$this->queryBuilder->table( 'revision', 'change_rev' );
 		$this->queryBuilder->where( [
-			$this->dbr->addQuotes( $user->getActorId() ) . ' = change_rev.rev_actor',
+			$this->dbr->expr( 'change_rev.rev_actor', '=', $user->getActorId() ),
 			'change_rev.rev_deleted = 0',
 			'change_rev.rev_page = page.page_id',
 		] );
@@ -1302,7 +1318,7 @@ class Query {
 
 		$this->queryBuilder->table( 'revision', 'no_creation_rev' );
 		$this->queryBuilder->where( [
-			$this->dbr->addQuotes( $user->getActorId() ) . ' != no_creation_rev.rev_actor',
+			$this->dbr->expr( 'no_creation_rev.rev_actor', '!=', $user->getActorId() ),
 			'no_creation_rev.rev_deleted = 0',
 			'no_creation_rev.rev_page = page.page_id',
 			'no_creation_rev.rev_parent_id = 0',
@@ -1463,13 +1479,13 @@ class Query {
 		$namespaces = $services->getContentLanguage()->getNamespaces();
 
 		$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
-		$_namespaceIdToText = 'CASE page.page_namespace';
+		$namespaceIdToText = 'CASE page.page_namespace';
 
 		foreach ( $namespaces as $id => $name ) {
-			$_namespaceIdToText .= ' WHEN ' . (int)$id . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
+			$namespaceIdToText .= ' WHEN ' . (int)$id . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
 		}
 
-		$_namespaceIdToText .= ' END';
+		$namespaceIdToText .= ' END';
 
 		foreach ( $option as $orderMethod ) {
 			switch ( $orderMethod ) {
@@ -1480,23 +1496,23 @@ class Query {
 					if (
 						(
 							is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-							in_array( '', $this->parameters->getParameter( 'catheadings' ) )
+							in_array( '', $this->parameters->getParameter( 'catheadings' ), true )
 						) ||
 						(
 							is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
-							in_array( '', $this->parameters->getParameter( 'catnotheadings' ) )
+							in_array( '', $this->parameters->getParameter( 'catnotheadings' ), true )
 						)
 					) {
-						$_clTableName = 'dpl_clview';
-						$_clTableAlias = $_clTableName;
+						$clTableName = 'dpl_clview';
+						$clTableAlias = $_clTableName;
 					} else {
-						$_clTableName = 'categorylinks';
-						$_clTableAlias = 'cl_head';
+						$clTableName = 'categorylinks';
+						$clTableAlias = 'cl_head';
 					}
 
-					$this->queryBuilder->table( $_clTableName, $_clTableAlias );
+					$this->queryBuilder->table( $clTableName, $clTableAlias );
 					$this->queryBuilder->leftJoin(
-						$_clTableName, $_clTableAlias,
+						$clTableName, $clTableAlias,
 						'page_id = cl_head.cl_from'
 					);
 
@@ -1621,12 +1637,12 @@ class Query {
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in
 					// the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					$replaceConcat = "REPLACE(CONCAT($_namespaceIdToText, page.page_title), '_', ' ')";
+					$replaceConcat = "REPLACE(CONCAT($namespaceIdToText, page.page_title), '_', ' ')";
 
 					$category = (array)$this->parameters->getParameter( 'category' );
 					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
 					if ( count( $category ) + count( $notCategory ) > 0 ) {
-						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ) ) ) {
+						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ), true ) ) {
 							$this->queryBuilder->select( [
 								'sortkey' => "COALESCE(cl_head.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
@@ -1659,7 +1675,7 @@ class Query {
 					if ( $this->parameters->getParameter( 'openreferences' ) ) {
 						$this->queryBuilder->select( [
 							'sortkey' => "REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
-								 $_namespaceIdToText . ", ':')), lt_title), '_', ' ') " .
+								 $namespaceIdToText . ", ':')), lt_title), '_', ' ') " .
 								 $this->getCollateSQL(),
 						] );
 					} else {
@@ -1667,7 +1683,7 @@ class Query {
 						// UTF-8 created problems with non-utf-8 MySQL databases.
 						$this->queryBuilder->select( [
 							'sortkey' => "REPLACE(CONCAT(IF(" .
-								"page.page_namespace = 0, '', CONCAT(" . $_namespaceIdToText . ", ':')), " .
+								"page.page_namespace = 0, '', CONCAT(" . $namespaceIdToText . ", ':')), " .
 								"page.page_title), '_', ' ') " . $this->getCollateSQL(),
 						] );
 					}
@@ -1758,12 +1774,11 @@ class Query {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 				if ( $ignoreCase ) {
-					$ors[] = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
-				} else {
-					$fieldExpr = $field;
-					$titleExpr = $this->dbr->addQuotes( $title );
-					$ors[] = "$fieldExpr $comparisonType $titleExpr";
+					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
+					continue;
 				}
+
+				$ors[] = $this->dbr->expr( $field, $comparisonType, $title );
 			}
 		}
 
@@ -1783,13 +1798,11 @@ class Query {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
-				} else {
-					$titleExpr = $this->dbr->addQuotes( $title );
-					$comparison = "$field $comparisonType $titleExpr";
+					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
+					continue;
 				}
 
-				$ors[] = $comparison;
+				$ors[] = $this->dbr->expr( $field, $comparisonType, $title );
 			}
 		}
 
@@ -1800,48 +1813,46 @@ class Query {
 	 * Set SQL for 'titlegt' parameter.
 	 */
 	private function _titlegt( string $option ): void {
-		$operator = '>';
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+		$field = $openReferences ? 'lt_title' : 'page.page_title';
+
 		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
-			$operator = '>=';
-		}
-
-		if ( $option === '' ) {
-			$operator = 'LIKE';
-			$option = '%';
-		}
-
-		$option = $this->dbr->addQuotes( $option );
-		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$this->queryBuilder->where( "(lt_title $operator $option)" );
+			$this->queryBuilder->where( $this->dbr->expr( $field, '>=', $option ) );
 			return;
 		}
 
-		$this->queryBuilder->where( "(page.page_title $operator $option)" );
+		if ( $option === '' ) {
+			$this->queryBuilder->where( $this->dbr->expr( $field, IExpression::LIKE,
+				new LikeValue( $this->dbr->anyString() )
+			) );
+			return;
+		}
+
+		$this->queryBuilder->where( $this->dbr->expr( $field, '>', $option ) );
 	}
 
 	/**
 	 * Set SQL for 'titlelt' parameter.
 	 */
 	private function _titlelt( string $option ): void {
-		$operator = '<';
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+		$field = $openReferences ? 'lt_title' : 'page.page_title';
+
 		if ( substr( $option, 0, 2 ) === '=_' ) {
 			$option = substr( $option, 2 );
-			$operator = '<=';
-		}
-
-		if ( $option === '' ) {
-			$operator = 'LIKE';
-			$option = '%';
-		}
-
-		$option = $this->dbr->addQuotes( $option );
-		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$this->queryBuilder->where( "(lt_title $operator $option)" );
+			$this->queryBuilder->where( $this->dbr->expr( $field, '<=', $option ) );
 			return;
 		}
 
-		$this->queryBuilder->where( "(page.page_title $operator $option)" );
+		if ( $option === '' ) {
+			$this->queryBuilder->where( $this->dbr->expr( $field, IExpression::LIKE,
+				new LikeValue( $this->dbr->anyString() )
+			) );
+			return;
+		}
+
+		$this->queryBuilder->where( $this->dbr->expr( $field, '<', $option ) );
 	}
 
 	/**
@@ -1852,7 +1863,7 @@ class Query {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'tpl_from = ' . (int)$link->getArticleID();
+					$ors[] = $this->dbr->expr( 'tpl_from', '=', $link->getArticleID() );
 				}
 			}
 
@@ -1877,7 +1888,7 @@ class Query {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ors[] = 'tpl.tl_from = ' . (int)$link->getArticleID();
+					$ors[] = $this->dbr->expr( 'tpl.tl_from', '=', $link->getArticleID() );
 				}
 			}
 
@@ -1909,18 +1920,19 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$ns = (int)$link->getNamespace();
 				$dbkey = $link->getDBkey();
 				$fieldExpr = "lt_uses.$titleField";
 
 				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
 				} else {
-					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
-					$comparison = "$fieldExpr = $dbkeyExpr";
+					$comparison = $this->dbr->expr( $fieldExpr, '=', $dbkey );
 				}
 
-				$ors[] = "(lt_uses.$nsField = $ns AND $comparison)";
+				$ors[] = $this->dbr->makeList( [
+					$this->dbr->expr( "lt_uses.$nsField", '=', $link->getNamespace() ),
+					$comparison,
+				], IDatabase::LIST_AND );
 			}
 		}
 
@@ -1949,18 +1961,19 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$ns = (int)$link->getNamespace();
 				$dbkey = $link->getDBkey();
 				$fieldExpr = "linktarget.$titleField";
 
 				if ( $ignoreCase ) {
-					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $dbkey, '=' );
+					$comparison = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
 				} else {
-					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
-					$comparison = "$fieldExpr = $dbkeyExpr";
+					$comparison = $this->dbr->expr( $fieldExpr, '=', $dbkey );
 				}
 
-				$ors[] = "(linktarget.$nsField = $ns AND $comparison)";
+				$ors[] = $this->dbr->makeList( [
+					$this->dbr->expr( "linktarget.$nsField", '=', $link->getNamespace() ),
+					$comparison,
+				], IDatabase::LIST_AND );
 			}
 		}
 
