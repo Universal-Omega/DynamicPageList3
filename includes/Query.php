@@ -15,7 +15,6 @@ use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
-use Wikimedia\Rdbms\Expression;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
@@ -392,7 +391,7 @@ class Query {
 		string $field,
 		string $operator,
 		string|LikeValue $value
-	): Expression|string {
+	): string {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
 			$value = mb_strtolower( $value, 'UTF-8' );
@@ -413,7 +412,7 @@ class Query {
 			if ( $operator === 'REGEXP' ) {
 				return $this->buildRegexpExpression( $fieldExpr, $value );
 			}
-			return $this->dbr->expr( $fieldExpr, $operator, $value );
+			return "$fieldExpr $operator $value";
 		}
 
 		if ( $dbType === 'sqlite' ) {
@@ -421,7 +420,7 @@ class Query {
 			if ( $operator === 'REGEXP' ) {
 				return $this->buildRegexpExpression( $fieldExpr, $value );
 			}
-			return $this->dbr->expr( $fieldExpr, $operator, $value );
+			return "$fieldExpr $operator $value";
 		}
 
 		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
