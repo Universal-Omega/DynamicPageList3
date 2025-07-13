@@ -385,7 +385,7 @@ class Query {
 		throw new LogicException( "Invalid timestamp: $timestamp" );
 	}
 
-	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): Expression {
+	private function caseInsensitiveComparison( string $field, string $operator, string|LikeValue $value ): Expression|string {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
 			$value = mb_strtolower( $value, 'UTF-8' );
@@ -393,20 +393,44 @@ class Query {
 
 		if ( $dbType === 'mysql' ) {
 			$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
+			if ( $operator === 'REGEXP' ) {
+				return $this->buildRegexpExpression( $fieldExpr, $value );
+			}
 			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		if ( $dbType === 'postgres' ) {
 			$fieldExpr = "LOWER($field::TEXT)";
+			if ( $operator === 'REGEXP' ) {
+				return $this->buildRegexpExpression( $fieldExpr, $value );
+			}
 			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		if ( $dbType === 'sqlite' ) {
 			$fieldExpr = "LOWER($field)";
+			if ( $operator === 'REGEXP' ) {
+				return $this->buildRegexpExpression( $fieldExpr, $value );
+			}
 			return $this->dbr->expr( $fieldExpr, $operator, $value );
 		}
 
 		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
+	}
+
+	private function buildRegexpExpression( string $field, string $value ): string {
+		$dbType = $this->dbr->getType();
+		$quotedValue = $this->dbr->addQuotes( $value );
+
+		if ( $dbType === 'mysql' ) {
+			return "$field REGEXP $quotedValue";
+		}
+
+		if ( $dbType === 'postgres' ) {
+			return "$field ~ $quotedValue";
+		}
+
+		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
 	}
 
 	/**
@@ -701,9 +725,13 @@ class Query {
 								$category = new LikeValue( $category );
 							}
 
+							if ( $comparisonType === 'REGEXP' ) {
+								$expr = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
+							}
+
 							$condition = $this->dbr->makeList( [
 								"page.page_id = $tableAlias.cl_from",
-								$this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category )
+								$expr ?? $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category ),
 							], IDatabase::LIST_AND );
 
 							$this->queryBuilder->join( $tableName, $tableAlias, $condition );
@@ -722,12 +750,16 @@ class Query {
 							if ( $comparisonType === IExpression::LIKE ) {
 								$category = new LikeValue( $category );
 							}
+							if ( $comparisonType === 'REGEXP' ) {
+								$ors[] = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
+								continue;
+							}
 							$ors[] = $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category );
 						}
 
 						$condition = $this->dbr->makeList( [
 							"page.page_id = $tableAlias.cl_from",
-							$this->dbr->makeList( $ors, IDatabase::LIST_OR )
+							$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 						], IDatabase::LIST_AND );
 
 						$this->queryBuilder->join( $tableName, $tableAlias, $condition );
@@ -752,9 +784,13 @@ class Query {
 					$category = new LikeValue( $category );
 				}
 
+				if ( $operatorType === 'REGEXP' ) {
+					$expr = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
+				}
+
 				$condition = $this->dbr->makeList( [
 					"page.page_id = $tableAlias.cl_from",
-					$this->dbr->expr( "$tableAlias.cl_to", $operatorType, $category )
+					$expr ?? $this->dbr->expr( "$tableAlias.cl_to", $operatorType, $category ),
 				], IDatabase::LIST_AND );
 
 				$this->queryBuilder->leftJoin( 'categorylinks', $tableAlias, $condition );
@@ -1797,6 +1833,11 @@ class Query {
 					continue;
 				}
 
+				if ( $comparisonType === 'REGEXP' ) {
+					$ors[] = $this->buildRegexpExpression( $field, $title );
+					continue;
+				}
+
 				$ors[] = $this->dbr->expr( $field, $comparisonType, $title );
 			}
 		}
@@ -1824,6 +1865,11 @@ class Query {
 
 				if ( $ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
+					continue;
+				}
+
+				if ( $comparisonType === 'REGEXP' ) {
+					$ors[] = $this->buildRegexpExpression( $field, $title );
 					continue;
 				}
 
