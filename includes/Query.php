@@ -383,6 +383,26 @@ class Query {
 		return 0;
 	}
 
+	private function caseInsensitiveComparison( string $field, string $value, string $operator = '=' ): string {
+		$dbType = $this->dbr->getType();
+		$quotedValue = $this->dbr->addQuotes( $value );
+
+		if ( $dbType === 'mysql' ) {
+			$fieldExpr = "$field COLLATE utf8mb4_general_ci";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		if ( $dbType === 'sqlite' ) {
+			$fieldExpr = "$field COLLATE NOCASE";
+			return "$fieldExpr $operator $quotedValue";
+		}
+
+		// Default and PostgreSQL fallback
+		$fieldExpr = "LOWER($field)";
+		$valueExpr = "LOWER($quotedValue)";
+		return "$fieldExpr $operator $valueExpr";
+	}
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -818,15 +838,22 @@ class Query {
 			];
 		}
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(ic.il_from AS CHAR) = LOWER(' .
-						$this->dbr->addQuotes( $link->getArticleID() ) . ')';
+				$articleId = (string)$link->getArticleID();
+
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(ic.il_from AS CHAR CHARACTER SET utf8mb4))";
+					$idExpr = $this->dbr->addQuotes( mb_strtolower( $articleId, 'UTF-8' ) );
 				} else {
-					$ors[] = 'ic.il_from = ' . $this->dbr->addQuotes( $link->getArticleID() );
+					$fieldExpr = 'ic.il_from';
+					$idExpr = $this->dbr->addQuotes( $articleId );
 				}
+
+				$ors[] = "$fieldExpr = $idExpr";
 			}
 		}
 
@@ -847,18 +874,23 @@ class Query {
 			'image_sel_title' => 'il.il_to',
 		] );
 
-		$where = [];
-		$where[] = 'page.page_id = il.il_from';
+		$where = [ 'page.page_id = il.il_from' ];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = 'LOWER(CAST(il.il_to AS CHAR)) = LOWER(' .
-						$this->dbr->addQuotes( $link->getDBkey() ) . ')';
+				$dbkey = $link->getDBkey();
+
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(il.il_to AS CHAR CHARACTER SET utf8mb4))";
+					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
 				} else {
-					$ors[] = 'il.il_to = ' . $this->dbr->addQuotes( $link->getDBkey() );
+					$fieldExpr = 'il.il_to';
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
 				}
+
+				$ors[] = "$fieldExpr = $dbkeyExpr";
 			}
 		}
 
@@ -987,6 +1019,7 @@ class Query {
 		}
 
 		$this->queryBuilder->where( 'pl.pl_target_id = lt.lt_id' );
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		foreach ( $option as $index => $linkGroup ) {
 			$ors = [];
@@ -994,15 +1027,17 @@ class Query {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$quotedTitle = $this->dbr->addQuotes( $title );
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
-						"$operator LOWER($quotedTitle))";
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(lt.lt_title AS CHAR CHARACTER SET utf8mb4))";
+					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
 				} else {
-					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
+					$fieldExpr = 'lt.lt_title';
+					$titleExpr = $this->dbr->addQuotes( $title );
 				}
+
+				$ors[] = "(lt.lt_namespace = $ns AND $fieldExpr $operator $titleExpr)";
 			}
 
 			if ( $index === 0 ) {
@@ -1072,20 +1107,24 @@ class Query {
 			return;
 		}
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
 				$title = $link->getDBkey();
-				$quotedTitle = $this->dbr->addQuotes( $title );
 				$operator = strpos( $title, '%' ) !== false ? 'LIKE' : '=';
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(lt.lt_namespace = $ns AND LOWER(CAST(lt.lt_title AS CHAR)) " .
-						"$operator LOWER($quotedTitle))";
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(lt.lt_title AS CHAR CHARACTER SET utf8mb4))";
+					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
 				} else {
-					$ors[] = "(lt.lt_namespace = $ns AND lt.lt_title $operator $quotedTitle)";
+					$fieldExpr = 'lt.lt_title';
+					$titleExpr = $this->dbr->addQuotes( $title );
 				}
+
+				$ors[] = "(lt.lt_namespace = $ns AND $fieldExpr $operator $titleExpr)";
 			}
 		}
 
@@ -1725,14 +1764,12 @@ class Query {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 				if ( $ignoreCase ) {
-					$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
-					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
+					$ors[] = $this->caseInsensitiveComparison( $field, $title, $comparisonType );
 				} else {
 					$fieldExpr = $field;
 					$titleExpr = $this->dbr->addQuotes( $title );
+					$ors[] = "$fieldExpr $comparisonType $titleExpr";
 				}
-
-				$ors[] = "$fieldExpr $comparisonType $titleExpr";
 			}
 		}
 
@@ -1744,25 +1781,22 @@ class Query {
 	 */
 	private function _nottitle( array $option ): void {
 		$ors = [];
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
+		$openReferences = $this->parameters->getParameter( 'openreferences' );
+
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
-				if ( $this->parameters->getParameter( 'openreferences' ) ) {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(lt_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "lt_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+				$field = $openReferences ? 'lt_title' : 'page.page_title';
+
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
+					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
 				} else {
-					if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-						$_or = "LOWER(CAST(page.page_title AS CHAR)) $comparisonType " .
-							strtolower( $this->dbr->addQuotes( $title ) );
-					} else {
-						$_or = "page.page_title $comparisonType " . $this->dbr->addQuotes( $title );
-					}
+					$fieldExpr = $field;
+					$titleExpr = $this->dbr->addQuotes( $title );
 				}
 
-				$ors[] = $_or;
+				$ors[] = "$fieldExpr $comparisonType $titleExpr";
 			}
 		}
 
@@ -1877,19 +1911,23 @@ class Query {
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt_uses.' . $nsField . '=' . (int)$link->getNamespace();
+				$ns = (int)$link->getNamespace();
+				$dbkey = $link->getDBkey();
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CAST(lt_uses.' . $titleField . ' AS CHAR)) = LOWER(' .
-						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(lt_uses.$titleField AS CHAR CHARACTER SET utf8mb4))";
+					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
 				} else {
-					$_or .= ' AND lt_uses.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$fieldExpr = "lt_uses.$titleField";
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
 				}
 
-				$ors[] = $_or;
+				$ors[] = "(lt_uses.$nsField = $ns AND $fieldExpr = $dbkeyExpr)";
 			}
 		}
 
@@ -1913,18 +1951,23 @@ class Query {
 			->from( 'templatelinks' )
 			->join( 'linktarget', null, 'linktarget.lt_id = templatelinks.tl_target_id' );
 
+		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
+
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$ns = (int)$link->getNamespace();
-				$dbkey = $this->dbr->addQuotes( $link->getDBkey() );
+				$dbkey = $link->getDBkey();
 
-				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$ors[] = "(linktarget.$nsField = $ns AND " .
-						"LOWER(CAST(linktarget.$titleField AS CHAR)) = LOWER($dbkey))";
+				if ( $ignoreCase ) {
+					$fieldExpr = "LOWER(CAST(linktarget.$titleField AS CHAR CHARACTER SET utf8mb4))";
+					$dbkeyExpr = $this->dbr->addQuotes( mb_strtolower( $dbkey, 'UTF-8' ) );
 				} else {
-					$ors[] = "(linktarget.$nsField = $ns AND linktarget.$titleField = $dbkey)";
+					$fieldExpr = "linktarget.$titleField";
+					$dbkeyExpr = $this->dbr->addQuotes( $dbkey );
 				}
+
+				$ors[] = "(linktarget.$nsField = $ns AND $fieldExpr = $dbkeyExpr)";
 			}
 		}
 
