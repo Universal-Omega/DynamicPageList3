@@ -442,11 +442,12 @@ class Query {
 
 	private function splitLikePattern( string $pattern ): array {
 		$segments = preg_split( '/(%)/', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
-		return array_map(
+		$parts = array_map(
 			fn ( string $segment ): string|LikeMatch =>
 				$segment === '%' ? $this->dbr->anyString() : $segment,
 			$segments
 		);
+		return $parts ?: [ '' ];
 	}
 
 	/**
