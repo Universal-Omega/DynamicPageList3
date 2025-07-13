@@ -19,6 +19,7 @@ use Wikimedia\Rdbms\Expression;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
+use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 
@@ -439,6 +440,15 @@ class Query {
 		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
 	}
 
+	private function splitLikePattern( string $pattern ): array {
+		$segments = preg_split( '/(%)/', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+		return array_map(
+			fn ( string $segment ): string|LikeMatch =>
+				$segment === '%' ? $this->dbr->anyString() : $segment,
+			$segments
+		);
+	}
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -728,7 +738,7 @@ class Query {
 							$this->queryBuilder->table( $tableName, $tableAlias );
 							$category = str_replace( ' ', '_', $category );
 							if ( $comparisonType === IExpression::LIKE ) {
-								$category = new LikeValue( $category );
+								$category = new LikeValue( ...$this->splitLikePattern( $category ) );
 							}
 
 							if ( $comparisonType === 'REGEXP' ) {
@@ -754,7 +764,7 @@ class Query {
 						foreach ( $categories as $category ) {
 							$category = str_replace( ' ', '_', $category );
 							if ( $comparisonType === IExpression::LIKE ) {
-								$category = new LikeValue( $category );
+								$category = new LikeValue( ...$this->splitLikePattern( $category ) );
 							}
 							if ( $comparisonType === 'REGEXP' ) {
 								$ors[] = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
@@ -787,7 +797,7 @@ class Query {
 				$this->queryBuilder->table( 'categorylinks', $tableAlias );
 				$category = str_replace( ' ', '_', $category );
 				if ( $operatorType === IExpression::LIKE ) {
-					$category = new LikeValue( $category );
+					$category = new LikeValue( ...$this->splitLikePattern( $category ) );
 				}
 
 				if ( $operatorType === 'REGEXP' ) {
@@ -1082,7 +1092,7 @@ class Query {
 					if ( $ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
-					$title = new LikeValue( $title );
+					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
 				if ( $ignoreCase ) {
@@ -1177,7 +1187,7 @@ class Query {
 					if ( $ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
-					$title = new LikeValue( $title );
+					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
 				if ( $ignoreCase ) {
@@ -1866,7 +1876,7 @@ class Query {
 					if ( $ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
-					$title = new LikeValue( $title );
+					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
 				if ( $ignoreCase ) {
