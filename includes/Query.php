@@ -1842,7 +1842,7 @@ class Query {
 					if ( $ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
-					$title = new LikeValue( $title );
+					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
 				if ( $ignoreCase ) {
