@@ -656,12 +656,12 @@ class Parameters extends ParametersData {
 	public function _notcategorymatch( $option ) {
 		$data = $this->getParameter( 'notcategory' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data['LIKE'] ?? false ) ) {
+			$data['LIKE'] = [];
 		}
 
 		$newMatches = explode( '|', $option );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data['LIKE'] = array_merge( $data['LIKE'], $newMatches );
 
 		$this->setParameter( 'notcategory', $data );
 		$this->setOpenReferencesConflict( true );
@@ -987,12 +987,12 @@ class Parameters extends ParametersData {
 	public function _titlematch( $option ) {
 		$data = $this->getParameter( 'title' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data['LIKE'] ?? false ) ) {
+			$data['LIKE'] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data['LIKE'] = array_merge( $data['LIKE'], $newMatches );
 
 		$this->setParameter( 'title', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -1035,12 +1035,12 @@ class Parameters extends ParametersData {
 	public function _nottitlematch( $option ) {
 		$data = $this->getParameter( 'nottitle' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data['LIKE'] ?? false ) ) {
+			$data['LIKE'] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data['LIKE'] = array_merge( $data['LIKE'], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
 		$this->setSelectionCriteriaFound( true );
