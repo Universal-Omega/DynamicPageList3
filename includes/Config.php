@@ -24,7 +24,8 @@ class Config extends MultiConfig {
 	}
 
 	public static function getInstance(): self {
-		return self::$instance ??= new self();
+		self::$instance ??= new self();
+		return self::$instance;
 	}
 
 	public static function getSetting( string $setting ): mixed {
