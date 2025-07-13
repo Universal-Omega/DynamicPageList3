@@ -1725,13 +1725,14 @@ class Query {
 				$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 				if ( $ignoreCase ) {
-					$field = "LOWER(CAST($field AS CHAR))";
-					$titleValue = "LOWER({$this->dbr->addQuotes( $title )})";
+					$fieldExpr = "LOWER(CAST($field AS CHAR CHARACTER SET utf8mb4))";
+					$titleExpr = $this->dbr->addQuotes( mb_strtolower( $title, 'UTF-8' ) );
 				} else {
-					$titleValue = $this->dbr->addQuotes( $title );
+					$fieldExpr = $field;
+					$titleExpr = $this->dbr->addQuotes( $title );
 				}
 
-				$ors[] = "$field $comparisonType $titleValue";
+				$ors[] = "$fieldExpr $comparisonType $titleExpr";
 			}
 		}
 
