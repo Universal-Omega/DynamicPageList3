@@ -298,13 +298,6 @@ class Query {
 	}
 
 	/**
-	 * Set the character set collation.
-	 */
-	private function setCollation( string $collation ): void {
-		$this->collation = $collation;
-	}
-
-	/**
 	 * Return SQL prefixed collation.
 	 */
 	private function getCollateSQL(): ?string {
@@ -1506,7 +1499,7 @@ class Query {
 
 			foreach ( $res as $row ) {
 				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ) {
-					$this->setCollation( $row->DEFAULT_COLLATE_NAME );
+					$this->collation = $row->DEFAULT_COLLATE_NAME;
 					return;
 				}
 			}
@@ -1524,7 +1517,7 @@ class Query {
 				->fetchField();
 
 			if ( $collation !== false && $option === mb_strtolower( $collation ) ) {
-				$this->setCollation( $collation );
+				$this->collation = $collation;
 				return;
 			}
 
