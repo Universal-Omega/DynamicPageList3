@@ -895,6 +895,7 @@ class Query {
 	 */
 	private function _hiddencategories( mixed $option ): void {
 		// @TODO: Unfinished functionality! Never implemented by original author.
+		$this->queryBuilder->leftJoin( 'page_props', null, [ 'pp_propname' => 'hiddencat', 'pp_page = page.page_id' ] );
 	}
 
 	/**
@@ -1874,6 +1875,9 @@ class Query {
 		}
 
 		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+		$this->queryBuilder
+			->leftJoin( 'page_props', 'pp', 'pp.pp_page = page.page_id AND pp.pp_propname = ' . $this->dbr->addQuotes( 'displaytitle' ) )
+			->select( [ 'displaytitle' => 'pp.pp_value' ] );
 	}
 
 	/**
