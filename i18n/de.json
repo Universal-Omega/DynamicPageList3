@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"*surak*",
 			"Gero Scholz",
 			"Justman10000",
 			"Magiczocker",
@@ -44,7 +45,7 @@
 	"dpl_articlecount": "Diese Gruppe enthält {{PLURAL:$1|einen|$1}} Artikel.",
 	"action-dpl_param_update_rules": "um den Parameter „updaterules“ zu nutzen",
 	"action-dpl_param_delete_rules": "um den Parameter „deleterules“ zu nutzen",
-	"dpl_query_error": "Die DynamicPageList3-Erweiterung (Version $1) produzierte ein SQL-Statement, was zu einem Datenbank-Fehler führte.<br/>Der Grund könnte ein interner Fehler von DynamicPageList3 sein oder ein Fehler deinerseits; besonders beim Nutzen von Parametern wie „categoryregexp“ oder „titleregexp“. Die Verwendung von non-greedy *? matching patterns werden nicht unterstützt.<br/>Fehlermeldung:<br/><code>$2</code>",
+	"dpl_query_error": "Die Erweiterung DynamicPageList3 (Version $1) erzeugte eine SQL-Anweisung, die zu einem Datenbankfehler führte.<br/> Die Ursache kann ein interner Fehler von DynamicPageList3 oder ein Fehler Ihrerseits sein, insbesondere bei der Verwendung von Parametern wie 'categoryregexp' oder 'titleregexp'. Die Verwendung von nicht-gierigen Mustern wie <code>*?</code> wird nicht unterstützt.<br/> Die Fehlermeldung war:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Seiten, die DynamicPageList3 parser tag nutzen",
 	"dpl-intersection-tracking-category": "Seiten, die DynamicPageList3 Intersection parser tag nutzen",
 	"dpl-parserfunc-tracking-category": "Seiten, die DynamicPageList3 parser function nutzen",
