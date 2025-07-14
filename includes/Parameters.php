@@ -564,7 +564,7 @@ class Parameters extends ParametersData {
 				is_numeric( $parameter ) &&
 				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
-				$namespaceId = (int) $parameter;
+				$namespaceId = (int)$parameter;
 			}
 
 			if ( $namespaceId === false ) {
