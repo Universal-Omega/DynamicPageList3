@@ -210,10 +210,8 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Get Open References Conflict - See 'openreferences' parameter.
-	 *
-	 * @return bool
 	 */
-	public function isOpenReferencesConflict() {
+	public function isOpenReferencesConflict(): bool {
 		return $this->openReferencesConflict;
 	}
 
