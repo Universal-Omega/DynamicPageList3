@@ -11,6 +11,8 @@ use Wikimedia\Rdbms\IExpression;
 
 class Parameters extends ParametersData {
 
+	private readonly Config $config;
+
 	/** Set parameter options. */
 	private array $parameterOptions = [];
 
@@ -25,6 +27,7 @@ class Parameters extends ParametersData {
 
 	public function __construct() {
 		parent::__construct();
+		$this->config = Config::getInstance();
 		$this->setDefaults();
 	}
 
@@ -491,8 +494,8 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
-		$max = Config::getSetting( 'allowUnlimitedResults' ) ? INF :
-			Config::getSetting( 'maxResultCount' );
+		$max = $this->config->get( 'allowUnlimitedResults' ) ? INF :
+			$this->config->get( 'maxResultCount' );
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
 
@@ -504,7 +507,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _namespace( string $option ): bool {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-		$allowedNamespaces = Config::getSetting( 'allowedNamespaces' );
+		$allowedNamespaces = $this->config->get( 'allowedNamespaces' );
 		$data = $this->getParameter( 'namespace' ) ?? [];
 
 		foreach ( explode( '|', $option ) as $parameter ) {
