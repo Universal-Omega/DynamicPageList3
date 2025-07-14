@@ -305,7 +305,8 @@ class Query {
 
 		$dbType = $this->dbr->getType();
 		return match ( $dbType ) {
-			'mysql' => "CAST($expression AS CHAR CHARACTER SET {$this->charset}) COLLATE {$this->collation}",
+			'mysql' => mb_strtolower( $this->collation ) === 'binary' ? "CAST($expression AS BINARY)" :
+				"CAST($expression AS CHAR CHARACTER SET {$this->charset}) COLLATE {$this->collation}",
 			'postgres' => "$expression COLLATE \"{$this->collation}\"",
 			'sqlite' => "$expression COLLATE {$this->collation}",
 			default => $expression,
