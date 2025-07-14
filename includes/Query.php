@@ -386,7 +386,11 @@ class Query {
 	): string {
 		$dbType = $this->dbr->getType();
 		if ( is_string( $value ) ) {
-			$value = $this->dbr->addQuotes( mb_strtolower( $value, 'UTF-8' ) );
+			// For REGEXP we'll lowercase without quoting here since
+			// buildRegexpExpression already handles quoting.
+			$lowered = mb_strtolower( $value, 'UTF-8' );
+			$value = $operator === 'REGEXP' ? $lowered :
+				$this->dbr->addQuotes( $lowered );
 		} else {
 			$value = $value->toSql( $this->dbr );
 		}
@@ -420,6 +424,7 @@ class Query {
 
 	private function buildRegexpExpression( string $field, string $value ): string {
 		$dbType = $this->dbr->getType();
+		$value = $this->dbr->addQuotes( $value );
 		if ( $dbType === 'mysql' || $dbType === 'sqlite' ) {
 			return "$field REGEXP $value";
 		}
