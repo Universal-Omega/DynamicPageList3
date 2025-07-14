@@ -83,7 +83,7 @@ class Hooks {
 		static $version = null;
 
 		if ( $version === null ) {
-			$version = ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList4']['version'];
+			$version = ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
 		}
 
 		return $version;
