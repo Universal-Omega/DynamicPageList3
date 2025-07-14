@@ -895,7 +895,6 @@ class Query {
 	 */
 	private function _hiddencategories( mixed $option ): void {
 		// @TODO: Unfinished functionality! Never implemented by original author.
-		// $this->queryBuilder->leftJoin( 'page_props', null, [ 'pp_propname' => 'hiddencat', 'pp_page = page.page_id' ] );
 	}
 
 	/**
