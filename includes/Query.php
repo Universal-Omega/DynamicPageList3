@@ -467,9 +467,11 @@ class Query {
 		if ( !isset( $this->parametersProcessed['addlasteditor'] ) || !$this->parametersProcessed['addlasteditor'] ) {
 			$this->queryBuilder->table( 'revision', 'rev' );
 			$minTimestampSubquery = $this->queryBuilder->newSubquery()
-				->select( 'MIN(rev_aux_min.rev_timestamp)' )
+				->select( 'rev_aux_min.rev_timestamp' )
 				->from( 'revision', 'rev_aux_min' )
 				->where( 'rev_aux_min.rev_page = page.page_id' )
+				->orderBy( 'rev_aux_min.rev_timestamp', SelectQueryBuilder::SORT_ASC )
+				->limit( 1 )
 				->caller( __METHOD__ )
 				->getSQL();
 
@@ -574,9 +576,11 @@ class Query {
 		if ( !isset( $this->parametersProcessed['addauthor'] ) || !$this->parametersProcessed['addauthor'] ) {
 			$this->queryBuilder->table( 'revision', 'rev' );
 			$maxTimestampSubquery = $this->queryBuilder->newSubquery()
-				->select( 'MAX(rev_aux_max.rev_timestamp)' )
+				->select( 'rev_aux_max.rev_timestamp' )
 				->from( 'revision', 'rev_aux_max' )
 				->where( 'rev_aux_max.rev_page = page.page_id' )
+				->orderBy( 'rev_aux_max.rev_timestamp', SelectQueryBuilder::SORT_DESC )
+				->limit( 1 )
 				->caller( __METHOD__ )
 				->getSQL();
 
@@ -862,7 +866,7 @@ class Query {
 		] );
 
 		$minTimestampSinceSubquery = $this->queryBuilder->newSubquery()
-			->select( 'MIN(rev_aux_snc.rev_timestamp)' )
+			->select( 'rev_aux_snc.rev_timestamp' )
 			->from( 'revision', 'rev_aux_snc' )
 			->where( [
 				'rev_aux_snc.rev_page = page.page_id',
@@ -870,6 +874,8 @@ class Query {
 					$this->convertTimestamp( $option )
 				),
 			] )
+			->orderBy( 'rev_aux_snc.rev_timestamp', SelectQueryBuilder::SORT_ASC )
+			->limit( 1 )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -998,14 +1004,14 @@ class Query {
 		] );
 
 		$subquery = $this->queryBuilder->newSubquery()
-			->select( 'MAX(rev_aux_bef.rev_timestamp)' )
+			->select( 'rev_aux_bef.rev_timestamp' )
 			->from( 'revision', 'rev_aux_bef' )
 			->where( [
 				'rev_aux_bef.rev_page = page.page_id',
-				$this->dbr->expr( 'rev_aux_bef.rev_timestamp', '<',
-					$this->convertTimestamp( $option )
-				),
+				$this->dbr->expr( 'rev_aux_bef.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 			] )
+			->orderBy( 'rev_aux_bef.rev_timestamp', SelectQueryBuilder::SORT_DESC )
+			->limit( 1 )
 			->caller( __METHOD__ )
 			->getSQL();
 
@@ -1650,9 +1656,11 @@ class Query {
 
 					if ( !$this->revisionAuxWhereAdded ) {
 						$subquery = $this->queryBuilder->newSubquery()
-							->select( 'MIN(rev_aux.rev_timestamp)' )
+							->select( 'rev_aux.rev_timestamp' )
 							->from( 'revision', 'rev_aux' )
 							->where( 'rev_aux.rev_page = page.page_id' )
+							->orderBy( 'rev_aux.rev_timestamp', SelectQueryBuilder::SORT_ASC )
+							->limit( 1 )
 							->caller( __METHOD__ )
 							->getSQL();
 
@@ -1677,9 +1685,11 @@ class Query {
 							$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
 
 							$subqueryBuilder = $this->queryBuilder->newSubquery()
-								->select( 'MAX(rev_aux.rev_timestamp)' )
+								->select( 'rev_aux.rev_timestamp' )
 								->from( 'revision', 'rev_aux' )
-								->where( 'rev_aux.rev_page = page.page_id' );
+								->where( 'rev_aux.rev_page = page.page_id' )
+								->orderBy( 'rev_aux.rev_timestamp', SelectQueryBuilder::SORT_DESC )
+								->limit( 1 );
 
 							if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
 								$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
