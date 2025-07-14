@@ -834,7 +834,10 @@ class Query {
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
 		$this->_adduser( null, 'creation_rev' );
 
-		$this->queryBuilder->groupBy( 'creation_rev.rev_actor' );
+		$this->queryBuilder->groupBy( [
+			'creation_rev.rev_actor',
+			'creation_rev.rev_deleted',
+		] );
 
 		$this->queryBuilder->where( [
 			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
@@ -1767,6 +1770,7 @@ class Query {
 					break;
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
+					$this->queryBuilder->groupBy( 'rev.rev_actor' );
 					$this->queryBuilder->table( 'revision', 'rev' );
 					$this->_adduser( null, 'rev' );
 					break;
