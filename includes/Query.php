@@ -1877,7 +1877,7 @@ class Query {
 		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 		$this->queryBuilder->table( 'page_props', 'pp' );
 		$this->queryBuilder
-			->leftJoin( 'page_props', 'pp', 'pp.pp_page = page.page_id AND pp.pp_propname = ' . $this->dbr->addQuotes( 'displaytitle' ) )
+			->leftJoin( 'page_props', 'pp', 'pp.pp_page = page.page_id AND pp.pp_propname = displaytitle' )
 			->select( [ 'displaytitle' => 'pp.pp_value' ] );
 	}
 
