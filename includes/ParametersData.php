@@ -1171,7 +1171,7 @@ class ParametersData {
 
 		if ( Hooks::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
-				'default' => 'categoryadd',
+				'default' => [ 'categoryadd' ],
 				'values' => [
 					'categoryadd',
 					'lastedit',
