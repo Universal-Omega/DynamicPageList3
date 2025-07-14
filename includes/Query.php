@@ -235,6 +235,7 @@ class Query {
 				return $res;
 			} catch ( Exception $ex ) {
 				$errorMessage = $this->dbr->lastError();
+				$this->dbr->close();
 				if ( $errorMessage === '' ) {
 					$errorMessage = (string)$ex;
 				}
