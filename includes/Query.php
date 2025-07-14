@@ -768,7 +768,9 @@ class Query {
 		if ( $andCategories ) {
 			// Filter by IN() and count for AND
 			$conditions[] = $this->dbr->expr( "$tableAlias.cl_to", '=', $andCategories );
-			$this->queryBuilder->groupBy( 'page.page_id' );
+			$this->queryBuilder->groupBy(
+				[ 'page.page_id', 'page.page_namespace', 'page.page_title' ]
+			);
 			$this->queryBuilder->having( 'COUNT(DISTINCT ' . $tableAlias . '.cl_to) = ' .
 				count( array_unique( $andCategories ) )
 			);
@@ -787,30 +789,37 @@ class Query {
 	 * Set SQL for 'notcategory' parameter.
 	 */
 	private function _notcategory( array $option ): void {
-		$i = 0;
+		$tableAlias = 'ecl';
+		$this->queryBuilder->table( 'categorylinks', $tableAlias );
+
+		$ors = [];
 		foreach ( $option as $operatorType => $categories ) {
 			foreach ( $categories as $category ) {
-				$i++;
-				$tableAlias = "ecl{$i}";
-				$this->queryBuilder->table( 'categorylinks', $tableAlias );
 				$category = str_replace( ' ', '_', $category );
+
 				if ( $operatorType === IExpression::LIKE ) {
-					$category = new LikeValue( ...$this->splitLikePattern( $category ) );
-				}
-
-				if ( $operatorType === 'REGEXP' ) {
+					$expr = $this->dbr->expr(
+						"$tableAlias.cl_to",
+						$operatorType,
+						new LikeValue( ...$this->splitLikePattern( $category ) )
+					);
+				} elseif ( $operatorType === 'REGEXP' ) {
 					$expr = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
+				} else {
+					$expr = $this->dbr->expr( "$tableAlias.cl_to", $operatorType, $category );
 				}
 
-				$condition = $this->dbr->makeList( [
-					"page.page_id = $tableAlias.cl_from",
-					$expr ?? $this->dbr->expr( "$tableAlias.cl_to", $operatorType, $category ),
-				], IDatabase::LIST_AND );
-
-				$this->queryBuilder->leftJoin( 'categorylinks', $tableAlias, $condition );
-				$this->queryBuilder->where( [ "$tableAlias.cl_to" => null ] );
+				$ors[] = $expr;
 			}
 		}
+
+		$joinCondition = $this->dbr->makeList( [
+			"page.page_id = $tableAlias.cl_from",
+			$this->dbr->makeList( $ors, IDatabase::LIST_OR )
+		], IDatabase::LIST_AND );
+
+		$this->queryBuilder->leftJoin( 'categorylinks', $tableAlias, $joinCondition );
+		$this->queryBuilder->where( [ "$tableAlias.cl_to" => null ] );
 	}
 
 	/**
