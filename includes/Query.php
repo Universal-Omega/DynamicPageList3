@@ -214,18 +214,29 @@ class Query {
 		$this->queryBuilder->caller( $qname );
 
 		$doQuery = function () use ( $calcRows ): array {
-			$res = $this->queryBuilder->fetchResultSet();
-			$res = iterator_to_array( $res );
+			try {
+				$res = $this->queryBuilder->fetchResultSet();
+				$res = iterator_to_array( $res );
 
-			if ( $calcRows ) {
-				$res['count'] = $this->dbr->newSelectQueryBuilder()
-					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
-					->select( 'FOUND_ROWS()' )
-					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
-					->fetchField();
+				if ( $calcRows ) {
+					$res['count'] = $this->dbr->newSelectQueryBuilder()
+						->tables( $this->queryBuilder->getQueryInfo()['tables'] )
+						->select( 'FOUND_ROWS()' )
+						->caller( $this->queryBuilder->getQueryInfo()['caller'] )
+						->fetchField();
+				}
+
+				return $res;
+			} catch ( Exception $ex ) {
+				$errorMessage = $this->dbr->lastError();
+				if ( $errorMessage === '' ) {
+					$errorMessage = (string)$ex;
+				}
+
+				throw new LogicException( __METHOD__ . ': ' . wfMessage(
+					'dpl_query_error', Hooks::getVersion(), $errorMessage
+				)->text() );
 			}
-
-			return $res;
 		};
 
 		$poolCounterKey = 'nowait:dpl3-query:' . WikiMap::getCurrentWikiId();
@@ -1489,13 +1500,18 @@ class Query {
 
 		if ( $dbType === 'mysql' ) {
 			$res = $this->dbr->newSelectQueryBuilder()
-				->select( 'DEFAULT_COLLATE_NAME' )
+				->select( [
+					 'CHARACTER_SET_NAME',
+					 'DEFAULT_COLLATE_NAME',
+				] )
 				->from( 'information_schema.CHARACTER_SETS' )
 				->caller( __METHOD__ )
 				->fetchResultSet();
 
 			foreach ( $res as $row ) {
-				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ) {
+				if ( $option === mb_strtolower( $row->CHARACTER_SET_NAME ) ||
+					$option === mb_strtolower( $row->DEFAULT_COLLATE_NAME )
+				) {
 					$this->collation = $row->DEFAULT_COLLATE_NAME;
 					return;
 				}
