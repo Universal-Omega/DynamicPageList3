@@ -420,14 +420,12 @@ class Query {
 
 	private function buildRegexpExpression( string $field, string $value ): string {
 		$dbType = $this->dbr->getType();
-		$quotedValue = $this->dbr->addQuotes( $value );
-
-		if ( $dbType === 'mysql' ) {
-			return "$field REGEXP $quotedValue";
+		if ( $dbType === 'mysql' || $dbType === 'sqlite' ) {
+			return "$field REGEXP $value";
 		}
 
 		if ( $dbType === 'postgres' ) {
-			return "$field ~ $quotedValue";
+			return "$field ~ $value";
 		}
 
 		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
