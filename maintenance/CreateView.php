@@ -16,7 +16,7 @@ class CreateView extends LoggedUpdateMaintenance {
 		$this->addDescription( 'Handle creating DPL4\'s dpl_clview VIEW.' );
 		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
 
-		$this->requireExtension( 'DynamicPageList4' );
+		$this->requireExtension( 'DynamicPageList3' );
 	}
 
 	/**
@@ -25,7 +25,7 @@ class CreateView extends LoggedUpdateMaintenance {
 	 * @return string
 	 */
 	protected function getUpdateKey(): string {
-		return 'dynamic-page-list-3-create-view';
+		return 'dynamic-page-list-4-create-view';
 	}
 
 	/**
