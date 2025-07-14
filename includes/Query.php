@@ -1645,7 +1645,7 @@ class Query {
 					}
 					break;
 				case 'displaytitle':
-					$this->addOrderBy( 'displaytitle' );
+					$this->addOrderBy( 'sortkey' );
 					$this->queryBuilder->table( 'page_props', 'pp' );
 
 					$joinCondition = $this->dbr->makeList( [
@@ -1654,7 +1654,9 @@ class Query {
 					], IDatabase::LIST_AND );
 
 					$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
-						->select( [ 'displaytitle' => 'pp.pp_value' ] );
+						->select( [
+							'sortkey' => 'COALESCE(pp.pp_value, page.page_title)',
+						] );
 					break;
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
