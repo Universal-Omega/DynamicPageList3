@@ -215,7 +215,13 @@ class Query {
 
 		$doQuery = function () use ( $calcRows ): array {
 			try {
-				$res = $this->queryBuilder->fetchResultSet();
+				try {
+					$res = $this->queryBuilder->fetchResultSet();
+				} finally {
+					if ( $res ) {
+						$res->free();
+					}
+				}
 				$res = iterator_to_array( $res );
 
 				if ( $calcRows ) {
