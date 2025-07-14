@@ -607,9 +607,7 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addpagesize( bool $option ): void {
-		$this->queryBuilder->select( [
-			'page_len' => 'page.page_len',
-		] );
+		$this->queryBuilder->select( [ 'page_len' => 'page.page_len' ] );
 	}
 
 	/**
@@ -926,9 +924,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'imagelinks', 'il' );
-		$this->queryBuilder->select( [
-			'image_sel_title' => 'il.il_to',
-		] );
+		$this->queryBuilder->select( [ 'image_sel_title' => 'il.il_to' ] );
 
 		$where = [ 'page.page_id = il.il_from' ];
 		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
@@ -1474,7 +1470,7 @@ class Query {
 	 */
 	private function _order( string $option ): void {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
-		if ( $orderMethod && is_array( $orderMethod ) && $orderMethod[0] !== 'none' ) {
+		if ( $orderMethod && $orderMethod[0] !== 'none' ) {
 			if ( $option === 'descending' || $option === 'desc' ) {
 				$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 				return;
