@@ -1034,7 +1034,7 @@ class Query {
 				'plf' => 'pagelinks',
 			] );
 
-			if ( $this->isPageselFormatUsed() ) {
+			if ( $this->isFormatUsed( '%PAGESEL%' ) ) {
 				$this->queryBuilder->select( [
 					'sel_title' => 'pagesrc.page_title',
 					'sel_ns' => 'pagesrc.page_namespace',
@@ -1074,7 +1074,7 @@ class Query {
 			'pl' => 'pagelinks',
 		] );
 
-		if ( $this->isPageselFormatUsed() ) {
+		if ( $this->isFormatUsed( '%PAGESEL%' ) ) {
 			$this->queryBuilder->select( [
 				'sel_title' => 'lt.lt_title',
 				'sel_ns' => 'lt.lt_namespace',
@@ -1876,14 +1876,16 @@ class Query {
 
 		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 
-		$this->queryBuilder->table( 'page_props', 'pp' );
-		$joinCondition = $this->dbr->makeList( [
-			'pp.pp_page = page.page_id',
-			$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
-		], IDatabase::LIST_AND );
+		if ( $this->isFormatUsed( '%DISPLAYTITLE%' ) ) {
+			$this->queryBuilder->table( 'page_props', 'pp' );
+			$joinCondition = $this->dbr->makeList( [
+				'pp.pp_page = page.page_id',
+				$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
+			], IDatabase::LIST_AND );
 
-		$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
-			->select( [ 'displaytitle' => 'pp.pp_value' ] );
+			$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
+				->select( [ 'displaytitle' => 'pp.pp_value' ] );
+		}
 	}
 
 	/**
@@ -2095,14 +2097,13 @@ class Query {
 		$this->queryBuilder->where( "page.page_id NOT IN ({$subquery->getSQL()})" );
 	}
 
-	private function isPageselFormatUsed(): bool {
-		if ( $this->parameters->getParameter( 'listseparators' ) ) {
-			$format = implode( ',', $this->parameters->getParameter( 'listseparators' ) );
-			if ( strstr( $format, '%PAGESEL%' ) ) {
-				return true;
-			}
+	private function isFormatUsed( string $search ): bool {
+		$listSeparators = $this->parameters->getParameter( 'listseparators' );
+		if ( !$listSeparators ) {
+			return false;
 		}
 
-		return false;
+		$format = implode( ',', $listSeparators );
+		return str_contains( $format, $search );
 	}
 }
