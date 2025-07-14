@@ -51,6 +51,7 @@ class Query {
 
 	private string $direction = SelectQueryBuilder::SORT_ASC;
 
+	private ?string $charset = null;
 	private ?string $collation = null;
 
 	/**
@@ -297,11 +298,18 @@ class Query {
 		$this->direction = $direction;
 	}
 
-	/**
-	 * Return SQL prefixed collation.
-	 */
-	private function getCollateSQL(): ?string {
-		return ( $this->collation !== null ? 'COLLATE ' . $this->collation : null );
+	private function applyCollation( string $expression ): string {
+		if ( $this->collation === null ) {
+			return $expression;
+		}
+
+		$dbType = $this->dbr->getType();
+		return match ( $dbType ) {
+			'mysql' => "CONVERT($expression USING {$this->charset}) COLLATE {$this->collation}",
+			'postgres' => "$expression COLLATE \"{$this->collation}\"",
+			'sqlite' => "$expression COLLATE {$this->collation}",
+			default => $expression,
+		};
 	}
 
 	/**
@@ -1489,13 +1497,19 @@ class Query {
 
 		if ( $dbType === 'mysql' ) {
 			$res = $this->dbr->newSelectQueryBuilder()
-				->select( 'DEFAULT_COLLATE_NAME' )
+				->select( [
+					'CHARACTER_SET_NAME',
+					'DEFAULT_COLLATE_NAME',
+				] )
 				->from( 'information_schema.CHARACTER_SETS' )
 				->caller( __METHOD__ )
 				->fetchResultSet();
 
 			foreach ( $res as $row ) {
-				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ) {
+				if ( $option === mb_strtolower( $row->DEFAULT_COLLATE_NAME ) ||
+					$option === mb_strtolower( $row->CHARACTER_SET_NAME )
+				) {
+					$this->charset = $row->CHARACTER_SET_NAME;
 					$this->collation = $row->DEFAULT_COLLATE_NAME;
 					return;
 				}
@@ -1608,9 +1622,8 @@ class Query {
 							$this->queryBuilder->table( 'hit_counter' );
 							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
 								$this->queryBuilder->leftJoin(
-									'hit_counter', null, [
-										'hit_counter.page_id = page.page_id',
-									]
+									'hit_counter', null,
+									'hit_counter.page_id = page.page_id',
 								);
 							}
 						}
@@ -1684,7 +1697,7 @@ class Query {
 					};
 
 					$this->queryBuilder->select( [
-						'sortkey' => "CONCAT($alias.lt_namespace, $alias.lt_title) {$this->getCollateSQL()}",
+						'sortkey' => $this->applyCollation( "CONCAT($alias.lt_namespace, $alias.lt_title)" ),
 					] );
 					break;
 				case 'pagetouched':
@@ -1707,18 +1720,18 @@ class Query {
 					if ( count( $category ) + count( $notCategory ) > 0 ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ), true ) ) {
 							$this->queryBuilder->select( [
-								'sortkey' => "COALESCE(cl_head.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
+								'sortkey' => $this->applyCollation( "COALESCE(cl_head.cl_sortkey, $replaceConcat)" ),
 							] );
 						} else {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
 							$this->queryBuilder->select( [
-								'sortkey' => "COALESCE(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
+								'sortkey' => $this->applyCollation( "COALESCE(cl1.cl_sortkey, $replaceConcat)" ),
 							] );
 						}
 					} else {
 						$this->queryBuilder->select( [
-							'sortkey' => $replaceConcat . $this->getCollateSQL(),
+							'sortkey' => $this->applyCollation( $replaceConcat ),
 						] );
 					}
 					break;
@@ -1730,24 +1743,26 @@ class Query {
 					}
 
 					$this->queryBuilder->select( [
-						'sortkey' => "page.page_title {$this->getCollateSQL()}",
+						'sortkey' => $this->applyCollation( 'page.page_title' ),
 					] );
 					break;
 				case 'title':
 					$this->addOrderBy( 'sortkey' );
 					if ( $this->parameters->getParameter( 'openreferences' ) ) {
 						$this->queryBuilder->select( [
-							'sortkey' => "REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
-								 $namespaceIdToText . ", ':')), lt_title), '_', ' ') " .
-								 $this->getCollateSQL(),
+							'sortkey' => $this->applyCollation(
+								"REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
+								 $namespaceIdToText . ", ':')), lt_title), '_', ' ')"
+							),
 						] );
 					} else {
 						// Generate sortkey like for category links.
 						// UTF-8 created problems with non-utf-8 MySQL databases.
 						$this->queryBuilder->select( [
-							'sortkey' => "REPLACE(CONCAT(IF(" .
+							'sortkey' => $this->applyCollation( "REPLACE(CONCAT(IF(" .
 								"page.page_namespace = 0, '', CONCAT(" . $namespaceIdToText . ", ':')), " .
-								"page.page_title), '_', ' ') " . $this->getCollateSQL(),
+								"page.page_title), '_', ' ')"
+							),
 						] );
 					}
 					break;
