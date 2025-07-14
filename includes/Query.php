@@ -618,9 +618,7 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addpagetoucheddate( bool $option ): void {
-		$this->queryBuilder->select( [
-			'page_touched' => 'page.page_touched',
-		] );
+		$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 	}
 
 	/**
@@ -1788,7 +1786,7 @@ class Query {
 	 * Set SQL for 'stablepages' parameter.
 	 */
 	private function _stablepages( string $option ): void {
-		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
 			// Do not add this again if 'qualitypages' has already added it.
 			if ( !$this->parametersProcessed['qualitypages'] ) {
 				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
@@ -1809,7 +1807,7 @@ class Query {
 	 * Set SQL for 'qualitypages' parameter.
 	 */
 	private function _qualitypages( string $option ): void {
-		if ( function_exists( 'efLoadFlaggedRevs' ) ) {
+		if ( ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
 			// Do not add this again if 'stablepages' has already added it.
 			if ( !$this->parametersProcessed['stablepages'] ) {
 				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
