@@ -1644,6 +1644,18 @@ class Query {
 						$this->addOrderBy( 'hit_counter.page_counter' );
 					}
 					break;
+				case 'displaytitle':
+					$this->addOrderBy( 'displaytitle' );
+					$this->queryBuilder->table( 'page_props', 'pp' );
+
+					$joinCondition = $this->dbr->makeList( [
+						'pp.pp_page = page.page_id',
+						$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
+					], IDatabase::LIST_AND );
+
+					$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
+						->select( [ 'displaytitle' => 'pp.pp_value' ] );
+					break;
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
 					$this->queryBuilder->table( 'revision', 'rev' );
