@@ -1246,7 +1246,7 @@ class Query {
 			$ors = [];
 			foreach ( $patterns as $pattern ) {
 				$ors[] = $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE,
-					new LikeValue( $pattern )
+					new LikeValue( ...$this->splitLikePattern( $pattern ) )
 				);
 			}
 
