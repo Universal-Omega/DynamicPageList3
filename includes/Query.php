@@ -1534,17 +1534,21 @@ class Query {
 			return;
 		}
 
-		$services = MediaWikiServices::getInstance();
-		$namespaces = $services->getContentLanguage()->getNamespaces();
+		// Don't do this unless we are actually using it.
+		$namespaceIdToText = '';
+		if ( in_array( 'sortkey', $option, true ) || in_array( 'title', $option, true ) ) {
+			$services = MediaWikiServices::getInstance();
+			$namespaces = $services->getContentLanguage()->getNamespaces();
 
-		$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
-		$namespaceIdToText = 'CASE page.page_namespace';
+			$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
+			$namespaceIdToText = 'CASE page.page_namespace';
 
-		foreach ( $namespaces as $id => $name ) {
-			$namespaceIdToText .= ' WHEN ' . (int)$id . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
+			foreach ( $namespaces as $id => $name ) {
+				$namespaceIdToText .= ' WHEN ' . (int)$id . ' THEN ' . $this->dbr->addQuotes( $name . ':' );
+			}
+
+			$namespaceIdToText .= ' END';
 		}
-
-		$namespaceIdToText .= ' END';
 
 		foreach ( $option as $orderMethod ) {
 			switch ( $orderMethod ) {
@@ -1762,62 +1766,52 @@ class Query {
 	 * Set SQL for 'redirects' parameter.
 	 */
 	private function _redirects( string $option ): void {
-		if ( !$this->parameters->getParameter( 'openreferences' ) ) {
-			switch ( $option ) {
-				case 'only':
-					$this->queryBuilder->where( [
-						'page.page_is_redirect' => 1,
-					] );
-					break;
-				case 'exclude':
-					$this->queryBuilder->where( [
-						'page.page_is_redirect' => 0,
-					] );
-					break;
-			}
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			return;
 		}
+
+		$this->queryBuilder->where( match ( $option ) {
+			'only' => [ 'page.page_is_redirect' => 1 ],
+			'exclude' => [ 'page.page_is_redirect' => 0 ],
+		} );
 	}
 
 	/**
 	 * Set SQL for 'stablepages' parameter.
 	 */
 	private function _stablepages( string $option ): void {
-		if ( ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
-			// Do not add this again if 'qualitypages' has already added it.
-			if ( !$this->parametersProcessed['qualitypages'] ) {
-				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
-			}
-
-			switch ( $option ) {
-				case 'only':
-					$this->queryBuilder->where( 'fp_stable IS NOT NULL' );
-					break;
-				case 'exclude':
-					$this->queryBuilder->where( [ 'fp_stable' => null ] );
-					break;
-			}
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
+			return;
 		}
+
+		// Do not add this again if 'qualitypages' has already added it.
+		if ( !$this->parametersProcessed['qualitypages'] ) {
+			$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
+		}
+
+		$this->queryBuilder->where( match ( $option ) {
+			'only' => $this->dbr->expr( 'fp_stable', '!=', null ),
+			'exclude' => [ 'fp_stable' => null ],
+		} );
 	}
 
 	/**
 	 * Set SQL for 'qualitypages' parameter.
 	 */
 	private function _qualitypages( string $option ): void {
-		if ( ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
-			// Do not add this again if 'stablepages' has already added it.
-			if ( !$this->parametersProcessed['stablepages'] ) {
-				$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
-			}
-
-			switch ( $option ) {
-				case 'only':
-					$this->queryBuilder->where( 'fp_quality >= 1' );
-					break;
-				case 'exclude':
-					$this->queryBuilder->where( [ 'fp_quality' => 0 ] );
-					break;
-			}
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'FlaggedRevs' ) ) {
+			return;
 		}
+
+		// Do not add this again if 'stablepages' has already added it.
+		if ( !$this->parametersProcessed['stablepages'] ) {
+			$this->queryBuilder->leftJoin( 'flaggedpages', null, 'page_id = fp_page_id' );
+		}
+
+		$this->queryBuilder->where( match ( $option ) {
+			'only' => $this->dbr->expr( 'fp_quality', '>=', 1 ),
+			'exclude' => [ 'fp_quality' => 0 ],
+		} );
 	}
 
 	/**
