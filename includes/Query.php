@@ -1536,6 +1536,18 @@ class Query {
 			throw new LogicException( "No default order collation found matching $option." );
 		}
 
+		if ( $dbType === 'sqlite' ) {
+			// SQLite built-in collations are BINARY, NOCASE, RTRIM
+			$validCollations = [ 'binary', 'nocase', 'rtrim' ];
+
+			if ( in_array( $option, $validCollations, true ) ) {
+				$this->collation = strtoupper( $option );
+				return;
+			}
+
+			throw new LogicException( "No default order collation found matching $option." );
+		}
+
 		// Not supported on SQLite or mystery engines
 		throw new LogicException( 'Order collation is not supported on the database type you are using.' );
 	}
