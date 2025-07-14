@@ -1645,18 +1645,17 @@ class Query {
 					}
 					break;
 				case 'displaytitle':
-					$this->addOrderBy( 'sortkey' );
-					$this->queryBuilder->table( 'page_props', 'pp' );
+					$this->addOrderBy( 'COALESCE(displaytitle, page.page_title)' );
+					if ( !isset( $this->queryBuilder->getQueryInfo()['fields']['displaytitle'] ) ) {
+						$this->queryBuilder->table( 'page_props', 'pp' );
+						$joinCondition = $this->dbr->makeList( [
+							'pp.pp_page = page.page_id',
+							$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
+						], IDatabase::LIST_AND );
 
-					$joinCondition = $this->dbr->makeList( [
-						'pp.pp_page = page.page_id',
-						$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
-					], IDatabase::LIST_AND );
-
-					$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
-						->select( [
-							'sortkey' => 'COALESCE(pp.pp_value, page.page_title)',
-						] );
+						$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition );
+						$this->queryBuilder->select( [ 'displaytitle' => 'pp.pp_value' ] );
+					}
 					break;
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
