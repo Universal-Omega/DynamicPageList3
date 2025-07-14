@@ -819,10 +819,10 @@ class LST {
 								'|%USER%=' . $user . '|%ARGS%=' .
 								str_replace(
 									'|', '§',
-									preg_replace(
-										'/[}]+/', '}',
-										preg_replace(
-											'/[{]+/', '{',
+									str_replace(
+										'}', '❵',
+										str_replace(
+											'{', '❴',
 											substr( $invocation, strlen( $template2 ) + 2 )
 										)
 									)
