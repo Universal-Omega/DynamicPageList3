@@ -219,6 +219,10 @@ class Article {
 				wfMessage( 'rev-deleted-user' )->escaped() : $revUser->getName();
 		}
 
+		if ( isset( $row->displaytitle ) ) {
+			var_dump( $row->displaytitle );
+		}
+
 		$titleText = $title->getText();
 		if ( $parameters->getParameter( 'shownamespace' ) === true ) {
 			$titleText = $title->getPrefixedText();
