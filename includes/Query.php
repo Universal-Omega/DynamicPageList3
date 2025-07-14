@@ -834,6 +834,8 @@ class Query {
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
 		$this->_adduser( null, 'creation_rev' );
 
+		$this->queryBuilder->groupBy( 'creation_rev.rev_actor' );
+
 		$this->queryBuilder->where( [
 			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
 			'creation_rev.rev_page = page.page_id',
@@ -1629,6 +1631,7 @@ class Query {
 					break;
 				case 'firstedit':
 					$this->addOrderBy( 'rev.rev_timestamp' );
+					$this->queryBuilder->groupBy( 'rev.rev_timestamp' );
 					$this->queryBuilder->table( 'revision', 'rev' );
 					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
@@ -1654,6 +1657,7 @@ class Query {
 						$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 					} else {
 						$this->addOrderBy( 'rev.rev_timestamp' );
+						$this->queryBuilder->groupBy( 'rev.rev_timestamp' );
 						$this->queryBuilder->table( 'revision', 'rev' );
 						$this->queryBuilder->select( 'rev.rev_timestamp' );
 
