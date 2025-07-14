@@ -721,7 +721,11 @@ class Query {
 	 * Set SQL for 'category' parameter. This includes 'category', 'categorymatch', and 'categoryregexp'.
 	 */
 	private function _category( array $option ): void {
-		$i = 0;
+		$andCategories = [];
+		$orExpressions = [];
+		$tableAlias = 'cl';
+		$tableName = 'categorylinks';
+
 		foreach ( $option as $comparisonType => $operatorTypes ) {
 			foreach ( $operatorTypes as $operatorType => $categoryGroups ) {
 				foreach ( $categoryGroups as $categories ) {
@@ -729,59 +733,53 @@ class Query {
 						continue;
 					}
 
-					$tableName = in_array( '', $categories, true ) ? 'dpl_clview' : 'categorylinks';
-
-					if ( $operatorType === 'AND' ) {
-						foreach ( $categories as $category ) {
-							$i++;
-							$tableAlias = "cl{$i}";
-							$this->queryBuilder->table( $tableName, $tableAlias );
-							$category = str_replace( ' ', '_', $category );
-							if ( $comparisonType === IExpression::LIKE ) {
-								$category = new LikeValue( ...$this->splitLikePattern( $category ) );
-							}
-
-							if ( $comparisonType === 'REGEXP' ) {
-								$expr = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
-							}
-
-							$condition = $this->dbr->makeList( [
-								"page.page_id = $tableAlias.cl_from",
-								$expr ?? $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category ),
-							], IDatabase::LIST_AND );
-
-							$this->queryBuilder->join( $tableName, $tableAlias, $condition );
-						}
-						continue;
+					$currentTable = in_array( '', $categories, true ) ? 'dpl_clview' : 'categorylinks';
+					if ( $currentTable !== $tableName ) {
+						$tableName = $currentTable;
 					}
 
-					if ( $operatorType === 'OR' ) {
-						$i++;
-						$tableAlias = "cl{$i}";
-						$this->queryBuilder->table( $tableName, $tableAlias );
+					foreach ( $categories as $category ) {
+						$category = str_replace( ' ', '_', $category );
 
-						$ors = [];
-						foreach ( $categories as $category ) {
-							$category = str_replace( ' ', '_', $category );
-							if ( $comparisonType === IExpression::LIKE ) {
-								$category = new LikeValue( ...$this->splitLikePattern( $category ) );
-							}
-							if ( $comparisonType === 'REGEXP' ) {
-								$ors[] = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
-								continue;
-							}
-							$ors[] = $this->dbr->expr( "$tableAlias.cl_to", $comparisonType, $category );
+						if ( $comparisonType === IExpression::LIKE ) {
+							$expr = $this->dbr->expr( "$tableAlias.cl_to", $comparisonType,
+								new LikeValue( ...$this->splitLikePattern( $category ) )
+							);
+						} elseif ( $comparisonType === 'REGEXP' ) {
+							$expr = $this->buildRegexpExpression( "$tableAlias.cl_to", $category );
+						} else {
+							$expr = $this->dbr->expr( "$tableAlias.cl_to", '=', $category );
 						}
 
-						$condition = $this->dbr->makeList( [
-							"page.page_id = $tableAlias.cl_from",
-							$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-						], IDatabase::LIST_AND );
-
-						$this->queryBuilder->join( $tableName, $tableAlias, $condition );
+						if ( $operatorType === 'AND' ) {
+							$andCategories[] = $category;
+						} elseif ( $operatorType === 'OR' ) {
+							$orExpressions[] = $expr;
+						}
 					}
 				}
 			}
+		}
+
+		$this->queryBuilder->table( $tableName, $tableAlias );
+		$this->queryBuilder->join( $tableName, $tableAlias, "page.page_id = $tableAlias.cl_from" );
+
+		$conditions = [];
+		if ( $andCategories ) {
+			// Filter by IN() and count for AND
+			$conditions[] = $this->dbr->expr( "$tableAlias.cl_to", '=', $andCategories );
+			$this->queryBuilder->groupBy( 'page.page_id' );
+			$this->queryBuilder->having( 'COUNT(DISTINCT ' . $tableAlias . '.cl_to) = ' .
+				count( array_unique( $andCategories ) )
+			);
+		}
+
+		if ( $orExpressions ) {
+			$conditions[] = $this->dbr->makeList( $orExpressions, IDatabase::LIST_OR );
+		}
+
+		if ( $conditions ) {
+			$this->queryBuilder->where( $this->dbr->makeList( $conditions, IDatabase::LIST_AND ) );
 		}
 	}
 
