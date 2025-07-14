@@ -1721,6 +1721,7 @@ class Query {
 						} else {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
+							$this->queryBuilder->groupBy( 'cl.cl_sortkey' );
 							$this->queryBuilder->select( [
 								'sortkey' => "COALESCE(cl.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
