@@ -2,7 +2,7 @@
 	"name": "universal-omega/dynamic-page-list4",
 	"type": "mediawiki-extension",
 	"description": "The DynamicPageList4 extension allows creating lists of other articles based on their category, namespace, title, references or template usage and include contents or arguments of template calls of those articles into your page.",
-	"homepage": "https://www.mediawiki.org/wiki/Extension:DynamicPageList4",
+	"homepage": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
 	"license": "GPL-3.0-or-later",
 	"require": {
 		"composer/installers": ">=1.0.1"

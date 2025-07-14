@@ -1,24 +1,24 @@
 # DynamicPageList4
 
-The **DynamicPageList4** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://dpl4.wikitide.org).
+The **DynamicPageList4** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://dpl3.wikitide.org).
 
 When invoked with a basic set of selection parameters DPL4 displays a list of pages in one or more categories. Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles. Output takes a variety of forms, some of which incorporate elements of selected articles.
 
 This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code>&lt;DPL&gt;</nowiki></code>. A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
 
-Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [DPL:Parameters: Other Parameters](https://dpl4.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
+Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [DPL:Parameters: Other Parameters](https://dpl3.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
-* Manual and Complete Documentation: [Documentation](https://dpl4.wikitide.org)
-* Source Code: [Source code at GitHub](https://github.com/Universal-Omega/DynamicPageList4)
-* Bugs and Feature Requests: [Issues at GitHub](https://github.com/Universal-Omega/DynamicPageList4/issues)
+* Manual and Complete Documentation: [Documentation](https://dpl3.wikitide.org)
+* Source Code: [Source code at GitHub](https://github.com/Universal-Omega/DynamicPageList3)
+* Bugs and Feature Requests: [Issues at GitHub](https://github.com/Universal-Omega/DynamicPageList3/issues)
 * Licensing: DynamicPageList4 is released under [GNU General Public License, version 3](https://opensource.org/licenses/GPL-3.0).
 
 
 ## Installation
-Please see the [releases page](https://github.com/Universal-Omega/DynamicPageList4/releases) for the latest releases.
+Please see the [releases page](https://github.com/Universal-Omega/DynamicPageList3/releases) for the latest releases.
 
 ## Configuration
-These are DPL4's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList4#Configuration)**.
+These are DPL4's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3#Configuration)**.
 
 **Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>. This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
 
@@ -59,10 +59,10 @@ DynamicPageList4 has many features which are unlocked based on the maximum funct
 ### Extended DPL4 Functionality
 Extended DPL4 is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code>&lt;DPL&gt; .... &lt;/DPL&gt;</code>.
 
-*See [Manual - **General Usage and Invocation Syntax**](https://dpl4.wikitide.org/wiki/General_usage_and_invocation_syntax) and [DPL:Parameters: **Criteria for Page Selection**](https://dpl4.wikitide.org/wiki/Criteria_for_page_selection)*
+*See [Manual - **General Usage and Invocation Syntax**](https://dpl3.wikitide.org/wiki/General_usage_and_invocation_syntax) and [DPL:Parameters: **Criteria for Page Selection**](https://dpl3.wikitide.org/wiki/Criteria_for_page_selection)*
 
 ### Backwards Compatibility
-Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>. Further information can be found on the [Compatibility manual page](https://dpl4.wikitide.org/wiki/Compatibility).
+Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>. Further information can be found on the [Compatibility manual page](https://dpl3.wikitide.org/wiki/Compatibility).
 
 ## Usage Philosophy and Overview
 With the assumption there are some articles writtne about *countries* those articles will typically have three things in common:
@@ -138,4 +138,4 @@ DPL4's code execution and database access is typically fast for typical category
 
 ## See Also
 ### Further Reading
-DPL4 can do much more than we can explain here. A complete **[manual](https://dpl4.wikitide.org)** is available with full parameter documentation.
+DPL4 can do much more than we can explain here. A complete **[manual](https://dpl3.wikitide.org)** is available with full parameter documentation.

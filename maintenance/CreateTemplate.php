@@ -57,8 +57,8 @@ class CreateTemplate extends LoggedUpdateMaintenance {
 
 			$contentText = '<noinclude>This page was automatically created. It serves as an anchor page for all ' .
 				"'''[[Special:WhatLinksHere/Template:Extension_DPL|invocations]]''' of " .
-				'[https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList4 ' .
-				'Extension:DynamicPageList4].</noinclude>';
+				'[https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3 ' .
+				'Extension:DynamicPageList3].</noinclude>';
 
 			$updater->setContent(
 				SlotRecord::MAIN,
