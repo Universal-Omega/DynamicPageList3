@@ -17,6 +17,8 @@ class Article {
 	 */
 	public $mTitle;
 
+	public string $mDisplayTitle = '';
+
 	/**
 	 * Namespace ID
 	 *
@@ -220,7 +222,7 @@ class Article {
 		}
 
 		if ( isset( $row->displaytitle ) ) {
-			var_dump( $row->displaytitle );
+			$this->mDisplayTitle = $row->displaytitle;
 		}
 
 		$titleText = $title->getText();
