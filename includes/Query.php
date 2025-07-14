@@ -6,7 +6,6 @@ use DateInterval;
 use DateTime;
 use Exception;
 use LogicException;
-use MediaWiki\Config\Config as MainConfig;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -27,8 +26,8 @@ class Query {
 
 	use ExternalDomainPatternParser;
 
+	private Config $config;
 	private IReadableDatabase $dbr;
-	private MainConfig $mainConfig;
 	private Parameters $parameters;
 	private SelectQueryBuilder $queryBuilder;
 	private UserFactory $userFactory;
@@ -64,8 +63,8 @@ class Query {
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
 			->getReplicaDatabase( false, 'dpl3' );
 
+		$this->config = Config::getInstance();
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
-		$this->mainConfig = MediaWikiServices::getInstance()->getMainConfig();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
 
@@ -98,10 +97,10 @@ class Query {
 		}
 
 		// Never add nonincludeable namespaces.
-		if ( $this->mainConfig->get( MainConfigNames::NonincludableNamespaces ) ) {
+		if ( $this->config->get( MainConfigNames::NonincludableNamespaces ) ) {
 			$this->queryBuilder->andWhere( $this->dbr->expr(
 				'page.page_namespace', '!=',
-				$this->mainConfig->get( MainConfigNames::NonincludableNamespaces )
+				$this->config->get( MainConfigNames::NonincludableNamespaces )
 			) );
 		}
 
@@ -185,7 +184,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Hooks::getDebugLevel() >= 4 && $this->mainConfig->get( MainConfigNames::DebugDumpSql ) ) {
+			if ( Hooks::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $ex ) {
@@ -200,8 +199,8 @@ class Query {
 		}
 
 		// Partially taken from intersection
-		$queryCacheTime = Config::getSetting( 'queryCacheTime' );
-		$maxQueryTime = Config::getSetting( 'maxQueryTime' );
+		$queryCacheTime = $this->config->get( 'queryCacheTime' );
+		$maxQueryTime = $this->config->get( 'maxQueryTime' );
 
 		if ( $maxQueryTime ) {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );

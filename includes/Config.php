@@ -2,65 +2,34 @@
 
 namespace MediaWiki\Extension\DynamicPageList3;
 
-use MediaWiki\Config\ConfigException;
+use MediaWiki\Config\GlobalVarConfig;
+use MediaWiki\Config\HashConfig;
+use MediaWiki\Config\MultiConfig;
 
-class Config {
-	/**
-	 * Configuration Settings
-	 *
-	 * @var array
-	 */
-	private static $settings = [];
+class Config extends MultiConfig {
 
-	/**
-	 * Initialize the static object with settings.
-	 *
-	 * @param array|false $settings
-	 */
-	public static function init( $settings = false ) {
-		if ( $settings === false ) {
-			global $wgDplSettings;
+	private static ?self $instance = null;
 
-			$settings = $wgDplSettings ?? false;
-		}
+	public function __construct() {
+		$globalConfig = new GlobalVarConfig();
 
-		if ( !is_array( $settings ) ) {
-			throw new ConfigException( __METHOD__ . ': Invalid settings passed.' );
-		}
+		$dplSettings = $globalConfig->has( 'DplSettings' )
+			? $globalConfig->get( 'DplSettings' )
+			: [];
 
-		self::$settings = array_merge( self::$settings, $settings );
+		parent::__construct( [
+			new HashConfig( $dplSettings ),
+			$globalConfig
+		] );
 	}
 
-	/**
-	 * Return a single setting.
-	 *
-	 * @param string $setting
-	 * @return mixed|null
-	 */
-	public static function getSetting( $setting ) {
-		return ( self::$settings[$setting] ?? null );
+	public static function getInstance(): self {
+		self::$instance ??= new self();
+		return self::$instance;
 	}
 
-	/**
-	 * Return a all settings.
-	 *
-	 * @return array
-	 */
-	public static function getAllSettings() {
-		return self::$settings;
-	}
-
-	/**
-	 * Set a single setting.
-	 *
-	 * @param string $setting
-	 * @param mixed|null $value
-	 */
-	public static function setSetting( $setting, $value = null ) {
-		if ( !is_string( $setting ) || $setting === '' ) {
-			throw new ConfigException( __METHOD__ . ': Setting keys can not be blank.' );
-		}
-
-		self::$settings[$setting] = $value;
+	public static function getSetting( string $setting ): mixed {
+		$config = self::getInstance();
+		return $config->get( $setting );
 	}
 }

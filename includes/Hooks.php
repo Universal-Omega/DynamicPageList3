@@ -132,8 +132,6 @@ class Hooks {
 	 * Common initializer for usage from parser entry points.
 	 */
 	private static function init() {
-		Config::init();
-
 		if ( !self::$createdLinks ) {
 			self::$createdLinks = [
 				'resetLinks' => false,
