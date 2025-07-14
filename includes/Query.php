@@ -553,7 +553,7 @@ class Query {
 	private function _addfirstcategorydate( bool $option ): void {
 		// @TODO: This should be programmatically determining which
 		// categorylink table to use instead of assuming the first one.
-		$this->queryBuilder->select( [ 'cl_timestamp' => 'cl1.cl_timestamp' ] );
+		$this->queryBuilder->select( [ 'cl_timestamp' => 'cl.cl_timestamp' ] );
 	}
 
 	/**
@@ -1599,7 +1599,7 @@ class Query {
 					break;
 				case 'categoryadd':
 					// @TODO: See TODO in __addfirstcategorydate().
-					$this->addOrderBy( 'cl1.cl_timestamp' );
+					$this->addOrderBy( 'cl.cl_timestamp' );
 					break;
 				case 'counter':
 					if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
@@ -1713,7 +1713,7 @@ class Query {
 							// This runs on the assumption that at least one category parameter
 							// was used and that numbering starts at 1.
 							$this->queryBuilder->select( [
-								'sortkey' => "COALESCE(cl1.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
+								'sortkey' => "COALESCE(cl.cl_sortkey, $replaceConcat) {$this->getCollateSQL()}",
 							] );
 						}
 					} else {
