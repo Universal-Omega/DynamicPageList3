@@ -222,7 +222,7 @@ class Article {
 		}
 
 		if ( isset( $row->displaytitle ) ) {
-			$this->mDisplayTitle = $row->displaytitle;
+			$article->mDisplayTitle = $row->displaytitle;
 		}
 
 		$titleText = $title->getText();
