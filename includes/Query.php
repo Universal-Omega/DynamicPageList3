@@ -1875,9 +1875,14 @@ class Query {
 		}
 
 		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+
 		$this->queryBuilder->table( 'page_props', 'pp' );
-		$this->queryBuilder
-			->leftJoin( 'page_props', 'pp', "pp.pp_page = page.page_id AND pp.pp_propname = 'displaytitle'" )
+		$joinCondition = $this->dbr->makeList( [
+			'pp.pp_page = page.page_id',
+			$this->dbr->expr( 'pp.pp_propname', '=', 'displaytitle' ),
+		], IDatabase::LIST_AND );
+
+		$this->queryBuilder->leftJoin( 'page_props', 'pp', $joinCondition )
 			->select( [ 'displaytitle' => 'pp.pp_value' ] );
 	}
 
