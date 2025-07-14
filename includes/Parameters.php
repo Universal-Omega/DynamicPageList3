@@ -8,6 +8,7 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use PermissionsError;
 use StringUtils;
+use Wikimedia\Rdbms\IExpression;
 
 class Parameters extends ParametersData {
 	/**
@@ -593,11 +594,13 @@ class Parameters extends ParametersData {
 		}
 
 		$data = $this->getParameter( 'category' );
-		if ( isset( $data['LIKE'] ) && !is_array( $data['LIKE'][$operator] ) ) {
-			$data['LIKE'][$operator] = [];
+		if ( isset( $data[IExpression::LIKE] ) &&
+			!is_array( $data[IExpression::LIKE][$operator] )
+		) {
+			$data[IExpression::LIKE][$operator] = [];
 		}
 
-		$data['LIKE'][$operator][] = $newMatches;
+		$data[IExpression::LIKE][$operator][] = $newMatches;
 
 		$this->setParameter( 'category', $data );
 		$this->setOpenReferencesConflict( true );
@@ -656,12 +659,12 @@ class Parameters extends ParametersData {
 	public function _notcategorymatch( $option ) {
 		$data = $this->getParameter( 'notcategory' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data[IExpression::LIKE] ?? false ) ) {
+			$data[IExpression::LIKE] = [];
 		}
 
 		$newMatches = explode( '|', $option );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'notcategory', $data );
 		$this->setOpenReferencesConflict( true );
@@ -960,8 +963,8 @@ class Parameters extends ParametersData {
 	public function _titleregexp( $option ) {
 		$data = $this->getParameter( 'title' );
 
-		if ( !is_array( $data['regexp'] ?? false ) ) {
-			$data['regexp'] = [];
+		if ( !is_array( $data['REGEXP'] ?? false ) ) {
+			$data['REGEXP'] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
@@ -970,7 +973,7 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
-		$data['regexp'] = array_merge( $data['regexp'], $newMatches );
+		$data['REGEXP'] = array_merge( $data['REGEXP'], $newMatches );
 
 		$this->setParameter( 'title', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -987,12 +990,12 @@ class Parameters extends ParametersData {
 	public function _titlematch( $option ) {
 		$data = $this->getParameter( 'title' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data[IExpression::LIKE] ?? false ) ) {
+			$data[IExpression::LIKE] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'title', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -1009,12 +1012,12 @@ class Parameters extends ParametersData {
 	public function _nottitleregexp( $option ) {
 		$data = $this->getParameter( 'nottitle' );
 
-		if ( !is_array( $data['regexp'] ?? null ) ) {
-			$data['regexp'] = [];
+		if ( !is_array( $data['REGEXP'] ?? null ) ) {
+			$data['REGEXP'] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['regexp'] = array_merge( $data['regexp'], $newMatches );
+		$data['REGEXP'] = array_merge( $data['REGEXP'], $newMatches );
 
 		if ( !$this->isRegexValid( $newMatches, true ) ) {
 			return false;
@@ -1035,12 +1038,12 @@ class Parameters extends ParametersData {
 	public function _nottitlematch( $option ) {
 		$data = $this->getParameter( 'nottitle' );
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
+		if ( !is_array( $data[IExpression::LIKE] ?? false ) ) {
+			$data[IExpression::LIKE] = [];
 		}
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
 		$this->setSelectionCriteriaFound( true );
