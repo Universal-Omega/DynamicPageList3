@@ -333,7 +333,7 @@ class Parameters extends ParametersData {
 
 		[ $parameters, $operator ] = str_contains( $option, '|' )
 			? [ explode( '|', $option ), 'OR' ]
-			: [ explode( '&', $option ), 'AND' ];
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		foreach ( $parameters as $parameter ) {
 			$parameter = trim( $parameter );
@@ -423,7 +423,7 @@ class Parameters extends ParametersData {
 	public function _categorymatch( string $option ): bool {
 		[ $newMatches, $operator ] = str_contains( $option, '|' )
 			? [ explode( '|', $option ), 'OR' ]
-			: [ explode( '&', $option ), 'AND' ];
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		$data = $this->getParameter( 'category' ) ?? [];
 		$data[IExpression::LIKE][$operator] ??= [];
