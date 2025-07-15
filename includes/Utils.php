@@ -6,8 +6,8 @@ use MediaWiki\Registration\ExtensionRegistry;
 
 class Utils {
 
-    private static bool $likeIntersection = false;
-    private static int $debugLevel = 0;
+	private static bool $likeIntersection = false;
+	private static int $debugLevel = 0;
 
 	public static function getVersion(): string {
 		static $version;
