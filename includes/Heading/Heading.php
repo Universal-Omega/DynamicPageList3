@@ -178,9 +178,11 @@ class Heading {
 		$output = '';
 
 		if ( $headings ) {
-			$output .= $columns !== 1 || $rows !== 1
-				? $this->formatWithColumnsAndRows( $articles, $lister, $headings, $columns, $rows, $rowColFormat )
-				: $this->formatWithHeadingsOnly( $articles, $lister, $headings );
+			if ( $columns !== 1 || $rows !== 1 ) {
+				$output .= $this->formatWithColumnsAndRows( $articles, $lister, $headings, $columns, $rows, $rowColFormat );
+			} else {
+				$output .= $this->formatWithHeadingsOnly( $articles, $lister, $headings );
+			}
 		} elseif ( $columns !== 1 || $rows !== 1 ) {
 			$output .= $this->formatWithoutHeadingsWithColumns( $articles, $lister, $columns, $rows, $rowColFormat );
 		} elseif ( $rowSize > 0 ) {
@@ -205,14 +207,15 @@ class Heading {
 		foreach ( $headings as $headingCount ) {
 			$headingStart = $nstart - $offset;
 			$headingLink = $articles[$headingStart]->mParentHLink ?? '';
-			$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
+			$output .= $this->getItemStart() . $headingLink;
 
 			if ( $this->showHeadingCount ) {
 				$output .= $this->articleCountMessage( $headingCount );
 			}
 
-			$offset += $hspace;
+			$output .= $this->getItemEnd();
 			$nstart += $hspace;
+			$offset += $hspace;
 			$remaining = $headingCount;
 
 			while ( $remaining > 0 ) {
@@ -225,11 +228,10 @@ class Heading {
 					$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
 				}
 			}
-
-			$output .= $this->getItemEnd();
 		}
 
-		return $output . $this->listEnd . "\n|}\n";
+		$output .= $this->listEnd . "\n|}\n";
+		return $output;
 	}
 
 	private function formatWithHeadingsOnly( array $articles, Lister $lister, array $headings ): string {
@@ -242,7 +244,8 @@ class Heading {
 			$headingStart += $headingCount;
 		}
 
-		return $output . $this->listEnd;
+		$output .= $this->listEnd;
+		return $output;
 	}
 
 	private function formatWithoutHeadingsWithColumns( array $articles, Lister $lister, int $columns, int $rows, string $rowColFormat ): string {
@@ -260,7 +263,8 @@ class Heading {
 			$nstart += $chunk;
 		}
 
-		return $output . "\n|}\n";
+		$output .= "\n|}\n";
+		return $output;
 	}
 
 	private function formatWithRowSize( array $articles, Lister $lister, int $rowSize, string $rowColFormat ): string {
@@ -275,7 +279,8 @@ class Heading {
 			$nstart += $chunk;
 		}
 
-		return $output . "\n|}\n";
+		$output .= "\n|}\n";
+		return $output;
 	}
 
 	/**
