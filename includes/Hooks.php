@@ -7,73 +7,13 @@ use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateView;
 use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\PPFrame;
-use MediaWiki\Registration\ExtensionRegistry;
 use StringUtils;
 
 class Hooks {
 
-	public const FATAL_WRONGNS = 1001;
-
-	public const FATAL_WRONGLINKSTO = 1002;
-
-	public const FATAL_TOOMANYCATS = 1003;
-
-	public const FATAL_TOOFEWCATS = 1004;
-
-	public const FATAL_NOSELECTION = 1005;
-
-	public const FATAL_CATDATEBUTNOINCLUDEDCATS = 1006;
-
-	public const FATAL_CATDATEBUTMORETHAN1CAT = 1007;
-
-	public const FATAL_MORETHAN1TYPEOFDATE = 1008;
-
-	public const FATAL_WRONGORDERMETHOD = 1009;
-
-	public const FATAL_DOMINANTSECTIONRANGE = 1010;
-
-	public const FATAL_OPENREFERENCES = 1012;
-
-	public const FATAL_MISSINGPARAMFUNCTION = 1022;
-
-	public const FATAL_POOLCOUNTER = 1023;
-
-	public const FATAL_NOTPROTECTED = 1024;
-
-	public const FATAL_SQLBUILDERROR = 1025;
-
-	public const WARN_UNKNOWNPARAM = 2013;
-
-	public const WARN_PARAMNOOPTION = 2022;
-
-	public const WARN_WRONGPARAM = 2014;
-
-	public const WARN_WRONGPARAM_INT = 2015;
-
-	public const WARN_NORESULTS = 2016;
-
-	public const WARN_CATOUTPUTBUTWRONGPARAMS = 2017;
-
-	public const WARN_HEADINGBUTSIMPLEORDERMETHOD = 2018;
-
-	public const WARN_DEBUGPARAMNOTFIRST = 2019;
-
-	public const WARN_TRANSCLUSIONLOOP = 2020;
-
-	public const DEBUG_QUERY = 3021;
-
 	/** @phan-var array<mixed,mixed> */
 	public static array $createdLinks;
 	public static array $fixedCategories = [];
-
-	private static bool $likeIntersection = false;
-	private static int $debugLevel = 0;
-
-	public static function getVersion(): string {
-		static $version;
-		$version ??= ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
-		return $version;
-	}
 
 	/**
 	 * Sets up this extension's parser functions.
@@ -109,17 +49,6 @@ class Hooks {
 	}
 
 	/**
-	 * Set to behave like intersection.
-	 */
-	private static function setLikeIntersection( bool $mode ): void {
-		self::$likeIntersection = $mode;
-	}
-
-	public static function isLikeIntersection(): bool {
-		return self::$likeIntersection;
-	}
-
-	/**
 	 * Tag <DynamicPageList> entry point.
 	 */
 	public static function intersectionTag(
@@ -128,7 +57,7 @@ class Hooks {
 		Parser $parser,
 		PPFrame $frame
 	): string {
-		self::setLikeIntersection( true );
+		Utils::setLikeIntersection( true );
 		$parser->addTrackingCategory( 'dpl-intersection-tracking-category' );
 
 		return self::executeTag( $input, $args, $parser, $frame );
@@ -143,7 +72,7 @@ class Hooks {
 		Parser $parser,
 		PPFrame $frame
 	): string {
-		self::setLikeIntersection( false );
+		Utils::setLikeIntersection( false );
 		$parser->addTrackingCategory( 'dpl-tag-tracking-category' );
 
 		return self::executeTag( $input, $args, $parser, $frame );
@@ -217,7 +146,7 @@ class Hooks {
 		Parser $parser,
 		string ...$args
 	): array|string {
-		self::setLikeIntersection( false );
+		Utils::setLikeIntersection( false );
 
 		$parser->addTrackingCategory( 'dpl-parserfunc-tracking-category' );
 
@@ -462,14 +391,6 @@ class Hooks {
 		if ( $cat !== '' ) {
 			self::$fixedCategories[$cat] = 1;
 		}
-	}
-
-	public static function setDebugLevel( int $level ): void {
-		self::$debugLevel = $level;
-	}
-
-	public static function getDebugLevel(): int {
-		return self::$debugLevel;
 	}
 
 	/**

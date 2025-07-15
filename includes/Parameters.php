@@ -230,7 +230,7 @@ class Parameters extends ParametersData {
 
 			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
-					Hooks::setDebugLevel( $default );
+					Utils::setDebugLevel( $default );
 				}
 
 				$this->setParameter( $parameter, $default );
@@ -872,7 +872,7 @@ class Parameters extends ParametersData {
 
 		$option = (int)$option;
 		if ( in_array( $option, $this->getData( 'debug' )['values'] ?? [], true ) ) {
-			Hooks::setDebugLevel( $option );
+			Utils::setDebugLevel( $option );
 			return true;
 		}
 

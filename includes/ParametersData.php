@@ -1170,7 +1170,7 @@ class ParametersData {
 	public function __construct() {
 		$this->setRichness( Config::getSetting( 'functionalRichness' ) );
 
-		if ( Hooks::isLikeIntersection() ) {
+		if ( Utils::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
 				'default' => [ 'categoryadd' ],
 				'values' => [
