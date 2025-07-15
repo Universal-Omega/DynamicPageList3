@@ -876,6 +876,7 @@ class ParametersData {
 				'category',
 				'sortkey',
 				'categoryadd',
+				'displaytitle',
 				'firstedit',
 				'lastedit',
 				'pagetouched',

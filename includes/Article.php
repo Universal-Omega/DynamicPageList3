@@ -17,6 +17,8 @@ class Article {
 	 */
 	public $mTitle;
 
+	public string $mDisplayTitle = '';
+
 	/**
 	 * Namespace ID
 	 *
@@ -217,6 +219,10 @@ class Article {
 			$revUserDeleted = $row->rev_deleted & RevisionRecord::DELETED_USER;
 			$revActorName = $revUser->isHidden() || $revUserDeleted ?
 				wfMessage( 'rev-deleted-user' )->escaped() : $revUser->getName();
+		}
+
+		if ( isset( $row->displaytitle ) ) {
+			$article->mDisplayTitle = $row->displaytitle;
 		}
 
 		$titleText = $title->getText();
