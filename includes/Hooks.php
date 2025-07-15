@@ -2,7 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateTemplate;
 use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateView;
 use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Parser\Parser;
@@ -484,7 +483,6 @@ class Hooks {
 	 * Setups and Modifies Database Information
 	 */
 	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ): void {
-		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
 		$updater->addPostDatabaseUpdateMaintenance( CreateView::class );
 	}
 }

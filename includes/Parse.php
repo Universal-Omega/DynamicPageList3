@@ -232,7 +232,7 @@ class Parse {
 			$this->addOutput( $query->getSqlQuery() . "\n" );
 		}
 
-		$this->addOutput( '{{Extension DPL}}' );
+		$parser->addTrackingCategory( 'dpl-tracking-category' );
 
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', '0' );
