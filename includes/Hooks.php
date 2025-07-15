@@ -183,7 +183,7 @@ class Hooks {
 		$saveCategories = ( $reset['categories'] ?? false ) ? array_combine(
 			$parserOutput->getCategoryNames(),
 			array_map(
-				static fn ( string $value ): string =>
+				static fn ( string $value ): ?string =>
 					$parserOutput->getCategorySortKey( $value ),
 				$parserOutput->getCategoryNames()
 			)
@@ -343,6 +343,7 @@ class Hooks {
 		}
 
 		// Validate that the regex is valid
+		// @phan-suppress-next-line SecurityCheck-ReDoS
 		if ( !StringUtils::isValidPCRERegex( $pat ) ) {
 			return '';
 		}
