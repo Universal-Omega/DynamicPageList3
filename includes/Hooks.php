@@ -334,7 +334,10 @@ class Hooks {
 				$label = $fromParts[1] ?? '';
 				$sources[$from] = $label !== '' ? $label : $from;
 				$m[$from] = [];
-			} elseif ( $from !== null ) {
+				continue;
+			}
+
+			if ( $from !== null ) {
 				$toParts = preg_split( ' *\~\~ *', trim( $line ), 2 );
 				$to = $toParts[0];
 				$label = $toParts[1] ?? '';
@@ -346,7 +349,7 @@ class Hooks {
 		ksort( $targets );
 		$header = "\n! $name";
 		foreach ( $targets as $to => $toName ) {
-			$header .= "\n! [[{$to}|{$toName}]]";
+			$header .= "\n! [[$to|$toName]]";
 		}
 
 		$rows = '';
@@ -356,16 +359,20 @@ class Hooks {
 				foreach ( $sources as $from => $_ ) {
 					$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
 				}
+
 				$rows .= $row;
 			}
-		} else {
-			foreach ( $sources as $from => $fromName ) {
-				$row = "\n|-\n! [[{$from}|{$fromName}]]";
-				foreach ( $targets as $to => $_ ) {
-					$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
-				}
-				$rows .= $row;
+
+			return "{|class=dplmatrix\n$header\n$rows\n|}";
+		}
+
+		foreach ( $sources as $from => $fromName ) {
+			$row = "\n|-\n! [[{$from}|{$fromName}]]";
+			foreach ( $targets as $to => $_ ) {
+				$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
 			}
+
+			$rows .= $row;
 		}
 
 		return "{|class=dplmatrix\n$header\n$rows\n|}";
