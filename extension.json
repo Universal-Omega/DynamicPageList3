@@ -68,6 +68,7 @@
 		}
 	},
 	"TrackingCategories": [
+		"dpl-tracking-category",
 		"dpl-tag-tracking-category",
 		"dpl-intersection-tracking-category",
 		"dpl-parserfunc-tracking-category",
