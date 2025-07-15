@@ -1,11 +1,11 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Tests;
+namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 /**
- * @group DynamicPageList3
+ * @group DynamicPageList4
  * @group Database
- * @covers \MediaWiki\Extension\DynamicPageList3\Query
+ * @covers \MediaWiki\Extension\DynamicPageList4\Query
  */
 class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 

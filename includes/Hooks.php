@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
-use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateTemplate;
-use MediaWiki\Extension\DynamicPageList3\Maintenance\CreateView;
+use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateTemplate;
+use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateView;
 use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\PPFrame;

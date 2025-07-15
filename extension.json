@@ -24,26 +24,26 @@
 		"dpl_param_delete_rules"
 	],
 	"MessagesDirs": {
-		"DynamicPageList3": [
+		"DynamicPageList4": [
 			"i18n"
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
+		"DynamicPageList4Magic": "DynamicPageList4Magic.php"
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/",
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\": "maintenance/"
+		"MediaWiki\\Extension\\DynamicPageList4\\": "includes/",
+		"MediaWiki\\Extension\\DynamicPageList4\\Maintenance\\": "maintenance/"
 	},
 	"TestAutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\Tests\\": "tests/phpunit/"
+		"MediaWiki\\Extension\\DynamicPageList4\\Tests\\": "tests/phpunit/"
 	},
 	"Hooks": {
 		"ParserFirstCallInit": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onParserFirstCallInit"
+			"MediaWiki\\Extension\\DynamicPageList4\\Hooks::onParserFirstCallInit"
 		],
 		"LoadExtensionSchemaUpdates": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onLoadExtensionSchemaUpdates"
+			"MediaWiki\\Extension\\DynamicPageList4\\Hooks::onLoadExtensionSchemaUpdates"
 		]
 	},
 	"config": {

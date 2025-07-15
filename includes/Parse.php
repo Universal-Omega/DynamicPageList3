@@ -1,12 +1,12 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 use Exception;
 use ExtVariables;
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Registration\ExtensionRegistry;

@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 class SubPageList extends UnorderedList {
 	/**

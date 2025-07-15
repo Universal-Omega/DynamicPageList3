@@ -1,10 +1,10 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
-use MediaWiki\Extension\DynamicPageList3\Article;
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
-use MediaWiki\Extension\DynamicPageList3\Parameters;
+use MediaWiki\Extension\DynamicPageList4\Article;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Parser\Sanitizer;
 
 class Heading {

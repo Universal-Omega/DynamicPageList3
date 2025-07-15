@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\Config\HashConfig;

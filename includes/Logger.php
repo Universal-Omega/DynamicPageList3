@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 class Logger {
 	/**
@@ -62,7 +62,7 @@ class Logger {
 				$text = wfMessage( 'dpl_log_' . $errorMessageId, $args )->text();
 			}
 
-			$this->buffer[] = '<p>Extension:DynamicPageList3 (DPL3), version ' .
+			$this->buffer[] = '<p>Extension:DynamicPageList4 (DPL4), version ' .
 				Hooks::getVersion() . ': ' . $text . '</p>';
 		}
 	}
