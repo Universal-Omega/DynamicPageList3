@@ -166,177 +166,116 @@ class Heading {
 
 	/**
 	 * Format a list of articles into all lists with headings as needed.
-	 *
-	 * @param array $articles
-	 * @param Lister $lister
-	 * @return string
 	 */
-	public function format( $articles, Lister $lister ) {
-		$columns = $this->getParameters()->getParameter( 'columns' );
-		$rows = $this->getParameters()->getParameter( 'rows' );
-		$rowSize = $this->getParameters()->getParameter( 'rowsize' );
-		$rowColFormat = $this->getParameters()->getParameter( 'rowcolformat' );
+	public function format( array $articles, Lister $lister ): string {
+		$parameters = $this->getParameters();
+		$columns = (int)( $parameters->getParameter( 'columns' ) ?? 1 );
+		$rows = (int)( $parameters->getParameter( 'rows' ) ?? 1 );
+		$rowSize = (int)( $parameters->getParameter( 'rowsize' ) ?? 0 );
+		$rowColFormat = $parameters->getParameter( 'rowcolformat' ) ?? '';
 
 		$headings = Article::getHeadings();
 		$output = '';
 
 		if ( $headings ) {
-			if ( $columns != 1 || $rows != 1 ) {
-				$hspace = 2;
-
-				// repeat outer tags for each of the specified columns / rows in the output
-				// we assume that a heading roughly takes the space of two articles
-				$count = count( $articles ) + $hspace * count( $headings );
-
-				if ( $columns != 1 ) {
-					$iGroup = $columns;
-				} else {
-					$iGroup = $rows;
-				}
-
-				$nsize = floor( $count / $iGroup );
-				$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
-
-				if ( $rest > 0 ) {
-					$nsize += 1;
-				}
-
-				$output .= "{|" . $rowColFormat . "\n|\n";
-
-				if ( $nsize < $hspace + 1 ) {
-					$nsize = $hspace + 1;
-				}
-
-				$output .= $this->getListStart();
-				$nstart = 0;
-				$greml = $nsize;
-				$offset = 0;
-				foreach ( $headings as $headingCount ) {
-					$headingStart = $nstart - $offset;
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
-
-					if ( $this->showHeadingCount ) {
-						$output .= $this->articleCountMessage( $headingCount );
-					}
-
-					$offset += $hspace;
-					$nstart += $hspace;
-					$portion = $headingCount;
-					$greml -= $hspace;
-
-					do {
-						$greml -= $portion;
-
-						if ( $greml > 0 ) {
-							$output .= $lister->formatList( $articles, $nstart - $offset, $portion );
-							$nstart += $portion;
-							$portion = 0;
-							break;
-						} else {
-							$output .= $lister->formatList( $articles, $nstart - $offset, $portion + $greml );
-							$nstart += ( $portion + $greml );
-							$portion = ( -$greml );
-
-							if ( $columns != 1 ) {
-								$output .= "\n|valign=top|\n";
-							} else {
-								$output .= "\n|-\n|\n";
-							}
-
-							if ( $nstart + $nsize > $count ) {
-								$nsize = $count - $nstart;
-							}
-
-							$greml = $nsize;
-
-							if ( $greml <= 0 ) {
-								break;
-							}
-						}
-					} while ( $portion > 0 );
-
-					$output .= $this->getItemEnd();
-				}
-
-				$output .= $this->listEnd;
-				$output .= "\n|}\n";
-			} else {
-				$output .= $this->getListStart();
-				$headingStart = 0;
-
-				foreach ( $headings as $headingCount ) {
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->formatItem( $headingStart, $headingCount, $headingLink, $articles, $lister );
-					$headingStart += $headingCount;
-				}
-
-				$output .= $this->listEnd;
-			}
-		} elseif ( $columns != 1 || $rows != 1 ) {
-			// repeat outer tags for each of the specified columns / rows in the output
-			$nstart = 0;
-			$count = count( $articles );
-
-			if ( $columns != 1 ) {
-				$iGroup = $columns;
-			} else {
-				$iGroup = $rows;
-			}
-
-			$nsize = floor( $count / $iGroup );
-			$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
-
-			if ( $rest > 0 ) {
-				$nsize += 1;
-			}
-
-			$output .= "{|" . $rowColFormat . "\n|\n";
-
-			for ( $g = 0; $g < $iGroup; $g++ ) {
-				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
-
-				if ( $columns != 1 ) {
-					$output .= "\n|valign=top|\n";
-				} else {
-					$output .= "\n|-\n|\n";
-				}
-
-				$nstart += $nsize;
-
-				if ( $nstart + $nsize > $count ) {
-					$nsize = $count - $nstart;
-				}
-			}
-
-			$output .= "\n|}\n";
+			$output .= $columns !== 1 || $rows !== 1
+				? $this->formatWithColumnsAndRows( $articles, $lister, $headings, $columns, $rows, $rowColFormat )
+				: $this->formatWithHeadingsOnly( $articles, $lister, $headings );
+		} elseif ( $columns !== 1 || $rows !== 1 ) {
+			$output .= $this->formatWithoutHeadingsWithColumns( $articles, $lister, $columns, $rows, $rowColFormat );
 		} elseif ( $rowSize > 0 ) {
-			// repeat row header after n lines of output
-			$nstart = 0;
-			$nsize = $rowSize;
-			$count = count( $articles );
-			$output .= '{|' . $rowColFormat . "\n|\n";
-
-			do {
-				if ( $nstart + $nsize > $count ) {
-					$nsize = $count - $nstart;
-				}
-
-				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
-				$output .= "\n|-\n|\n";
-				$nstart += $nsize;
-				if ( $nstart >= $count ) {
-					break;
-				}
-			} while ( true );
-
-			$output .= "\n|}\n";
+			$output .= $this->formatWithRowSize( $articles, $lister, $rowSize, $rowColFormat );
 		} else {
-			// Even though the headingmode is not none there were no headings, but still results. Output them anyway.
 			$output .= $lister->formatList( $articles, 0, count( $articles ) );
 		}
 
 		return $output;
+	}
+
+	private function formatWithColumnsAndRows( array $articles, Lister $lister, array $headings, int $columns, int $rows, string $rowColFormat ): string {
+		$hspace = 2;
+		$count = count( $articles ) + $hspace * count( $headings );
+		$iGroup = $columns !== 1 ? $columns : $rows;
+		$nsize = (int)ceil( $count / max( $iGroup, 1 ) );
+
+		$output = "{|{$rowColFormat}\n|\n" . $this->getListStart();
+		$nstart = 0;
+		$offset = 0;
+
+		foreach ( $headings as $headingCount ) {
+			$headingStart = $nstart - $offset;
+			$headingLink = $articles[$headingStart]->mParentHLink ?? '';
+			$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
+
+			if ( $this->showHeadingCount ) {
+				$output .= $this->articleCountMessage( $headingCount );
+			}
+
+			$offset += $hspace;
+			$nstart += $hspace;
+			$remaining = $headingCount;
+
+			while ( $remaining > 0 ) {
+				$chunk = min( $remaining, $nsize - $hspace );
+				$output .= $lister->formatList( $articles, $nstart - $offset, $chunk );
+				$nstart += $chunk;
+				$remaining -= $chunk;
+
+				if ( $remaining > 0 ) {
+					$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
+				}
+			}
+
+			$output .= $this->getItemEnd();
+		}
+
+		return $output . $this->listEnd . "\n|}\n";
+	}
+
+	private function formatWithHeadingsOnly( array $articles, Lister $lister, array $headings ): string {
+		$output = $this->getListStart();
+		$headingStart = 0;
+
+		foreach ( $headings as $headingCount ) {
+			$headingLink = $articles[$headingStart]->mParentHLink ?? '';
+			$output .= $this->formatItem( $headingStart, $headingCount, $headingLink, $articles, $lister );
+			$headingStart += $headingCount;
+		}
+
+		return $output . $this->listEnd;
+	}
+
+	private function formatWithoutHeadingsWithColumns( array $articles, Lister $lister, int $columns, int $rows, string $rowColFormat ): string {
+		$count = count( $articles );
+		$iGroup = $columns !== 1 ? $columns : $rows;
+		$nsize = (int)ceil( $count / max( $iGroup, 1 ) );
+
+		$output = "{|{$rowColFormat}\n|\n";
+		$nstart = 0;
+
+		for ( $g = 0; $g < $iGroup && $nstart < $count; $g++ ) {
+			$chunk = min( $nsize, $count - $nstart );
+			$output .= $lister->formatList( $articles, $nstart, $chunk );
+			$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
+			$nstart += $chunk;
+		}
+
+		return $output . "\n|}\n";
+	}
+
+	private function formatWithRowSize( array $articles, Lister $lister, int $rowSize, string $rowColFormat ): string {
+		$count = count( $articles );
+		$nstart = 0;
+		$output = "{|{$rowColFormat}\n|\n";
+
+		while ( $nstart < $count ) {
+			$chunk = min( $rowSize, $count - $nstart );
+			$output .= $lister->formatList( $articles, $nstart, $chunk );
+			$output .= "\n|-\n|\n";
+			$nstart += $chunk;
+		}
+
+		return $output . "\n|}\n";
 	}
 
 	/**
