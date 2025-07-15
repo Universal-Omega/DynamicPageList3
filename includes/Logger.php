@@ -43,17 +43,17 @@ class Logger {
 		$errorLevel = floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
 
-		if ( Hooks::getDebugLevel() >= $errorLevel ) {
-			if ( Hooks::isLikeIntersection() ) {
-				if ( $errorId == Hooks::FATAL_TOOMANYCATS ) {
+		if ( Utils::getDebugLevel() >= $errorLevel ) {
+			if ( Utils::isLikeIntersection() ) {
+				if ( $errorId == Constants::FATAL_TOOMANYCATS ) {
 					$text = wfMessage( 'intersection_toomanycats', $args )->text();
-				} elseif ( $errorId == Hooks::FATAL_TOOFEWCATS ) {
+				} elseif ( $errorId == Constants::FATAL_TOOFEWCATS ) {
 					$text = wfMessage( 'intersection_toofewcats', $args )->text();
-				} elseif ( $errorId == Hooks::WARN_NORESULTS ) {
+				} elseif ( $errorId == Constants::WARN_NORESULTS ) {
 					$text = wfMessage( 'intersection_noresults', $args )->text();
-				} elseif ( $errorId == Hooks::FATAL_NOSELECTION ) {
+				} elseif ( $errorId == Constants::FATAL_NOSELECTION ) {
 					$text = wfMessage( 'intersection_noincludecats', $args )->text();
-				} elseif ( $errorId == Hooks::FATAL_POOLCOUNTER ) {
+				} elseif ( $errorId == Constants::FATAL_POOLCOUNTER ) {
 					$text = wfMessage( 'intersection_pcerror', $args )->text();
 				}
 			}
@@ -63,7 +63,7 @@ class Logger {
 			}
 
 			$this->buffer[] = '<p>Extension:DynamicPageList4 (DPL4), version ' .
-				Hooks::getVersion() . ': ' . $text . '</p>';
+				Utils::getVersion() . ': ' . $text . '</p>';
 		}
 	}
 }

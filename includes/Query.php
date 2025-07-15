@@ -184,7 +184,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Hooks::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
+			if ( Utils::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
 		} catch ( Exception $ex ) {
@@ -194,7 +194,7 @@ class Query {
 			}
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Hooks::getVersion(), $errorMessage
+				'dpl_query_error', Utils::getVersion(), $errorMessage
 			)->text() );
 		}
 
@@ -1706,7 +1706,7 @@ class Query {
 					$this->revisionAuxWhereAdded = true;
 					break;
 				case 'lastedit':
-					if ( Hooks::isLikeIntersection() ) {
+					if ( Utils::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
 						$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
 					} else {

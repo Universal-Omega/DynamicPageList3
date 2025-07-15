@@ -89,7 +89,7 @@ class Parse {
 		// Check that we are not in an infinite transclusion loop
 		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
-			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
+			$this->logger->addMessage( Constants::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 			return $this->getFullOutput();
 		}
 
@@ -103,7 +103,7 @@ class Parse {
 			// template page which is protected. Then there would be no need for the article to
 			// be protected. However, how can one find out from which wiki source an extension
 			// has been invoked???
-			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
+			$this->logger->addMessage( Constants::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 			return $this->getFullOutput();
 		}
 
@@ -129,7 +129,7 @@ class Parse {
 		$cleanParameters = $this->prepareUserInput( $input );
 		if ( !is_array( $cleanParameters ) ) {
 			// Short circuit for dumb things.
-			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
+			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
 			return $this->getFullOutput();
 		}
 
@@ -144,7 +144,7 @@ class Parse {
 				// passed into the Query object later.
 				if ( $this->parameters->$parameter( $_option ) === false ) {
 					// Do not build this into the output just yet. It will be collected at the end.
-					$this->logger->addMessage( Hooks::WARN_WRONGPARAM, $parameter, $_option );
+					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $_option );
 				}
 			}
 		}
@@ -214,11 +214,11 @@ class Parse {
 				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
 
 				// Pool counter all threads in use.
-				$this->logger->addMessage( Hooks::FATAL_POOLCOUNTER );
+				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
 		} catch ( Exception $e ) {
-			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
+			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
 
@@ -237,7 +237,7 @@ class Parse {
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', '0' );
 		$this->setVariable( 'PAGES', '0' );
-		$this->setVariable( 'VERSION', Hooks::getVersion() );
+		$this->setVariable( 'VERSION', Utils::getVersion() );
 
 		/*********************/
 		/* Handle No Results */
@@ -451,7 +451,7 @@ class Parse {
 			}
 
 			if ( strpos( $parameterOption, '=' ) === false ) {
-				$this->logger->addMessage( Hooks::WARN_PARAMNOOPTION, $parameterOption );
+				$this->logger->addMessage( Constants::WARN_PARAMNOOPTION, $parameterOption );
 
 				continue;
 			}
@@ -482,7 +482,7 @@ class Parse {
 
 			if ( !$this->parameters->exists( $parameter ) ) {
 				$this->logger->addMessage(
-					Hooks::WARN_UNKNOWNPARAM, $parameter,
+					Constants::WARN_UNKNOWNPARAM, $parameter,
 					implode( ', ', $this->parameters->getParametersForRichness() )
 				);
 
@@ -555,7 +555,7 @@ class Parse {
 		}
 
 		if ( !$totalResults && !strlen( $this->getHeader() ) && !strlen( $this->getFooter() ) ) {
-			$this->logger->addMessage( Hooks::WARN_NORESULTS );
+			$this->logger->addMessage( Constants::WARN_NORESULTS );
 		}
 
 		$messages = $this->logger->getMessages( false );
@@ -570,7 +570,7 @@ class Parse {
 	 * @param string $header
 	 */
 	private function setHeader( $header ) {
-		if ( Hooks::getDebugLevel() == 5 ) {
+		if ( Utils::getDebugLevel() == 5 ) {
 			$header = '<pre><nowiki>' . $header;
 		}
 
@@ -592,7 +592,7 @@ class Parse {
 	 * @param string $footer
 	 */
 	private function setFooter( $footer ) {
-		if ( Hooks::getDebugLevel() == 5 ) {
+		if ( Utils::getDebugLevel() == 5 ) {
 			$footer .= '</nowiki></pre>';
 		}
 
@@ -720,19 +720,19 @@ class Parse {
 			$totalCategories > $this->config->get( 'maxCategoryCount' ) &&
 			!$this->config->get( 'allowUnlimitedCategories' )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_TOOMANYCATS, $this->config->get( 'maxCategoryCount' ) );
+			$this->logger->addMessage( Constants::FATAL_TOOMANYCATS, $this->config->get( 'maxCategoryCount' ) );
 			return false;
 		}
 
 		// Not enough categories. (Really?)
 		if ( $totalCategories < $this->config->get( 'minCategoryCount' ) ) {
-			$this->logger->addMessage( Hooks::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
+			$this->logger->addMessage( Constants::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
 			return false;
 		}
 
 		// Selection criteria needs to be found.
 		if ( !$totalCategories && !$this->parameters->isSelectionCriteriaFound() ) {
-			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
+			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
 			return false;
 		}
 
@@ -750,7 +750,7 @@ class Parse {
 				$this->parameters->getParameter( 'addfirstcategorydate' ) === true
 			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_CATDATEBUTNOINCLUDEDCATS );
+			$this->logger->addMessage( Constants::FATAL_CATDATEBUTNOINCLUDEDCATS );
 			return false;
 		}
 
@@ -763,7 +763,7 @@ class Parse {
 				(int)$this->parameters->getParameter( 'addeditdate' )
 			) > 1
 		) {
-			$this->logger->addMessage( Hooks::FATAL_MORETHAN1TYPEOFDATE );
+			$this->logger->addMessage( Constants::FATAL_MORETHAN1TYPEOFDATE );
 			return false;
 		}
 
@@ -774,7 +774,7 @@ class Parse {
 			) < $this->parameters->getParameter( 'dominantsection' )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_DOMINANTSECTIONRANGE,
+				Constants::FATAL_DOMINANTSECTIONRANGE,
 				count( $this->parameters->getParameter( 'seclabels' ) )
 			);
 
@@ -787,7 +787,7 @@ class Parse {
 			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_WRONGORDERMETHOD,
+				Constants::FATAL_WRONGORDERMETHOD,
 				'mode=category',
 				'sortkey | title | titlewithoutnamespace'
 			);
@@ -801,7 +801,7 @@ class Parse {
 			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_WRONGORDERMETHOD,
+				Constants::FATAL_WRONGORDERMETHOD,
 				'addpagetoucheddate=true',
 				'pagetouched | title'
 			);
@@ -820,7 +820,7 @@ class Parse {
 				$this->parameters->getParameter( 'lastrevisionbefore' )
 			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -839,7 +839,7 @@ class Parse {
 			!$this->parameters->getParameter( 'firstrevisionsince' ) &&
 			!$this->parameters->getParameter( 'lastrevisionbefore' )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -847,7 +847,7 @@ class Parse {
 			$this->parameters->getParameter( 'minoredits' ) &&
 			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -865,13 +865,13 @@ class Parse {
 				$this->parameters->getParameter( 'addlasteditor' )
 			)
 		) {
-			$this->logger->addMessage( Hooks::WARN_CATOUTPUTBUTWRONGPARAMS );
+			$this->logger->addMessage( Constants::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
 		// headingmode has effects with ordermethod on multiple components only
 		if ( $this->parameters->getParameter( 'headingmode' ) !== 'none' && count( $orderMethods ) < 2 ) {
 			$this->logger->addMessage(
-				Hooks::WARN_HEADINGBUTSIMPLEORDERMETHOD,
+				Constants::WARN_HEADINGBUTSIMPLEORDERMETHOD,
 				$this->parameters->getParameter( 'headingmode' ),
 				'none'
 			);
@@ -886,7 +886,7 @@ class Parse {
 				$this->parameters->getParameter( 'openreferences' ) === 'missing'
 			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_OPENREFERENCES );
+			$this->logger->addMessage( Constants::FATAL_OPENREFERENCES );
 			return false;
 		}
 
