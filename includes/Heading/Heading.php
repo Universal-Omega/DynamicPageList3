@@ -259,14 +259,19 @@ class Heading {
 
 		for ( $g = 0; $g < $iGroup && $nstart < $count; $g++ ) {
 			$chunk = min( $nsize, $count - $nstart );
-			$cellContent = $lister->formatList( $articles, $nstart, $chunk );
 
-			$output .= "|valign=top|\n$cellContent\n";
+			for ( $i = 0; $i < $chunk; $i++ ) {
+				$output .= '| ' . $lister->formatList( [ $articles[ $nstart + $i ] ], 0, 1 ) . "\n";
+			}
 
 			$nstart += $chunk;
+
+			if ( $g < $iGroup - 1 ) {
+				$output .= "|-\n";
+			}	
 		}
 
-		$output .= "\n|}\n";
+		$output .= "|}\n";
 
 		return $output;
 	}
