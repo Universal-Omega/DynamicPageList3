@@ -301,11 +301,11 @@ class Hooks {
 
 	public static function dplMatrixParserFunction(
 		Parser $parser,
-		string $name = '',
-		string $yes = '',
-		string $no = '',
-		string $flip = '',
-		string $matrix = ''
+		string $name,
+		string $yes,
+		string $no,
+		string $flip,
+		string $matrix
 	): string {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
 
@@ -313,7 +313,7 @@ class Hooks {
 		$m = [];
 		$sources = [];
 		$targets = [];
-		$from = '';
+		$from = null;
 
 		$flip = $flip !== '' && $flip !== 'normal';
 		$name = $name !== '' ? $name : '&#160;';
@@ -324,67 +324,58 @@ class Hooks {
 		}
 
 		foreach ( $lines as $line ) {
-			$line = trim( $line );
-			if ( $line === '' ) {
+			if ( trim( $line ) === '' ) {
 				continue;
 			}
 
 			if ( $line[0] !== ' ' ) {
-				$fromParts = preg_split( ' *\~\~ *', $line, 2 );
-				$key = $fromParts[0];
+				$fromParts = preg_split( ' *\~\~ *', trim( $line ), 2 );
+				$from = $fromParts[0];
 				$label = $fromParts[1] ?? '';
+				$sources[$from] = $label !== '' ? $label : $from;
+				$m[$from] = [];
+				continue;
+			}
 
-				$sources[$key] = $label !== '' ? $label : $key;
-				$m[$key] = [];
-				$from = $key;
-			} else {
-				$toParts = preg_split( ' *\~\~ *', ltrim( $line ), 2 );
-				$key = $toParts[0];
+			if ( $from !== null ) {
+				$toParts = preg_split( ' *\~\~ *', trim( $line ), 2 );
+				$to = $toParts[0];
 				$label = $toParts[1] ?? '';
-
-				$targets[$key] = $label !== '' ? $label : $key;
-				$m[$from][$key] = true;
+				$targets[$to] = $label !== '' ? $label : $to;
+				$m[$from][$to] = true;
 			}
 		}
 
 		ksort( $targets );
-		$header = "\n";
-
-		if ( $flip ) {
-			foreach ( $sources as $from => $fromName ) {
-				$header .= "![[$from|$fromName]]\n";
-			}
-
-			$rows = [];
-			foreach ( $targets as $to => $toName ) {
-				$row = "[[$to|$toName]]";
-				foreach ( $sources as $from => $_ ) {
-					$row .= "\n|" . ( $m[$from][$to] ?? false ? $yes : $no );
-				}
-				$row .= "\n|--\n";
-				$rows[] = $row;
-			}
-
-			$body = implode( "\n!", $rows );
-		} else {
-			foreach ( $targets as $to => $toName ) {
-				$header .= "![[$to|$toName]]\n";
-			}
-
-			$rows = [];
-			foreach ( $sources as $from => $fromName ) {
-				$row = "[[$from|$fromName]]";
-				foreach ( $targets as $to => $_ ) {
-					$row .= "\n|" . ( $m[$from][$to] ?? false ? $yes : $no );
-				}
-				$row .= "\n|--\n";
-				$rows[] = $row;
-			}
-
-			$body = implode( "\n!", $rows );
+		$header = "\n! $name";
+		foreach ( $targets as $to => $toName ) {
+			$header .= "\n! [[$to|$toName]]";
 		}
 
-		return "{|class=dplmatrix\n|$name\n$header|--\n!$body\n|}";
+		$rows = '';
+		if ( $flip ) {
+			foreach ( $targets as $to => $toName ) {
+				$row = "\n|-\n! [[{$to}|{$toName}]]";
+				foreach ( $sources as $from => $_ ) {
+					$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
+				}
+
+				$rows .= $row;
+			}
+
+			return "{|class=dplmatrix\n$header\n$rows\n|}";
+		}
+
+		foreach ( $sources as $from => $fromName ) {
+			$row = "\n|-\n! [[{$from}|{$fromName}]]";
+			foreach ( $targets as $to => $_ ) {
+				$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
+			}
+
+			$rows .= $row;
+		}
+
+		return "{|class=dplmatrix\n$header\n$rows\n|}";
 	}
 
 	public static function fixCategory( string $cat ): void {
