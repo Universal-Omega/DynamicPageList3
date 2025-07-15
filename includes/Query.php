@@ -1610,7 +1610,7 @@ class Query {
 						count( $this->parameters->getParameter( 'catheadings' ) ) > 0
 					) {
 						$this->queryBuilder->where( [
-							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' ),
+							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' )['AND'] ?? [],
 						] );
 					}
 
