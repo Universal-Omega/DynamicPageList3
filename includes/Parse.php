@@ -14,19 +14,11 @@ use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
 
 class Parse {
-	/**
-	 * Parameters Object
-	 *
-	 * @var Parameters
-	 */
-	private $parameters = null;
 
-	/**
-	 * Logger Object
-	 *
-	 * @var Logger
-	 */
-	private $logger = null;
+	private readonly Config $config;
+	private readonly Logger $logger;
+	private readonly Parameters $parameters;
+	private readonly WebRequest $request;
 
 	/**
 	 * Header Output
@@ -57,13 +49,6 @@ class Parse {
 	private $replacementVariables = [];
 
 	/**
-	 * WebRequest object
-	 *
-	 * @var WebRequest
-	 */
-	private $request;
-
-	/**
 	 * Array of possible URL arguments.
 	 *
 	 * @var array
@@ -73,12 +58,13 @@ class Parse {
 		'DPL_count',
 		'DPL_fromTitle',
 		'DPL_findTitle',
-		'DPL_toTitle'
+		'DPL_toTitle',
 	];
 
 	public function __construct() {
-		$this->parameters = new Parameters();
+		$this->config = Config::getInstance();
 		$this->logger = new Logger();
+		$this->parameters = new Parameters();
 		$this->request = RequestContext::getMain()->getRequest();
 	}
 
@@ -104,14 +90,13 @@ class Parse {
 		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
-
 			return $this->getFullOutput();
 		}
 
 		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
 		if (
-			Config::getSetting( 'runFromProtectedPagesOnly' ) === true &&
+			$this->config->get( 'runFromProtectedPagesOnly' ) === true &&
 			$title && !$restrictionStore->isProtected( $title, 'edit' )
 		) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a
@@ -119,7 +104,6 @@ class Parse {
 			// be protected. However, how can one find out from which wiki source an extension
 			// has been invoked???
 			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
-
 			return $this->getFullOutput();
 		}
 
@@ -146,7 +130,6 @@ class Parse {
 		if ( !is_array( $cleanParameters ) ) {
 			// Short circuit for dumb things.
 			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
-
 			return $this->getFullOutput();
 		}
 
@@ -200,7 +183,7 @@ class Parse {
 
 		$calcRows = false;
 		if (
-			!Config::getSetting( 'allowUnlimitedResults' ) &&
+			!$this->config->get( 'allowUnlimitedResults' ) &&
 			$this->parameters->getParameter( 'goal' ) != 'categories' &&
 			strpos( $this->parameters->getParameter( 'resultsheader' ) .
 				$this->parameters->getParameter( 'noresultsheader' ) .
@@ -349,7 +332,7 @@ class Parse {
 
 		$this->defineScrollVariables( $scrollVariables, $parser );
 
-		if ( $this->parameters->getParameter( 'allowcachedresults' ) || Config::getSetting( 'alwaysCacheResults' ) ) {
+		if ( $this->parameters->getParameter( 'allowcachedresults' ) || $this->config->get( 'alwaysCacheResults' ) ) {
 			$parser->getOutput()->updateCacheExpiry( $this->parameters->getParameter( 'cacheperiod' ) ?? 3600 );
 		} else {
 			$parser->getOutput()->updateCacheExpiry( 0 );
@@ -358,7 +341,6 @@ class Parse {
 		$finalOutput = $this->getFullOutput( $foundRows, false );
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
-
 		return $finalOutput;
 	}
 
@@ -735,16 +717,16 @@ class Parse {
 
 		// Too many categories.
 		if (
-			$totalCategories > Config::getSetting( 'maxCategoryCount' ) &&
-			!Config::getSetting( 'allowUnlimitedCategories' )
+			$totalCategories > $this->config->get( 'maxCategoryCount' ) &&
+			!$this->config->get( 'allowUnlimitedCategories' )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_TOOMANYCATS, Config::getSetting( 'maxCategoryCount' ) );
+			$this->logger->addMessage( Hooks::FATAL_TOOMANYCATS, $this->config->get( 'maxCategoryCount' ) );
 			return false;
 		}
 
-		// Not enough categories.(Really?)
-		if ( $totalCategories < Config::getSetting( 'minCategoryCount' ) ) {
-			$this->logger->addMessage( Hooks::FATAL_TOOFEWCATS, Config::getSetting( 'minCategoryCount' ) );
+		// Not enough categories. (Really?)
+		if ( $totalCategories < $this->config->get( 'minCategoryCount' ) ) {
+			$this->logger->addMessage( Hooks::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
 			return false;
 		}
 
