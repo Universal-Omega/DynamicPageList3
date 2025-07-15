@@ -40,6 +40,7 @@
 	"action-dpl_param_update_rules": "{{doc-action|dpl_param_update_rules}}",
 	"action-dpl_param_delete_rules": "{{doc-action|dpl_param_delete_rules}}",
 	"dpl_query_error": "Used as query error message",
+	"dpl-tracking-category": "'Pages using DynamicPageList4' tracking category",
 	"dpl-tag-tracking-category": "'Pages using DynamicPageList4 parser tag' tracking category",
 	"dpl-intersection-tracking-category": "'Pages using DynamicPageList4 Intersection parser tag' tracking category",
 	"dpl-parserfunc-tracking-category": "'Pages using DynamicPageList4 parser function' tracking category",
