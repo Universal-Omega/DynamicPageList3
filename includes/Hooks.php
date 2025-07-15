@@ -61,14 +61,9 @@ class Hooks {
 
 	public const DEBUG_QUERY = 3021;
 
-	/** @var array */
-	public static $fixedCategories = [];
-
-	/**
-	 * @var array
-	 * @phan-var array<mixed,mixed>
-	 */
-	public static $createdLinks;
+	/** @phan-var array<mixed,mixed>  */
+	public static array $createdLinks;
+	public static array $fixedCategories = [];
 
 	private static bool $likeIntersection = false;
 	private static int $debugLevel = 0;
