@@ -27,7 +27,7 @@ class Utils {
 		return self::$likeIntersection;
 	}
 
-	private static function setLikeIntersection( bool $mode ): void {
+	public static function setLikeIntersection( bool $mode ): void {
 		self::$likeIntersection = $mode;
 	}
 }
