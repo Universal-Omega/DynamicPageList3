@@ -268,7 +268,7 @@ class Heading {
 
 			if ( $g < $iGroup - 1 ) {
 				$output .= "|-\n";
-			}	
+			}
 		}
 
 		$output .= "|}\n";
