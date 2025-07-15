@@ -333,7 +333,7 @@ class Parameters extends ParametersData {
 
 		[ $parameters, $operator ] = str_contains( $option, '|' )
 			? [ explode( '|', $option ), 'OR' ]
-			: [ explode( '&', $option ), 'AND' ];
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		foreach ( $parameters as $parameter ) {
 			$parameter = trim( $parameter );
