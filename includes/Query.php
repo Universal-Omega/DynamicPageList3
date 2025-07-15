@@ -1628,13 +1628,27 @@ class Query {
 						}
 					}
 
-					if (
-						is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catnotheadings' ) ) > 0
-					) {
-						$this->queryBuilder->andWhere( $this->dbr->expr(
-							'cl_head.cl_to', '!=', $this->parameters->getParameter( 'catnotheadings' )
-						) );
+					$catnotheadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
+					if ( is_array( $catnotheadings ) && $catnotheadings !== [] ) {
+						if ( !empty( $catnotheadings['AND'] ) ) {
+							$this->queryBuilder->andWhere(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
+									$catnotheadings['AND']
+								), IDatabase::LIST_AND )
+							);
+						}
+
+						if ( !empty( $catnotheadings['OR'] ) ) {
+							$this->queryBuilder->andWhere(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
+									$catnotheadings['OR']
+								), IDatabase::LIST_OR )
+							);
+						}
 					}
 					break;
 				case 'categoryadd':
