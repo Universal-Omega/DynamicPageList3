@@ -253,17 +253,21 @@ class Heading {
 		$iGroup = $columns !== 1 ? $columns : $rows;
 		$nsize = (int)ceil( $count / max( $iGroup, 1 ) );
 
-		$output = "{|{$rowColFormat}\n|\n";
+		$output = "{|{$rowColFormat}\n|-\n";
+
 		$nstart = 0;
 
 		for ( $g = 0; $g < $iGroup && $nstart < $count; $g++ ) {
 			$chunk = min( $nsize, $count - $nstart );
-			$output .= $lister->formatList( $articles, $nstart, $chunk );
-			$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
+			$cellContent = $lister->formatList( $articles, $nstart, $chunk );
+
+			$output .= "|valign=top|\n$cellContent\n";
+
 			$nstart += $chunk;
 		}
 
 		$output .= "\n|}\n";
+
 		return $output;
 	}
 
