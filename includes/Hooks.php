@@ -70,123 +70,83 @@ class Hooks {
 	 */
 	public static $createdLinks;
 
-	/** @var bool */
-	private static $likeIntersection = false;
+	private static bool $likeIntersection = false;
+	private static int $debugLevel = 0;
 
-	/** @var int */
-	private static $debugLevel = 0;
-
-	/**
-	 * @return string
-	 */
 	public static function getVersion(): string {
-		static $version = null;
-
-		if ( $version === null ) {
-			$version = ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
-		}
-
+		static $version;
+		$version ??= ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
 		return $version;
 	}
 
 	/**
 	 * Sets up this extension's parser functions.
-	 *
-	 * @param Parser $parser
 	 */
 	public static function onParserFirstCallInit( Parser $parser ) {
-		self::init();
+		self::$createdLinks ??= [
+			'resetLinks' => false,
+			'resetTemplates' => false,
+			'resetCategories' => false,
+			'resetImages' => false,
+			'resetdone' => false,
+			'elimdone' => false,
+		];
 
-		// DPL offers the same functionality as Intersection.
-		// So we register the <DynamicPageList> tag in case
+		// We register the <section> tag in case
 		// LabeledSection Extension is not installed so that the
 		// section markers are removed.
 		if ( Config::getSetting( 'handleSectionTag' ) ) {
-			$parser->setHook( 'section', [ __CLASS__, 'dplTag' ] );
+			$parser->setHook( 'section', [ self::class, 'dplTag' ] );
 		}
 
-		$parser->setHook( 'DPL', [ __CLASS__, 'dplTag' ] );
-		$parser->setHook( 'DynamicPageList', [ __CLASS__, 'intersectionTag' ] );
+		$parser->setHook( 'DPL', [ self::class, 'dplTag' ] );
 
-		$parser->setFunctionHook( 'dpl', [ __CLASS__, 'dplParserFunction' ] );
-		$parser->setFunctionHook( 'dplnum', [ __CLASS__, 'dplNumParserFunction' ] );
-		$parser->setFunctionHook( 'dplvar', [ __CLASS__, 'dplVarParserFunction' ] );
-		$parser->setFunctionHook( 'dplreplace', [ __CLASS__, 'dplReplaceParserFunction' ] );
-		$parser->setFunctionHook( 'dplchapter', [ __CLASS__, 'dplChapterParserFunction' ] );
-		$parser->setFunctionHook( 'dplmatrix', [ __CLASS__, 'dplMatrixParserFunction' ] );
-	}
+		// DPL offers the same functionality as Intersection.
+		$parser->setHook( 'DynamicPageList', [ self::class, 'intersectionTag' ] );
 
-	/**
-	 * Sets up this extension's parser functions for migration from Intersection.
-	 *
-	 * @param Parser $parser
-	 */
-	public static function setupMigration( Parser $parser ) {
-		$parser->setHook( 'Intersection', [ __CLASS__, 'intersectionTag' ] );
-		$parser->addTrackingCategory( 'dpl-intersection-tracking-category' );
-
-		self::init();
-	}
-
-	/**
-	 * Common initializer for usage from parser entry points.
-	 */
-	private static function init() {
-		if ( !self::$createdLinks ) {
-			self::$createdLinks = [
-				'resetLinks' => false,
-				'resetTemplates' => false,
-				'resetCategories' => false,
-				'resetImages' => false,
-				'resetdone' => false,
-				'elimdone' => false
-			];
-		}
+		$parser->setFunctionHook( 'dpl', [ self::class, 'dplParserFunction' ] );
+		$parser->setFunctionHook( 'dplnum', [ self::class, 'dplNumParserFunction' ] );
+		$parser->setFunctionHook( 'dplvar', [ self::class, 'dplVarParserFunction' ] );
+		$parser->setFunctionHook( 'dplreplace', [ self::class, 'dplReplaceParserFunction' ] );
+		$parser->setFunctionHook( 'dplchapter', [ self::class, 'dplChapterParserFunction' ] );
+		$parser->setFunctionHook( 'dplmatrix', [ self::class, 'dplMatrixParserFunction' ] );
 	}
 
 	/**
 	 * Set to behave like intersection.
-	 *
-	 * @param bool $mode
 	 */
-	private static function setLikeIntersection( $mode = false ) {
+	private static function setLikeIntersection( bool $mode ): void {
 		self::$likeIntersection = $mode;
 	}
 
-	/**
-	 * Is like intersection?
-	 *
-	 * @return bool
-	 */
-	public static function isLikeIntersection() {
-		return (bool)self::$likeIntersection;
+	public static function isLikeIntersection(): bool {
+		return self::$likeIntersection;
 	}
 
 	/**
-	 * Tag <section> entry point.
-	 *
-	 * @param string $input
-	 * @param array $args
-	 * @param Parser $parser
-	 * @param PPFrame $frame
-	 * @return string
+	 * Tag <DynamicPageList> entry point.
 	 */
-	public static function intersectionTag( $input, array $args, Parser $parser, PPFrame $frame ) {
+	public static function intersectionTag(
+		string $input,
+		array $args,
+		Parser $parser,
+		PPFrame $frame
+	): string {
 		self::setLikeIntersection( true );
+		$parser->addTrackingCategory( 'dpl-intersection-tracking-category' );
 
 		return self::executeTag( $input, $args, $parser, $frame );
 	}
 
 	/**
 	 * Tag <dpl> entry point.
-	 *
-	 * @param string $input
-	 * @param array $args
-	 * @param Parser $parser
-	 * @param PPFrame $frame
-	 * @return string
 	 */
-	public static function dplTag( $input, array $args, Parser $parser, PPFrame $frame ) {
+	public static function dplTag(
+		string $input,
+		array $args,
+		Parser $parser,
+		PPFrame $frame
+	): string {
 		self::setLikeIntersection( false );
 		$parser->addTrackingCategory( 'dpl-tag-tracking-category' );
 
@@ -198,54 +158,57 @@ class Hooks {
 	 *
 	 * @param string $input
 	 * @param array $args @phan-unused-param
-	 * @param Parser $parser
-	 * @param PPFrame $frame
-	 * @return string
 	 */
-	private static function executeTag( $input, array $args, Parser $parser, PPFrame $frame ) {
+	private static function executeTag(
+		string $input,
+		array $args,
+		Parser $parser,
+		PPFrame $frame
+	): string {
 		// entry point for user tag <dpl> or <DynamicPageList>
 		// create list and do a recursive parse of the output
 
 		$parse = new Parse();
+
 		if ( Config::getSetting( 'recursiveTagParse' ) ) {
 			$input = $parser->recursiveTagParse( $input, $frame );
 		}
 
+		$reset = [];
+		$eliminate = [];
 		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
 		$parserOutput = $parser->getOutput();
 
 		// we can remove the templates by save/restore
-		if ( $reset['templates'] ?? false ) {
-			$saveTemplates = $parserOutput->mTemplates;
-		}
+		$saveTemplates = ( $reset['templates'] ?? false ) ?
+			$parserOutput->mTemplates : null;
 
 		// we can remove the categories by save/restore
-		if ( $reset['categories'] ?? false ) {
-			$saveCategories = array_combine(
-				$parserOutput->getCategoryNames(),
-				array_map( static fn ( $value ) =>
+		$saveCategories = ( $reset['categories'] ?? false ) ? array_combine(
+			$parserOutput->getCategoryNames(),
+			array_map(
+				static fn ( string $value ): string =>
 					$parserOutput->getCategorySortKey( $value ),
-					$parserOutput->getCategoryNames()
-				)
-			);
-		}
+				$parserOutput->getCategoryNames()
+			)
+		) : null;
 
 		// we can remove the images by save/restore
-		if ( $reset['images'] ?? false ) {
-			$saveImages = $parserOutput->mImages;
-		}
+		$saveImages = ( $reset['images'] ?? false ) ?
+			$parserOutput->mImages : null;
 
 		$parsedDPL = $parser->recursiveTagParse( $text );
+
 		if ( $reset['templates'] ?? false ) {
-			$parser->getOutput()->mTemplates = $saveTemplates ?? [];
+			$parserOutput->mTemplates = $saveTemplates ?? [];
 		}
 
 		if ( $reset['categories'] ?? false ) {
-			$parser->getOutput()->setCategories( $saveCategories ?? [] );
+			$parserOutput->setCategories( $saveCategories ?? [] );
 		}
 
 		if ( $reset['images'] ?? false ) {
-			$parser->getOutput()->mImages = $saveImages ?? [];
+			$parserOutput->mImages = $saveImages ?? [];
 		}
 
 		return $parsedDPL;
@@ -253,41 +216,35 @@ class Hooks {
 
 	/**
 	 * The #dpl parser tag entry point.
-	 *
-	 * @param Parser $parser
-	 * @return array|string
 	 */
-	public static function dplParserFunction( $parser ) {
+	public static function dplParserFunction(
+		Parser $parser,
+		string ...$args
+	): array|string {
 		self::setLikeIntersection( false );
 
 		$parser->addTrackingCategory( 'dpl-parserfunc-tracking-category' );
 
 		// callback for the parser function {{#dpl: or {{DynamicPageList::
-		$input = "";
-
-		$numargs = func_num_args();
-		if ( $numargs < 2 ) {
-			$input = "#dpl: no arguments specified";
-
+		if ( $args === [] ) {
+			$input = '#dpl: no arguments specified';
 			return str_replace( '§', '<', '§pre>§nowiki>' . $input . '§/nowiki>§/pre>' );
 		}
 
-		// fetch all user-provided arguments (skipping $parser)
-		$arg_list = func_get_args();
-		for ( $i = 1; $i < $numargs; $i++ ) {
-			$p1 = $arg_list[$i];
-
-			$input .= str_replace( "\n", "", $p1 ) . "\n";
-		}
+		$input = implode( "\n", array_map(
+			static fn ( string $arg ): string => str_replace( "\n", '', $arg ),
+			$args
+		) ) . "\n";
 
 		$parse = new Parse();
+		$reset = $eliminate = [];
 		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false );
 
 		return [
 			// @phan-suppress-next-line PhanPluginMixedKeyNoKey
 			$parser->getPreprocessor()->preprocessToObj( $dplresult, 1 ),
 			'isLocalObj' => true,
-			'title' => $parser->getPage()
+			'title' => $parser->getPage(),
 		];
 	}
 
@@ -297,55 +254,57 @@ class Hooks {
 	 * From the old documentation: "Tries to guess a number that is buried in the text.
 	 * Uses a set of heuristic rules which may work or not. The idea is to extract the
 	 * number so that it can be used as a sorting value in the column of a DPL table output."
-	 *
-	 * @param Parser $parser
-	 * @param string $text
-	 * @return string
 	 */
-	public static function dplNumParserFunction( $parser, $text = '' ) {
+	public static function dplNumParserFunction( Parser $parser, string $text ): string {
 		$parser->addTrackingCategory( 'dplnum-parserfunc-tracking-category' );
 
-		$num = str_replace( '&#160;', ' ', $text );
-		$num = str_replace( '&nbsp;', ' ', $num );
-		$num = preg_replace( '/([0-9])([.])([0-9][0-9]?[^0-9,])/', '\1,\3', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/', '\1\2 000000 ', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9][0-9])\s*Mrd/', '\1\2 0000000 ', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9])\s*Mrd/', '\1\2 00000000 ', $num );
-		$num = preg_replace( '/\s*Mrd/', '000000000 ', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9][0-9][0-9])\s*Mio/', '\1\2 000 ', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9][0-9])\s*Mio/', '\1\2 0000 ', $num );
-		$num = preg_replace( '/([0-9.]+),([0-9])\s*Mio/', '\1\2 00000 ', $num );
-		$num = preg_replace( '/\s*Mio/', '000000 ', $num );
-		$num = preg_replace( '/[. ]/', '', $num );
-		$num = preg_replace( '/^[^0-9]+/', '', $num );
-		$num = preg_replace( '/[^0-9].*/', '', $num );
+		$num = str_replace( [ '&#160;', '&nbsp;' ], ' ', $text );
+		$num = preg_replace( [
+			'/([0-9])([.])([0-9][0-9]?[^0-9,])/',
+			'/([0-9.]+),([0-9][0-9][0-9])\s*Mrd/',
+			'/([0-9.]+),([0-9][0-9])\s*Mrd/',
+			'/([0-9.]+),([0-9])\s*Mrd/',
+			'/\s*Mrd/',
+			'/([0-9.]+),([0-9][0-9][0-9])\s*Mio/',
+			'/([0-9.]+),([0-9][0-9])\s*Mio/',
+			'/([0-9.]+),([0-9])\s*Mio/',
+			'/\s*Mio/',
+			'/[. ]/',
+			'/^[^0-9]+/',
+			'/[^0-9].*/',
+		], [
+			'\1,\3',
+			'\1\2 000000 ',
+			'\1\2 0000000 ',
+			'\1\2 00000000 ',
+			'000000000 ',
+			'\1\2 000 ',
+			'\1\2 0000 ',
+			'\1\2 00000 ',
+			'000000 ',
+			'',
+			'',
+			'',
+		], $num );
 
-		return $num;
+		return $num ?? '';
 	}
 
-	/**
-	 * @param Parser &$parser
-	 * @param string $cmd
-	 * @return string
-	 */
-	public static function dplVarParserFunction( &$parser, $cmd ) {
+	public static function dplVarParserFunction(
+		Parser $parser,
+		string $cmd,
+		mixed ...$args
+	): string {
 		$parser->addTrackingCategory( 'dplvar-parserfunc-tracking-category' );
-		$args = func_get_args();
 
-		if ( $cmd == 'set' ) {
-			return Variables::setVar( $args );
-		} elseif ( $cmd == 'default' ) {
-			return Variables::setVarDefault( $args );
-		}
-
-		return Variables::getVar( $cmd );
+		return match ( $cmd ) {
+			'set' => Variables::setVar( [ $parser, $cmd, ...$args ] ),
+			'default' => Variables::setVarDefault( [ $parser, $cmd, ...$args ] ),
+			default => Variables::getVar( $cmd ),
+		};
 	}
 
-	/**
-	 * @param string $needle
-	 * @return bool
-	 */
-	private static function isRegexp( $needle ) {
+	private static function isRegexp( string $needle ): bool {
 		if ( strlen( $needle ) < 3 ) {
 			return false;
 		}
@@ -359,23 +318,18 @@ class Hooks {
 			return false;
 		}
 
-		if ( $needle[0] == $nettoNeedle[strlen( $nettoNeedle ) - 1] ) {
-			return true;
-		}
-
-		return false;
+		return $needle[0] === $nettoNeedle[-1];
 	}
 
-	/**
-	 * @param Parser &$parser
-	 * @param string $text
-	 * @param string $pat
-	 * @param string $repl
-	 * @return string
-	 */
-	public static function dplReplaceParserFunction( &$parser, $text, $pat = '', $repl = '' ) {
+	public static function dplReplaceParserFunction(
+		Parser $parser,
+		string $text,
+		string $pat,
+		string $repl
+	): string {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
-		if ( $text == '' || $pat == '' ) {
+
+		if ( $text === '' || $pat === '' ) {
 			return '';
 		}
 
@@ -392,291 +346,235 @@ class Hooks {
 			return '';
 		}
 
-		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-		return @preg_replace( $pat, $repl, $text );
-		// @phan-suppress-previous-line SecurityCheck-ReDoS
+		// Validate that the regex is valid
+		if ( !StringUtils::isValidPCRERegex( $pat ) ) {
+			return '';
+		}
+
+		// @phan-suppress-next-line SecurityCheck-ReDoS
+		return preg_replace( $pat, $repl, $text ) ?? '';
 	}
 
-	/**
-	 * @param Parser &$parser
-	 * @param string $text
-	 * @param string $heading
-	 * @param int $maxLength
-	 * @param string $page
-	 * @param string $link
-	 * @param bool $trim
-	 * @return string
-	 */
 	public static function dplChapterParserFunction(
-		&$parser,
-		$text = '',
-		$heading = ' ',
-		$maxLength = -1,
-		$page = '?page?',
-		$link = 'default',
-		$trim = false
-	) {
+		Parser $parser,
+		string $text = '',
+		string $heading = ' ',
+		int $maxLength = -1,
+		string $page = '?page?',
+		string $link = 'default',
+		bool $trim = false
+	): string {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
 		$output = LST::extractHeadingFromText(
 			$parser, $page, $text, $heading, '',
 			$sectionHeading, true, $maxLength, $link, $trim
 		);
-		return $output[0];
+
+		return $output[0] ?? '';
 	}
 
-	/**
-	 * @param Parser &$parser
-	 * @param string $name
-	 * @param string $yes
-	 * @param string $no
-	 * @param string $flip
-	 * @param string $matrix
-	 * @return string
-	 */
 	public static function dplMatrixParserFunction(
-		&$parser,
-		$name = '',
-		$yes = '',
-		$no = '',
-		$flip = '',
-		$matrix = ''
-	) {
+		Parser $parser,
+		string $name = '',
+		string $yes = '',
+		string $no = '',
+		string $flip = '',
+		string $matrix = ''
+	): string {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
+
 		$lines = explode( "\n", $matrix );
 		$m = [];
 		$sources = [];
 		$targets = [];
 		$from = '';
-		$to = '';
 
-		if ( $flip == '' || $flip == 'normal' ) {
-			$flip = false;
-		} else {
-			$flip = true;
-		}
-
-		if ( $name == '' ) {
-			$name = '&#160;';
-		}
-
-		if ( $yes == '' ) {
-			$yes = ' x ';
-		}
-
-		if ( $no == '' ) {
-			$no = '&#160;';
-		}
-
-		if ( $no[0] == '-' ) {
+		$flip = $flip !== '' && $flip !== 'normal';
+		$name = $name !== '' ? $name : '&#160;';
+		$yes = $yes !== '' ? $yes : ' x ';
+		$no = $no !== '' ? $no : '&#160;';
+		if ( $no[0] ?? '' === '-' ) {
 			$no = " $no ";
 		}
 
 		foreach ( $lines as $line ) {
-			if ( strlen( $line ) <= 0 ) {
+			$line = trim( $line );
+			if ( $line === '' ) {
 				continue;
 			}
 
-			if ( $line[0] != ' ' ) {
-				$from = preg_split( ' *\~\~ *', trim( $line ), 2 );
-				if ( !array_key_exists( $from[0], $sources ) ) {
-					if ( count( $from ) < 2 || $from[1] == '' ) {
-						$sources[$from[0]] = $from[0];
-					} else {
-						$sources[$from[0]] = $from[1];
-					}
+			if ( $line[0] !== ' ' ) {
+				$fromParts = preg_split( ' *\~\~ *', $line, 2 );
+				$key = $fromParts[0];
+				$label = $fromParts[1] ?? '';
 
-					$m[$from[0]] = [];
-				}
-			} elseif ( trim( $line ) != '' ) {
-				$to = preg_split( ' *\~\~ *', trim( $line ), 2 );
+				$sources[$key] = $label !== '' ? $label : $key;
+				$m[$key] = [];
+				$from = $key;
+			} else {
+				$toParts = preg_split( ' *\~\~ *', ltrim( $line ), 2 );
+				$key = $toParts[0];
+				$label = $toParts[1] ?? '';
 
-				if ( count( $to ) < 2 || $to[1] == '' ) {
-					$targets[$to[0]] = $to[0];
-				} else {
-					$targets[$to[0]] = $to[1];
-				}
-
-				// @phan-suppress-next-line PhanTypeInvalidDimOffset
-				$m[$from[0]][$to[0]] = true;
+				$targets[$key] = $label !== '' ? $label : $key;
+				$m[$from][$key] = true;
 			}
 		}
 
 		ksort( $targets );
-
 		$header = "\n";
 
 		if ( $flip ) {
 			foreach ( $sources as $from => $fromName ) {
-				$header .= "![[$from|" . $fromName . "]]\n";
+				$header .= "![[$from|$fromName]]\n";
 			}
 
+			$rows = [];
 			foreach ( $targets as $to => $toName ) {
-				$targets[$to] = "[[$to|$toName]]";
+				$row = "[[$to|$toName]]";
 				foreach ( $sources as $from => $_ ) {
-					if ( array_key_exists( $to, $m[$from] ) ) {
-						$targets[$to] .= "\n|$yes";
-					} else {
-						$targets[$to] .= "\n|$no";
-					}
+					$row .= "\n|" . ( $m[$from][$to] ?? false ? $yes : $no );
 				}
-
-				$targets[$to] .= "\n|--\n";
+				$row .= "\n|--\n";
+				$rows[] = $row;
 			}
 
-			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode( "\n!", $targets ) . "\n|}";
+			$body = implode( "\n!", $rows );
 		} else {
 			foreach ( $targets as $to => $toName ) {
-				$header .= "![[$to|" . $toName . "]]\n";
+				$header .= "![[$to|$toName]]\n";
 			}
 
+			$rows = [];
 			foreach ( $sources as $from => $fromName ) {
-				$sources[$from] = "[[$from|$fromName]]";
+				$row = "[[$from|$fromName]]";
 				foreach ( $targets as $to => $_ ) {
-					if ( array_key_exists( $to, $m[$from] ) ) {
-						$sources[$from] .= "\n|$yes";
-					} else {
-						$sources[$from] .= "\n|$no";
-					}
+					$row .= "\n|" . ( $m[$from][$to] ?? false ? $yes : $no );
 				}
-
-				$sources[$from] .= "\n|--\n";
+				$row .= "\n|--\n";
+				$rows[] = $row;
 			}
 
-			return "{|class=dplmatrix\n|$name" . "\n" . $header . "|--\n!" . implode( "\n!", $sources ) . "\n|}";
+			$body = implode( "\n!", $rows );
 		}
+
+		return "{|class=dplmatrix\n|$name\n$header|--\n!$body\n|}";
 	}
 
-	/**
-	 * @param string $cat
-	 */
-	public static function fixCategory( $cat ) {
-		if ( $cat != '' ) {
+	public static function fixCategory( string $cat ): void {
+		if ( $cat !== '' ) {
 			self::$fixedCategories[$cat] = 1;
 		}
 	}
 
-	/**
-	 * Set Debugging Level
-	 *
-	 * @param int|string $level
-	 */
-	public static function setDebugLevel( $level ) {
-		self::$debugLevel = (int)$level;
+	public static function setDebugLevel( int $level ): void {
+		self::$debugLevel = $level;
 	}
 
-	/**
-	 * Return Debugging Level
-	 *
-	 * @return int
-	 */
-	public static function getDebugLevel() {
+	public static function getDebugLevel(): int {
 		return self::$debugLevel;
 	}
 
 	/**
 	 * Reset everything; some categories may have been fixed, however via fixcategory=
-	 *
-	 * @param Parser $parser
-	 * @param string $text @phan-unused-param
 	 */
-	public static function endReset( $parser, $text ) {
-		if ( !self::$createdLinks['resetdone'] ) {
-			self::$createdLinks['resetdone'] = true;
-
-			foreach ( $parser->getOutput()->getCategoryNames() as $key ) {
-				if ( array_key_exists( $key, self::$fixedCategories ) ) {
-					self::$fixedCategories[$key] = $parser->getOutput()->getCategorySortKey( $key );
-				}
-			}
-
-			if ( self::$createdLinks['resetLinks'] ) {
-				$parser->getOutput()->mLinks = [];
-			}
-
-			if ( self::$createdLinks['resetCategories'] ) {
-				$parser->getOutput()->setCategories( self::$fixedCategories );
-			}
-
-			if ( self::$createdLinks['resetTemplates'] ) {
-				$parser->getOutput()->mTemplates = [];
-			}
-
-			if ( self::$createdLinks['resetImages'] ) {
-				$parser->getOutput()->mImages = [];
-			}
-
-			self::$fixedCategories = [];
+	public static function endReset( Parser $parser ): void {
+		if ( self::$createdLinks['resetdone'] ) {
+			return;
 		}
+
+		self::$createdLinks['resetdone'] = true;
+		$output = $parser->getOutput();
+
+		foreach ( $output->getCategoryNames() as $key ) {
+			if ( array_key_exists( $key, self::$fixedCategories ) ) {
+				self::$fixedCategories[$key] = $output->getCategorySortKey( $key );
+			}
+		}
+
+		if ( self::$createdLinks['resetLinks'] ) {
+			$output->mLinks = [];
+		}
+
+		if ( self::$createdLinks['resetCategories'] ) {
+			$output->setCategories( self::$fixedCategories );
+		}
+
+		if ( self::$createdLinks['resetTemplates'] ) {
+			$output->mTemplates = [];
+		}
+
+		if ( self::$createdLinks['resetImages'] ) {
+			$output->mImages = [];
+		}
+
+		self::$fixedCategories = [];
 	}
 
-	/**
-	 * @param Parser $parser
-	 * @param string &$text
-	 */
-	public static function endEliminate( $parser, &$text ) {
-		// called during the final output phase; removes links created by DPL
-		if ( self::$createdLinks ) {
-			if ( array_key_exists( 0, self::$createdLinks ) ) {
-				$parserLinks = $parser->getOutput()->mLinks;
-				foreach ( $parserLinks as $nsp => $_ ) {
-					if ( !array_key_exists( $nsp, self::$createdLinks[0] ) ) {
-						continue;
-					}
+	public static function endEliminate( Parser $parser ): void {
+		// Called during the final output phase; removes links created by DPL
+		if ( !self::$createdLinks ) {
+			return;
+		}
 
-					$parser->getOutput()->mLinks[$nsp] = array_diff_assoc(
-						$parserLinks[$nsp],
-						self::$createdLinks[0][$nsp]
-					);
+		$output = $parser->getOutput();
 
-					if ( count( $parserLinks[$nsp] ) == 0 ) {
-						unset( $parser->getOutput()->mLinks[$nsp] );
-					}
+		if ( isset( self::$createdLinks[0] ) ) {
+			foreach ( $output->mLinks as $nsp => $_ ) {
+				if ( !isset( self::$createdLinks[0][$nsp] ) ) {
+					continue;
 				}
-			}
 
-			if ( array_key_exists( 1, self::$createdLinks ) ) {
-				$parserTemplates = $parser->getOutput()->mTemplates;
-				foreach ( $parserTemplates as $nsp => $_ ) {
-					if ( !array_key_exists( $nsp, self::$createdLinks[1] ) ) {
-						continue;
-					}
-
-					$parser->getOutput()->mTemplates[$nsp] = array_diff_assoc(
-						$parserTemplates[$nsp],
-						self::$createdLinks[1][$nsp]
-					);
-
-					if ( count( $parserTemplates[$nsp] ) == 0 ) {
-						unset( $parser->getOutput()->mTemplates[$nsp] );
-					}
-				}
-			}
-
-			if ( array_key_exists( 2, self::$createdLinks ) ) {
-				$parserOutput = $parser->getOutput();
-				$categories = array_combine(
-					$parserOutput->getCategoryNames(),
-					array_map(
-						static fn ( $value ) => $parserOutput->getCategorySortKey( $value ) ?? '',
-						$parserOutput->getCategoryNames()
-					)
+				$output->mLinks[$nsp] = array_diff_assoc(
+					$output->mLinks[$nsp],
+					self::$createdLinks[0][$nsp]
 				);
-				$parser->getOutput()->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ) );
-			}
 
-			if ( array_key_exists( 3, self::$createdLinks ) ) {
-				$parser->getOutput()->mImages = array_diff_assoc(
-					$parser->getOutput()->mImages, self::$createdLinks[3] );
+				if ( $output->mLinks[$nsp] === [] ) {
+					unset( $output->mLinks[$nsp] );
+				}
 			}
+		}
+
+		if ( isset( self::$createdLinks[1] ) ) {
+			foreach ( $output->mTemplates as $nsp => $_ ) {
+				if ( !isset( self::$createdLinks[1][$nsp] ) ) {
+					continue;
+				}
+
+				$output->mTemplates[$nsp] = array_diff_assoc(
+					$output->mTemplates[$nsp],
+					self::$createdLinks[1][$nsp]
+				);
+
+				if ( $output->mTemplates[$nsp] === [] ) {
+					unset( $output->mTemplates[$nsp] );
+				}
+			}
+		}
+
+		if ( isset( self::$createdLinks[2] ) ) {
+			$categories = array_combine(
+				$output->getCategoryNames(),
+				array_map(
+					static fn ( string $name ): string =>
+						$output->getCategorySortKey( $name ) ?? '',
+					$output->getCategoryNames()
+				)
+			);
+
+			$output->setCategories( array_diff_assoc( $categories, self::$createdLinks[2] ) );
+		}
+
+		if ( isset( self::$createdLinks[3] ) ) {
+			$output->mImages = array_diff_assoc( $output->mImages, self::$createdLinks[3] );
 		}
 	}
 
 	/**
 	 * Setups and Modifies Database Information
-	 *
-	 * @param DatabaseUpdater $updater
 	 */
-	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ) {
+	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater ): void {
 		$updater->addPostDatabaseUpdateMaintenance( CreateTemplate::class );
 		$updater->addPostDatabaseUpdateMaintenance( CreateView::class );
 	}
