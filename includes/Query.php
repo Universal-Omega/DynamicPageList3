@@ -1605,13 +1605,27 @@ class Query {
 						'page_id = cl_head.cl_from'
 					);
 
-					if (
-						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catheadings' ) ) > 0
-					) {
-						$this->queryBuilder->where( [
-							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' )['AND'] ?? [],
-						] );
+					$catheadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
+					if ( is_array( $catheadings ) && $catheadings !== [] ) {
+						if ( !empty( $catheadings['AND'] ) ) {
+							$this->queryBuilder->where(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
+									$catheadings['AND']
+								), IDatabase::LIST_AND )
+							);
+						}
+
+						if ( !empty( $catheadings['OR'] ) ) {
+							$this->queryBuilder->where(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
+									$catheadings['OR']
+								), IDatabase::LIST_OR )
+							);
+						}
 					}
 
 					if (
