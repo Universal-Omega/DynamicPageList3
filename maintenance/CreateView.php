@@ -2,9 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Maintenance;
 
-$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
-require_once "$IP/maintenance/Maintenance.php";
-
 use Exception;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 
@@ -19,29 +16,14 @@ class CreateView extends LoggedUpdateMaintenance {
 		$this->requireExtension( 'DynamicPageList3' );
 	}
 
-	/**
-	 * Get the unique update key for this logged update.
-	 *
-	 * @return string
-	 */
 	protected function getUpdateKey(): string {
 		return 'dynamic-page-list-4-create-view';
 	}
 
-	/**
-	 * Message to show that the update was done already and was just skipped
-	 *
-	 * @return string
-	 */
 	protected function updateSkippedMessage(): string {
 		return 'VIEW already created.';
 	}
 
-	/**
-	 * Handle creating DPL4's dpl_clview VIEW.
-	 *
-	 * @return bool
-	 */
 	protected function doDBUpdates(): bool {
 		$dbw = $this->getDB( DB_PRIMARY );
 		$recreate = $this->hasOption( 'recreate' );
@@ -81,5 +63,6 @@ class CreateView extends LoggedUpdateMaintenance {
 	}
 }
 
-$maintClass = CreateView::class;
-require_once RUN_MAINTENANCE_IF_MAIN;
+// @codeCoverageIgnoreStart
+return CreateView::class;
+// @codeCoverageIgnoreEnd
