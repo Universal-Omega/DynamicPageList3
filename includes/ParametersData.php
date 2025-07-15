@@ -990,7 +990,7 @@ class ParametersData {
 		 */
 		'redirects' => [
 			'default' => 'exclude',
-			'values' => [ 'include', 'exclude', 'only' ]
+			'values' => [ 'exclude', 'only' ]
 		],
 		/**
 		 * stablepages =...
