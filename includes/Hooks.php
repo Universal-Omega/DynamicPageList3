@@ -61,7 +61,7 @@ class Hooks {
 
 	public const DEBUG_QUERY = 3021;
 
-	/** @phan-var array<mixed,mixed>  */
+	/** @phan-var array<mixed,mixed> */
 	public static array $createdLinks;
 	public static array $fixedCategories = [];
 
