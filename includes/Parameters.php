@@ -866,6 +866,11 @@ class Parameters extends ParametersData {
 	 * Clean and test 'debug' parameter.
 	 */
 	public function _debug( string $option ): bool {
+		if ( !is_numeric( $option ) ) {
+			return false;
+		}
+
+		$option = (int)$option;
 		if ( in_array( $option, $this->getData( 'debug' )['values'] ?? [], true ) ) {
 			Hooks::setDebugLevel( $option );
 			return true;
