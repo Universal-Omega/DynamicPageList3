@@ -1605,22 +1605,50 @@ class Query {
 						'page_id = cl_head.cl_from'
 					);
 
-					if (
-						is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catheadings' ) ) > 0
-					) {
-						$this->queryBuilder->where( [
-							'cl_head.cl_to' => $this->parameters->getParameter( 'catheadings' ),
-						] );
+					$catheadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
+					if ( is_array( $catheadings ) && $catheadings !== [] ) {
+						if ( !empty( $catheadings['AND'] ) ) {
+							$this->queryBuilder->where(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
+									$catheadings['AND']
+								), IDatabase::LIST_AND )
+							);
+						}
+
+						if ( !empty( $catheadings['OR'] ) ) {
+							$this->queryBuilder->where(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
+									$catheadings['OR']
+								), IDatabase::LIST_OR )
+							);
+						}
 					}
 
-					if (
-						is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
-						count( $this->parameters->getParameter( 'catnotheadings' ) ) > 0
-					) {
-						$this->queryBuilder->andWhere( $this->dbr->expr(
-							'cl_head.cl_to', '!=', $this->parameters->getParameter( 'catnotheadings' )
-						) );
+					$catnotheadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
+					if ( is_array( $catnotheadings ) && $catnotheadings !== [] ) {
+						if ( !empty( $catnotheadings['AND'] ) ) {
+							$this->queryBuilder->andWhere(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
+									$catnotheadings['AND']
+								), IDatabase::LIST_AND )
+							);
+						}
+
+						if ( !empty( $catnotheadings['OR'] ) ) {
+							$this->queryBuilder->andWhere(
+								$this->dbr->makeList( array_map(
+									fn ( string $cat ): Expression =>
+										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
+									$catnotheadings['OR']
+								), IDatabase::LIST_OR )
+							);
+						}
 					}
 					break;
 				case 'categoryadd':
