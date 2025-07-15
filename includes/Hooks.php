@@ -8,6 +8,7 @@ use MediaWiki\Installer\DatabaseUpdater;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\PPFrame;
 use MediaWiki\Registration\ExtensionRegistry;
+use StringUtils;
 
 class Hooks {
 
@@ -388,7 +389,7 @@ class Hooks {
 		$name = $name !== '' ? $name : '&#160;';
 		$yes = $yes !== '' ? $yes : ' x ';
 		$no = $no !== '' ? $no : '&#160;';
-		if ( $no[0] ?? '' === '-' ) {
+		if ( ( $no[0] ?? '' ) === '-' ) {
 			$no = " $no ";
 		}
 
