@@ -10,194 +10,42 @@ use MediaWiki\User\ActorStore;
 use stdClass;
 
 class Article {
-	/**
-	 * Title
-	 *
-	 * @var Title
-	 */
-	public $mTitle;
 
+	private string|int $mDate = '';
+	private static array $headings = [];
+
+	public Title $mTitle;
 	public string $mDisplayTitle = '';
+	public int $mNamespace = -1;
+	public int $mID = 0;
+	public string $mSelTitle = '';
+	public int $mSelNamespace = -1;
+	public string $mImageSelTitle = '';
+	public string $mLink = '';
+	public string $mExternalLink = '';
+	public string $mStartChar = '';
+	public string $mParentHLink = '';
+	public array $mCategoryLinks = [];
+	public array $mCategoryTexts = [];
+	public int $mCounter = 0;
+	public int $mSize = 0;
+	public string $myDate = '';
+	public int $mRevision = 0;
+	public string $mUserLink = '';
+	public string $mUser = '';
+	public string $mComment = '';
+	public int $mContribution = 0;
+	public string $mContrib = '';
+	public string $mContributor = '';
 
-	/**
-	 * Namespace ID
-	 *
-	 * @var int
-	 */
-	public $mNamespace = -1;
-
-	/**
-	 * Page ID
-	 *
-	 * @var int
-	 */
-	public $mID = 0;
-
-	/**
-	 * Selected title of initial page.
-	 *
-	 * @var string
-	 */
-	public $mSelTitle = '';
-
-	/**
-	 * Selected namespace ID of initial page.
-	 *
-	 * @var int
-	 */
-	public $mSelNamespace = -1;
-
-	/**
-	 * Selected title of image.
-	 *
-	 * @var string
-	 */
-	public $mImageSelTitle = '';
-
-	/**
-	 * HTML link to page.
-	 *
-	 * @var string
-	 */
-	public $mLink = '';
-
-	/**
-	 * External link on the page.
-	 *
-	 * @var string
-	 */
-	public $mExternalLink = '';
-
-	/**
-	 * First character of the page title.
-	 *
-	 * @var string
-	 */
-	public $mStartChar = '';
-
-	/**
-	 * Heading (link to the associated page) that page belongs to in the list (default '' means no heading)
-	 *
-	 * @var string
-	 */
-	public $mParentHLink = '';
-
-	/**
-	 * Category links on the page.
-	 *
-	 * @var array
-	 */
-	public $mCategoryLinks = [];
-
-	/**
-	 * Category names (without link) in the page.
-	 *
-	 * @var array
-	 */
-	public $mCategoryTexts = [];
-
-	/**
-	 * Number of times this page has been viewed.
-	 *
-	 * @var int
-	 */
-	public $mCounter = 0;
-
-	/**
-	 * Article length in bytes of wiki text
-	 *
-	 * @var int
-	 */
-	public $mSize = 0;
-
-	/**
-	 * Timestamp depending on the user's request (can be first/last edit, page_touched, ...)
-	 *
-	 * @var string|int
-	 */
-	public $mDate = '';
-
-	/**
-	 * Timestamp depending on the user's request, based on user format definition.
-	 *
-	 * @var string
-	 */
-	public $myDate = '';
-
-	/**
-	 * Revision ID
-	 *
-	 * @var int
-	 */
-	public $mRevision = 0;
-
-	/**
-	 * Link to editor (first/last, depending on user's request) 's page or contributions if not registered.
-	 *
-	 * @var string
-	 */
-	public $mUserLink = '';
-
-	/**
-	 * Name of editor (first/last, depending on user's request) or contributions if not registered.
-	 *
-	 * @var string
-	 */
-	public $mUser = '';
-
-	/**
-	 * Edit Summary(Revision Comment)
-	 *
-	 * @var string
-	 */
-	public $mComment = '';
-
-	/**
-	 * Number of bytes changed.
-	 *
-	 * @var int
-	 */
-	public $mContribution = 0;
-
-	/**
-	 * Short string indicating the size of a contribution.
-	 *
-	 * @var string
-	 */
-	public $mContrib = '';
-
-	/**
-	 * User text of who made the changes.
-	 *
-	 * @var string
-	 */
-	public $mContributor = '';
-
-	/**
-	 * Article Headings - Maps heading to count (# of pages under each heading).
-	 *
-	 * @var array
-	 */
-	private static $headings = [];
-
-	/**
-	 * @param Title $title
-	 * @param int $namespace
-	 */
-	public function __construct( Title $title, $namespace ) {
-		$this->mTitle = $title;
-		$this->mNamespace = $namespace;
+	public function __construct(
+		public readonly Title $mTitle,
+		public readonly int $mNamespace
+	) {
 	}
 
 	/**
 	 * Initialize a new instance from a database row.
-	 *
-	 * @param stdClass $row
-	 * @param Parameters $parameters
-	 * @param Title $title
-	 * @param int $pageNamespace
-	 * @param string $pageTitle
-	 * @return self
 	 */
 	public static function newFromRow(
 		stdClass $row,
@@ -207,40 +55,34 @@ class Article {
 		string $pageTitle
 	): self {
 		$services = MediaWikiServices::getInstance();
-
 		$contentLanguage = $services->getContentLanguage();
 		$userFactory = $services->getUserFactory();
 
 		$article = new self( $title, $pageNamespace );
 
 		$revActorName = ActorStore::UNKNOWN_USER_NAME;
-		if ( isset( $row->rev_actor ) && (int)$row->rev_actor !== 0 ) {
+		if ( (int)( $row->rev_actor ?? 0 ) !== 0 ) {
 			$revUser = $userFactory->newFromActorId( $row->rev_actor );
 			$revUserDeleted = $row->rev_deleted & RevisionRecord::DELETED_USER;
 			$revActorName = $revUser->isHidden() || $revUserDeleted ?
-				wfMessage( 'rev-deleted-user' )->escaped() : $revUser->getName();
+				wfMessage( 'rev-deleted-user' )->escaped() :
+				$revUser->getName();
 		}
 
-		if ( isset( $row->displaytitle ) ) {
-			$article->mDisplayTitle = $row->displaytitle;
-		}
+		$article->mDisplayTitle = $row->displaytitle ?? '';
 
-		$titleText = $title->getText();
-		if ( $parameters->getParameter( 'shownamespace' ) === true ) {
-			$titleText = $title->getPrefixedText();
-		}
+		$titleText = $parameters->getParameter( 'shownamespace' ) === true ?
+			$title->getPrefixedText() : $title->getText();
 
 		$replaceInTitle = $parameters->getParameter( 'replaceintitle' );
-		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
+		if ( count( $replaceInTitle ?? [] ) === 2 ) {
 			$titleText = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $titleText );
 		}
 
 		// Chop off title if longer than the 'titlemaxlen' parameter.
-		if (
-			$parameters->getParameter( 'titlemaxlen' ) !== null &&
-			strlen( $titleText ) > $parameters->getParameter( 'titlemaxlen' )
-		) {
-			$titleText = substr( $titleText, 0, $parameters->getParameter( 'titlemaxlen' ) ) . '...';
+		$titleMaxLen = $parameters->getParameter( 'titlemaxlen' );
+		if ( $titleMaxLen !== null && strlen( $titleText ) > $titleMaxLen ) {
+			$titleText = substr( $titleText, 0, $titleMaxLen ) . '...';
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
@@ -249,67 +91,40 @@ class Article {
 		} else {
 			$articleLink = '[[' . (
 				$parameters->getParameter( 'escapelinks' ) &&
-				( $pageNamespace == NS_CATEGORY || $pageNamespace == NS_FILE ) ? ':' : ''
+				( $pageNamespace === NS_CATEGORY || $pageNamespace === NS_FILE ) ? ':' : ''
 			) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
 
 		$article->mLink = $articleLink;
 
+		// Get the first character used for category-style output. 
 		$languageConverter = $services->getLanguageConverterFactory()->getLanguageConverter();
+		$sortKey = $row->sortkey ?? $pageTitle;
+		$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $sortKey ) );
 
-		// get first char used for category-style output
-		if ( isset( $row->sortkey ) ) {
-			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $row->sortkey ) );
-		} else {
-			$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $pageTitle ) );
-		}
-
-		$article->mID = (int)$row->page_id;
+		$article->mID = (int)( $row->page_id ?? 0 );
 
 		// External link
-		if ( isset( $row->el_to ) ) {
-			$article->mExternalLink = $row->el_to;
-		}
+		$article->mExternalLink = $row->el_to ?? '';
 
 		// SHOW PAGE_COUNTER
-		if ( isset( $row->page_counter ) ) {
-			$article->mCounter = (int)$row->page_counter;
-		}
+		$article->mCounter = (int)( $row->page_counter ?? 0 );
 
 		// SHOW PAGE_SIZE
-		if ( isset( $row->page_len ) ) {
-			$article->mSize = (int)$row->page_len;
-		}
+		$article->mSize = (int)( $row->page_len ?? 0 );
 
 		// STORE initially selected PAGE
-		if (
-			(
-				is_array( $parameters->getParameter( 'linksto' ) ) &&
-				count( $parameters->getParameter( 'linksto' ) )
-			) ||
-			(
-				is_array( $parameters->getParameter( 'linksfrom' ) ) &&
-				count( $parameters->getParameter( 'linksfrom' ) )
-			)
-		) {
-			if ( !isset( $row->sel_title ) ) {
-				$article->mSelTitle = 'unknown page';
-				$article->mSelNamespace = 0;
-			} else {
-				$article->mSelTitle = $row->sel_title;
-				$article->mSelNamespace = $row->sel_ns;
-			}
+		if ( $parameters->getParameter( 'linksto' ) || $parameters->getParameter( 'linksfrom' ) ) {
+			$article->mSelTitle = $row->sel_title ?? 'unknown page';
+			$article->mSelNamespace = $row->sel_ns ?? 0;
 		}
 
 		// STORE selected image
-		if (
-			is_array( $parameters->getParameter( 'imageused' ) ) &&
-			count( $parameters->getParameter( 'imageused' ) ) > 0
-		) {
+		if ( $parameters->getParameter( 'imageused' ) ) {
 			$article->mImageSelTitle = $row->image_sel_title ?? 'unknown image';
 		}
 
-		if ( $parameters->getParameter( 'goal' ) != 'categories' ) {
+		if ( $parameters->getParameter( 'goal' ) !== 'categories' ) {
 			// REVISION SPECIFIED
 			if (
 				$parameters->getParameter( 'lastrevisionbefore' ) ||
@@ -317,23 +132,20 @@ class Article {
 				$parameters->getParameter( 'firstrevisionsince' ) ||
 				$parameters->getParameter( 'allrevisionssince' )
 			) {
-				$article->mRevision = $row->rev_id;
+				$article->mRevision = $row->rev_id ?? 0;
 				$article->mUser = $revActorName;
-				$article->mDate = $row->rev_timestamp;
+				$article->mDate = $row->rev_timestamp ?? '';
 
 				// $article->mComment = $row->rev_comment;
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
-			if ( $parameters->getParameter( 'addpagetoucheddate' ) ) {
-				$article->mDate = $row->page_touched;
-			} elseif ( $parameters->getParameter( 'addfirstcategorydate' ) ) {
-				$article->mDate = $row->cl_timestamp;
-			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row->rev_timestamp ) ) {
-				$article->mDate = $row->rev_timestamp;
-			} elseif ( $parameters->getParameter( 'addeditdate' ) && isset( $row->page_touched ) ) {
-				$article->mDate = $row->page_touched;
-			}
+			$article->mDate = match ( true ) {
+				$parameters->getParameter( 'addpagetoucheddate' ) => $row->page_touched ?? '',
+				$parameters->getParameter( 'addfirstcategorydate' ) => $row->cl_timestamp ?? '',
+				$parameters->getParameter( 'addeditdate' ) => $row->rev_timestamp ?? $row->page_touched ?? '',
+				default => $article->mDate,
+			};
 
 			// Time zone adjustment
 			if ( $article->mDate ) {
@@ -351,59 +163,60 @@ class Article {
 
 			// CONTRIBUTION, CONTRIBUTOR
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
-				$article->mContribution = $row->contribution;
-				$contribUser = $userFactory->newFromActorId( $row->contributor );
+				$article->mContribution = $row->contribution ?? 0;
+				$contribUser = $userFactory->newFromActorId( $row->contributor ?? 0 );
 				$contribUserDeleted = $row->contrib_deleted & RevisionRecord::DELETED_USER;
 				$article->mContributor = $contribUser->isHidden() || $contribUserDeleted ?
-					wfMessage( 'rev-deleted-user' )->escaped() : $contribUser->getName();
-				$article->mContrib = substr( '*****************', 0, (int)round( log( $row->contribution ) ) );
+					wfMessage( 'rev-deleted-user' )->escaped() :
+					$contribUser->getName();
+				$article->mContrib = substr( '*****************', 0, (int)round( log( $article->mContribution ) ) );
 			}
 
 			// USER/AUTHOR(S)
-			// because we are going to do a recursive parse at the end of the output phase
-			// we have to generate wiki syntax for linking to a user´s homepage
+			// Because we are going to do a recursive parse at the end of the output phase
+			// we have to generate wiki syntax for linking to a user's homepage.
 			if (
 				$parameters->getParameter( 'adduser' ) ||
 				$parameters->getParameter( 'addauthor' ) ||
 				$parameters->getParameter( 'addlasteditor' )
 			) {
-				$article->mUserLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+				$article->mUserLink = "[[User:$revActorName|$revActorName]]";
 				$article->mUser = $revActorName;
 			}
 
 			// CATEGORY LINKS FROM CURRENT PAGE
-			if ( $parameters->getParameter( 'addcategories' ) && ( $row->cats ) ) {
-				$artCatNames = explode( ' | ', $row->cats );
-				foreach ( $artCatNames as $artCatName ) {
-					$article->mCategoryLinks[] = '[[:Category:' . $artCatName . '|' .
-						str_replace( '_', ' ', $artCatName ) . ']]';
-					$article->mCategoryTexts[] = str_replace( '_', ' ', $artCatName );
+			if ( $parameters->getParameter( 'addcategories' ) && !empty( $row->cats ) ) {
+				foreach ( explode( ' | ', $row->cats ) as $artCatName ) {
+					$text = str_replace( '_', ' ', $artCatName );
+					$link = "[[:Category:$artCatName|$text]]";
+					$article->mCategoryLinks[] = $link;
+					$article->mCategoryTexts[] = $text;
 				}
 			}
 
-			// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param)
-			if ( $parameters->getParameter( 'headingmode' ) != 'none' ) {
-				switch ( $parameters->getParameter( 'ordermethod' )[0] ) {
+			
+			// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param).
+			if ( $parameters->getParameter( 'headingmode' ) !== 'none' ) {
+				$ordermethod = $parameters->getParameter( 'ordermethod' )[0] ?? null;
+				switch ( $ordermethod ) {
 					case 'category':
 						// Count one more page in this heading
-						self::$headings[$row->cl_to] = ( self::$headings[$row->cl_to] ?? 0 ) + 1;
-						if ( $row->cl_to == '' ) {
-							// Uncategorized page (used if ordermethod=category,...)
-							$article->mParentHLink = '[[:Special:Uncategorizedpages|' .
-								wfMessage( 'uncategorizedpages' ) . ']]';
-						} else {
-							$article->mParentHLink = '[[:Category:' . $row->cl_to . '|' .
-								str_replace( '_', ' ', $row->cl_to ) . ']]';
-						}
+						$clTo = $row->cl_to ?? '';
+						self::$headings[$clTo] = ( self::$headings[$clTo] ?? 0 ) + 1;
 
+						$text = str_replace( '_', ' ', $clTo );
+						$message = wfMessage( 'uncategorizedpages' )->escaped();
+
+						$article->mParentHLink = $clTo === '' ?
+							// Uncategorized page (used if ordermethod=category,...)
+							"[[:Special:Uncategorizedpages|$message]]" :
+							"[[:Category:$clTo|$text]]";
 						break;
 					case 'user':
-						if ( $revActorName && $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
+						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
 							self::$headings[$revActorName] = ( self::$headings[$revActorName] ?? 0 ) + 1;
-							$article->mParentHLink = '[[User:' . $revActorName . '|' . $revActorName . ']]';
+							$article->mParentHLink = "[[User:$revActorName|$revActorName]]";
 						}
-
-						break;
 				}
 			}
 		}
@@ -413,10 +226,8 @@ class Article {
 
 	/**
 	 * Returns all heading information processed from all newly instantiated article objects.
-	 *
-	 * @return array
 	 */
-	public static function getHeadings() {
+	public static function getHeadings(): array {
 		return self::$headings;
 	}
 
@@ -424,21 +235,20 @@ class Article {
 	 * Reset the headings to their initial state.
 	 * Ideally this Article class should not exist and be handled by the built in MediaWiki class.
 	 */
-	public static function resetHeadings() {
+	public static function resetHeadings(): void {
 		self::$headings = [];
 	}
 
 	/**
 	 * Get the formatted date for this article if available.
-	 *
-	 * @return string formatted string or empty string if none set.
 	 */
-	public function getDate() {
+	public function getDate(): string {
 		if ( $this->myDate ) {
 			return $this->myDate;
-		} elseif ( $this->mDate ) {
-			$lang = RequestContext::getMain()->getLanguage();
+		}
 
+		if ( $this->mDate ) {
+			$lang = RequestContext::getMain()->getLanguage();
 			return $lang->timeanddate( $this->mDate, true );
 		}
 
