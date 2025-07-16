@@ -686,16 +686,11 @@ class Query {
 	 * Set SQL for 'categoriesminmax' parameter.
 	 */
 	private function _categoriesminmax( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
-		if (
+		if ( count( $option ) === 0 || (
 			!is_numeric( $option[0] ) &&
-			( !isset( $option[1] ) || !is_numeric( $option[1] ) )
-		) {
-			// Prevent running the subquery if we aren't doing anything with it.
+				( !isset( $option[1] ) || !is_numeric( $option[1] ) )
+		) ) {
+			// Nothing to do
 			return;
 		}
 
@@ -719,11 +714,6 @@ class Query {
 	 * Set SQL for 'category' parameter. This includes 'category', 'categorymatch', and 'categoryregexp'.
 	 */
 	private function _category( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$i = 0;
 		foreach ( $option as $comparisonType => $operatorTypes ) {
 			foreach ( $operatorTypes as $operatorType => $categoryGroups ) {
@@ -792,11 +782,6 @@ class Query {
 	 * Set SQL for 'notcategory' parameter.
 	 */
 	private function _notcategory( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$i = 0;
 		foreach ( $option as $operatorType => $categories ) {
 			foreach ( $categories as $category ) {
@@ -1514,14 +1499,16 @@ class Query {
 	 */
 	private function _order( string $option ): void {
 		$orderMethod = $this->parameters->getParameter( 'ordermethod' );
-		if ( $orderMethod && $orderMethod[0] !== 'none' ) {
-			if ( $option === 'descending' || $option === 'desc' ) {
-				$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
-				return;
-			}
-
-			$this->setOrderDir( SelectQueryBuilder::SORT_ASC );
+		if ( !$orderMethod || $orderMethod[0] === 'none' ) {
+			return;
 		}
+
+		if ( $option === 'descending' || $option === 'desc' ) {
+			$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
+			return;
+		}
+
+		$this->setOrderDir( SelectQueryBuilder::SORT_ASC );
 	}
 
 	/**
@@ -1590,11 +1577,6 @@ class Query {
 	 * Set SQL for 'ordermethod' parameter.
 	 */
 	private function _ordermethod( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			// No order methods for returning categories.
 			return;
@@ -1892,18 +1874,21 @@ class Query {
 	 * Set SQL for 'includesubpages' parameter.
 	 */
 	private function _includesubpages( bool $option ): void {
-		if ( $option === true ) {
+		if ( $option ) {
+			// If we are including subpages we don't need to do anything here.
 			return;
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$this->queryBuilder->where( $this->dbr->expr( 'lt_title', IExpression::NOT_LIKE,
-				new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() ) ) );
+			$this->queryBuilder->andWhere( $this->dbr->expr( 'lt_title', IExpression::NOT_LIKE,
+				new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() )
+			) );
 			return;
 		}
 
-		$this->queryBuilder->where( $this->dbr->expr( 'page.page_title', IExpression::NOT_LIKE,
-			new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() ) ) );
+		$this->queryBuilder->andWhere( $this->dbr->expr( 'page.page_title', IExpression::NOT_LIKE,
+			new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() )
+		) );
 	}
 
 	/**
