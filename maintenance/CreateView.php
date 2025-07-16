@@ -11,7 +11,7 @@ class CreateView extends LoggedUpdateMaintenance {
 	public function __construct() {
 		parent::__construct();
 
-		$this->addDescription( 'Create or recreate the dpl_clview VIEW for DPL4.' );
+		$this->addDescription( 'Create or recreate the necessary VIEW for DPL4.' );
 		$this->addOption( 'recreate', 'Drop and recreate the VIEW if it already exists.' );
 
 		$this->requireExtension( 'DynamicPageList3' );
@@ -45,9 +45,9 @@ class CreateView extends LoggedUpdateMaintenance {
 		try {
 			$viewName = $dbw->tableName( 'dpl_clview' );
 			$dbw->query( "DROP VIEW IF EXISTS $viewName;", __METHOD__ );
-			$this->output( "Dropped existing view dpl_clview.\n" );
+			$this->output( "Dropped existing VIEW $viewName.\n" );
 		} catch ( DBQueryError $e ) {
-			$this->output( "Failed to drop existing view: {$e->getMessage()}\n" );
+			$this->output( "Failed to drop existing VIEW: {$e->getMessage()}\n" );
 		}
 	}
 
@@ -66,10 +66,10 @@ class CreateView extends LoggedUpdateMaintenance {
 		try {
 			$viewName = $dbw->tableName( 'dpl_clview' );
 			$dbw->query( "CREATE VIEW $viewName AS $selectSQL;", __METHOD__ );
-			$this->output( "Created view dpl_clview.\n" );
+			$this->output( "Created VIEW $viewName.\n" );
 			return true;
 		} catch ( DBQueryError $e ) {
-			$this->output( "Failed to create view: {$e->getMessage()}\n" );
+			$this->output( "Failed to create VIEW: {$e->getMessage()}\n" );
 			return false;
 		}
 	}
