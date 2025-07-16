@@ -398,6 +398,7 @@ class ParametersData {
 		 */
 		'headingcount' => [
 			'default' => false,
+			'setDefault' => true,
 			'boolean' => true,
 			'open_ref_conflict' => true
 		],
