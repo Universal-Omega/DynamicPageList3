@@ -43,10 +43,8 @@ class CreateView extends LoggedUpdateMaintenance {
 
 	private function dropView( IMaintainableDatabase $dbw ): void {
 		try {
-			$dbw->query(
-				"DROP VIEW IF EXISTS {$dbw->tableName( 'dpl_clview' )}",
-				__METHOD__
-			);
+			$viewName = $dbw->tableName( 'dpl_clview' );
+			$dbw->query( "DROP VIEW IF EXISTS $viewName;", __METHOD__ );
 			$this->output( "Dropped existing view dpl_clview.\n" );
 		} catch ( DBQueryError $e ) {
 			$this->output( "Failed to drop existing view: {$e->getMessage()}\n" );
@@ -65,10 +63,9 @@ class CreateView extends LoggedUpdateMaintenance {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$viewName = $dbw->tableName( 'dpl_clview' );
-		$createSQL = "CREATE VIEW $viewName AS $selectSQL";
 		try {
-			$dbw->query( $createSQL, __METHOD__ );
+			$viewName = $dbw->tableName( 'dpl_clview' );
+			$dbw->query( "CREATE VIEW $viewName AS $selectSQL;", __METHOD__ );
 			$this->output( "Created view dpl_clview.\n" );
 			return true;
 		} catch ( DBQueryError $e ) {
