@@ -275,7 +275,6 @@ class Heading {
 		Lister $lister
 	): string {
 		$item = $this->getItemStart() . $headingLink;
-
 		if ( $this->showHeadingCount ) {
 			$item .= $this->articleCountMessage( $headingCount );
 		}
