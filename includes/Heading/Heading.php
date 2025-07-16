@@ -16,9 +16,7 @@ class Heading {
 	 */
 	protected string $listStart = '';
 
-	/**
-	 * List(Section) End
-	 */
+	/** List(Section) End */
 	protected string $listEnd = '';
 
 	/**
@@ -26,25 +24,15 @@ class Heading {
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
 	protected string $itemStart = '';
-
-	/**
-	 * Item End
-	 */
 	protected string $itemEnd = '';
 
-	/**
-	 * Extra list HTML attributes.
-	 */
+	/** Extra list HTML attributes. */
 	protected string $listAttributes = '';
 
-	/**
-	 * Extra item HTML attributes.
-	 */
+	/** Extra item HTML attributes. */
 	protected string $itemAttributes = '';
 
-	/**
-	 * If the article count per heading should be shown.
-	 */
+	/** If the article count per heading should be shown. */
 	protected bool $showHeadingCount = false;
 
 	public function __construct(
