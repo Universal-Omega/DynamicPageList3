@@ -587,14 +587,16 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addpagecounter( bool $option ): void {
-		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
-			$this->queryBuilder->table( 'hit_counter' );
-			$this->queryBuilder->select( [ 'page_counter' => 'hit_counter.page_counter' ] );
-			if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-				$this->queryBuilder->leftJoin( 'hit_counter', null,
-					'hit_counter.page_id = page.page_id'
-				);
-			}
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
+			return;
+		}
+
+		$this->queryBuilder->table( 'hit_counter' );
+		$this->queryBuilder->select( [ 'page_counter' => 'hit_counter.page_counter' ] );
+		if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
+			$this->queryBuilder->leftJoin( 'hit_counter', null,
+				'hit_counter.page_id = page.page_id'
+			);
 		}
 	}
 
