@@ -12,7 +12,7 @@ class CreateView extends LoggedUpdateMaintenance {
 		parent::__construct();
 
 		$this->addDescription( 'Create or recreate the dpl_clview VIEW for DPL4.' );
-		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
+		$this->addOption( 'recreate', 'Drop and recreate the VIEW if it already exists.' );
 
 		$this->requireExtension( 'DynamicPageList3' );
 	}
