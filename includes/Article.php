@@ -95,7 +95,7 @@ class Article {
 
 		$article->mLink = $articleLink;
 
-		// Get the first character used for category-style output. 
+		// Get the first character used for category-style output.
 		$languageConverter = $services->getLanguageConverterFactory()->getLanguageConverter();
 		$sortKey = $row->sortkey ?? $pageTitle;
 		$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $sortKey ) );
@@ -192,7 +192,6 @@ class Article {
 				}
 			}
 
-			
 			// PARENT HEADING (category of the page, editor (user) of the page, etc. Depends on ordermethod param).
 			if ( $parameters->getParameter( 'headingmode' ) !== 'none' ) {
 				$ordermethod = $parameters->getParameter( 'ordermethod' )[0] ?? null;
