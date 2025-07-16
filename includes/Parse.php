@@ -139,12 +139,12 @@ class Parse {
 		$this->parameters->setParameter( 'includeuncat', false );
 
 		foreach ( $cleanParameters as $parameter => $option ) {
-			foreach ( $option as $_option ) {
+			foreach ( $option as $value ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( $this->parameters->$parameter( $_option ) === false ) {
+				if ( $this->parameters->$parameter( $value ) === false ) {
 					// Do not build this into the output just yet. It will be collected at the end.
-					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $_option );
+					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $value );
 				}
 			}
 		}
@@ -540,14 +540,14 @@ class Parse {
 			$footer = '';
 
 			// Only override header and footers if specified.
-			$_headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
-			if ( $_headerType !== false ) {
-				$header = $this->parameters->getParameter( $_headerType );
+			$headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
+			if ( $headerType !== false ) {
+				$header = $this->parameters->getParameter( $headerType );
 			}
 
-			$_footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
-			if ( $_footerType !== false ) {
-				$footer = $this->parameters->getParameter( $_footerType );
+			$footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
+			if ( $footerType !== false ) {
+				$footer = $this->parameters->getParameter( $footerType );
 			}
 
 			$this->setHeader( $header );
@@ -633,16 +633,16 @@ class Parse {
 				)
 			)
 		) {
-			$_type = 'results' . $position;
+			$type = 'results' . $position;
 		} elseif ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
-			$_type = 'oneresult' . $position;
+			$type = 'oneresult' . $position;
 		} elseif ( $count === 0 && $this->parameters->getParameter( 'noresults' . $position ) !== null ) {
-			$_type = 'noresults' . $position;
+			$type = 'noresults' . $position;
 		} else {
-			$_type = false;
+			$type = false;
 		}
 
-		return $_type;
+		return $type;
 	}
 
 	/**
@@ -901,7 +901,7 @@ class Parse {
 	 * @return array
 	 */
 	private static function updateTableRowKeys( $tableRow, $sectionLabels ) {
-		$_tableRow = (array)$tableRow;
+		$originalRow = (array)$tableRow;
 		$tableRow = [];
 		$groupNr = -1;
 		$t = -1;
@@ -912,8 +912,8 @@ class Parse {
 			$cols = explode( '}:', $label );
 
 			if ( count( $cols ) <= 1 ) {
-				if ( array_key_exists( $t, $_tableRow ) ) {
-					$tableRow[$groupNr] = $_tableRow[$t];
+				if ( array_key_exists( $t, $originalRow ) ) {
+					$tableRow[$groupNr] = $originalRow[$t];
 				}
 			} else {
 				$n = count( explode( ':', $cols[1] ) );
@@ -924,8 +924,8 @@ class Parse {
 					$colNr++;
 					$t++;
 
-					if ( array_key_exists( $t, $_tableRow ) ) {
-						$tableRow[$groupNr . '.' . $colNr] = $_tableRow[$t];
+					if ( array_key_exists( $t, $originalRow ) ) {
+						$tableRow[$groupNr . '.' . $colNr] = $originalRow[$t];
 					}
 				}
 			}
