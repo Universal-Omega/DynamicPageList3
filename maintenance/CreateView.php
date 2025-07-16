@@ -4,13 +4,14 @@ namespace MediaWiki\Extension\DynamicPageList4\Maintenance;
 
 use Exception;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
+use Wikimedia\Rdbms\IMaintainableDatabase;
 
 class CreateView extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
 
-		$this->addDescription( 'Handle creating DPL4\'s dpl_clview VIEW.' );
+		$this->addDescription( 'Create or recreate the dpl_clview VIEW for DPL4.' );
 		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
 
 		$this->requireExtension( 'DynamicPageList3' );
@@ -29,37 +30,54 @@ class CreateView extends LoggedUpdateMaintenance {
 		$recreate = $this->hasOption( 'recreate' );
 
 		if ( $recreate || !$dbw->tableExists( 'dpl_clview', __METHOD__ ) ) {
-			// Drop the view if --recreate option is set
 			if ( $recreate ) {
-				try {
-					$dbw->query( "DROP VIEW IF EXISTS {$dbw->tablePrefix()}dpl_clview", __METHOD__ );
-					$this->output( "Dropped existing view dpl_clview.\n" );
-				} catch ( Exception $e ) {
-					$this->output( "Failed to drop existing view: " . $e->getMessage() . "\n" );
-					return false;
-				}
+				$this->dropView( $dbw );
 			}
 
-			$query = "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT " .
-				"COALESCE(cl_from, page_id) AS cl_from, " .
-				"COALESCE(cl_to, '') AS cl_to, cl_sortkey " .
-				"FROM {$dbw->tablePrefix()}page " .
-				"LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks " .
-				"ON {$dbw->tablePrefix()}page.page_id = cl_from;";
-
-			// Create the view
-			try {
-				$dbw->query( $query, __METHOD__ );
-				$this->output( "Created view dpl_clview.\n" );
-			} catch ( Exception $e ) {
-				$this->output( "Failed to create view: " . $e->getMessage() . "\n" );
-				return false;
-			}
-		} else {
-			$this->output( "VIEW already exists. Use --recreate to drop and recreate it.\n" );
+			return $this->createView( $dbw );
 		}
 
+		$this->output( "VIEW already exists. Use --recreate to force recreation.\n" );
 		return true;
+	}
+
+	private function dropView( IMaintainableDatabase $dbw ): void {
+		try {
+			$dbw->query(
+				"DROP VIEW IF EXISTS {$dbw->tableName( 'dpl_clview' )}",
+				__METHOD__
+			);
+			$this->output( "Dropped existing view dpl_clview.\n" );
+		} catch ( Exception $e ) {
+			$errorMessage = $e->getMessage();
+			$this->output( "Failed to drop existing view: $errorMessage\n" );
+		}
+	}
+
+	private function createView( IMaintainableDatabase $dbw ): bool {
+		$selectSQL = $dbw->newSelectQueryBuilder()
+			->select( [
+				'cl_to' => "COALESCE(cl.cl_to, '')",
+				'cl_from' => 'COALESCE(cl.cl_from, page.page_id)',
+				'cl_sortkey' => 'cl.cl_sortkey',
+			] )
+			->from( 'page', 'page' )
+			->leftJoin( 'categorylinks', 'cl', 'page.page_id = cl.cl_from' )
+			->caller( __METHOD__ )
+			->getSQL();
+
+		$viewName = $dbw->tableName( 'dpl_clview' );
+		$createSQL = "CREATE VIEW $viewName AS $selectSQL";
+
+		try {
+			$dbw->query( $createSQL, __METHOD__ );
+			$this->output( "Created view dpl_clview.\n" );
+			return true;
+		} catch ( Exception $e ) {
+			$message = $e->getMessage();
+			$this->output( "Failed to create view: $errorMessage\n" );
+			return false;
+		}
 	}
 }
 
