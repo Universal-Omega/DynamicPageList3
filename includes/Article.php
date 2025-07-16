@@ -11,32 +11,34 @@ use stdClass;
 
 class Article {
 
-	private string|int $mDate = '';
+	private string $mDate = '';
 	private static array $headings = [];
 
-	public string $mDisplayTitle = '';
-	public int $mID = 0;
-	public string $mSelTitle = '';
-	public int $mSelNamespace = -1;
-	public string $mImageSelTitle = '';
-	public string $mLink = '';
-	public string $mExternalLink = '';
-	public string $mStartChar = '';
-	public string $mParentHLink = '';
 	public array $mCategoryLinks = [];
 	public array $mCategoryTexts = [];
-	public int $mCounter = 0;
-	public int $mSize = 0;
-	public string $myDate = '';
+
+	public int $mID;
+	public int $mCounter;
+	public int $mSize;
+	public int $mContribution = 0;
 	public int $mRevision = 0;
+	public int $mSelNamespace = -1;
+
+	public string $mDisplayTitle;
+	public string $mExternalLink;
+	public string $mStartChar;
+	public string $mLink;
+	public string $mImageSelTitle = '';
+	public string $mSelTitle = '';
+	public string $mParentHLink = '';
 	public string $mUserLink = '';
 	public string $mUser = '';
 	public string $mComment = '';
-	public int $mContribution = 0;
 	public string $mContrib = '';
 	public string $mContributor = '';
+	public string $myDate = '';
 
-	public function __construct(
+	private function __construct(
 		public readonly Title $mTitle,
 		public readonly int $mNamespace
 	) {
