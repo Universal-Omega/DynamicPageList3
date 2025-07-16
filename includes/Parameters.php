@@ -227,8 +227,8 @@ class Parameters extends ParametersData {
 			$data = $this->getData( $parameter );
 			$default = $data['default'] ?? null;
 			$isBoolean = $data['boolean'] ?? false;
-			$setDefault = $data['setDefault'] ?? false;
-			if ( $default !== null && !( $setDefault && $default === false && $isBoolean === true ) ) {
+
+			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
 					Utils::setDebugLevel( $default );
 				}
@@ -499,6 +499,11 @@ class Parameters extends ParametersData {
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
 
+		return true;
+	}
+
+	public function _headingcount( string $option ): bool {
+		$this->setParameter( 'headingcount', (bool)$option );
 		return true;
 	}
 
