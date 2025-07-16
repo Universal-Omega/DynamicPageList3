@@ -1782,9 +1782,11 @@ class Query {
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in
 					// the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					$replaceConcat = $this->dbr->strreplace( $this->dbr->buildConcat(
-						[ $namespaceIdToText, 'page.page_title' ]
-					), '_', ' ' );
+					$replaceConcat = $this->dbr->strreplace(
+						$this->dbr->buildConcat( [ $namespaceIdToText, 'page.page_title' ] ),
+						$this->dbr->addQuotes( '_' ),
+						$this->dbr->addQuotes( ' ' )
+					);
 
 					$category = (array)$this->parameters->getParameter( 'category' );
 					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
@@ -1842,7 +1844,9 @@ class Query {
 									),
 									// Append the actual title
 									$titleColumn
-								] ), '_', ' '
+								] ),
+								$this->dbr->addQuotes( '_' ),
+								$this->dbr->addQuotes( ' ' )
 							)
 						)
 					] );
