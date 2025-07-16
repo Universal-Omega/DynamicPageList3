@@ -500,11 +500,6 @@ class Parameters extends ParametersData {
 		return true;
 	}
 
-	public function _headingcount( string $option ): bool {
-		$this->setParameter( 'headingcount', (bool)$option );
-		return true;
-	}
-
 	/**
 	 * Clean and test 'namespace' parameter.
 	 */
