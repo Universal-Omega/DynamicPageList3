@@ -14,9 +14,7 @@ class Article {
 	private string|int $mDate = '';
 	private static array $headings = [];
 
-	public Title $mTitle;
 	public string $mDisplayTitle = '';
-	public int $mNamespace = -1;
 	public int $mID = 0;
 	public string $mSelTitle = '';
 	public int $mSelNamespace = -1;
