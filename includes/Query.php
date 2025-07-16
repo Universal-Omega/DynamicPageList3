@@ -4,7 +4,6 @@ namespace MediaWiki\Extension\DynamicPageList4;
 
 use DateInterval;
 use DateTime;
-use Exception;
 use LogicException;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -14,6 +13,7 @@ use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\DBQueryError;
 use Wikimedia\Rdbms\Expression;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IExpression;
@@ -179,10 +179,10 @@ class Query {
 			if ( Utils::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
-		} catch ( Exception $ex ) {
+		} catch ( DBQueryError $e ) {
 			$errorMessage = $this->dbr->lastError();
 			if ( $errorMessage === '' ) {
-				$errorMessage = (string)$ex;
+				$errorMessage = (string)$e;
 			}
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
