@@ -589,10 +589,7 @@ class Query {
 	private function _addpagecounter( bool $option ): void {
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
 			$this->queryBuilder->table( 'hit_counter' );
-			$this->queryBuilder->select( [
-				'page_counter' => 'hit_counter.page_counter',
-			] );
-
+			$this->queryBuilder->select( [ 'page_counter' => 'hit_counter.page_counter' ] );
 			if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
 				$this->queryBuilder->leftJoin( 'hit_counter', null,
 					'hit_counter.page_id = page.page_id'
@@ -689,6 +686,11 @@ class Query {
 	 * Set SQL for 'categoriesminmax' parameter.
 	 */
 	private function _categoriesminmax( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if (
 			!is_numeric( $option[0] ) &&
 			( !isset( $option[1] ) || !is_numeric( $option[1] ) )
@@ -717,6 +719,11 @@ class Query {
 	 * Set SQL for 'category' parameter. This includes 'category', 'categorymatch', and 'categoryregexp'.
 	 */
 	private function _category( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		$i = 0;
 		foreach ( $option as $comparisonType => $operatorTypes ) {
 			foreach ( $operatorTypes as $operatorType => $categoryGroups ) {
@@ -785,6 +792,11 @@ class Query {
 	 * Set SQL for 'notcategory' parameter.
 	 */
 	private function _notcategory( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		$i = 0;
 		foreach ( $option as $operatorType => $categories ) {
 			foreach ( $categories as $category ) {
@@ -874,10 +886,13 @@ class Query {
 	 * @param string $option 'pages' or 'categories'.
 	 */
 	private function _goal( string $option ): void {
-		if ( $option === 'categories' ) {
-			$this->setLimit( null );
-			$this->setOffset( null );
+		if ( $option !== 'categories' ) {
+			// We only remove limit and offset if using 'categories' here.
+			return;
 		}
+
+		$this->setLimit( null );
+		$this->setOffset( null );
 	}
 
 	/**
@@ -893,6 +908,11 @@ class Query {
 	 * Set SQL for 'imagecontainer' parameter.
 	 */
 	private function _imagecontainer( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		$this->queryBuilder->table( 'imagelinks', 'ic' );
 		$this->queryBuilder->select( [ 'sortkey' => 'ic.il_to' ] );
 
@@ -919,6 +939,11 @@ class Query {
 	 * Set SQL for 'imageused' parameter.
 	 */
 	private function _imageused( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
@@ -1008,7 +1033,11 @@ class Query {
 	 * Set SQL for 'linksfrom' parameter.
 	 */
 	private function _linksfrom( array $option ): void {
-		$where = [];
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -1017,39 +1046,37 @@ class Query {
 				}
 			}
 
-			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
-		} else {
-			$this->queryBuilder->tables( [
-				'ltf' => 'linktarget',
-				'pagesrc' => 'page',
-				'plf' => 'pagelinks',
-			] );
-
-			if ( $this->isFormatUsed( '%PAGESEL%' ) ) {
-				$this->queryBuilder->select( [
-					'sel_title' => 'pagesrc.page_title',
-					'sel_ns' => 'pagesrc.page_namespace',
-				] );
-			}
-
-			$where = [
-				'page.page_namespace = ltf.lt_namespace',
-				'page.page_title = ltf.lt_title',
-				'ltf.lt_id = plf.pl_target_id',
-				'pagesrc.page_id = plf.pl_from',
-			];
-
-			$ors = [];
-			foreach ( $option as $linkGroup ) {
-				foreach ( $linkGroup as $link ) {
-					$ors[] = $this->dbr->expr( 'plf.pl_from', '=', $link->getArticleID() );
-				}
-			}
-
-			$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
+			$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+			return;
 		}
 
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->tables( [
+			'ltf' => 'linktarget',
+			'pagesrc' => 'page',
+			'plf' => 'pagelinks',
+		] );
+
+		if ( $this->isFormatUsed( '%PAGESEL%' ) ) {
+			$this->queryBuilder->select( [
+				'sel_title' => 'pagesrc.page_title',
+				'sel_ns' => 'pagesrc.page_namespace',
+			] );
+		}
+
+		$ors = [];
+		foreach ( $option as $linkGroup ) {
+			foreach ( $linkGroup as $link ) {
+				$ors[] = $this->dbr->expr( 'plf.pl_from', '=', $link->getArticleID() );
+			}
+		}
+
+		$this->queryBuilder->where( [
+			'page.page_namespace = ltf.lt_namespace',
+			'page.page_title = ltf.lt_title',
+			'ltf.lt_id = plf.pl_target_id',
+			'pagesrc.page_id = plf.pl_from',
+			$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+		] );
 	}
 
 	/**
@@ -1057,6 +1084,7 @@ class Query {
 	 */
 	private function _linksto( array $option ): void {
 		if ( count( $option ) === 0 ) {
+			// Nothing to do
 			return;
 		}
 
@@ -1079,7 +1107,7 @@ class Query {
 			$ors = [];
 			foreach ( $linkGroup as $link ) {
 				$title = $link->getDBkey();
-				$operator = strpos( $title, '%' ) !== false ? IExpression::LIKE : '=';
+				$operator = str_contains( $title, '%' ) ? IExpression::LIKE : '=';
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
@@ -1106,20 +1134,21 @@ class Query {
 					'page.page_id = pl.pl_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
-			} else {
-				$subquery = $this->queryBuilder->newSubquery()
-					->select( 'pl_from' )
-					->from( 'pagelinks', 'pl' )
-					->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
-					->where( [
-						'pl.pl_from = page.page_id',
-						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-					] )
-					->caller( __METHOD__ )
-					->getSQL();
-
-				$this->queryBuilder->where( "EXISTS($subquery)" );
+				continue;
 			}
+
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'pl_from' )
+				->from( 'pagelinks', 'pl' )
+				->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' )
+				->where( [
+					'pl.pl_from = page.page_id',
+					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+				] )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
 	}
 
@@ -1127,6 +1156,11 @@ class Query {
 	 * Set SQL for 'notlinksfrom' parameter.
 	 */
 	private function _notlinksfrom( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ands = [];
 			foreach ( $option as $linkGroup ) {
@@ -1135,29 +1169,30 @@ class Query {
 				}
 			}
 
-			$where = $this->dbr->makeList( $ands, IDatabase::LIST_AND );
-		} else {
-			$subquery = $this->queryBuilder->newSubquery()
-				->select( 'CONCAT(lt.lt_namespace, lt.lt_title)' )
-				->from( 'pagelinks', 'pl' )
-				->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
-
-			$ors = [];
-			foreach ( $option as $linkGroup ) {
-				foreach ( $linkGroup as $link ) {
-					$ors[] = $this->dbr->expr( 'pl.pl_from', '=', $link->getArticleID() );
-				}
-			}
-
-			if ( $ors ) {
-				$subquery->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
-			}
-
-			$subquery->caller( __METHOD__ );
-			$where = "CONCAT(page_namespace,page_title) NOT IN ({$subquery->getSQL()})";
+			$this->queryBuilder->where( $this->dbr->makeList( $ands, IDatabase::LIST_AND ) );
+			return;
 		}
 
-		$this->queryBuilder->where( $where );
+		$subquery = $this->queryBuilder->newSubquery()
+			->select( $this->dbr->buildConcat( [ 'lt.lt_namespace', 'lt.lt_title' ] ) )
+			->from( 'pagelinks', 'pl' )
+			->join( 'linktarget', 'lt', 'pl.pl_target_id = lt.lt_id' );
+
+		$ors = [];
+		foreach ( $option as $linkGroup ) {
+			foreach ( $linkGroup as $link ) {
+				$ors[] = $this->dbr->expr( 'pl.pl_from', '=', $link->getArticleID() );
+			}
+		}
+
+		if ( $ors ) {
+			$subquery->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+		}
+
+		$subquery->caller( __METHOD__ );
+		$this->queryBuilder->where(
+			"CONCAT(page_namespace, page_title) NOT IN ({$subquery->getSQL()})"
+		);
 	}
 
 	/**
@@ -1165,6 +1200,7 @@ class Query {
 	 */
 	private function _notlinksto( array $option ): void {
 		if ( count( $option ) === 0 ) {
+			// Nothing to do
 			return;
 		}
 
@@ -1174,7 +1210,7 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$title = $link->getDBkey();
-				$operator = strpos( $title, '%' ) !== false ? IExpression::LIKE : '=';
+				$operator = str_contains( $title, '%' ) ? IExpression::LIKE : '=';
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
@@ -1219,13 +1255,13 @@ class Query {
 	 * Set SQL for 'linkstoexternaldomain' parameter.
 	 */
 	private function _linkstoexternaldomain( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
 		if ( count( $option ) === 0 ) {
 			// Nothing to do
 			return;
+		}
+
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
@@ -1249,19 +1285,20 @@ class Query {
 					'page.page_id = el.el_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
-			} else {
-				$subquery = $this->queryBuilder->newSubquery()
-					->select( 'el_from' )
-					->from( 'externallinks', 'el' )
-					->where( [
-						'el.el_from = page.page_id',
-						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-					] )
-					->caller( __METHOD__ )
-					->getSQL();
-
-				$this->queryBuilder->where( "EXISTS($subquery)" );
+				continue;
 			}
+
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'el_from' )
+				->from( 'externallinks', 'el' )
+				->where( [
+					'el.el_from = page.page_id',
+					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+				] )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
 	}
 
@@ -1269,13 +1306,13 @@ class Query {
 	 * Set SQL for 'linkstoexternalpath' parameter.
 	 */
 	private function _linkstoexternalpath( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
 		if ( count( $option ) === 0 ) {
 			// Nothing to do
 			return;
+		}
+
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
@@ -1293,19 +1330,20 @@ class Query {
 					'page.page_id = el.el_from',
 					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 				] );
-			} else {
-				$subquery = $this->queryBuilder->newSubquery()
-					->select( 'el_from' )
-					->from( 'externallinks', 'el' )
-					->where( [
-						'el.el_from = page.page_id',
-						$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-					] )
-					->caller( __METHOD__ )
-					->getSQL();
-
-				$this->queryBuilder->where( "EXISTS($subquery)" );
+				continue;
 			}
+
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'el_from' )
+				->from( 'externallinks', 'el' )
+				->where( [
+					'el.el_from = page.page_id',
+					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+				] )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
 	}
 
@@ -1358,14 +1396,17 @@ class Query {
 	 * Set SQL for 'namespace' parameter.
 	 */
 	private function _namespace( array $option ): void {
-		if ( count( $option ) > 0 ) {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->queryBuilder->where( [ 'lt.lt_namespace' => $option ] );
-				return;
-			}
-
-			$this->queryBuilder->where( [ 'page.page_namespace' => $option ] );
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
 		}
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$this->queryBuilder->where( [ 'lt.lt_namespace' => $option ] );
+			return;
+		}
+
+		$this->queryBuilder->where( [ 'page.page_namespace' => $option ] );
 	}
 
 	/**
@@ -1441,14 +1482,17 @@ class Query {
 	 * Set SQL for 'notnamespace' parameter.
 	 */
 	private function _notnamespace( array $option ): void {
-		if ( count( $option ) > 0 ) {
-			if ( $this->parameters->getParameter( 'openreferences' ) ) {
-				$this->queryBuilder->andWhere( $this->dbr->expr( 'lt.lt_namespace', '!=', $option ) );
-				return;
-			}
-
-			$this->queryBuilder->andWhere( $this->dbr->expr( 'page.page_namespace', '!=', $option ) );
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
 		}
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$this->queryBuilder->andWhere( $this->dbr->expr( 'lt.lt_namespace', '!=', $option ) );
+			return;
+		}
+
+		$this->queryBuilder->andWhere( $this->dbr->expr( 'page.page_namespace', '!=', $option ) );
 	}
 
 	/**
@@ -1530,9 +1574,8 @@ class Query {
 		if ( $dbType === 'sqlite' ) {
 			// SQLite built-in collations are BINARY, NOCASE, RTRIM
 			$validCollations = [ 'binary', 'nocase', 'rtrim' ];
-
 			if ( in_array( $option, $validCollations, true ) ) {
-				$this->collation = strtoupper( $option );
+				$this->collation = mb_strtoupper( $option );
 				return;
 			}
 
@@ -1547,6 +1590,11 @@ class Query {
 	 * Set SQL for 'ordermethod' parameter.
 	 */
 	private function _ordermethod( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 			// No order methods for returning categories.
 			return;
@@ -1574,16 +1622,10 @@ class Query {
 					$this->addOrderBy( 'cl_head.cl_to' );
 					$this->queryBuilder->select( 'cl_head.cl_to' );
 
-					if (
-						(
-							is_array( $this->parameters->getParameter( 'catheadings' ) ) &&
-							in_array( '', $this->parameters->getParameter( 'catheadings' ), true )
-						) ||
-						(
-							is_array( $this->parameters->getParameter( 'catnotheadings' ) ) &&
-							in_array( '', $this->parameters->getParameter( 'catnotheadings' ), true )
-						)
-					) {
+					$catheadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
+					$catnotheadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
+
+					if ( in_array( '', $catheadings, true ) || in_array( '', $catnotheadings, true ) ) {
 						$clTableName = 'dpl_clview';
 						$clTableAlias = $clTableName;
 					} else {
@@ -1592,13 +1634,11 @@ class Query {
 					}
 
 					$this->queryBuilder->table( $clTableName, $clTableAlias );
-					$this->queryBuilder->leftJoin(
-						$clTableName, $clTableAlias,
+					$this->queryBuilder->leftJoin( $clTableName, $clTableAlias,
 						'page_id = cl_head.cl_from'
 					);
 
-					$catheadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
-					if ( is_array( $catheadings ) && $catheadings !== [] ) {
+					if ( $catheadings !== [] ) {
 						if ( !empty( $catheadings['AND'] ) ) {
 							$this->queryBuilder->where(
 								$this->dbr->makeList( array_map(
@@ -1620,8 +1660,7 @@ class Query {
 						}
 					}
 
-					$catnotheadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
-					if ( is_array( $catnotheadings ) && $catnotheadings !== [] ) {
+					if ( $catnotheadings !== [] ) {
 						if ( !empty( $catnotheadings['AND'] ) ) {
 							$this->queryBuilder->andWhere(
 								$this->dbr->makeList( array_map(
@@ -1653,9 +1692,8 @@ class Query {
 						if ( !array_key_exists( 'hit_counter', $this->queryBuilder->getQueryInfo()['tables'] ?? [] ) ) {
 							$this->queryBuilder->table( 'hit_counter' );
 							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-								$this->queryBuilder->leftJoin(
-									'hit_counter', null,
-									'hit_counter.page_id = page.page_id',
+								$this->queryBuilder->leftJoin( 'hit_counter', null,
+									'hit_counter.page_id = page.page_id'
 								);
 							}
 						}
@@ -1742,7 +1780,9 @@ class Query {
 					};
 
 					$this->queryBuilder->select( [
-						'sortkey' => $this->applyCollation( "CONCAT($alias.lt_namespace, $alias.lt_title)" ),
+						'sortkey' => $this->applyCollation( $this->dbr->buildConcat(
+							[ "$alias.lt_namespace", "$alias.lt_title" ]
+						) ),
 					] );
 					break;
 				case 'pagetouched':
@@ -1758,7 +1798,9 @@ class Query {
 					// If cl_sortkey is null (uncategorized page), generate a sortkey in
 					// the usual way (full page name, underscores replaced with spaces).
 					// UTF-8 created problems with non-utf-8 MySQL databases
-					$replaceConcat = "REPLACE(CONCAT($namespaceIdToText, page.page_title), '_', ' ')";
+					$replaceConcat = $this->dbr->strreplace( $this->dbr->buildConcat(
+						[ $namespaceIdToText, 'page.page_title' ]
+					), '_', ' ' );
 
 					$category = (array)$this->parameters->getParameter( 'category' );
 					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
@@ -1793,23 +1835,33 @@ class Query {
 					break;
 				case 'title':
 					$this->addOrderBy( 'sortkey' );
-					if ( $this->parameters->getParameter( 'openreferences' ) ) {
-						$this->queryBuilder->select( [
-							'sortkey' => $this->applyCollation(
-								"REPLACE(CONCAT(IF(lt_namespace = 0, '', CONCAT(" .
-								 $namespaceIdToText . ", ':')), lt_title), '_', ' ')"
-							),
-						] );
-					} else {
-						// Generate sortkey like for category links.
-						// UTF-8 created problems with non-utf-8 MySQL databases.
-						$this->queryBuilder->select( [
-							'sortkey' => $this->applyCollation( "REPLACE(CONCAT(IF(" .
-								"page.page_namespace = 0, '', CONCAT(" . $namespaceIdToText . ", ':')), " .
-								"page.page_title), '_', ' ')"
-							),
-						] );
-					}
+					$namespaceColumn = $this->parameters->getParameter( 'openreferences' ) ?
+						'lt_namespace' : 'page.page_namespace';
+
+					$titleColumn = $this->parameters->getParameter( 'openreferences' ) ?
+						'lt_title' : 'page.page_title';
+
+					// Generate sortkey like for category links.
+					// UTF-8 created problems with non-utf-8 MySQL databases.
+					$this->queryBuilder->select( [
+						// Select 'sortkey' with applied collation for sorting
+						'sortkey' => $this->applyCollation(
+							// Replace underscores with spaces in the concatenated string
+							$this->dbr->strreplace(
+								// Concatenate namespace prefix (if applicable) with the title
+								$this->dbr->buildConcat( [
+									// If the namespace is the main namespace, use an empty string
+									// Otherwise, concatenate namespace text and a colon
+									$this->dbr->conditional(
+										[ $namespaceColumn => NS_MAIN ], "''",
+										$this->dbr->buildConcat( [ $namespaceIdToText, "':'" ] )
+									),
+									// Append the actual title
+									$titleColumn
+								] ), '_', ' '
+							)
+						)
+					] );
 					break;
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
@@ -1840,7 +1892,7 @@ class Query {
 	 * Set SQL for 'includesubpages' parameter.
 	 */
 	private function _includesubpages( bool $option ): void {
-		if ( $option ) {
+		if ( $option === true ) {
 			return;
 		}
 
@@ -1980,7 +2032,7 @@ class Query {
 		$openReferences = $this->parameters->getParameter( 'openreferences' );
 		$field = $openReferences ? 'lt_title' : 'page.page_title';
 
-		if ( substr( $option, 0, 2 ) === '=_' ) {
+		if ( str_starts_with( $option, '=_' ) ) {
 			$option = substr( $option, 2 );
 			$this->queryBuilder->where( $this->dbr->expr( $field, '>=', $option ) );
 			return;
@@ -2003,7 +2055,7 @@ class Query {
 		$openReferences = $this->parameters->getParameter( 'openreferences' );
 		$field = $openReferences ? 'lt_title' : 'page.page_title';
 
-		if ( substr( $option, 0, 2 ) === '=_' ) {
+		if ( str_starts_with( $option, '=_' ) ) {
 			$option = substr( $option, 2 );
 			$this->queryBuilder->where( $this->dbr->expr( $field, '<=', $option ) );
 			return;
@@ -2023,6 +2075,11 @@ class Query {
 	 * Set SQL for 'usedby' parameter.
 	 */
 	private function _usedby( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -2031,50 +2088,49 @@ class Query {
 				}
 			}
 
-			$where = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
-		} else {
-			$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
-			[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
-
-			$this->queryBuilder->select( [
-				'tpl_sel_title' => 'page.page_title',
-				'tpl_sel_ns' => 'page.page_namespace',
-			] );
-
-			$this->queryBuilder->table( 'linktarget', 'lt_usedby' );
-			$this->queryBuilder->join( 'linktarget', 'lt_usedby', [
-				"page_title = lt_usedby.$titleField",
-				"page_namespace = lt_usedby.$nsField",
-			] );
-
-			$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_usedby.lt_id = tl_target_id' );
-
-			$ors = [];
-			foreach ( $option as $linkGroup ) {
-				foreach ( $linkGroup as $link ) {
-					$ors[] = $this->dbr->expr( 'tpl.tl_from', '=', $link->getArticleID() );
-				}
-			}
-
-			$where = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
+			$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+			return;
 		}
 
-		$this->queryBuilder->where( $where );
+		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
+		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
+
+		$this->queryBuilder->select( [
+			'tpl_sel_title' => 'page.page_title',
+			'tpl_sel_ns' => 'page.page_namespace',
+		] );
+
+		$this->queryBuilder->table( 'linktarget', 'lt_usedby' );
+		$this->queryBuilder->join( 'linktarget', 'lt_usedby', [
+			"page_title = lt_usedby.$titleField",
+			"page_namespace = lt_usedby.$nsField",
+		] );
+
+		$this->queryBuilder->join( 'templatelinks', 'tpl', 'lt_usedby.lt_id = tl_target_id' );
+
+		$ors = [];
+		foreach ( $option as $linkGroup ) {
+			foreach ( $linkGroup as $link ) {
+				$ors[] = $this->dbr->expr( 'tpl.tl_from', '=', $link->getArticleID() );
+			}
+		}
+
+		$this->queryBuilder->where( $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
 	}
 
 	/**
 	 * Set SQL for 'uses' parameter.
 	 */
 	private function _uses( array $option ): void {
+		if ( count( $option ) === 0 ) {
+			// Nothing to do
+			return;
+		}
+
 		$this->queryBuilder->tables( [
 			'lt_uses' => 'linktarget',
 			'tl' => 'templatelinks',
 		] );
-
-		$where = [
-			'page.page_id = tl.tl_from',
-			'lt_uses.lt_id = tl.tl_target_id',
-		];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
@@ -2100,8 +2156,11 @@ class Query {
 			}
 		}
 
-		$where[] = $this->dbr->makeList( $ors, IDatabase::LIST_OR );
-		$this->queryBuilder->where( $where );
+		$this->queryBuilder->where( [
+			'page.page_id = tl.tl_from',
+			'lt_uses.lt_id = tl.tl_target_id',
+			$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+		] );
 	}
 
 	/**
@@ -2109,6 +2168,7 @@ class Query {
 	 */
 	private function _notuses( array $option ): void {
 		if ( count( $option ) === 0 ) {
+			// Nothing to do
 			return;
 		}
 
