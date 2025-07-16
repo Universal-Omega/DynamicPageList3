@@ -203,21 +203,15 @@ class Query {
 			$qname .= ' - ' . $profilingContext;
 		}
 
+		if ( $calcRows ) {
+			$this->queryBuilder->select( [ 'count' => 'FOUND_ROWS()' ] );
+		}
+
 		$this->queryBuilder->caller( $qname );
 
-		$doQuery = function () use ( $calcRows ): array {
+		$doQuery = function (): array {
 			$res = $this->queryBuilder->fetchResultSet();
-			$res = iterator_to_array( $res );
-
-			if ( $calcRows ) {
-				$res['count'] = $this->dbr->newSelectQueryBuilder()
-					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
-					->select( 'FOUND_ROWS()' )
-					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
-					->fetchField();
-			}
-
-			return $res;
+			return iterator_to_array( $res );
 		};
 
 		$poolCounterKey = 'nowait:dpl4-query:' . WikiMap::getCurrentWikiId();
