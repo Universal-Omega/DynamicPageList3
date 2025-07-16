@@ -1845,13 +1845,13 @@ class Query {
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			$this->queryBuilder->where( $dbr->expr( 'lt_title', IExpression::NOT_LIKE,
-				new LikeValue( $dbr->anyString(), '/', $dbr->anyString() ) ) );
+			$this->queryBuilder->where( $this->dbr->expr( 'lt_title', IExpression::NOT_LIKE,
+				new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() ) ) );
 			return;
 		}
 
-		$this->queryBuilder->where( $dbr->expr( 'page.page_title', IExpression::NOT_LIKE,
-			new LikeValue( $dbr->anyString(), '/', $dbr->anyString() ) ) );
+		$this->queryBuilder->where( $this->dbr->expr( 'page.page_title', IExpression::NOT_LIKE,
+			new LikeValue( $this->dbr->anyString(), '/', $this->dbr->anyString() ) ) );
 	}
 
 	/**
