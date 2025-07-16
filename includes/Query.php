@@ -31,20 +31,14 @@ class Query {
 	private readonly SelectQueryBuilder $queryBuilder;
 	private readonly UserFactory $userFactory;
 
-	/**
-	 * Parameters that have already been processed.
-	 */
+	/** Parameters that have already been processed. */
 	private array $parametersProcessed = [];
 
-	/**
-	 * The generated SQL Query.
-	 */
+	/** The generated SQL Query. */
 	private string $sqlQuery = '';
-
 	private array $orderBy = [];
 
 	private ?int $limit = null;
-
 	private ?int $offset = null;
 
 	private string $direction = SelectQueryBuilder::SORT_ASC;
@@ -52,9 +46,7 @@ class Query {
 	private ?string $charset = null;
 	private ?string $collation = null;
 
-	/**
-	 * Was the revision auxiliary table select added for firstedit and lastedit?
-	 */
+	/** Was the revision auxiliary table select added for firstedit and lastedit? */
 	private bool $revisionAuxWhereAdded = false;
 
 	public function __construct(
