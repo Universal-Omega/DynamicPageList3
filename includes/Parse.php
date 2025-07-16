@@ -770,7 +770,7 @@ class Parse {
 		) {
 			$this->logger->addMessage(
 				Constants::FATAL_DOMINANTSECTIONRANGE,
-				count( $this->parameters->getParameter( 'seclabels' ) )
+				(string)count( $this->parameters->getParameter( 'seclabels' ) )
 			);
 
 			return false;
