@@ -226,7 +226,9 @@ class Parameters extends ParametersData {
 		foreach ( $this->getParametersForRichness() as $parameter ) {
 			$data = $this->getData( $parameter );
 			$default = $data['default'] ?? null;
-			if ( $default !== null ) {
+			$isBoolean = $data['boolean'] ?? false;
+			$setDefault = $data['setDefault'] ?? false;
+			if ( $default !== null && $setDefault || !( $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
 					Utils::setDebugLevel( $default );
 				}
