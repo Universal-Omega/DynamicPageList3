@@ -774,7 +774,7 @@ class Query {
 							$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
 						], IDatabase::LIST_AND );
 
-						$this->queryBuilder->join( $tableName, $tableAlias, $condition );
+						$this->queryBuilder->straightJoin( $tableName, $tableAlias, $condition );
 					}
 				}
 			}
