@@ -51,7 +51,7 @@ class Parameters extends ParametersData {
 		$this->parametersProcessed[$parameter] = true;
 
 		if ( method_exists( $this, $function ) ) {
-			return call_user_func_array( [ $this, $function ], $arguments );
+			return $this->$function( ...$arguments );
 		}
 
 		$option = $arguments[0];
