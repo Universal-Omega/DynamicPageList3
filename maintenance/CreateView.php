@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Maintenance;
 
-use Exception;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
+use Wikimedia\Rdbms\DBQueryError;
 use Wikimedia\Rdbms\IMaintainableDatabase;
 
 class CreateView extends LoggedUpdateMaintenance {
@@ -48,9 +48,8 @@ class CreateView extends LoggedUpdateMaintenance {
 				__METHOD__
 			);
 			$this->output( "Dropped existing view dpl_clview.\n" );
-		} catch ( Exception $e ) {
-			$errorMessage = $e->getMessage();
-			$this->output( "Failed to drop existing view: $errorMessage\n" );
+		} catch ( DBQueryError $e ) {
+			$this->output( "Failed to drop existing view: {$e->getMessage()}\n" );
 		}
 	}
 
@@ -68,14 +67,12 @@ class CreateView extends LoggedUpdateMaintenance {
 
 		$viewName = $dbw->tableName( 'dpl_clview' );
 		$createSQL = "CREATE VIEW $viewName AS $selectSQL";
-
 		try {
 			$dbw->query( $createSQL, __METHOD__ );
 			$this->output( "Created view dpl_clview.\n" );
 			return true;
-		} catch ( Exception $e ) {
-			$message = $e->getMessage();
-			$this->output( "Failed to create view: $errorMessage\n" );
+		} catch ( DBQueryError $e ) {
+			$this->output( "Failed to create view: {$e->getMessage()}\n" );
 			return false;
 		}
 	}
