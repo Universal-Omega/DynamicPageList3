@@ -406,11 +406,6 @@ class Parse {
 				$pageTitle = $row->page_title;
 			}
 
-			// if subpages are to be excluded: skip them
-			if ( !$this->parameters->getParameter( 'includesubpages' ) && strpos( $pageTitle, '/' ) !== false ) {
-				continue;
-			}
-
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
 			$thisTitle = Title::castFromPageReference( $parser->getPage() );
 
