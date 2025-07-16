@@ -42,13 +42,6 @@ class TieredHeading extends Heading {
 	}
 
 	/**
-	 * Return $this->listStart with attributes replaced.
-	 */
-	protected function getListStart(): string {
-		return sprintf( $this->listStart, $this->listAttributes );
-	}
-
-	/**
 	 * Return $this->itemStart with attributes replaced.
 	 */
 	protected function getItemStart(): string {
