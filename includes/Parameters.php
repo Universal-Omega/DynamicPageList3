@@ -376,7 +376,7 @@ class Parameters extends ParametersData {
 
 		foreach ( $categories as $operatorType => $categoryList ) {
 			$data['='][$operatorType] ??= [];
-			$data['='][$operatorType = $categoryList;
+			$data['='][$operatorType][] = $categoryList;
 		}
 
 		$this->setParameter( 'category', $data );
