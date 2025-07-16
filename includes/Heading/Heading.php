@@ -52,7 +52,7 @@ class Heading {
 	) {
 		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
 		$this->setItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
-		$this->showHeadingCount = $parameters->getParameter( 'headingcount' );
+		$this->showHeadingCount = $parameters->getParameter( 'headingcount' ) ?? false;
 	}
 
 	/**
