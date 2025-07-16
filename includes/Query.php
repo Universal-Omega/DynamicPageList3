@@ -1837,6 +1837,24 @@ class Query {
 	}
 
 	/**
+	 * Set SQL for 'includesubpages' parameter.
+	 */
+	private function _includesubpages( bool $option ): void {
+		if ( $option ) {
+			return;
+		}
+
+		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+			$this->queryBuilder->where( $dbr->expr( 'lt_title', IExpression::NOT_LIKE,
+				new LikeValue( $dbr->anyString(), '/', $dbr->anyString() ) ) );
+			return;
+		}
+
+		$this->queryBuilder->where( $dbr->expr( 'page.page_title', IExpression::NOT_LIKE,
+			new LikeValue( $dbr->anyString(), '/', $dbr->anyString() ) ) );
+	}
+
+	/**
 	 * Set SQL for 'stablepages' parameter.
 	 */
 	private function _stablepages( string $option ): void {
