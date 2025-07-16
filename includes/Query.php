@@ -26,11 +26,10 @@ class Query {
 
 	use ExternalDomainPatternParser;
 
-	private Config $config;
-	private IReadableDatabase $dbr;
-	private Parameters $parameters;
-	private SelectQueryBuilder $queryBuilder;
-	private UserFactory $userFactory;
+	private readonly Config $config;
+	private readonly IReadableDatabase $dbr;
+	private readonly SelectQueryBuilder $queryBuilder;
+	private readonly UserFactory $userFactory;
 
 	/**
 	 * Parameters that have already been processed.
@@ -58,7 +57,9 @@ class Query {
 	 */
 	private bool $revisionAuxWhereAdded = false;
 
-	public function __construct( Parameters $parameters ) {
+	public function __construct(
+		private readonly Parameters $parameters
+	) {
 		$this->parameters = $parameters;
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
 			->getReplicaDatabase( false, 'dpl4' );
