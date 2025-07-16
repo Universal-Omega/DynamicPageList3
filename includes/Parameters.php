@@ -226,9 +226,7 @@ class Parameters extends ParametersData {
 		foreach ( $this->getParametersForRichness() as $parameter ) {
 			$data = $this->getData( $parameter );
 			$default = $data['default'] ?? null;
-			$isBoolean = $data['boolean'] ?? false;
-
-			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
+			if ( $default !== null ) {
 				if ( $parameter === 'debug' ) {
 					Utils::setDebugLevel( $default );
 				}
@@ -499,6 +497,11 @@ class Parameters extends ParametersData {
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
 
+		return true;
+	}
+
+	public function _headingcount( string $option ): bool {
+		$this->setParameter( 'headingcount', (bool)$option );
 		return true;
 	}
 
