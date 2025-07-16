@@ -52,7 +52,6 @@ class Query {
 	public function __construct(
 		private readonly Parameters $parameters
 	) {
-		$this->parameters = $parameters;
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
 			->getReplicaDatabase( false, 'dpl4' );
 
