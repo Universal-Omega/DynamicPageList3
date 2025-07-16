@@ -11,11 +11,6 @@ use MediaWiki\Parser\Sanitizer;
 class Heading {
 
 	/**
-	 * Listing style for this class.
-	 */
-	protected ?int $style = null;
-
-	/**
 	 * List(Section) Start
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
