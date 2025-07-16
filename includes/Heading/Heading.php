@@ -96,7 +96,10 @@ class Heading {
 		$headings = Article::getHeadings();
 		if ( $headings ) {
 			if ( $columns !== 1 || $rows !== 1 ) {
-				return $this->formatHeadingsMultiColumn( $articles, $lister, $columns, $rows, $headings, $rowColFormat );
+				return $this->formatHeadingsMultiColumn(
+					$articles, $lister, $columns, $rows,
+					$headings, $rowColFormat
+				);
 			}
 
 			return $this->formatHeadingsSingleColumn( $articles, $lister, $headings );
