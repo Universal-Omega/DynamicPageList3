@@ -228,7 +228,7 @@ class Parameters extends ParametersData {
 			$default = $data['default'] ?? null;
 			$isBoolean = $data['boolean'] ?? false;
 			$setDefault = $data['setDefault'] ?? false;
-			if ( $default !== null && !( $setDefault || $default === false && $isBoolean === true ) ) {
+			if ( $default !== null && !( !$setDefault || $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
 					Utils::setDebugLevel( $default );
 				}
