@@ -235,6 +235,15 @@ class Parse {
 		}
 
 		$parser->addTrackingCategory( 'dpl-tracking-category' );
+		$parserOutput = $parser->getOutput();
+		Utils::$createdLinks[2] = array_combine(
+			$parserOutput->getCategoryNames(),
+			array_map(
+				static fn ( string $name ): string =>
+					$parserOutput->getCategorySortKey( $name ) ?? '',
+				$parserOutput->getCategoryNames()
+			)
+		);
 
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', '0' );
@@ -1080,7 +1089,6 @@ class Parse {
 				// links from the link list later. If the article containing the DPL
 				// statement itself uses one of these links they will be thrown away!
 				Utils::$createdLinks[0] = [];
-
 				foreach ( $parserOutput->mLinks as $nsp => $link ) {
 					Utils::$createdLinks[0][$nsp] = $link;
 				}
@@ -1088,14 +1096,20 @@ class Parse {
 
 			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Utils::$createdLinks[1] = [];
-
 				foreach ( $parserOutput->mTemplates as $nsp => $tpl ) {
 					Utils::$createdLinks[1][$nsp] = $tpl;
 				}
 			}
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Utils::$createdLinks[2] = $parserOutput->mCategories;
+				/* Utils::$createdLinks[2] = array_combine(
+					$parserOutput->getCategoryNames(),
+					array_map(
+						static fn ( string $name ): string =>
+							$parserOutput->getCategorySortKey( $name ) ?? '',
+						$parserOutput->getCategoryNames()
+					)
+				); */
 			}
 
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
