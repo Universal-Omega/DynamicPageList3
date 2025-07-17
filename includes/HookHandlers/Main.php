@@ -12,11 +12,11 @@ use StringUtils;
 
 class Main implements ParserFirstCallInitHook {
 
-    private readonly Config $config;
+	private readonly Config $config;
 
-    public function __construct() {
-        $this->config = Config::getInstance();
-    }
+	public function __construct() {
+		$this->config = Config::getInstance();
+	}
 
 	/** @inheritDoc */
 	public function onParserFirstCallInit( $parser ) {
