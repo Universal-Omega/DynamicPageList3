@@ -1095,7 +1095,7 @@ class Parse {
 			}
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Utils::$createdLinks[2] = $parserOutput->getCategoryMap();
+				Utils::$createdLinks[2] = RequestContext::getMain()->getOutput()->getCategories();
 			}
 
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
