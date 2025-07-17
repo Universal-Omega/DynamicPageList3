@@ -11,6 +11,7 @@ use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
@@ -1080,15 +1081,21 @@ class Parse {
 				// links from the link list later. If the article containing the DPL
 				// statement itself uses one of these links they will be thrown away!
 				Utils::$createdLinks[0] = [];
-				foreach ( $parserOutput->mLinks as $nsp => $link ) {
-					Utils::$createdLinks[0][$nsp] = $link;
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[0][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
 			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
 				Utils::$createdLinks[1] = [];
-				foreach ( $parserOutput->mTemplates as $nsp => $tpl ) {
-					Utils::$createdLinks[1][$nsp] = $tpl;
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[1][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
