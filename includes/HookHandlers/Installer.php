@@ -1,6 +1,6 @@
 <?php
 
-namespace Miraheze\ManageWiki\Hooks\Handlers;
+namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Maintenance\CreateView;
 use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;
