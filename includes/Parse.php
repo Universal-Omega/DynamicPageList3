@@ -74,13 +74,13 @@ class Parse {
 	 * The real callback function for converting the input text to wiki text output
 	 *
 	 * @param string $input
-	 * @param Parser &$parser
+	 * @param Parser $parser
 	 * @param array &$reset
 	 * @param array	&$eliminate
 	 * @param bool $isParserTag
 	 * @return string
 	 */
-	public function parse( $input, Parser &$parser, &$reset, &$eliminate, $isParserTag = false ) {
+	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
 
 		// Reset headings when being ran more than once in the same page load.
@@ -1069,11 +1069,6 @@ class Parse {
 		}
 
 		if ( array_sum( $eliminate ) ) {
-			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy',
-				[ new Eliminate(), 'onParserAfterTidy' ]
-			);
-
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc.
 				// which are contained in the DPL output. This allows us to remove these
@@ -1101,6 +1096,11 @@ class Parse {
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
 				Utils::$createdLinks[3] = $parserOutput->mImages;
 			}
+
+			// Register a hook to reset links which were produced during parsing DPL output.
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Eliminate(), 'onParserAfterTidy' ]
+			);
 		}
 	}
 
