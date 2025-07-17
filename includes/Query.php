@@ -70,6 +70,7 @@ class Query {
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
 			if ( $option === [] ) {
+				// We don't need to run on empty arrays
 				continue;
 			}
 
