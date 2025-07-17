@@ -1090,7 +1090,7 @@ class Parse {
 			}
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Utils::$createdLinks[2] = $parserOutput->getCategoryMap();
+				Utils::$createdLinks[2] = $parserOutput->mCategories;
 			}
 
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
