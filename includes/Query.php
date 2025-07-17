@@ -111,7 +111,7 @@ class Query {
 		}
 
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
-			if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
+			if ( $this->parameters->getParameter( 'imagecontainer' ) ) {
 				$this->queryBuilder->select( 'il_to' );
 				$this->queryBuilder->table( 'imagelinks', 'ic' );
 			} else {
@@ -140,10 +140,8 @@ class Query {
 					] );
 				}
 			}
-		} else {
-			if ( count( $this->orderBy ) > 0 ) {
-				$this->queryBuilder->orderBy( $this->orderBy, $this->direction );
-			}
+		} elseif ( $this->orderBy ) {
+			$this->queryBuilder->orderBy( $this->orderBy, $this->direction );
 		}
 
 		if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
@@ -1544,7 +1542,7 @@ class Query {
 			$services = MediaWikiServices::getInstance();
 			$namespaces = $services->getContentLanguage()->getNamespaces();
 
-			$namespaces = array_slice( $namespaces, 3, count( $namespaces ), true );
+			$namespaces = array_slice( $namespaces, 3, null, true );
 			$namespaceIdToText = 'CASE page.page_namespace';
 
 			foreach ( $namespaces as $id => $name ) {
@@ -1560,10 +1558,10 @@ class Query {
 					$this->addOrderBy( 'cl_head.cl_to' );
 					$this->queryBuilder->select( 'cl_head.cl_to' );
 
-					$catheadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
-					$catnotheadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
+					$catHeadings = $this->parameters->getParameter( 'catheadings' ) ?? [];
+					$catNotHeadings = $this->parameters->getParameter( 'catnotheadings' ) ?? [];
 
-					if ( in_array( '', $catheadings, true ) || in_array( '', $catnotheadings, true ) ) {
+					if ( in_array( '', $catHeadings, true ) || in_array( '', $catNotHeadings, true ) ) {
 						$clTableName = 'dpl_clview';
 						$clTableAlias = $clTableName;
 					} else {
@@ -1576,45 +1574,45 @@ class Query {
 						'page_id = cl_head.cl_from'
 					);
 
-					if ( $catheadings !== [] ) {
-						if ( !empty( $catheadings['AND'] ) ) {
+					if ( $catHeadings !== [] ) {
+						if ( !empty( $catHeadings['AND'] ) ) {
 							$this->queryBuilder->where(
 								$this->dbr->makeList( array_map(
 									fn ( string $cat ): Expression =>
 										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
-									$catheadings['AND']
+									$catHeadings['AND']
 								), IDatabase::LIST_AND )
 							);
 						}
 
-						if ( !empty( $catheadings['OR'] ) ) {
+						if ( !empty( $catHeadings['OR'] ) ) {
 							$this->queryBuilder->where(
 								$this->dbr->makeList( array_map(
 									fn ( string $cat ): Expression =>
 										$this->dbr->expr( 'cl_head.cl_to', '=', $cat ),
-									$catheadings['OR']
+									$catHeadings['OR']
 								), IDatabase::LIST_OR )
 							);
 						}
 					}
 
-					if ( $catnotheadings !== [] ) {
-						if ( !empty( $catnotheadings['AND'] ) ) {
+					if ( $catNotHeadings !== [] ) {
+						if ( !empty( $catNotHeadings['AND'] ) ) {
 							$this->queryBuilder->andWhere(
 								$this->dbr->makeList( array_map(
 									fn ( string $cat ): Expression =>
 										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
-									$catnotheadings['AND']
+									$catNotHeadings['AND']
 								), IDatabase::LIST_AND )
 							);
 						}
 
-						if ( !empty( $catnotheadings['OR'] ) ) {
+						if ( !empty( $catNotHeadings['OR'] ) ) {
 							$this->queryBuilder->andWhere(
 								$this->dbr->makeList( array_map(
 									fn ( string $cat ): Expression =>
 										$this->dbr->expr( 'cl_head.cl_to', '!=', $cat ),
-									$catnotheadings['OR']
+									$catNotHeadings['OR']
 								), IDatabase::LIST_OR )
 							);
 						}
@@ -1625,19 +1623,21 @@ class Query {
 					$this->addOrderBy( 'cl1.cl_timestamp' );
 					break;
 				case 'counter':
-					if ( ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
-						// If the "addpagecounter" parameter was not used the table and join need to be added now.
-						if ( !array_key_exists( 'hit_counter', $this->queryBuilder->getQueryInfo()['tables'] ?? [] ) ) {
-							$this->queryBuilder->table( 'hit_counter' );
-							if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-								$this->queryBuilder->leftJoin( 'hit_counter', null,
-									'hit_counter.page_id = page.page_id'
-								);
-							}
-						}
-
-						$this->addOrderBy( 'hit_counter.page_counter' );
+					if ( !ExtensionRegistry::getInstance()->isLoaded( 'HitCounters' ) ) {
+						break;
 					}
+
+					// If the "addpagecounter" parameter was not used the table and join need to be added now.
+					if ( !isset( $this->queryBuilder->getQueryInfo()['tables']['hit_counter'] ) ) {
+						$this->queryBuilder->table( 'hit_counter' );
+						if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
+							$this->queryBuilder->leftJoin( 'hit_counter', null,
+								'hit_counter.page_id = page.page_id'
+							);
+						}
+					}
+
+					$this->addOrderBy( 'hit_counter.page_counter' );
 					break;
 				case 'displaytitle':
 					$this->addOrderBy( 'COALESCE(displaytitle, page.page_title)' );
@@ -1677,32 +1677,33 @@ class Query {
 					if ( Utils::isLikeIntersection() ) {
 						$this->addOrderBy( 'page_touched' );
 						$this->queryBuilder->select( [ 'page_touched' => 'page.page_touched' ] );
-					} else {
-						$this->addOrderBy( 'rev.rev_timestamp' );
-						$this->queryBuilder->table( 'revision', 'rev' );
-						$this->queryBuilder->select( 'rev.rev_timestamp' );
+						break;
+					}
 
-						if ( !$this->revisionAuxWhereAdded ) {
-							$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
+					$this->addOrderBy( 'rev.rev_timestamp' );
+					$this->queryBuilder->table( 'revision', 'rev' );
+					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
-							$subqueryBuilder = $this->queryBuilder->newSubquery()
-								->select( 'MAX(rev_aux.rev_timestamp)' )
-								->from( 'revision', 'rev_aux' )
-								->where( 'rev_aux.rev_page = page.page_id' );
+					if ( !$this->revisionAuxWhereAdded ) {
+						$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
 
-							if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
-								$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
-							}
+						$subqueryBuilder = $this->queryBuilder->newSubquery()
+							->select( 'MAX(rev_aux.rev_timestamp)' )
+							->from( 'revision', 'rev_aux' )
+							->where( 'rev_aux.rev_page = page.page_id' );
 
-							$subquery = $subqueryBuilder
-								->caller( __METHOD__ )
-								->getSQL();
-
-							$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
+						if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
+							$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
 						}
 
-						$this->revisionAuxWhereAdded = true;
+						$subquery = $subqueryBuilder
+							->caller( __METHOD__ )
+							->getSQL();
+
+						$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
 					}
+
+					$this->revisionAuxWhereAdded = true;
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
@@ -1742,9 +1743,9 @@ class Query {
 						$this->dbr->addQuotes( ' ' )
 					);
 
-					$category = (array)$this->parameters->getParameter( 'category' );
-					$notCategory = (array)$this->parameters->getParameter( 'notcategory' );
-					if ( count( $category ) + count( $notCategory ) > 0 ) {
+					$category = $this->parameters->getParameter( 'category' ) ?? [];
+					$notCategory = $this->parameters->getParameter( 'notcategory' ) ?? [];
+					if ( $category || $notCategory ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ), true ) ) {
 							$this->queryBuilder->select( [
 								'sortkey' => $this->applyCollation( "COALESCE(cl_head.cl_sortkey, $replaceConcat)" ),
@@ -1793,8 +1794,8 @@ class Query {
 									// If the namespace is the main namespace, use an empty string
 									// Otherwise, concatenate namespace text and a colon
 									$this->dbr->conditional(
-										[ $namespaceColumn => NS_MAIN ], "''",
-										$this->dbr->buildConcat( [ $namespaceIdToText, "':'" ] )
+										[ $namespaceColumn => NS_MAIN ], $this->dbr->addQuotes( '' ),
+										$this->dbr->buildConcat( [ $namespaceIdToText, $this->dbr->addQuotes( ':' ) ] )
 									),
 									// Append the actual title
 									$titleColumn
