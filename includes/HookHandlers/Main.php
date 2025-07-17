@@ -9,6 +9,7 @@ use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Extension\DynamicPageList4\Variables;
 use MediaWiki\Hook\ParserFirstCallInitHook;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Parser\PPFrame;
 use StringUtils;
 
@@ -98,35 +99,49 @@ class Main implements ParserFirstCallInitHook {
 		$parserOutput = $parser->getOutput();
 
 		// we can remove the templates by save/restore
-		$saveTemplates = ( $reset['templates'] ?? false ) ?
-			$parserOutput->mTemplates : null;
+		$saveTemplates = [];
+		if ( $reset['templates'] ?? false ) {
+			foreach (
+				$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
+				as [ 'link' => $link, 'pageid' => $pageid ]
+			) {
+				$saveTemplates[ $link->getNamespace() ][ $link->getDBkey() ] = $pageid;
+			}
+		}
 
 		// we can remove the categories by save/restore
-		$saveCategories = ( $reset['categories'] ?? false ) ? array_combine(
-			$parserOutput->getCategoryNames(),
-			array_map(
-				static fn ( string $value ): ?string =>
-					$parserOutput->getCategorySortKey( $value ),
-				$parserOutput->getCategoryNames()
-			)
-		) : null;
+		$saveCategories = [];
+		if ( $reset['categories'] ?? false ) {
+			foreach ( $parserOutput->getCategoryNames() as $name ) {
+				$saveCategories[ $name ] = $parserOutput->getCategorySortKey( $name );
+			}
+		}
 
 		// we can remove the images by save/restore
-		$saveImages = ( $reset['images'] ?? false ) ?
-			$parserOutput->mImages : null;
+		$saveImages = [];
+		if ( $reset['images'] ?? false ) {
+			foreach (
+				$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+				as [ 'link' => $link ]
+			) {
+				$saveImages[ $link->getDBkey() ] = 1;
+			}
+		}
 
 		$parsedDPL = $parser->recursiveTagParse( $text );
 
 		if ( $reset['templates'] ?? false ) {
-			$parserOutput->mTemplates = $saveTemplates ?? [];
+			$templates = &$parserOutput->getTemplates();
+			$templates = $saveTemplates;
 		}
 
 		if ( $reset['categories'] ?? false ) {
-			$parserOutput->setCategories( $saveCategories ?? [] );
+			$parserOutput->setCategories( $saveCategories );
 		}
 
 		if ( $reset['images'] ?? false ) {
-			$parserOutput->mImages = $saveImages ?? [];
+			$images = &$parserOutput->getImages();
+			$images = $saveImages;
 		}
 
 		return $parsedDPL;
