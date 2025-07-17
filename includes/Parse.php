@@ -1069,6 +1069,11 @@ class Parse {
 		}
 
 		if ( array_sum( $eliminate ) ) {
+			// Register a hook to reset links which were produced during parsing DPL output.
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Eliminate(), 'onParserAfterTidy' ]
+			);
+
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
 				// Trigger the mediawiki parser to find links, images, categories etc.
 				// which are contained in the DPL output. This allows us to remove these
@@ -1103,11 +1108,6 @@ class Parse {
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
 				Utils::$createdLinks[3] = $parserOutput->mImages;
 			}
-
-			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy',
-				[ new Eliminate(), 'onParserAfterTidy' ]
-			);
 		}
 	}
 
