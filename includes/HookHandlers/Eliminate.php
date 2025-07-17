@@ -9,7 +9,7 @@ class Eliminate implements ParserAfterTidyHook {
 
 	/**
 	 * End eliminate
-	 * 
+	 *
 	 * @inheritDoc
 	 * @param string &$text @phan-unused-param
 	 */

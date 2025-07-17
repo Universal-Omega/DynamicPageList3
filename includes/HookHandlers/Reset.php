@@ -10,7 +10,7 @@ class Reset implements ParserAfterTidyHook {
 	/**
 	 * End reset
 	 * Reset everything; some categories may have been fixed, however via fixcategory=
-	 * 
+	 *
 	 * @inheritDoc
 	 * @param string &$text @phan-unused-param
 	 */
