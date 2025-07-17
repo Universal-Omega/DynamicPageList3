@@ -17,10 +17,10 @@ use MediaWiki\Title\Title;
 
 class Parse {
 
-private readonly Config $config;
-private readonly Logger $logger;
-private readonly Parameters $parameters;
-private readonly WebRequest $request;
+	private readonly Config $config;
+	private readonly Logger $logger;
+	private readonly Parameters $parameters;
+	private readonly WebRequest $request;
 
 	/**
 	 * Header Output
@@ -1096,66 +1096,67 @@ private readonly WebRequest $request;
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
 				Utils::$createdLinks[2] = $parserOutput->getCategoryMap();
-
-				if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
-					Utils::$createdLinks[3] = $parserOutput->mImages;
-				}
-			}
-		}
-
-		/**
-		 * Sort an array of Article objects by the card suit symbol.
-		 *
-		 * @param array	$articles
-		 * @return array
-		 */
-		private function cardSuitSort( $articles ) {
-			$sortKeys = [];
-
-			foreach ( $articles as $key => $article ) {
-				$title = preg_replace( '/.*:/', '', $article->mTitle );
-				$tokens = preg_split( '/ - */', $title );
-				$newKey = '';
-
-				foreach ( $tokens as $token ) {
-					$initial = substr( $token, 0, 1 );
-
-					if ( $initial >= '1' && $initial <= '7' ) {
-						$newKey .= $initial;
-						$suit = substr( $token, 1 );
-
-						if ( $suit == '♣' ) {
-							$newKey .= '1';
-						} elseif ( $suit == '♦' ) {
-							$newKey .= '2';
-						} elseif ( $suit == '♥' ) {
-							$newKey .= '3';
-						} elseif ( $suit == '♠' ) {
-							$newKey .= '4';
-						} elseif ( strtolower( $suit ) == 'sa' || strtolower( $suit ) == 'nt' ) {
-							$newKey .= '5 ';
-						} else {
-							$newKey .= $suit;
-						}
-					} elseif ( strtolower( $initial ) == 'p' ) {
-						$newKey .= '0 ';
-					} elseif ( strtolower( $initial ) == 'x' ) {
-						$newKey .= '8 ';
-					} else {
-						$newKey .= $token;
-					}
-				}
-
-				$sortKeys[$key] = $newKey;
 			}
 
-			asort( $sortKeys );
-
-			$sortedArticles = [];
-			foreach ( $sortKeys as $oldKey => $_ ) {
-				$sortedArticles[] = $articles[$oldKey];
+			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
+				Utils::$createdLinks[3] = $parserOutput->mImages;
 			}
-
-			return $sortedArticles;
 		}
 	}
+
+	/**
+	 * Sort an array of Article objects by the card suit symbol.
+	 *
+	 * @param array	$articles
+	 * @return array
+	 */
+	private function cardSuitSort( $articles ) {
+		$sortKeys = [];
+
+		foreach ( $articles as $key => $article ) {
+			$title = preg_replace( '/.*:/', '', $article->mTitle );
+			$tokens = preg_split( '/ - */', $title );
+			$newKey = '';
+
+			foreach ( $tokens as $token ) {
+				$initial = substr( $token, 0, 1 );
+
+				if ( $initial >= '1' && $initial <= '7' ) {
+					$newKey .= $initial;
+					$suit = substr( $token, 1 );
+
+					if ( $suit == '♣' ) {
+						$newKey .= '1';
+					} elseif ( $suit == '♦' ) {
+						$newKey .= '2';
+					} elseif ( $suit == '♥' ) {
+						$newKey .= '3';
+					} elseif ( $suit == '♠' ) {
+						$newKey .= '4';
+					} elseif ( strtolower( $suit ) == 'sa' || strtolower( $suit ) == 'nt' ) {
+						$newKey .= '5 ';
+					} else {
+						$newKey .= $suit;
+					}
+				} elseif ( strtolower( $initial ) == 'p' ) {
+					$newKey .= '0 ';
+				} elseif ( strtolower( $initial ) == 'x' ) {
+					$newKey .= '8 ';
+				} else {
+					$newKey .= $token;
+				}
+			}
+
+			$sortKeys[$key] = $newKey;
+		}
+
+		asort( $sortKeys );
+
+		$sortedArticles = [];
+		foreach ( $sortKeys as $oldKey => $_ ) {
+			$sortedArticles[] = $articles[$oldKey];
+		}
+
+		return $sortedArticles;
+	}
+}
