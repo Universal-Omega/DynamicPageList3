@@ -56,16 +56,9 @@ class Eliminate implements ParserAfterTidyHook {
 		}
 
 		if ( isset( Utils::$createdLinks[2] ) ) {
-			$categories = array_combine(
-				$output->getCategoryNames(),
-				array_map(
-					static fn ( string $name ): string =>
-						$output->getCategorySortKey( $name ) ?? '',
-					$output->getCategoryNames()
-				)
-			);
+			$categories = $output->getCategoryNames();
 
-			$output->setCategories( array_diff_key( $categories, Utils::$createdLinks[2] ) );
+			$output->setCategories( array_diff( $categories, Utils::$createdLinks[2] ) );
 		}
 
 		if ( isset( Utils::$createdLinks[3] ) ) {
