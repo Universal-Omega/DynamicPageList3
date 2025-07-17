@@ -235,15 +235,7 @@ class Parse {
 		}
 
 		$parser->addTrackingCategory( 'dpl-tracking-category' );
-		$parserOutput = $parser->getOutput();
-		Utils::$createdLinks[2] = array_combine(
-			$parserOutput->getCategoryNames(),
-			array_map(
-				static fn ( string $name ): string =>
-					$parserOutput->getCategorySortKey( $name ) ?? '',
-				$parserOutput->getCategoryNames()
-			)
-		);
+		Utils::$createdLinks[2] += [ 'dpl-tracking-category' => '' ];
 
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', '0' );
@@ -1102,14 +1094,14 @@ class Parse {
 			}
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				/* Utils::$createdLinks[2] = array_combine(
+				Utils::$createdLinks[2] = array_combine(
 					$parserOutput->getCategoryNames(),
 					array_map(
 						static fn ( string $name ): string =>
 							$parserOutput->getCategorySortKey( $name ) ?? '',
 						$parserOutput->getCategoryNames()
 					)
-				); */
+				);
 			}
 
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
