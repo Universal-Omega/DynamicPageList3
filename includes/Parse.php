@@ -1096,11 +1096,11 @@ class Parse {
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
 				Utils::$createdLinks[2] = array_combine(
-					$parserOutput->getCategoryNames(),
+					$parser->getOutput()->getCategoryNames(),
 					array_map(
 						static fn ( string $name ): string =>
-						$parserOutput->getCategorySortKey( $name ) ?? '',
-							$parserOutput->getCategoryNames()
+						$parser->getOutput()->getCategorySortKey( $name ) ?? '',
+							$parser->getOutput()->getCategoryNames()
 					)
 				);
 			}
