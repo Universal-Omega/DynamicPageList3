@@ -13,7 +13,6 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
-use MediaWiki\Settings\SettingsBuilder;
 use MediaWiki\Title\Title;
 
 class Parse {
@@ -1056,24 +1055,22 @@ class Parse {
 			}
 		}
 
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
 				Utils::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$settingsBuilder = SettingsBuilder::getInstance();
-			$settingsBuilder->registerHookHandler(
-				'ParserAfterTidy',
+			$hookContainer->register( 'ParserAfterTidy',
 				[ Reset::class, 'onParserAfterTidy' ]
 			);
 		}
 
 		if ( array_sum( $eliminate ) ) {
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$settingsBuilder = SettingsBuilder::getInstance();
-			$settingsBuilder->registerHookHandler(
-				'ParserAfterTidy',
+			$hookContainer->register( 'ParserAfterTidy',
 				[ Eliminate::class, 'onParserAfterTidy' ]
 			);
 
