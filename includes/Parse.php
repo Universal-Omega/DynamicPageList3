@@ -1056,8 +1056,6 @@ class Parse {
 			}
 		}
 
-		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
-
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
 				Utils::$createdLinks['resetLinks'] = true;
