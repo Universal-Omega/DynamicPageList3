@@ -1090,14 +1090,7 @@ class Parse {
 			}
 
 			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Utils::$createdLinks[2] = array_combine(
-					$parserOutput->getCategoryNames(),
-					array_map(
-						static fn ( string $name ): string =>
-							$parserOutput->getCategorySortKey( $name ) ?? '',
-						$parserOutput->getCategoryNames()
-					)
-				);
+				Utils::$createdLinks[2] = $parserOutput->getCategoryMap();
 			}
 
 			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
