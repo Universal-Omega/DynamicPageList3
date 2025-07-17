@@ -80,7 +80,7 @@ class Parse {
 	 * @param bool $isParserTag
 	 * @return string
 	 */
-	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
+	public function parse( $input, Parser &$parser, &$reset, &$eliminate, $isParserTag = false ) {
 		$dplStartTime = microtime( true );
 
 		// Reset headings when being ran more than once in the same page load.
