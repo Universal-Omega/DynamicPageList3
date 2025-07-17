@@ -11,7 +11,7 @@ class Installer implements LoadExtensionSchemaUpdatesHook {
 	 * @inheritDoc
 	 * @codeCoverageIgnore Tested by updating or installing MediaWiki.
 	 */
-    public function onLoadExtensionSchemaUpdates( $updater ) {
+	public function onLoadExtensionSchemaUpdates( $updater ) {
 		$updater->addPostDatabaseUpdateMaintenance( CreateView::class );
 	}
 }
