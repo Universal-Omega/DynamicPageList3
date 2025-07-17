@@ -131,8 +131,9 @@ class Main implements ParserFirstCallInitHook {
 		$parsedDPL = $parser->recursiveTagParse( $text );
 
 		if ( $reset['templates'] ?? false ) {
-			$templates = &$parserOutput->getTemplates();
-			$templates = $saveTemplates;
+			// $templates = &$parserOutput->getTemplates();
+			// $templates = $saveTemplates;
+			$parserOutput->mTemplates = $saveTemplates;
 		}
 
 		if ( $reset['categories'] ?? false ) {
@@ -140,8 +141,9 @@ class Main implements ParserFirstCallInitHook {
 		}
 
 		if ( $reset['images'] ?? false ) {
-			$images = &$parserOutput->getImages();
-			$images = $saveImages;
+			// $images = &$parserOutput->getImages();
+			// $images = $saveImages;
+			$parserOutput->mImages = $saveImages;
 		}
 
 		return $parsedDPL;
