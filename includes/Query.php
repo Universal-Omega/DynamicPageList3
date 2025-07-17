@@ -1152,7 +1152,7 @@ class Query {
 			$ands = [];
 			foreach ( $option as $linkGroup ) {
 				foreach ( $linkGroup as $link ) {
-					$ands[] = 'pl_from <> ' . (int)$link->getArticleID();
+					$ands[] = $this->dbr->expr( 'pl_from', '!=', $link->getArticleID() );
 				}
 			}
 
@@ -1178,7 +1178,8 @@ class Query {
 
 		$subquery->caller( __METHOD__ );
 		$this->queryBuilder->where(
-			"CONCAT(page_namespace, page_title) NOT IN ({$subquery->getSQL()})"
+			$this->dbr->buildConcat( [ 'page_namespace', 'page_title' ] ) .
+			" NOT IN ({$subquery->getSQL()})"
 		);
 	}
 
