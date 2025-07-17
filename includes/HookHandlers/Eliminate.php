@@ -7,12 +7,12 @@ use MediaWiki\Hook\ParserAfterTidyHook;
 
 class Eliminate implements ParserAfterTidyHook {
 
-    /**
-     * End eliminate
-     * 
-     * @inheritDoc
-     * @param string &$text @phan-unused-param
-     */
+	/**
+	 * End eliminate
+	 * 
+	 * @inheritDoc
+	 * @param string &$text @phan-unused-param
+	 */
 	public function onParserAfterTidy( $parser, &$text ) {
 		// Called during the final output phase; removes links created by DPL
 		if ( !Utils::$createdLinks ) {
