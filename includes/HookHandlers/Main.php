@@ -3,8 +3,10 @@
 namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
+use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parse;
 use MediaWiki\Extension\DynamicPageList4\Utils;
+use MediaWiki\Extension\DynamicPageList4\Variables;
 use MediaWiki\Hook\ParserFirstCallInitHook;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\PPFrame;
