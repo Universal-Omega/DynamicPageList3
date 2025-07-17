@@ -69,6 +69,10 @@ class Query {
 	public function buildAndSelect( bool $calcRows, string $profilingContext ): array|false {
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
+			if ( $option === [] ) {
+				continue;
+			}
+
 			$function = '_' . $parameter;
 			// Some parameters do not modify the query so we check if the function to modify the query exists first.
 			if ( method_exists( $this, $function ) ) {
@@ -688,11 +692,10 @@ class Query {
 	 * Set SQL for 'categoriesminmax' parameter.
 	 */
 	private function _categoriesminmax( array $option ): void {
-		if ( count( $option ) === 0 || (
-			!is_numeric( $option[0] ) &&
-				( !isset( $option[1] ) || !is_numeric( $option[1] ) )
-		) ) {
-			// Nothing to do
+		if ( !is_numeric( $option[0] ) &&
+			( !isset( $option[1] ) || !is_numeric( $option[1] ) )
+		) {
+			// Prevent running the subquery if we aren't doing anything with it.
 			return;
 		}
 
@@ -895,11 +898,6 @@ class Query {
 	 * Set SQL for 'imagecontainer' parameter.
 	 */
 	private function _imagecontainer( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$this->queryBuilder->table( 'imagelinks', 'ic' );
 		$this->queryBuilder->select( [ 'sortkey' => 'ic.il_to' ] );
 
@@ -926,11 +924,6 @@ class Query {
 	 * Set SQL for 'imageused' parameter.
 	 */
 	private function _imageused( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
@@ -1020,11 +1013,6 @@ class Query {
 	 * Set SQL for 'linksfrom' parameter.
 	 */
 	private function _linksfrom( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -1070,11 +1058,6 @@ class Query {
 	 * Set SQL for 'linksto' parameter.
 	 */
 	private function _linksto( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$this->queryBuilder->tables( [
 			'lt' => 'linktarget',
 			'pl' => 'pagelinks',
@@ -1143,11 +1126,6 @@ class Query {
 	 * Set SQL for 'notlinksfrom' parameter.
 	 */
 	private function _notlinksfrom( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ands = [];
 			foreach ( $option as $linkGroup ) {
@@ -1187,11 +1165,6 @@ class Query {
 	 * Set SQL for 'notlinksto' parameter.
 	 */
 	private function _notlinksto( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
 
@@ -1243,11 +1216,6 @@ class Query {
 	 * Set SQL for 'linkstoexternaldomain' parameter.
 	 */
 	private function _linkstoexternaldomain( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
@@ -1294,11 +1262,6 @@ class Query {
 	 * Set SQL for 'linkstoexternalpath' parameter.
 	 */
 	private function _linkstoexternalpath( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
@@ -1384,11 +1347,6 @@ class Query {
 	 * Set SQL for 'namespace' parameter.
 	 */
 	private function _namespace( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$this->queryBuilder->where( [ 'lt.lt_namespace' => $option ] );
 			return;
@@ -1470,11 +1428,6 @@ class Query {
 	 * Set SQL for 'notnamespace' parameter.
 	 */
 	private function _notnamespace( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$this->queryBuilder->andWhere( $this->dbr->expr( 'lt.lt_namespace', '!=', $option ) );
 			return;
@@ -2067,11 +2020,6 @@ class Query {
 	 * Set SQL for 'usedby' parameter.
 	 */
 	private function _usedby( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		if ( $this->parameters->getParameter( 'openreferences' ) ) {
 			$ors = [];
 			foreach ( $option as $linkGroup ) {
@@ -2114,11 +2062,6 @@ class Query {
 	 * Set SQL for 'uses' parameter.
 	 */
 	private function _uses( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$this->queryBuilder->tables( [
 			'lt_uses' => 'linktarget',
 			'tl' => 'templatelinks',
@@ -2159,11 +2102,6 @@ class Query {
 	 * Set SQL for 'notuses' parameter.
 	 */
 	private function _notuses( array $option ): void {
-		if ( count( $option ) === 0 ) {
-			// Nothing to do
-			return;
-		}
-
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
