@@ -7,13 +7,13 @@ use MediaWiki\Hook\ParserAfterTidyHook;
 
 class Reset implements ParserAfterTidyHook {
 
-    /**
-     * End reset
-     * Reset everything; some categories may have been fixed, however via fixcategory=
-     * 
-     * @inheritDoc
-     * @param string &$text @phan-unused-param
-     */
+	/**
+	 * End reset
+	 * Reset everything; some categories may have been fixed, however via fixcategory=
+	 * 
+	 * @inheritDoc
+	 * @param string &$text @phan-unused-param
+	 */
 	public function onParserAfterTidy( $parser, &$text ) {
 		if ( Utils::$createdLinks['resetdone'] ) {
 			return;
@@ -24,8 +24,8 @@ class Reset implements ParserAfterTidyHook {
 
 		foreach ( $output->getCategoryNames() as $key ) {
 			if ( !isset( Utils::$fixedCategories[$key] ) ) {
-                continue;
-            }
+				continue;
+			}
 
 			Utils::$fixedCategories[$key] = $output->getCategorySortKey( $key );
 		}
