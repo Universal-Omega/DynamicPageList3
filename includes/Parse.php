@@ -1064,14 +1064,14 @@ class Parse {
 
 			// Register a hook to reset links which were produced during parsing DPL output.
 			$hookContainer->register( 'ParserAfterTidy',
-				[ Reset::class, 'onParserAfterTidy' ]
+				[ new Reset(), 'onParserAfterTidy' ]
 			);
 		}
 
 		if ( array_sum( $eliminate ) ) {
 			// Register a hook to reset links which were produced during parsing DPL output.
 			$hookContainer->register( 'ParserAfterTidy',
-				[ Eliminate::class, 'onParserAfterTidy' ]
+				[ new Eliminate(), 'onParserAfterTidy' ]
 			);
 
 			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
