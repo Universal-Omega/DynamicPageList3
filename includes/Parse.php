@@ -74,7 +74,7 @@ class Parse {
 	 * The real callback function for converting the input text to wiki text output
 	 *
 	 * @param string $input
-	 * @param Parser $parser
+	 * @param Parser &$parser
 	 * @param array &$reset
 	 * @param array	&$eliminate
 	 * @param bool $isParserTag
