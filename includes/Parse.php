@@ -6,9 +6,12 @@ use Exception;
 use ExtVariables;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
+use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
+use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
@@ -1025,31 +1028,31 @@ class Parse {
 
 		if ( $isParserTag === true ) {
 			// In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if ( isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( !empty( $eliminate['templates'] ) ) {
 				$reset['templates'] = true;
 				$eliminate['templates'] = false;
 			}
 
-			if ( isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
+			if ( !empty( $eliminate['categories'] ) ) {
 				$reset['categories'] = true;
 				$eliminate['categories'] = false;
 			}
 
-			if ( isset( $eliminate['images'] ) && $eliminate['images'] ) {
+			if ( !empty( $eliminate['images'] ) ) {
 				$reset['images'] = true;
 				$eliminate['images'] = false;
 			}
 		} else {
-			if ( isset( $reset['templates'] ) && $reset['templates'] ) {
-				Hooks::$createdLinks['resetTemplates'] = true;
+			if ( !empty( $reset['templates'] ) ) {
+				Utils::$createdLinks['resetTemplates'] = true;
 			}
 
-			if ( isset( $reset['categories'] ) && $reset['categories'] ) {
-				Hooks::$createdLinks['resetCategories'] = true;
+			if ( !empty( $reset['categories'] ) ) {
+				Utils::$createdLinks['resetCategories'] = true;
 			}
 
-			if ( isset( $reset['images'] ) && $reset['images'] ) {
-				Hooks::$createdLinks['resetImages'] = true;
+			if ( !empty( $reset['images'] ) ) {
+				Utils::$createdLinks['resetImages'] = true;
 			}
 		}
 
@@ -1057,44 +1060,61 @@ class Parse {
 
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
-				Hooks::$createdLinks['resetLinks'] = true;
+				Utils::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endReset' );
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Reset(), 'onParserAfterTidy' ]
+			);
 		}
 
 		if ( array_sum( $eliminate ) ) {
-			// Register a hook to reset links which were produced during parsing DPL output
-			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endEliminate' );
-
-			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
+			if ( $parserOutput && !empty( $eliminate['links'] ) ) {
 				// Trigger the mediawiki parser to find links, images, categories etc.
 				// which are contained in the DPL output. This allows us to remove these
 				// links from the link list later. If the article containing the DPL
 				// statement itself uses one of these links they will be thrown away!
-				Hooks::$createdLinks[0] = [];
-
-				foreach ( $parserOutput->mLinks as $nsp => $link ) {
-					Hooks::$createdLinks[0][$nsp] = $link;
+				Utils::$createdLinks[0] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[0][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
-				Hooks::$createdLinks[1] = [];
-
-				foreach ( $parserOutput->mTemplates as $nsp => $tpl ) {
-					Hooks::$createdLinks[1][$nsp] = $tpl;
+			if ( $parserOutput && !empty( $eliminate['templates'] ) ) {
+				Utils::$createdLinks[1] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[1][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Hooks::$createdLinks[2] = $parserOutput->mCategories;
+			if ( $parserOutput && !empty( $eliminate['categories'] ) ) {
+				Utils::$createdLinks[2] = [];
+				foreach ( $parserOutput->getCategoryNames() as $name ) {
+					Utils::$createdLinks[2][ $name ] = $parserOutput->getCategorySortKey( $name ) ?? '';
+				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
-				Hooks::$createdLinks[3] = $parserOutput->mImages;
+			if ( $parserOutput && !empty( $eliminate['images'] ) ) {
+				Utils::$createdLinks[3] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+					as [ 'link' => $link ]
+				) {
+					Utils::$createdLinks[3][ $link->getDBkey() ] = 1;
+				}
 			}
+
+			// Register a hook to reset links which were produced during parsing DPL output.
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Eliminate(), 'onParserAfterTidy' ]
+			);
 		}
 	}
 

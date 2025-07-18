@@ -1092,7 +1092,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'fixcategory' parameter.
 	 */
 	public function _fixcategory( string $option ): bool {
-		Hooks::fixCategory( $option );
+		Utils::fixCategory( $option );
 		return true;
 	}
 

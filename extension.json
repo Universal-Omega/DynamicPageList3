@@ -39,12 +39,20 @@
 		"MediaWiki\\Extension\\DynamicPageList4\\Tests\\": "tests/phpunit/"
 	},
 	"Hooks": {
-		"ParserFirstCallInit": [
-			"MediaWiki\\Extension\\DynamicPageList4\\Hooks::onParserFirstCallInit"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"MediaWiki\\Extension\\DynamicPageList4\\Hooks::onLoadExtensionSchemaUpdates"
-		]
+		"LoadExtensionSchemaUpdates": {
+			"handler": "Installer"
+		},
+		"ParserFirstCallInit": {
+			"handler": "Main"
+		}
+	},
+	"HookHandlers": {
+		"Installer": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Installer"
+		},
+		"Main": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Main"
+		}
 	},
 	"config": {
 		"DplSettings": {
