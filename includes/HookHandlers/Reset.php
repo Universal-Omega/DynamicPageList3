@@ -46,7 +46,6 @@ class Reset implements ParserAfterTidyHook {
 		if ( Utils::$createdLinks['resetImages'] ) {
 			$this->setParserOutputProperty( $output, 'mImages', [] );
 		}
-		var_dump( Utils::$createdLinks['resetCategories'] );
 
 		Utils::$fixedCategories = [];
 	}
