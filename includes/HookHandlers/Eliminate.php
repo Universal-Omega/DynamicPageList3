@@ -37,7 +37,7 @@ class Eliminate implements ParserAfterTidyHook {
 
 				$links[$nsp][$dbKey] = $pageid ?? 0;
 			}
-			var_dump( $output->getLinks() );
+			var_dump( Utils::$createdLinks );
 			$this->setParserOutputProperty( $output, 'mLinks', $links );
 		}
 
