@@ -11,6 +11,7 @@ use MediaWiki\Hook\ParserFirstCallInitHook;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Parser\PPFrame;
+use ReflectionProperty;
 use StringUtils;
 
 class Main implements ParserFirstCallInitHook {
@@ -131,7 +132,7 @@ class Main implements ParserFirstCallInitHook {
 		$parsedDPL = $parser->recursiveTagParse( $text );
 
 		if ( $reset['templates'] ?? false ) {
-			$refProp = new \ReflectionProperty( $parserOutput, 'mTemplates' );
+			$refProp = new ReflectionProperty( $parserOutput, 'mTemplates' );
 			$refProp->setAccessible( true );
 			$refProp->setValue( $parserOutput, $saveTemplates );
 		}
@@ -141,7 +142,7 @@ class Main implements ParserFirstCallInitHook {
 		}
 
 		if ( $reset['images'] ?? false ) {
-			$refProp = new \ReflectionProperty( $parserOutput, 'mImages' );
+			$refProp = new ReflectionProperty( $parserOutput, 'mImages' );
 			$refProp->setAccessible( true );
 			$refProp->setValue( $parserOutput, $saveImages );
 		}
