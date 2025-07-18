@@ -137,7 +137,7 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $page title text of target page
-	 * @param Title|string &$title normalized title object
+	 * @param ?Title &$title normalized title object
 	 * @param string &$text wikitext output
 	 * @return bool true if returning text, false if target not found
 	 */
@@ -183,8 +183,7 @@ class LST {
 		$skipPattern = []
 	) {
 		$output = [];
-
-		if ( self::text( $parser, $page, $title, $text ) == false ) {
+		if ( !self::text( $parser, $page, $title, $text ) ) {
 			$output[] = $text;
 			return $output;
 		}
@@ -365,8 +364,7 @@ class LST {
 		$skipPattern
 	) {
 		$output = [];
-
-		if ( self::text( $parser, $page, $title, $text ) == false ) {
+		if ( !self::text( $parser, $page, $title, $text ) ) {
 			$output[0] = $text;
 			return $output;
 		}
