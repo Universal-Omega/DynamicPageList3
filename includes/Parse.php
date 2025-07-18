@@ -1103,7 +1103,8 @@ class Parse {
 
 			if ( $parserOutput && !empty( $eliminate['images'] ) ) {
 				Utils::$createdLinks[3] = [];
-				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
 					as [ 'link' => $link ]
 				) {
 					Utils::$createdLinks[3][ $link->getDBkey() ] = 1;
