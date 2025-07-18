@@ -46,86 +46,56 @@ class LST {
 
 	/**
 	 * Register what we're working on in the parser, so we don't fall into a trap.
-	 *
-	 * @param Parser $parser
-	 * @param string $part1
-	 * @return bool
 	 */
-	public static function open( $parser, $part1 ) {
+	private static function open( Parser $parser, string $part1 ): bool {
 		// Infinite loop test
-		// @phan-suppress-next-line PhanDeprecatedProperty
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
-
 			return false;
-		} else {
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			if ( !$parser->mTemplatePath ) {
-				// @phan-suppress-next-line PhanDeprecatedProperty
-				$parser->mTemplatePath = [];
-			}
-
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			$parser->mTemplatePath[$part1] = 1;
-
-			return true;
 		}
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		$parser->mTemplatePath ??= [];
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		$parser->mTemplatePath[$part1] = 1;
+		return true;
 	}
 
 	/**
 	 * Finish processing the function.
-	 *
-	 * @param Parser $parser
-	 * @param string $part1
 	 */
-	public static function close( $parser, $part1 ) {
+	private static function close( Parser $parser, string $part1 ): void {
 		// Infinite loop test
-		// @phan-suppress-next-line PhanDeprecatedProperty
-		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			unset( $parser->mTemplatePath[$part1] );
-		} else {
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		if ( !isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
+			return;
 		}
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		unset( $parser->mTemplatePath[$part1] );
 	}
 
 	/**
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
-	 *
-	 * @param Parser $parser
-	 * @param string $text
-	 * @param string $part1
-	 * @param bool $recursionCheck
-	 * @param int $maxLength
-	 * @param string $link
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return string
 	 */
 	private static function parse(
-		$parser,
-		$text,
-		$part1,
-		$recursionCheck = true,
-		$maxLength = -1,
-		$link = '',
-		$trim = false,
-		$skipPattern = []
-	) {
-		// if someone tries something like<section begin=blah>lst only</section>
-		// text, may as well do the right thing.
+		Parser $parser,
+		string $text,
+		string $part1,
+		bool $recursionCheck = true,
+		int $maxLength = -1,
+		string $link = '',
+		bool $trim = false,
+		array $skipPattern = []
+	): string {
 		$text = str_replace( '</section>', '', $text );
-
-		// if desired we remove portions of the text, esp. template calls
-		foreach ( $skipPattern as $skipPat ) {
-			$text = preg_replace( $skipPat, '', $text );
-		}
-
+		$text = preg_replace( $skipPattern, '', $text );
 		if ( self::open( $parser, $part1 ) ) {
-
-			// Handle recursion here, so we can break cycles.
-			if ( $recursionCheck == false ) {
+			if ( !$recursionCheck ) {
 				$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
 				self::close( $parser, $part1 );
 			}
@@ -133,15 +103,12 @@ class LST {
 			if ( $maxLength > 0 ) {
 				$text = self::limitTranscludedText( $text, $maxLength, $link );
 			}
-			if ( $trim ) {
-				return trim( $text );
-			} else {
-				return $text;
-			}
-		} else {
-			$title = Title::castFromPageReference( $parser->getPage() );
-			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
+
+			return $trim ? trim( $text ) : $text;
 		}
+
+		$title = Title::castFromPageReference( $parser->getPage() );
+		return "[[{$title->getPrefixedText()}]]<!-- WARNING: LST loop detected -->";
 	}
 
 	/*
@@ -150,30 +117,18 @@ class LST {
 
 	/**
 	 * Generate a regex to match the section(s) we're interested in.
-	 *
-	 * @param string $sec
-	 * @param bool &$any
-	 * @return string
 	 */
-	private static function createSectionPattern( $sec, &$any ) {
-		$any = false;
+	private static function createSectionPattern( string $sec, bool &$any ): string {
+		$any = $sec[0] === '*';
+		$sec = match ( true ) {
+			$any && $sec === '**' => '[^\/>"\']+',
+			$any => str_replace( '/', '\/', substr( $sec, 1 ) ),
+			default => preg_quote( $sec, '/' ),
+		};
 
-		if ( $sec[0] == '*' ) {
-			$any = true;
-			if ( $sec == '**' ) {
-				$sec = '[^\/>"' . "']+";
-			} else {
-				$sec = str_replace( '/', '\/', substr( $sec, 1 ) );
-			}
-		} else {
-			$sec = preg_quote( $sec, '/' );
-		}
-
-		$ws = "(?:\s+[^>]+)?";
-
-		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" .
-			"['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" .
-			"['\"]?\\1['\"]?" . "$ws\/?>/s";
+		$ws = '(?:\s+[^>]+)?';
+		return "/<section$ws\s+(?i:begin)=['\"]?($sec)['\"]?$ws\/?>(.*?)\n?"
+			. "<section$ws\s+(?:[^>]+\s+)?(?i:end)=['\"]?\\1['\"]?$ws\/?>/s";
 	}
 
 	/**
@@ -186,23 +141,26 @@ class LST {
 	 * @param string &$text wikitext output
 	 * @return bool true if returning text, false if target not found
 	 */
-	public static function text( $parser, $page, &$title, &$text ) {
+	public static function text(
+		Parser $parser,
+		string $page,
+		?Title &$title,
+		string &$text
+	): bool {
 		$title = Title::newFromText( $page );
-
 		if ( $title === null ) {
 			$text = '';
 			return true;
-		} else {
-			$text = $parser->fetchTemplateAndTitle( $title )[0];
 		}
 
-		// if article doesn't exist, return a red link.
-		if ( $text == false ) {
-			$text = "[[" . $title->getPrefixedText() . "]]";
+		$text = $parser->fetchTemplateAndTitle( $title )[0];
+		// If article doesn't exist, return a red link.
+		if ( $text === false ) {
+			$text = "[[{$title->getPrefixedText()}]]";
 			return false;
-		} else {
-			return true;
 		}
+
+		return true;
 	}
 
 	/**
@@ -983,12 +941,8 @@ class LST {
 		return $output;
 	}
 
-	/**
-	 * @param string $pattern
-	 * @return string
-	 */
-	public static function spaceOrUnderscore( $pattern ) {
-		// returns a pettern that matches underscores as well as spaces
+	private static function spaceOrUnderscore( string $pattern ): string {
+		// Returns a pettern that matches underscores as well as spaces.
 		return str_replace( ' ', '[ _]', $pattern );
 	}
 
@@ -1007,7 +961,7 @@ class LST {
 	 * Using Parser::recursivePreprocess() prevents the cache clear, and thus repetitive calls reuse the
 	 * previously generated template DOM which brings a decent performance improvement when called multiple times.
 	 */
-	protected static function callParserPreprocess(
+	private static function callParserPreprocess(
 		Parser $parser,
 		string $text,
 		?PageReference $page,
