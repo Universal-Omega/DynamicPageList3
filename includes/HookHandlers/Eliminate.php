@@ -28,7 +28,14 @@ class Eliminate implements ParserAfterTidyHook {
 				$output->getLinkList( ParserOutputLinkTypes::LOCAL )
 				as [ 'link' => $link, 'pageid' => $pageid ]
 			) {
-				$links[$link->getNamespace()][$link->getDBkey()] = $pageid ?? 0;
+				$nsp = $link->getNamespace();
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[0][$nsp][$dbKey] ) ) {
+					continue;
+				}
+
+				$links[$nsp][$dbKey] = $pageid ?? 0;
 			}
 			$this->setParserOutputProperty( $output, 'mLinks', $links );
 		}
@@ -39,7 +46,14 @@ class Eliminate implements ParserAfterTidyHook {
 				$output->getLinkList( ParserOutputLinkTypes::TEMPLATE ) as
 				[ 'link' => $link, 'pageid' => $pageid ]
 			) {
-				$templates[$link->getNamespace()][$link->getDBkey()] = $pageid ?? 0;
+				$nsp = $link->getNamespace();
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[1][$nsp][$dbKey] ) ) {
+					continue;
+				}
+
+				$templates[$nsp][$dbKey] = $pageid ?? 0;
 			}
 			$this->setParserOutputProperty( $output, 'mTemplates', $templates );
 		}
@@ -59,7 +73,13 @@ class Eliminate implements ParserAfterTidyHook {
 				$output->getLinkList( ParserOutputLinkTypes::MEDIA )
 				as [ 'link' => $link ]
 			) {
-				$images[$link->getDBkey()] = 1;
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[3][$dbKey] ) ) {
+					continue;
+				}
+
+				$images[$dbKey] = 1;
 			}
 			$this->setParserOutputProperty( $output, 'mImages', $images );
 		}
