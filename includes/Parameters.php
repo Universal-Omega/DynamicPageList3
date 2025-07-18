@@ -11,8 +11,6 @@ use Wikimedia\Rdbms\IExpression;
 
 class Parameters extends ParametersData {
 
-	private readonly Config $config;
-
 	/** Set parameter options. */
 	private array $parameterOptions = [];
 
@@ -27,7 +25,6 @@ class Parameters extends ParametersData {
 
 	public function __construct() {
 		parent::__construct();
-		$this->config = Config::getInstance();
 		$this->setDefaults();
 	}
 
@@ -49,7 +46,6 @@ class Parameters extends ParametersData {
 
 		$function = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
-
 		if ( method_exists( $this, $function ) ) {
 			return $this->$function( ...$arguments );
 		}
@@ -143,7 +139,6 @@ class Parameters extends ParametersData {
 
 		if ( $success ) {
 			$this->setParameter( $parameter, $option );
-
 			if ( $parameterData['set_criteria_found'] ?? false ) {
 				$this->setSelectionCriteriaFound( true );
 			}
@@ -166,25 +161,28 @@ class Parameters extends ParametersData {
 	public static function sortByPriority( array $parameters ): array {
 		// 'category' to get category headings first for ordermethod.
 		// 'include'/'includepage' to make sure section labels are ready for 'table'.
+		// The order of this array is very important!
 		$priority = [
-			'distinct' => 1,
-			'openreferences' => 2,
-			'ignorecase' => 3,
-			'category' => 4,
-			'title' => 5,
-			'goal' => 6,
-			'ordercollation' => 7,
-			'ordermethod' => 8,
-			'includepage' => 9,
-			'include' => 10,
+			'distinct',
+			'openreferences',
+			'ignorecase',
+			'category',
+			'title',
+			'goal',
+			'ordercollation',
+			'ordermethod',
+			'includepage',
+			'include',
 		];
 
 		$first = [];
-		foreach ( $priority as $parameter => $_ ) {
-			if ( isset( $parameters[$parameter] ) ) {
-				$first[$parameter] = $parameters[$parameter];
-				unset( $parameters[$parameter] );
+		foreach ( $priority as $parameter ) {
+			if ( !isset( $parameters[$parameter] ) ) {
+				continue;
 			}
+
+			$first[$parameter] = $parameters[$parameter];
+			unset( $parameters[$parameter] );
 		}
 
 		return $first + $parameters;
@@ -318,7 +316,6 @@ class Parameters extends ParametersData {
 	 */
 	public function _category( string $option ): bool {
 		$option = trim( html_entity_decode( $option, ENT_QUOTES ) );
-
 		if ( $option === '' ) {
 			return false;
 		}
@@ -394,7 +391,6 @@ class Parameters extends ParametersData {
 		}
 
 		$this->setOpenReferencesConflict( true );
-
 		return true;
 	}
 
@@ -498,7 +494,6 @@ class Parameters extends ParametersData {
 			$this->config->get( 'maxResultCount' );
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
-
 		return true;
 	}
 
@@ -509,11 +504,9 @@ class Parameters extends ParametersData {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$allowedNamespaces = $this->config->get( 'allowedNamespaces' );
 		$data = $this->getParameter( 'namespace' ) ?? [];
-
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
 			$lowerParam = strtolower( $parameter );
-
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
@@ -549,11 +542,9 @@ class Parameters extends ParametersData {
 	public function _notnamespace( string $option ): bool {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$data = $this->getParameter( 'notnamespace' ) ?? [];
-
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
 			$lowerParam = strtolower( $parameter );
-
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
@@ -606,7 +597,6 @@ class Parameters extends ParametersData {
 	public function _ordermethod( string $option ): bool {
 		$methods = array_map( 'trim', explode( ',', $option ) );
 		$validMethods = $this->getData( 'ordermethod' )['values'] ?? [];
-
 		foreach ( $methods as $method ) {
 			if ( !in_array( $method, $validMethods, true ) ) {
 				return false;
@@ -654,9 +644,9 @@ class Parameters extends ParametersData {
 			return true;
 		}
 
-		$boolean = $this->filterBoolean( $option );
-		if ( $boolean !== null ) {
-			$this->setParameter( 'distinctresultset', $boolean );
+		$option = $this->filterBoolean( $option );
+		if ( $option !== null ) {
+			$this->setParameter( 'distinctresultset', $option );
 			return true;
 		}
 
@@ -823,19 +813,19 @@ class Parameters extends ParametersData {
 			$request = RequestContext::getMain()->getRequest();
 
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
-			$titlegt = $request->getVal( 'DPL_findTitle', '' );
+			$titlegt = $request->getText( 'DPL_findTitle' );
 			$titlegt = $titlegt !== '' ? '=_' . ucfirst( $titlegt ) :
-				ucfirst( $request->getVal( 'DPL_fromTitle', '' ) );
+				ucfirst( $request->getText( 'DPL_fromTitle' ) );
 
 			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = ucfirst( $request->getVal( 'DPL_toTitle', '' ) );
+			$titlelt = ucfirst( $request->getText( 'DPL_toTitle' ) );
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the
 			// Variables extension and in the header/footer replacements.
-			$this->setParameter( 'scrolldir', $request->getVal( 'DPL_scrollDir', '' ) );
+			$this->setParameter( 'scrolldir', $request->getText( 'DPL_scrollDir' ) );
 
 			// Also set count limit from URL if not otherwise set.
 			$this->_count( $request->getInt( 'DPL_count' ) );
@@ -852,13 +842,11 @@ class Parameters extends ParametersData {
 	public function _replaceintitle( string $option ): bool {
 		// We offer a possibility to replace some part of the title
 		$replaceInTitle = explode( ',', $option, 2 );
-
 		if ( isset( $replaceInTitle[1] ) ) {
 			$replaceInTitle[1] = $this->stripHtmlTags( $replaceInTitle[1] );
 		}
 
 		$this->setParameter( 'replaceintitle', $replaceInTitle );
-
 		return true;
 	}
 
@@ -994,7 +982,6 @@ class Parameters extends ParametersData {
 
 		$withHLink = "[[%PAGE%|%TITLE%]]\n|";
 		$listSeparators = [];
-
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
 			if ( $tabnr === 0 ) {
 				$tab = $tab !== '' ? $tab : 'class=wikitable';
@@ -1032,14 +1019,15 @@ class Parameters extends ParametersData {
 				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
 				$sectionSeparators[1] = '';
 				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
-			} else {
-				$sectionSeparators[2 * $i] = "\n|";
-				$sectionSeparators[2 * $i + 1] = '';
-
-				$multiSectionSeparators[$i] = (
-					is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] === '#'
-				) ? "\n----\n" : "<br/>\n";
+				continue;
 			}
+
+			$sectionSeparators[2 * $i] = "\n|";
+			$sectionSeparators[2 * $i + 1] = '';
+
+			$multiSectionSeparators[$i] = (
+				is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] === '#'
+			) ? "\n----\n" : "<br/>\n";
 		}
 
 		// Overwrite 'secseparators' and 'multisecseparators'.
@@ -1079,7 +1067,6 @@ class Parameters extends ParametersData {
 		}
 
 		$option = $this->filterBoolean( $option );
-
 		if ( $option !== null ) {
 			$this->setParameter( 'allowcachedresults', $option );
 			return true;
