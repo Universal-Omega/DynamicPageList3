@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Hook\ParserAfterTidyHook;
+use ReflectionProperty;
 
 class Reset implements ParserAfterTidyHook {
 
@@ -31,7 +32,7 @@ class Reset implements ParserAfterTidyHook {
 		}
 
 		if ( Utils::$createdLinks['resetLinks'] ) {
-			$output->mLinks = [];
+			$this->setParserOutputProperty( $output, 'mLinks', [] );
 		}
 
 		if ( Utils::$createdLinks['resetCategories'] ) {
@@ -39,13 +40,25 @@ class Reset implements ParserAfterTidyHook {
 		}
 
 		if ( Utils::$createdLinks['resetTemplates'] ) {
-			$output->mTemplates = [];
+			$this->setParserOutputProperty( $output, 'mTemplates', [] );
 		}
 
 		if ( Utils::$createdLinks['resetImages'] ) {
-			$output->mImages = [];
+			$this->setParserOutputProperty( $output, 'mImages', [] );
 		}
 
 		Utils::$fixedCategories = [];
+	}
+
+	/**
+	 * Set private/protected property on an object via reflection.
+	 * This is a very messy hack but we have to since ParserOutput
+	 * doesn't have any set* method for media or templates and
+	 * the properties are private.
+	 */
+	private function setParserOutputProperty( object $object, string $property, mixed $value ): void {
+		$refProp = new ReflectionProperty( $object, $property );
+		$refProp->setAccessible( true );
+		$refProp->setValue( $object, $value );
 	}
 }
