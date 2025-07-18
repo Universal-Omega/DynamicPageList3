@@ -1,12 +1,12 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Extension\DynamicPageList3\Article;
-use MediaWiki\Extension\DynamicPageList3\LST;
-use MediaWiki\Extension\DynamicPageList3\Parameters;
-use MediaWiki\Extension\DynamicPageList3\UpdateArticle;
+use MediaWiki\Extension\DynamicPageList4\Article;
+use MediaWiki\Extension\DynamicPageList4\LST;
+use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\Extension\DynamicPageList4\UpdateArticle;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
@@ -802,6 +802,7 @@ class Lister {
 		}
 
 		$tag = str_replace( '%TITLE%', $title, $tag );
+		$tag = str_replace( '%DISPLAYTITLE%', $article->mDisplayTitle ?: $title, $tag );
 
 		$tag = str_replace( '%COUNT%', (string)$article->mCounter, $tag );
 		$tag = str_replace( '%COUNTFS%', (string)( floor( log( $article->mCounter ) * 0.7 ) ), $tag );

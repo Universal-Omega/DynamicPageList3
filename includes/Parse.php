@@ -1,32 +1,27 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 use Exception;
 use ExtVariables;
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Extension\DynamicPageList3\Heading\Heading;
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
+use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
+use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
 
 class Parse {
-	/**
-	 * Parameters Object
-	 *
-	 * @var Parameters
-	 */
-	private $parameters = null;
 
-	/**
-	 * Logger Object
-	 *
-	 * @var Logger
-	 */
-	private $logger = null;
+	private readonly Config $config;
+	private readonly Logger $logger;
+	private readonly Parameters $parameters;
+	private readonly WebRequest $request;
 
 	/**
 	 * Header Output
@@ -57,13 +52,6 @@ class Parse {
 	private $replacementVariables = [];
 
 	/**
-	 * WebRequest object
-	 *
-	 * @var WebRequest
-	 */
-	private $request;
-
-	/**
 	 * Array of possible URL arguments.
 	 *
 	 * @var array
@@ -73,12 +61,13 @@ class Parse {
 		'DPL_count',
 		'DPL_fromTitle',
 		'DPL_findTitle',
-		'DPL_toTitle'
+		'DPL_toTitle',
 	];
 
 	public function __construct() {
-		$this->parameters = new Parameters();
+		$this->config = Config::getInstance();
 		$this->logger = new Logger();
+		$this->parameters = new Parameters();
 		$this->request = RequestContext::getMain()->getRequest();
 	}
 
@@ -103,23 +92,21 @@ class Parse {
 		// Check that we are not in an infinite transclusion loop
 		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
-			$this->logger->addMessage( Hooks::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
-
+			$this->logger->addMessage( Constants::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 			return $this->getFullOutput();
 		}
 
 		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
 		if (
-			Config::getSetting( 'runFromProtectedPagesOnly' ) === true &&
+			$this->config->get( 'runFromProtectedPagesOnly' ) === true &&
 			$title && !$restrictionStore->isProtected( $title, 'edit' )
 		) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a
 			// template page which is protected. Then there would be no need for the article to
 			// be protected. However, how can one find out from which wiki source an extension
 			// has been invoked???
-			$this->logger->addMessage( Hooks::FATAL_NOTPROTECTED, $title->getPrefixedText() );
-
+			$this->logger->addMessage( Constants::FATAL_NOTPROTECTED, $title->getPrefixedText() );
 			return $this->getFullOutput();
 		}
 
@@ -145,8 +132,7 @@ class Parse {
 		$cleanParameters = $this->prepareUserInput( $input );
 		if ( !is_array( $cleanParameters ) ) {
 			// Short circuit for dumb things.
-			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
-
+			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
 			return $this->getFullOutput();
 		}
 
@@ -156,12 +142,12 @@ class Parse {
 		$this->parameters->setParameter( 'includeuncat', false );
 
 		foreach ( $cleanParameters as $parameter => $option ) {
-			foreach ( $option as $_option ) {
+			foreach ( $option as $value ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( $this->parameters->$parameter( $_option ) === false ) {
+				if ( $this->parameters->$parameter( $value ) === false ) {
 					// Do not build this into the output just yet. It will be collected at the end.
-					$this->logger->addMessage( Hooks::WARN_WRONGPARAM, $parameter, $_option );
+					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $value );
 				}
 			}
 		}
@@ -200,7 +186,7 @@ class Parse {
 
 		$calcRows = false;
 		if (
-			!Config::getSetting( 'allowUnlimitedResults' ) &&
+			!$this->config->get( 'allowUnlimitedResults' ) &&
 			$this->parameters->getParameter( 'goal' ) != 'categories' &&
 			strpos( $this->parameters->getParameter( 'resultsheader' ) .
 				$this->parameters->getParameter( 'noresultsheader' ) .
@@ -231,11 +217,11 @@ class Parse {
 				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
 
 				// Pool counter all threads in use.
-				$this->logger->addMessage( Hooks::FATAL_POOLCOUNTER );
+				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
 		} catch ( Exception $e ) {
-			$this->logger->addMessage( Hooks::FATAL_SQLBUILDERROR, $e->getMessage() );
+			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput();
 		}
 
@@ -249,12 +235,12 @@ class Parse {
 			$this->addOutput( $query->getSqlQuery() . "\n" );
 		}
 
-		$this->addOutput( '{{Extension DPL}}' );
+		$parser->addTrackingCategory( 'dpl-tracking-category' );
 
 		// Preset these to defaults.
 		$this->setVariable( 'TOTALPAGES', '0' );
 		$this->setVariable( 'PAGES', '0' );
-		$this->setVariable( 'VERSION', Hooks::getVersion() );
+		$this->setVariable( 'VERSION', Utils::getVersion() );
 
 		/*********************/
 		/* Handle No Results */
@@ -349,7 +335,7 @@ class Parse {
 
 		$this->defineScrollVariables( $scrollVariables, $parser );
 
-		if ( $this->parameters->getParameter( 'allowcachedresults' ) || Config::getSetting( 'alwaysCacheResults' ) ) {
+		if ( $this->parameters->getParameter( 'allowcachedresults' ) || $this->config->get( 'alwaysCacheResults' ) ) {
 			$parser->getOutput()->updateCacheExpiry( $this->parameters->getParameter( 'cacheperiod' ) ?? 3600 );
 		} else {
 			$parser->getOutput()->updateCacheExpiry( 0 );
@@ -358,7 +344,6 @@ class Parse {
 		$finalOutput = $this->getFullOutput( $foundRows, false );
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
-
 		return $finalOutput;
 	}
 
@@ -424,11 +409,6 @@ class Parse {
 				$pageTitle = $row->page_title;
 			}
 
-			// if subpages are to be excluded: skip them
-			if ( !$this->parameters->getParameter( 'includesubpages' ) && strpos( $pageTitle, '/' ) !== false ) {
-				continue;
-			}
-
 			$title = Title::makeTitle( $pageNamespace, $pageTitle );
 			$thisTitle = Title::castFromPageReference( $parser->getPage() );
 
@@ -469,7 +449,7 @@ class Parse {
 			}
 
 			if ( strpos( $parameterOption, '=' ) === false ) {
-				$this->logger->addMessage( Hooks::WARN_PARAMNOOPTION, $parameterOption );
+				$this->logger->addMessage( Constants::WARN_PARAMNOOPTION, $parameterOption );
 
 				continue;
 			}
@@ -500,7 +480,7 @@ class Parse {
 
 			if ( !$this->parameters->exists( $parameter ) ) {
 				$this->logger->addMessage(
-					Hooks::WARN_UNKNOWNPARAM, $parameter,
+					Constants::WARN_UNKNOWNPARAM, $parameter,
 					implode( ', ', $this->parameters->getParametersForRichness() )
 				);
 
@@ -558,14 +538,14 @@ class Parse {
 			$footer = '';
 
 			// Only override header and footers if specified.
-			$_headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
-			if ( $_headerType !== false ) {
-				$header = $this->parameters->getParameter( $_headerType );
+			$headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
+			if ( $headerType !== false ) {
+				$header = $this->parameters->getParameter( $headerType );
 			}
 
-			$_footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
-			if ( $_footerType !== false ) {
-				$footer = $this->parameters->getParameter( $_footerType );
+			$footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
+			if ( $footerType !== false ) {
+				$footer = $this->parameters->getParameter( $footerType );
 			}
 
 			$this->setHeader( $header );
@@ -573,7 +553,7 @@ class Parse {
 		}
 
 		if ( !$totalResults && !strlen( $this->getHeader() ) && !strlen( $this->getFooter() ) ) {
-			$this->logger->addMessage( Hooks::WARN_NORESULTS );
+			$this->logger->addMessage( Constants::WARN_NORESULTS );
 		}
 
 		$messages = $this->logger->getMessages( false );
@@ -588,7 +568,7 @@ class Parse {
 	 * @param string $header
 	 */
 	private function setHeader( $header ) {
-		if ( Hooks::getDebugLevel() == 5 ) {
+		if ( Utils::getDebugLevel() == 5 ) {
 			$header = '<pre><nowiki>' . $header;
 		}
 
@@ -610,7 +590,7 @@ class Parse {
 	 * @param string $footer
 	 */
 	private function setFooter( $footer ) {
-		if ( Hooks::getDebugLevel() == 5 ) {
+		if ( Utils::getDebugLevel() == 5 ) {
 			$footer .= '</nowiki></pre>';
 		}
 
@@ -651,16 +631,16 @@ class Parse {
 				)
 			)
 		) {
-			$_type = 'results' . $position;
+			$type = 'results' . $position;
 		} elseif ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
-			$_type = 'oneresult' . $position;
+			$type = 'oneresult' . $position;
 		} elseif ( $count === 0 && $this->parameters->getParameter( 'noresults' . $position ) !== null ) {
-			$_type = 'noresults' . $position;
+			$type = 'noresults' . $position;
 		} else {
-			$_type = false;
+			$type = false;
 		}
 
-		return $_type;
+		return $type;
 	}
 
 	/**
@@ -735,22 +715,22 @@ class Parse {
 
 		// Too many categories.
 		if (
-			$totalCategories > Config::getSetting( 'maxCategoryCount' ) &&
-			!Config::getSetting( 'allowUnlimitedCategories' )
+			$totalCategories > $this->config->get( 'maxCategoryCount' ) &&
+			!$this->config->get( 'allowUnlimitedCategories' )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_TOOMANYCATS, Config::getSetting( 'maxCategoryCount' ) );
+			$this->logger->addMessage( Constants::FATAL_TOOMANYCATS, $this->config->get( 'maxCategoryCount' ) );
 			return false;
 		}
 
-		// Not enough categories.(Really?)
-		if ( $totalCategories < Config::getSetting( 'minCategoryCount' ) ) {
-			$this->logger->addMessage( Hooks::FATAL_TOOFEWCATS, Config::getSetting( 'minCategoryCount' ) );
+		// Not enough categories. (Really?)
+		if ( $totalCategories < $this->config->get( 'minCategoryCount' ) ) {
+			$this->logger->addMessage( Constants::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
 			return false;
 		}
 
 		// Selection criteria needs to be found.
 		if ( !$totalCategories && !$this->parameters->isSelectionCriteriaFound() ) {
-			$this->logger->addMessage( Hooks::FATAL_NOSELECTION );
+			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
 			return false;
 		}
 
@@ -768,7 +748,7 @@ class Parse {
 				$this->parameters->getParameter( 'addfirstcategorydate' ) === true
 			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_CATDATEBUTNOINCLUDEDCATS );
+			$this->logger->addMessage( Constants::FATAL_CATDATEBUTNOINCLUDEDCATS );
 			return false;
 		}
 
@@ -781,7 +761,7 @@ class Parse {
 				(int)$this->parameters->getParameter( 'addeditdate' )
 			) > 1
 		) {
-			$this->logger->addMessage( Hooks::FATAL_MORETHAN1TYPEOFDATE );
+			$this->logger->addMessage( Constants::FATAL_MORETHAN1TYPEOFDATE );
 			return false;
 		}
 
@@ -792,8 +772,8 @@ class Parse {
 			) < $this->parameters->getParameter( 'dominantsection' )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_DOMINANTSECTIONRANGE,
-				count( $this->parameters->getParameter( 'seclabels' ) )
+				Constants::FATAL_DOMINANTSECTIONRANGE,
+				(string)count( $this->parameters->getParameter( 'seclabels' ) )
 			);
 
 			return false;
@@ -805,7 +785,7 @@ class Parse {
 			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_WRONGORDERMETHOD,
+				Constants::FATAL_WRONGORDERMETHOD,
 				'mode=category',
 				'sortkey | title | titlewithoutnamespace'
 			);
@@ -819,7 +799,7 @@ class Parse {
 			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
 		) {
 			$this->logger->addMessage(
-				Hooks::FATAL_WRONGORDERMETHOD,
+				Constants::FATAL_WRONGORDERMETHOD,
 				'addpagetoucheddate=true',
 				'pagetouched | title'
 			);
@@ -838,7 +818,7 @@ class Parse {
 				$this->parameters->getParameter( 'lastrevisionbefore' )
 			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'addeditdate=true', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -857,7 +837,7 @@ class Parse {
 			!$this->parameters->getParameter( 'firstrevisionsince' ) &&
 			!$this->parameters->getParameter( 'lastrevisionbefore' )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'adduser=true', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -865,7 +845,7 @@ class Parse {
 			$this->parameters->getParameter( 'minoredits' ) &&
 			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] )
 		) {
-			$this->logger->addMessage( Hooks::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD, 'minoredits', 'firstedit | lastedit' );
 			return false;
 		}
 
@@ -883,13 +863,13 @@ class Parse {
 				$this->parameters->getParameter( 'addlasteditor' )
 			)
 		) {
-			$this->logger->addMessage( Hooks::WARN_CATOUTPUTBUTWRONGPARAMS );
+			$this->logger->addMessage( Constants::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
 		// headingmode has effects with ordermethod on multiple components only
 		if ( $this->parameters->getParameter( 'headingmode' ) !== 'none' && count( $orderMethods ) < 2 ) {
 			$this->logger->addMessage(
-				Hooks::WARN_HEADINGBUTSIMPLEORDERMETHOD,
+				Constants::WARN_HEADINGBUTSIMPLEORDERMETHOD,
 				$this->parameters->getParameter( 'headingmode' ),
 				'none'
 			);
@@ -899,10 +879,12 @@ class Parse {
 
 		// The 'openreferences' parameter is incompatible with many other options.
 		if (
-			$this->parameters->isOpenReferencesConflict() &&
-			$this->parameters->getParameter( 'openreferences' ) === true
+			$this->parameters->isOpenReferencesConflict() && (
+			$this->parameters->getParameter( 'openreferences' ) === true ||
+				$this->parameters->getParameter( 'openreferences' ) === 'missing'
+			)
 		) {
-			$this->logger->addMessage( Hooks::FATAL_OPENREFERENCES );
+			$this->logger->addMessage( Constants::FATAL_OPENREFERENCES );
 			return false;
 		}
 
@@ -917,7 +899,7 @@ class Parse {
 	 * @return array
 	 */
 	private static function updateTableRowKeys( $tableRow, $sectionLabels ) {
-		$_tableRow = (array)$tableRow;
+		$originalRow = (array)$tableRow;
 		$tableRow = [];
 		$groupNr = -1;
 		$t = -1;
@@ -928,8 +910,8 @@ class Parse {
 			$cols = explode( '}:', $label );
 
 			if ( count( $cols ) <= 1 ) {
-				if ( array_key_exists( $t, $_tableRow ) ) {
-					$tableRow[$groupNr] = $_tableRow[$t];
+				if ( array_key_exists( $t, $originalRow ) ) {
+					$tableRow[$groupNr] = $originalRow[$t];
 				}
 			} else {
 				$n = count( explode( ':', $cols[1] ) );
@@ -940,8 +922,8 @@ class Parse {
 					$colNr++;
 					$t++;
 
-					if ( array_key_exists( $t, $_tableRow ) ) {
-						$tableRow[$groupNr . '.' . $colNr] = $_tableRow[$t];
+					if ( array_key_exists( $t, $originalRow ) ) {
+						$tableRow[$groupNr . '.' . $colNr] = $originalRow[$t];
 					}
 				}
 			}
@@ -1046,31 +1028,31 @@ class Parse {
 
 		if ( $isParserTag === true ) {
 			// In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if ( isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( !empty( $eliminate['templates'] ) ) {
 				$reset['templates'] = true;
 				$eliminate['templates'] = false;
 			}
 
-			if ( isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
+			if ( !empty( $eliminate['categories'] ) ) {
 				$reset['categories'] = true;
 				$eliminate['categories'] = false;
 			}
 
-			if ( isset( $eliminate['images'] ) && $eliminate['images'] ) {
+			if ( !empty( $eliminate['images'] ) ) {
 				$reset['images'] = true;
 				$eliminate['images'] = false;
 			}
 		} else {
-			if ( isset( $reset['templates'] ) && $reset['templates'] ) {
-				Hooks::$createdLinks['resetTemplates'] = true;
+			if ( !empty( $reset['templates'] ) ) {
+				Utils::$createdLinks['resetTemplates'] = true;
 			}
 
-			if ( isset( $reset['categories'] ) && $reset['categories'] ) {
-				Hooks::$createdLinks['resetCategories'] = true;
+			if ( !empty( $reset['categories'] ) ) {
+				Utils::$createdLinks['resetCategories'] = true;
 			}
 
-			if ( isset( $reset['images'] ) && $reset['images'] ) {
-				Hooks::$createdLinks['resetImages'] = true;
+			if ( !empty( $reset['images'] ) ) {
+				Utils::$createdLinks['resetImages'] = true;
 			}
 		}
 
@@ -1078,44 +1060,61 @@ class Parse {
 
 		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
 			if ( isset( $reset['links'] ) ) {
-				Hooks::$createdLinks['resetLinks'] = true;
+				Utils::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endReset' );
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Reset(), 'onParserAfterTidy' ]
+			);
 		}
 
 		if ( array_sum( $eliminate ) ) {
-			// Register a hook to reset links which were produced during parsing DPL output
-			$hookContainer->register( 'ParserAfterTidy', Hooks::class . '::endEliminate' );
-
-			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
+			if ( $parserOutput && !empty( $eliminate['links'] ) ) {
 				// Trigger the mediawiki parser to find links, images, categories etc.
 				// which are contained in the DPL output. This allows us to remove these
 				// links from the link list later. If the article containing the DPL
 				// statement itself uses one of these links they will be thrown away!
-				Hooks::$createdLinks[0] = [];
-
-				foreach ( $parserOutput->mLinks as $nsp => $link ) {
-					Hooks::$createdLinks[0][$nsp] = $link;
+				Utils::$createdLinks[0] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[0][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
-				Hooks::$createdLinks[1] = [];
-
-				foreach ( $parserOutput->mTemplates as $nsp => $tpl ) {
-					Hooks::$createdLinks[1][$nsp] = $tpl;
+			if ( $parserOutput && !empty( $eliminate['templates'] ) ) {
+				Utils::$createdLinks[1] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
+					as [ 'link' => $link, 'pageid' => $pageid ]
+				) {
+					Utils::$createdLinks[1][$link->getNamespace()][$link->getDBkey()] = $pageid;
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Hooks::$createdLinks[2] = $parserOutput->mCategories;
+			if ( $parserOutput && !empty( $eliminate['categories'] ) ) {
+				Utils::$createdLinks[2] = [];
+				foreach ( $parserOutput->getCategoryNames() as $name ) {
+					Utils::$createdLinks[2][ $name ] = $parserOutput->getCategorySortKey( $name ) ?? '';
+				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
-				Hooks::$createdLinks[3] = $parserOutput->mImages;
+			if ( $parserOutput && !empty( $eliminate['images'] ) ) {
+				Utils::$createdLinks[3] = [];
+				foreach (
+					$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+					as [ 'link' => $link ]
+				) {
+					Utils::$createdLinks[3][ $link->getDBkey() ] = 1;
+				}
 			}
+
+			// Register a hook to reset links which were produced during parsing DPL output.
+			$hookContainer->register( 'ParserAfterTidy',
+				[ new Eliminate(), 'onParserAfterTidy' ]
+			);
 		}
 	}
 
