@@ -1028,30 +1028,30 @@ class Parse {
 
 		if ( $isParserTag === true ) {
 			// In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if ( isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( !empty( $eliminate['templates'] ) ) {
 				$reset['templates'] = true;
 				$eliminate['templates'] = false;
 			}
 
-			if ( isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
+			if ( !empty( $eliminate['categories'] ) ) {
 				$reset['categories'] = true;
 				$eliminate['categories'] = false;
 			}
 
-			if ( isset( $eliminate['images'] ) && $eliminate['images'] ) {
+			if ( !empty( $eliminate['images'] ) ) {
 				$reset['images'] = true;
 				$eliminate['images'] = false;
 			}
 		} else {
-			if ( isset( $reset['templates'] ) && $reset['templates'] ) {
+			if ( !empty( $reset['templates'] ) ) {
 				Utils::$createdLinks['resetTemplates'] = true;
 			}
 
-			if ( isset( $reset['categories'] ) && $reset['categories'] ) {
+			if ( !empty( $reset['categories'] ) ) {
 				Utils::$createdLinks['resetCategories'] = true;
 			}
 
-			if ( isset( $reset['images'] ) && $reset['images'] ) {
+			if ( !empty( $reset['images'] ) ) {
 				Utils::$createdLinks['resetImages'] = true;
 			}
 		}
@@ -1075,7 +1075,7 @@ class Parse {
 				[ new Eliminate(), 'onParserAfterTidy' ]
 			);
 
-			if ( $parserOutput && isset( $eliminate['links'] ) && $eliminate['links'] ) {
+			if ( $parserOutput && !empty( $eliminate['links'] ) ) {
 				// Trigger the mediawiki parser to find links, images, categories etc.
 				// which are contained in the DPL output. This allows us to remove these
 				// links from the link list later. If the article containing the DPL
@@ -1089,7 +1089,7 @@ class Parse {
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['templates'] ) && $eliminate['templates'] ) {
+			if ( $parserOutput && !empty( $eliminate['templates'] ) ) {
 				Utils::$createdLinks[1] = [];
 				foreach (
 					$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
@@ -1099,19 +1099,20 @@ class Parse {
 				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['categories'] ) && $eliminate['categories'] ) {
-				Utils::$createdLinks[2] = array_combine(
-					$parserOutput->getCategoryNames(),
-					array_map(
-						static fn ( string $name ): string =>
-							$parserOutput->getCategorySortKey( $name ) ?? '',
-						$parserOutput->getCategoryNames()
-					)
-				);
+			if ( $parserOutput && !empty( $eliminate['categories'] ) ) {
+				Utils::$createdLinks[2] = [];
+				foreach ( $parserOutput->getCategoryNames() as $name ) {
+					Utils::$createdLinks[2][ $name ] = $parserOutput->getCategorySortKey( $name ) ?? '';
+				}
 			}
 
-			if ( $parserOutput && isset( $eliminate['images'] ) && $eliminate['images'] ) {
-				Utils::$createdLinks[3] = $parserOutput->mImages;
+			if ( $parserOutput && !empty( $eliminate['images'] ) ) {
+				Utils::$createdLinks[3] = [];
+				foreach ( $parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+					as [ 'link' => $link ]
+				) {
+					Utils::$createdLinks[3][ $link->getDBkey() ] = 1;
+				}
 			}
 		}
 	}
