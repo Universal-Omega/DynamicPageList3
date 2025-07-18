@@ -227,11 +227,9 @@ class UpdateArticle {
 				$legendText = '';
 
 				if ( $legendPage != '' ) {
-					$legendTitle = '';
-
 					$parser = clone MediaWikiServices::getInstance()->getParser();
 
-					LST::text( $parser, $legendPage, $legendTitle, $legendText );
+					LST::text( $parser, $legendPage, $legendText );
 					$legendText = preg_replace( '/^.*?\<section\s+begin\s*=\s*legend\s*\/\>/s', '', $legendText );
 					$legendText = preg_replace( '/\<section\s+end\s*=\s*legend\s*\/\>.*/s', '', $legendText );
 				}
@@ -240,11 +238,9 @@ class UpdateArticle {
 				$instructions = [];
 
 				if ( $instructionPage != '' ) {
-					$instructionTitle = '';
-
 					$parser = clone MediaWikiServices::getInstance()->getParser();
 
-					LST::text( $parser, $instructionPage, $instructionTitle, $instructionText );
+					LST::text( $parser, $instructionPage, $instructionText );
 					$instructions = self::getTemplateParmValues( $instructionText, 'Template field' );
 				}
 
