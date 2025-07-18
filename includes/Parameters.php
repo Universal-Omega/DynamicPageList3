@@ -290,10 +290,10 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Check if a regular expression is valid.
+	 * Check if all regular expressions in an array are valid.
 	 */
-	private function isRegexValid( array|string $regexes, bool $forDb = false ): bool {
-		foreach ( (array)$regexes as $regex ) {
+	private function isRegexValid( array $regexes, bool $forDb ): bool {
+		foreach ( $regexes as $regex ) {
 			$regex = trim( $regex );
 			if ( $regex === '' ) {
 				continue;
@@ -345,7 +345,7 @@ class Parameters extends ParametersData {
 			}
 
 			if ( str_starts_with( $parameter, '*' ) && strlen( $parameter ) >= 2 ) {
-				$depth = str_starts_with( substr( $parameter, 1, 1 ), '*' ) ? 2 : 1;
+				$depth = $parameter[1] === '*' ? 2 : 1;
 				$parameter = ltrim( $parameter, '*' );
 				$subCategories = Query::getSubcategories( $parameter, $depth );
 				$subCategories[] = $parameter;
@@ -398,7 +398,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'categoryregexp' parameter.
 	 */
 	public function _categoryregexp( string $option ): bool {
-		if ( !$this->isRegexValid( $option, true ) ) {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
@@ -453,7 +453,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'notcategoryregexp' parameter.
 	 */
 	public function _notcategoryregexp( string $option ): bool {
-		if ( !$this->isRegexValid( $option, true ) ) {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
@@ -737,7 +737,7 @@ class Parameters extends ParametersData {
 		$data['REGEXP'] ??= [];
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
 
@@ -773,7 +773,7 @@ class Parameters extends ParametersData {
 		$data['REGEXP'] ??= [];
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
 
@@ -893,7 +893,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includematch( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -918,7 +918,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includematchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -932,7 +932,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includenotmatch( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -945,7 +945,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includenotmatchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -1010,7 +1010,7 @@ class Parameters extends ParametersData {
 		// Overwrite 'listseparators'.
 		$this->setParameter( 'listseparators', $listSeparators );
 
-		$sectionLabels = (array)$this->getParameter( 'seclabels' );
+		$sectionLabels = $this->getParameter( 'seclabels' ) ?? [];
 		$sectionSeparators = $this->getParameter( 'secseparators' ) ?? [];
 		$multiSectionSeparators = $this->getParameter( 'multisecseparators' ) ?? [];
 
