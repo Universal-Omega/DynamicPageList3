@@ -1168,7 +1168,8 @@ class ParametersData {
 	];
 
 	public function __construct() {
-		$this->setRichness( Config::getSetting( 'functionalRichness' ) );
+		$config = Config::getInstance();
+		$this->setRichness( $config->get( 'functionalRichness' ) );
 
 		if ( Utils::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
@@ -1176,16 +1177,16 @@ class ParametersData {
 				'values' => [
 					'categoryadd',
 					'lastedit',
-					'none'
-				]
+					'none',
+				],
 			];
 
 			$this->data['order'] = [
 				'default' => 'descending',
 				'values' => [
 					'ascending',
-					'descending'
-				]
+					'descending',
+				],
 			];
 
 			$this->data['mode'] = [
@@ -1193,57 +1194,41 @@ class ParametersData {
 				'values' => [
 					'none',
 					'ordered',
-					'unordered'
-				]
+					'unordered',
+				],
 			];
 
 			$this->data['userdateformat'] = [
-				'default' => 'Y-m-d: '
+				'default' => 'Y-m-d: ',
 			];
-
-			$this->data['allowcachedresults']['default'] = 'true';
 		}
 	}
 
 	/**
 	 * Return if the parameter exists.
-	 *
-	 * @param string $parameter
-	 * @return bool
 	 */
-	public function exists( $parameter ) {
-		return array_key_exists( $parameter, $this->data );
+	public function exists( string $parameter ): bool {
+		return isset( $this->data[$parameter] );
 	}
 
 	/**
 	 * Return data for the supplied parameter.
-	 *
-	 * @param string $parameter
-	 * @return mixed
 	 */
-	public function getData( $parameter ) {
-		if ( array_key_exists( $parameter, $this->data ) ) {
-			return $this->data[$parameter];
-		} else {
-			return false;
-		}
+	public function getData( string $parameter ): array|false {
+		return $this->data[$parameter] ?? false;
 	}
 
 	/**
 	 * Sets the current parameter richness.
-	 *
-	 * @param int $level
 	 */
-	public function setRichness( $level ) {
-		$this->parameterRichness = (int)$level;
+	public function setRichness( int $level ): void {
+		$this->parameterRichness = $level;
 	}
 
 	/**
 	 * Returns the current parameter richness.
-	 *
-	 * @return int
 	 */
-	public function getRichness() {
+	public function getRichness(): int {
 		return $this->parameterRichness;
 	}
 
@@ -1253,57 +1238,39 @@ class ParametersData {
 	 * @param string $function
 	 * @return bool
 	 */
-	public function testRichness( $function ) {
-		$valid = false;
-
-		for ( $i = 0; $i <= $this->getRichness(); $i++ ) {
-			if ( in_array( $function, self::$parametersForRichnessLevel[$i] ) ) {
-				$valid = true;
-				break;
+	public function testRichness( string $function ): bool {
+		foreach ( range( 0, $this->getRichness() ) as $i ) {
+			if ( in_array( $function, self::$parametersForRichnessLevel[$i], true ) ) {
+				return true;
 			}
 		}
 
-		return $valid;
+		return false;
 	}
 
 	/**
-	 * Returns all parameters for the current richness level or limited to the optional maximum richness.
-	 *
-	 * @param int|null $level
-	 * @return array
+	 * Returns all the parameters allowed for the current richness level.
 	 */
-	public function getParametersForRichness( $level = null ) {
-		if ( $level === null ) {
-			$level = $this->getRichness();
-		}
-
+	public function getParametersForRichness(): array {
 		$parameters = [];
-
-		for ( $i = 0; $i <= $level; $i++ ) {
+		foreach ( range( 0, $this->getRichness() ) as $i ) {
 			$parameters = array_merge( $parameters, self::$parametersForRichnessLevel[$i] );
 		}
 
 		sort( $parameters );
-
 		return $parameters;
 	}
 
 	/**
 	 * Return the default value for the parameter.
-	 *
-	 * @param string $parameter
-	 * @return mixed
 	 */
-	public function getDefault( $parameter ) {
-		if ( array_key_exists( $parameter, $this->data ) ) {
-			if ( array_key_exists( 'default', $this->data[$parameter] ) ) {
-				return (bool)$this->data[$parameter]['default'];
-			}
-
-			return null;
+	public function getDefault( string $parameter ): ?bool {
+		if ( !isset( $this->data[$parameter] ) ) {
+			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
 		}
 
-		throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
+		return isset( $this->data[$parameter]['default'] ) ?
+			(bool)$this->data[$parameter]['default'] : null;
 	}
 
 	/**
