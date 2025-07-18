@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Hook\ParserAfterTidyHook;
+use MediaWiki\Parser\ParserOutputLinkTypes;
 use ReflectionProperty;
 
 class Eliminate implements ParserAfterTidyHook {
@@ -22,43 +23,33 @@ class Eliminate implements ParserAfterTidyHook {
 		$output = $parser->getOutput();
 
 		if ( isset( Utils::$createdLinks[0] ) ) {
-			$links = $output->getLinks();
-			foreach ( $links as $nsp => $_ ) {
-				if ( !isset( Utils::$createdLinks[0][$nsp] ) ) {
+			$updatedLinks = [];
+			foreach ( $output->getLinkList( ParserOutputLinkTypes::LOCAL ) as [ 'link' => $link, 'pageid' => $pageid ] ) {
+				$nsp = $link->getNamespace();
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[0][$nsp][$dbKey] ) ) {
 					continue;
 				}
 
-				$links[$nsp] = array_diff_assoc(
-					$links[$nsp],
-					Utils::$createdLinks[0][$nsp]
-				);
-
-				if ( $links[$nsp] === [] ) {
-					unset( $links[$nsp] );
-				}
+				$updatedLinks[] = [ 'link' => $link, 'pageid' => $pageid ];
 			}
-
-			$this->setParserOutputProperty( $output, 'mLinks', $links );
+			$this->setParserOutputProperty( $output, 'mLinks', $this->rebuildLinksArray( $updatedLinks ) );
 		}
 
 		if ( isset( Utils::$createdLinks[1] ) ) {
-			$templates = $output->getTemplates();
-			foreach ( $templates as $nsp => $_ ) {
-				if ( !isset( Utils::$createdLinks[1][$nsp] ) ) {
+			$updatedTemplates = [];
+			foreach ( $output->getLinkList( ParserOutputLinkTypes::TEMPLATE ) as [ 'link' => $link, 'pageid' => $pageid ] ) {
+				$nsp = $link->getNamespace();
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[1][$nsp][$dbKey] ) ) {
 					continue;
 				}
 
-				$templates[$nsp] = array_diff_assoc(
-					$templates[$nsp],
-					Utils::$createdLinks[1][$nsp]
-				);
-
-				if ( $templates[$nsp] === [] ) {
-					unset( $templates[$nsp] );
-				}
+				$updatedTemplates[] = [ 'link' => $link, 'pageid' => $pageid ];
 			}
-
-			$this->setParserOutputProperty( $output, 'mTemplates', $templates );
+			$this->setParserOutputProperty( $output, 'mTemplates', $this->rebuildLinksArray( $updatedTemplates ) );
 		}
 
 		if ( isset( Utils::$createdLinks[2] ) ) {
@@ -70,15 +61,20 @@ class Eliminate implements ParserAfterTidyHook {
 					$output->getCategoryNames()
 				)
 			);
-
-			$output->setCategories(
-				array_diff_assoc( $categories, Utils::$createdLinks[2] )
-			);
+			$output->setCategories( array_diff_assoc( $categories, Utils::$createdLinks[2] ) );
 		}
 
 		if ( isset( Utils::$createdLinks[3] ) ) {
-			$images = $output->getImages();
-			$images = array_diff_assoc( $images, Utils::$createdLinks[3] );
+			$images = [];
+			foreach ( $output->getLinkList( ParserOutputLinkTypes::MEDIA ) as [ 'link' => $link ] ) {
+				$dbKey = $link->getDBkey();
+
+				if ( isset( Utils::$createdLinks[3][$dbKey] ) ) {
+					continue;
+				}
+
+				$images[ $dbKey ] = 1;
+			}
 			$this->setParserOutputProperty( $output, 'mImages', $images );
 		}
 	}
@@ -87,5 +83,13 @@ class Eliminate implements ParserAfterTidyHook {
 		$refProp = new ReflectionProperty( $object, $property );
 		$refProp->setAccessible( true );
 		$refProp->setValue( $object, $value );
+	}
+
+	private function rebuildLinksArray( array $linkList ): array {
+		$rebuilt = [];
+		foreach ( $linkList as [ 'link' => $link, 'pageid' => $pageid ] ) {
+			$rebuilt[ $link->getNamespace() ][ $link->getDBkey() ] = $pageid ?? 0;
+		}
+		return $rebuilt;
 	}
 }
