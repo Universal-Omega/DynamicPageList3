@@ -5,20 +5,19 @@ namespace MediaWiki\Extension\DynamicPageList4;
 use UnexpectedValueException;
 
 class ParametersData {
+
+	protected readonly Config $config;
+
 	/**
 	 * Parameter Richness
 	 * The level of parameters that is accesible for the user.
-	 *
-	 * @var int
 	 */
-	private $parameterRichness = 0;
+	private int $parameterRichness = 0;
 
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
-	 *
-	 * @var array
 	 */
-	private static $parametersForRichnessLevel = [
+	private static array $parametersForRichnessLevel = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
@@ -34,7 +33,7 @@ class ParametersData {
 			'showcurid',
 			'shownamespace',
 			'stablepages',
-			'suppresserrors'
+			'suppresserrors',
 		],
 		1 => [
 			'allowcachedresults',
@@ -65,7 +64,7 @@ class ParametersData {
 			'titlelt',
 			'titlegt',
 			'titlemaxlength',
-			'userdateformat'
+			'userdateformat',
 		],
 		2 => [
 			'addauthor',
@@ -123,7 +122,7 @@ class ParametersData {
 			'tablesortmethod',
 			'titlematch',
 			'usedby',
-			'uses'
+			'uses',
 		],
 		3 => [
 			'allrevisionsbefore',
@@ -143,15 +142,12 @@ class ParametersData {
 			'nottitlematch',
 			'nottitleregexp',
 			'openreferences',
-			'titleregexp'
+			'titleregexp',
 		],
 		4 => [
 			'deleterules',
 			'goal',
-			'updaterules'
-		],
-		// Should never be used; likely broken or will cause exceptions
-		5 => [
+			'updaterules',
 		],
 	];
 
@@ -1168,8 +1164,8 @@ class ParametersData {
 	];
 
 	public function __construct() {
-		$config = Config::getInstance();
-		$this->setRichness( $config->get( 'functionalRichness' ) );
+		$this->config = Config::getInstance();
+		$this->setRichness( $this->config->get( 'functionalRichness' ) );
 
 		if ( Utils::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
