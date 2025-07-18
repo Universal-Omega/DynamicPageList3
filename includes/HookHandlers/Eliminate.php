@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Hook\ParserAfterTidyHook;
+use ReflectionProperty;
 
 class Eliminate implements ParserAfterTidyHook {
 
@@ -14,7 +15,6 @@ class Eliminate implements ParserAfterTidyHook {
 	 * @param string &$text @phan-unused-param
 	 */
 	public function onParserAfterTidy( $parser, &$text ) {
-		// Called during the final output phase; removes links created by DPL
 		if ( !Utils::$createdLinks ) {
 			return;
 		}
@@ -22,37 +22,43 @@ class Eliminate implements ParserAfterTidyHook {
 		$output = $parser->getOutput();
 
 		if ( isset( Utils::$createdLinks[0] ) ) {
-			foreach ( $output->mLinks as $nsp => $_ ) {
+			$links = $output->getLinks();
+			foreach ( $links as $nsp => $_ ) {
 				if ( !isset( Utils::$createdLinks[0][$nsp] ) ) {
 					continue;
 				}
 
-				$output->mLinks[$nsp] = array_diff_assoc(
-					$output->mLinks[$nsp],
+				$links[$nsp] = array_diff_assoc(
+					$links[$nsp],
 					Utils::$createdLinks[0][$nsp]
 				);
 
-				if ( $output->mLinks[$nsp] === [] ) {
-					unset( $output->mLinks[$nsp] );
+				if ( $links[$nsp] === [] ) {
+					unset( $links[$nsp] );
 				}
 			}
+
+			$this->setParserOutputProperty( $output, 'mLinks', $links );
 		}
 
 		if ( isset( Utils::$createdLinks[1] ) ) {
-			foreach ( $output->mTemplates as $nsp => $_ ) {
+			$templates = $output->getTemplates();
+			foreach ( $templates as $nsp => $_ ) {
 				if ( !isset( Utils::$createdLinks[1][$nsp] ) ) {
 					continue;
 				}
 
-				$output->mTemplates[$nsp] = array_diff_assoc(
-					$output->mTemplates[$nsp],
+				$templates[$nsp] = array_diff_assoc(
+					$templates[$nsp],
 					Utils::$createdLinks[1][$nsp]
 				);
 
-				if ( $output->mTemplates[$nsp] === [] ) {
-					unset( $output->mTemplates[$nsp] );
+				if ( $templates[$nsp] === [] ) {
+					unset( $templates[$nsp] );
 				}
 			}
+
+			$this->setParserOutputProperty( $output, 'mTemplates', $templates );
 		}
 
 		if ( isset( Utils::$createdLinks[2] ) ) {
@@ -65,11 +71,21 @@ class Eliminate implements ParserAfterTidyHook {
 				)
 			);
 
-			$output->setCategories( array_diff_assoc( $categories, Utils::$createdLinks[2] ) );
+			$output->setCategories(
+				array_diff_assoc( $categories, Utils::$createdLinks[2] )
+			);
 		}
 
 		if ( isset( Utils::$createdLinks[3] ) ) {
-			$output->mImages = array_diff_assoc( $output->mImages, Utils::$createdLinks[3] );
+			$images = $output->getImages();
+			$images = array_diff_assoc( $images, Utils::$createdLinks[3] );
+			$this->setParserOutputProperty( $output, 'mImages', $images );
 		}
+	}
+
+	private function setParserOutputProperty( object $object, string $property, mixed $value ): void {
+		$refProp = new ReflectionProperty( $object, $property );
+		$refProp->setAccessible( true );
+		$refProp->setValue( $object, $value );
 	}
 }
