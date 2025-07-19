@@ -23,40 +23,20 @@ class Parse {
 	private readonly Parameters $parameters;
 	private readonly WebRequest $request;
 
-	/**
-	 * Header Output
-	 *
-	 * @var string
-	 */
-	private $header = '';
+	/** Header Output */
+	private string $header = '';
 
-	/**
-	 * Footer Output
-	 *
-	 * @var string
-	 */
-	private $footer = '';
+	/** Footer Output */
+	private string $footer = '';
 
-	/**
-	 * Body Output
-	 *
-	 * @var string
-	 */
-	private $output = '';
+	/** Body Output */
+	private string $output = '';
 
-	/**
-	 * Replacement Variables
-	 *
-	 * @var array
-	 */
-	private $replacementVariables = [];
+	/** Replacement Variables */
+	private array $replacementVariables = [];
 
-	/**
-	 * Array of possible URL arguments.
-	 *
-	 * @var array
-	 */
-	private $urlArguments = [
+	/** Array of possible URL arguments. */
+	private array $urlArguments = [
 		'DPL_offset',
 		'DPL_count',
 		'DPL_fromTitle',
@@ -73,20 +53,18 @@ class Parse {
 
 	/**
 	 * The real callback function for converting the input text to wiki text output
-	 *
-	 * @param string $input
-	 * @param Parser $parser
-	 * @param array &$reset
-	 * @param array	&$eliminate
-	 * @param bool $isParserTag
-	 * @return string
 	 */
-	public function parse( $input, Parser $parser, &$reset, &$eliminate, $isParserTag = false ) {
+	public function parse(
+		string $input,
+		Parser $parser,
+		array &$reset,
+		array &$eliminate,
+		bool $isParserTag
+	): string {
 		$dplStartTime = microtime( true );
 
 		// Reset headings when being ran more than once in the same page load.
 		Article::resetHeadings();
-
 		$title = Title::castFromPageReference( $parser->getPage() );
 
 		// Check that we are not in an infinite transclusion loop
@@ -96,10 +74,10 @@ class Parse {
 			return $this->getFullOutput();
 		}
 
-		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		// Check if DPL shall only be executed from protected pages.
+		$restrictionStore = MediaWikiServices::getInstance()->getRestrictionStore();
 		if (
-			$this->config->get( 'runFromProtectedPagesOnly' ) === true &&
+			$this->config->get( 'runFromProtectedPagesOnly' ) &&
 			$title && !$restrictionStore->isProtected( $title, 'edit' )
 		) {
 			// Ideally we would like to allow using a DPL query if the query istelf is coded on a
@@ -113,8 +91,8 @@ class Parse {
 		/************************************/
 		/* Check for URL Arguments in Input */
 		/************************************/
-		if ( strpos( $input, '{%DPL_' ) >= 0 ) {
-			for ( $i = 1; $i <= 5; $i++ ) {
+		if ( str_contains( $input, '{%DPL_' ) ) {
+			foreach ( range( 1, 5 ) as $i ) {
 				$this->urlArguments[] = 'DPL_arg' . $i;
 			}
 		}
@@ -130,8 +108,8 @@ class Parse {
 		/* User Input preparation and parsing. */
 		/***************************************/
 		$cleanParameters = $this->prepareUserInput( $input );
-		if ( !is_array( $cleanParameters ) ) {
-			// Short circuit for dumb things.
+		if ( $cleanParameters === [] ) {
+			// Short circuit.
 			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
 			return $this->getFullOutput();
 		}
@@ -141,11 +119,11 @@ class Parse {
 		// To check if pseudo-category of Uncategorized pages is included
 		$this->parameters->setParameter( 'includeuncat', false );
 
-		foreach ( $cleanParameters as $parameter => $option ) {
-			foreach ( $option as $value ) {
+		foreach ( $cleanParameters as $parameter => $options ) {
+			foreach ( $options as $value ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( $this->parameters->$parameter( $value ) === false ) {
+				if ( !$this->parameters->$parameter( $value ) ) {
 					// Do not build this into the output just yet. It will be collected at the end.
 					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $value );
 				}
@@ -155,68 +133,56 @@ class Parse {
 		/*************************/
 		/* Execute and Exit Only */
 		/*************************/
-		if ( $this->parameters->getParameter( 'execandexit' ) !== null ) {
+		$exec = $this->parameters->getParameter( 'execandexit' );
+		if ( $exec ) {
 			// The keyword "geturlargs" is used to return the Url arguments and do nothing else.
-			if ( $this->parameters->getParameter( 'execandexit' ) == 'geturlargs' ) {
-				return '';
-			}
-
 			// In all other cases we return the value of the argument which may contain parser function calls.
-			return $this->parameters->getParameter( 'execandexit' );
+			return $exec === 'geturlargs' ? '' : $exec;
 		}
 
 		// Construct internal keys for TableRow according to the structure of "include".
 		// This will be needed in the output phase.
-		$secLabels = $this->parameters->getParameter( 'seclabels' );
-		if ( is_array( $secLabels ) && $this->parameters->getParameter( 'seclabels' ) ) {
+		$secLabels = $this->parameters->getParameter( 'seclabels' ) ?? [];
+		if ( $secLabels ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys(
 				$this->parameters->getParameter( 'tablerow' ),
-				$this->parameters->getParameter( 'seclabels' )
+				$secLabels
 			) );
 		}
 
 		/****************/
 		/* Check Errors */
 		/****************/
-		$errors = $this->doQueryErrorChecks();
-		if ( $errors === false ) {
-			// WHAT HAS HAPPENED OH NOOOOOOOOOOOOO.
+		if ( $this->doQueryErrorChecks() === false ) {
 			return $this->getFullOutput();
 		}
 
-		$calcRows = false;
-		if (
-			!$this->config->get( 'allowUnlimitedResults' ) &&
-			$this->parameters->getParameter( 'goal' ) != 'categories' &&
-			strpos( $this->parameters->getParameter( 'resultsheader' ) .
+		$needsCalcRows = !$this->config->get( 'allowUnlimitedResults' ) &&
+			$this->parameters->getParameter( 'goal' ) !== 'categories' &&
+			str_contains(
+				$this->parameters->getParameter( 'resultsheader' ) .
 				$this->parameters->getParameter( 'noresultsheader' ) .
-				$this->parameters->getParameter( 'resultsfooter' ), '%TOTALPAGES%'
-			) !== false
-		) {
-			$calcRows = true;
-		}
+				$this->parameters->getParameter( 'resultsfooter' ),
+				'%TOTALPAGES%'
+			);
 
 		/***/
 		/* Query */
 		/***/
 		try {
 			$query = new Query( $this->parameters );
-
-			$profilingContext = '';
 			$currentTitle = $parser->getPage();
-			if ( $currentTitle instanceof Title ) {
-				$profilingContext
-					= str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() );
-			}
+			$profilingContext = $currentTitle instanceof Title
+				? str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() )
+				: '';
 
-			$rows = $query->buildAndSelect( $calcRows, $profilingContext );
-
+			$rows = $query->buildAndSelect( $needsCalcRows, $profilingContext );
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.
-				$parser->getOutput()->updateCacheExpiry( 4 * 60 + mt_rand( 0, 120 ) );
+				$parser->getOutput()->updateCacheExpiry( 4 * 60 + random_int( 0, 120 ) );
 
-				// Pool counter all threads in use.
+				// All pool counter threads in use.
 				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( true );
 			}
@@ -231,8 +197,9 @@ class Parse {
 		$numRows = count( $rows );
 		$articles = $this->processQueryResults( $rows, $parser );
 
-		if ( $query->getSqlQuery() ) {
-			$this->addOutput( $query->getSqlQuery() . "\n" );
+		$sql = $query->getSqlQuery();
+		if ( $sql ) {
+			$this->addOutput( "$sql\n" );
 		}
 
 		$parser->addTrackingCategory( 'dpl-tracking-category' );
@@ -245,7 +212,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows == 0 || !$articles ) {
+		if ( $numRows === 0 || !$articles ) {
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -253,7 +220,7 @@ class Parse {
 		if (
 			$this->parameters->getParameter( 'titlelt' ) &&
 			!$this->parameters->getParameter( 'titlegt' ) &&
-			$this->parameters->getParameter( 'order' ) == 'descending'
+			$this->parameters->getParameter( 'order' ) === 'descending'
 		) {
 			$articles = array_reverse( $articles );
 		}
@@ -268,13 +235,8 @@ class Parse {
 		/*******************/
 		$lister = Lister::newFromStyle( $this->parameters->getParameter( 'mode' ), $this->parameters, $parser );
 		$heading = Heading::newFromStyle( $this->parameters->getParameter( 'headingmode' ), $this->parameters );
-		if ( $heading !== null ) {
-			$this->addOutput( $heading->format( $articles, $lister ) );
-		} else {
-			$this->addOutput( $lister->format( $articles ) );
-		}
+		$this->addOutput( $heading?->format( $articles, $lister ) ?? $lister->format( $articles ) );
 
-		// $this->addOutput($lister->format($articles));
 		if ( $foundRows === null ) {
 			// Get row count after calling format() otherwise the count will be inaccurate.
 			$foundRows = $lister->getRowCount();
@@ -293,56 +255,45 @@ class Parse {
 		$this->setVariable( 'PAGES', $lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
-		$nowTimeStamp = date( 'Y/m/d H:i:s' );
-		$dplElapsedTime = sprintf( '%.3f sec.', microtime( true ) - $dplStartTime );
-		$dplTime = "{$dplElapsedTime} ({$nowTimeStamp})";
+		$dplTime = sprintf( '%.3f sec. (%s)', microtime( true ) - $dplStartTime, date( 'Y/m/d H:i:s' ) );
 		$this->setVariable( 'DPLTIME', $dplTime );
 
-		$firstNamespaceFound = '';
-		$firstTitleFound = '';
-		$lastNamespaceFound = '';
-		$lastTitleFound = '';
-
 		// Replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
-		$n = count( $articles );
-		if ( $n > 0 ) {
-			$firstNamespaceFound = str_replace( ' ', '_', $articles[0]->mTitle->getNamespace() );
-			$firstTitleFound = str_replace( ' ', '_', $articles[0]->mTitle->getText() );
-			$lastNamespaceFound = str_replace( ' ', '_', $articles[$n - 1]->mTitle->getNamespace() );
-			$lastTitleFound = str_replace( ' ', '_', $articles[$n - 1]->mTitle->getText() );
-		}
+		$first = $articles[0]->mTitle ?? null;
+		$last = $articles[array_key_last( $articles )]->mTitle ?? null;
 
-		$this->setVariable( 'FIRSTNAMESPACE', $firstNamespaceFound );
-		$this->setVariable( 'FIRSTTITLE', $firstTitleFound );
-		$this->setVariable( 'LASTNAMESPACE', $lastNamespaceFound );
-		$this->setVariable( 'LASTTITLE', $lastTitleFound );
+		$firstNamespace = $first?->getNamespace() ?? '';
+		$firstTitle = $first?->getText() ?? '';
+		$lastNamespace = $last?->getNamespace() ?? '';
+		$lastTitle = $last?->getText() ?? '';
+
+		$this->setVariable( 'FIRSTNAMESPACE', str_replace( ' ', '_', $firstNamespace ) );
+		$this->setVariable( 'FIRSTTITLE', str_replace( ' ', '_', $firstTitle ) );
+		$this->setVariable( 'LASTNAMESPACE', str_replace( ' ', '_', $lastNamespace ) );
+		$this->setVariable( 'LASTTITLE', str_replace( ' ', '_', $lastTitle ) );
 		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) ?? '' );
 
 		/*******************************/
 		/* Scroll Variables            */
 		/*******************************/
-		$scrollVariables = [
-			'DPL_firstNamespace' => $firstNamespaceFound,
-			'DPL_firstTitle' => $firstTitleFound,
-			'DPL_lastNamespace' => $lastNamespaceFound,
-			'DPL_lastTitle' => $lastTitleFound,
+		$this->defineScrollVariables( [
+			'DPL_firstNamespace' => $firstNamespace,
+			'DPL_firstTitle' => $firstTitle,
+			'DPL_lastNamespace' => $lastNamespace,
+			'DPL_lastTitle' => $lastTitle,
 			'DPL_scrollDir' => $this->parameters->getParameter( 'scrolldir' ),
 			'DPL_time' => $dplTime,
 			'DPL_count' => $this->parameters->getParameter( 'count' ),
 			'DPL_totalPages' => $foundRows,
-			'DPL_pages' => $lister->getRowCount()
-		];
+			'DPL_pages' => $lister->getRowCount(),
+		], $parser );
 
-		$this->defineScrollVariables( $scrollVariables, $parser );
-
-		if ( $this->parameters->getParameter( 'allowcachedresults' ) || $this->config->get( 'alwaysCacheResults' ) ) {
-			$parser->getOutput()->updateCacheExpiry( $this->parameters->getParameter( 'cacheperiod' ) ?? 3600 );
-		} else {
-			$parser->getOutput()->updateCacheExpiry( 0 );
-		}
+		$expiry = $this->parameters->getParameter( 'allowcachedresults' ) || $this->config->get( 'alwaysCacheResults' )
+			? $this->parameters->getParameter( 'cacheperiod' ) ?? 3600
+			: 0;
+		$parser->getOutput()->updateCacheExpiry( $expiry );
 
 		$finalOutput = $this->getFullOutput( $foundRows, false );
-
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
 		return $finalOutput;
 	}
