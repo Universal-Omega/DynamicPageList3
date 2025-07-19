@@ -259,18 +259,18 @@ class Parse {
 		$this->setVariable( 'DPLTIME', $dplTime );
 
 		// Replace %LASTTITLE% / %LASTNAMESPACE% by the last title found in header and footer
-		$first = $articles[0]->mTitle ?? null;
-		$last = $articles[array_key_last( $articles )]->mTitle ?? null;
+		$first = $articles[0]->mTitle;
+		$last = $articles[array_key_last( $articles )]->mTitle;
 
-		$firstNamespace = $first?->getNamespace() ?? '';
-		$firstTitle = $first?->getText() ?? '';
-		$lastNamespace = $last?->getNamespace() ?? '';
-		$lastTitle = $last?->getText() ?? '';
+		$firstNamespace = $first->getNsText();
+		$firstTitle = $first->getDBkey();
+		$lastNamespace = $last->getNsText();
+		$lastTitle = $last->getDBkey();
 
-		$this->setVariable( 'FIRSTNAMESPACE', str_replace( ' ', '_', $firstNamespace ) );
-		$this->setVariable( 'FIRSTTITLE', str_replace( ' ', '_', $firstTitle ) );
-		$this->setVariable( 'LASTNAMESPACE', str_replace( ' ', '_', $lastNamespace ) );
-		$this->setVariable( 'LASTTITLE', str_replace( ' ', '_', $lastTitle ) );
+		$this->setVariable( 'FIRSTNAMESPACE', $firstNamespace );
+		$this->setVariable( 'FIRSTTITLE', $firstTitle );
+		$this->setVariable( 'LASTNAMESPACE', $lastNamespace );
+		$this->setVariable( 'LASTTITLE', $lastTitle );
 		$this->setVariable( 'SCROLLDIR', $this->parameters->getParameter( 'scrolldir' ) ?? '' );
 
 		/*******************************/
@@ -334,7 +334,6 @@ class Parse {
 				continue;
 			}
 
-			$pageNamespace = $pageTitle = null;
 			if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 				$pageNamespace = NS_CATEGORY;
 				$pageTitle = $row->cl_to;
@@ -928,16 +927,10 @@ class Parse {
 	 * This function uses the Variables extension to provide navigation aids such as
 	 * DPL_firstTitle, DPL_lastTitle, or DPL_findTitle. These variables can be accessed
 	 * as {{#var:DPL_firstTitle}} if Extension:Variables is installed.
-	 *
-	 * @param array $scrollVariables
-	 * @param Parser $parser
 	 */
-	private function defineScrollVariables( $scrollVariables, Parser $parser ) {
-		$scrollVariables = (array)$scrollVariables;
-
+	private function defineScrollVariables( array $scrollVariables, Parser $parser ): void {
 		foreach ( $scrollVariables as $variable => $value ) {
 			Variables::setVar( [ '', '', $variable, $value ?? '' ] );
-
 			if ( ExtensionRegistry::getInstance()->isLoaded( 'Variables' ) ) {
 				ExtVariables::get( $parser )->setVarValue( $variable, $value ?? '' );
 			}
