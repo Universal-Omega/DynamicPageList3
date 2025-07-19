@@ -178,6 +178,7 @@ class LST {
 		$skipPattern = []
 	) {
 		$output = [];
+		$text = '';
 		if ( !self::text( $parser, $page, $text ) ) {
 			$output[] = $text;
 			return $output;
@@ -359,6 +360,7 @@ class LST {
 		$skipPattern
 	) {
 		$output = [];
+		$text = '';
 		if ( !self::text( $parser, $page, $text ) ) {
 			$output[0] = $text;
 			return $output;
