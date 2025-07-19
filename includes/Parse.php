@@ -120,12 +120,12 @@ class Parse {
 		$this->parameters->setParameter( 'includeuncat', false );
 
 		foreach ( $cleanParameters as $parameter => $options ) {
-			foreach ( $options as $value ) {
+			foreach ( $options as $option ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( !$this->parameters->$parameter( $value ) ) {
+				if ( !$this->parameters->$parameter( $option ) ) {
 					// Do not build this into the output just yet. It will be collected at the end.
-					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $value );
+					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $option );
 				}
 			}
 		}
