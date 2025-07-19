@@ -184,7 +184,7 @@ class Parse {
 
 				// All pool counter threads in use.
 				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
-				return $this->getFullOutput( true );
+				return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 			}
 		} catch ( Exception $e ) {
 			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
@@ -555,32 +555,20 @@ class Parse {
 
 	/**
 	 * Work through processed parameters and check for potential issues.
-	 *
-	 * @return bool
 	 */
-	private function doQueryErrorChecks() {
+	private function doQueryErrorChecks(): bool {
 		/**************************/
 		/* Parameter Error Checks */
 		/**************************/
 
 		$totalCategories = 0;
-		if ( is_array( $this->parameters->getParameter( 'category' ) ) ) {
-			foreach ( $this->parameters->getParameter( 'category' ) as $operatorTypes ) {
+		foreach ( [ 'category', 'notcategory' ] as $param ) {
+			foreach ( $this->parameters->getParameter( $param ) ?? [] as $operatorTypes ) {
 				foreach ( $operatorTypes as $categoryGroups ) {
 					foreach ( $categoryGroups as $categories ) {
 						if ( is_array( $categories ) ) {
 							$totalCategories += count( $categories );
 						}
-					}
-				}
-			}
-		}
-
-		if ( is_array( $this->parameters->getParameter( 'notcategory' ) ) ) {
-			foreach ( $this->parameters->getParameter( 'notcategory' ) as $operatorTypes ) {
-				foreach ( $operatorTypes as $categories ) {
-					if ( is_array( $categories ) ) {
-						$totalCategories += count( $categories );
 					}
 				}
 			}
@@ -595,7 +583,7 @@ class Parse {
 			return false;
 		}
 
-		// Not enough categories. (Really?)
+		// Not enough categories.
 		if ( $totalCategories < $this->config->get( 'minCategoryCount' ) ) {
 			$this->logger->addMessage( Constants::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
 			return false;
@@ -607,19 +595,15 @@ class Parse {
 			return false;
 		}
 
-		// ordermethod=sortkey requires ordermethod=category
-		// Delayed to the construction of the SQL query, see near line 2211, gs
-		// if (in_array('sortkey',$aOrderMethods) &&
-		// ! in_array('category',$aOrderMethods)) $aOrderMethods[] = 'category';
+		// ordermethod = sortkey requires ordermethod = category.
+		$orderMethods = $this->parameters->getParameter( 'ordermethod' ) ?? [];
 
-		$orderMethods = (array)$this->parameters->getParameter( 'ordermethod' );
 		// Throw an error in no categories were selected when using category sorting
 		// modes or requesting category information.
 		if (
-			$totalCategories == 0 && (
-				in_array( 'categoryadd', $orderMethods ) ||
-				$this->parameters->getParameter( 'addfirstcategorydate' ) === true
-			)
+			$totalCategories === 0 &&
+			( in_array( 'categoryadd', $orderMethods, true ) ||
+			$this->parameters->getParameter( 'addfirstcategorydate' ) )
 		) {
 			$this->logger->addMessage( Constants::FATAL_CATDATEBUTNOINCLUDEDCATS );
 			return false;
@@ -628,33 +612,29 @@ class Parse {
 		// No more than one type of date at a time!
 		// @TODO: Can this be fixed to allow all three later after fixing the article class?
 		if (
-			(
-				(int)$this->parameters->getParameter( 'addpagetoucheddate' ) +
-				(int)$this->parameters->getParameter( 'addfirstcategorydate' ) +
-				(int)$this->parameters->getParameter( 'addeditdate' )
-			) > 1
+			(int)$this->parameters->getParameter( 'addpagetoucheddate' ) +
+			(int)$this->parameters->getParameter( 'addfirstcategorydate' ) +
+			(int)$this->parameters->getParameter( 'addeditdate' ) > 1
 		) {
 			$this->logger->addMessage( Constants::FATAL_MORETHAN1TYPEOFDATE );
 			return false;
 		}
 
-		// the dominant section must be one of the sections mentioned in includepage
+		// The dominant section must be one of the sections mentioned in includepage.
 		if (
-			$this->parameters->getParameter( 'dominantsection' ) > 0 && count(
-				$this->parameters->getParameter( 'seclabels' )
-			) < $this->parameters->getParameter( 'dominantsection' )
+			$this->parameters->getParameter( 'dominantsection' ) > 0 &&
+			count( $this->parameters->getParameter( 'seclabels' ) ) < $this->parameters->getParameter( 'dominantsection' )
 		) {
 			$this->logger->addMessage(
 				Constants::FATAL_DOMINANTSECTIONRANGE,
 				(string)count( $this->parameters->getParameter( 'seclabels' ) )
 			);
-
 			return false;
 		}
 
-		// category-style output requested with not compatible order method
+		// Category-style output requested with not compatible order method.
 		if (
-			$this->parameters->getParameter( 'mode' ) == 'category' &&
+			$this->parameters->getParameter( 'mode' ) === 'category' &&
 			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
 		) {
 			$this->logger->addMessage(
@@ -662,11 +642,10 @@ class Parse {
 				'mode=category',
 				'sortkey | title | titlewithoutnamespace'
 			);
-
 			return false;
 		}
 
-		// addpagetoucheddate=true with unappropriate order methods
+		// addpagetoucheddate = true with unappropriate order methods.
 		if (
 			$this->parameters->getParameter( 'addpagetoucheddate' ) &&
 			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
@@ -676,15 +655,15 @@ class Parse {
 				'addpagetoucheddate=true',
 				'pagetouched | title'
 			);
-
 			return false;
 		}
 
-		// addeditdate=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
-		// firstedit (resp. lastedit) -> add date of first (resp. last) revision
+		// addeditdate = true but not (ordermethod = ..., firstedit or ordermethod = ..., lastedit).
+		// Firstedit (resp. lastedit) -> add date of first (resp. last) revision.
 		if (
 			$this->parameters->getParameter( 'addeditdate' ) &&
-			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) && (
+			!array_intersect( $orderMethods, [ 'firstedit', 'lastedit' ] ) &&
+			(
 				$this->parameters->getParameter( 'allrevisionsbefore' ) ||
 				$this->parameters->getParameter( 'allrevisionssince' ) ||
 				$this->parameters->getParameter( 'firstrevisionsince' ) ||
@@ -695,9 +674,9 @@ class Parse {
 			return false;
 		}
 
-		// adduser=true but not (ordermethod=...,firstedit or ordermethod=...,lastedit)
+		// adduser = true but not (ordermethod = ..., firstedit or ordermethod = ..., lastedit).
 		/**
-		 * @todo allow to add user for other order methods.
+		 * @TODO allow to add user for other order methods.
 		 * The fact is a page may be edited by multiple users.
 		 * Which user(s) should we show? all? the first or the last one?
 		 * Ideally, we could use values such as 'all', 'first' or 'last' for the adduser parameter.
@@ -722,40 +701,37 @@ class Parse {
 			return false;
 		}
 
-		// add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode)
+		// add*** parameters have no effect with 'mode=category' (only namespace/title can be viewed in this mode).
 		if (
-			$this->parameters->getParameter( 'mode' ) === 'category' && (
-				$this->parameters->getParameter( 'addcategories' ) ||
-				$this->parameters->getParameter( 'addeditdate' ) ||
-				$this->parameters->getParameter( 'addfirstcategorydate' ) ||
-				$this->parameters->getParameter( 'addpagetoucheddate' ) ||
-				$this->parameters->getParameter( 'incpage' ) ||
-				$this->parameters->getParameter( 'adduser' ) ||
-				$this->parameters->getParameter( 'addauthor' ) ||
-				$this->parameters->getParameter( 'addcontribution' ) ||
-				$this->parameters->getParameter( 'addlasteditor' )
-			)
+			$this->parameters->getParameter( 'mode' ) === 'category' && array_filter( [
+				'addcategories',
+				'addeditdate',
+				'addfirstcategorydate',
+				'addpagetoucheddate',
+				'incpage',
+				'adduser',
+				'addauthor',
+				'addcontribution',
+				'addlasteditor',
+			], fn ( string $param ): mixed => $this->parameters->getParameter( $param ) )
 		) {
 			$this->logger->addMessage( Constants::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
 
-		// headingmode has effects with ordermethod on multiple components only
+		// headingmode has effects with ordermethod on multiple components only.
 		if ( $this->parameters->getParameter( 'headingmode' ) !== 'none' && count( $orderMethods ) < 2 ) {
 			$this->logger->addMessage(
 				Constants::WARN_HEADINGBUTSIMPLEORDERMETHOD,
 				$this->parameters->getParameter( 'headingmode' ),
 				'none'
 			);
-
 			$this->parameters->setParameter( 'headingmode', 'none' );
 		}
 
 		// The 'openreferences' parameter is incompatible with many other options.
 		if (
-			$this->parameters->isOpenReferencesConflict() && (
-			$this->parameters->getParameter( 'openreferences' ) === true ||
-				$this->parameters->getParameter( 'openreferences' ) === 'missing'
-			)
+			$this->parameters->isOpenReferencesConflict() &&
+			$this->parameters->getParameter( 'openreferences' )
 		) {
 			$this->logger->addMessage( Constants::FATAL_OPENREFERENCES );
 			return false;
