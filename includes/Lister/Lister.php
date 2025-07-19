@@ -576,11 +576,9 @@ class Lister {
 
 	/**
 	 * Shortcut to format all articles into a single formatted list.
-	 *
-	 * @param array $articles
-	 * @return string
+	 * @param Article[] $articles
 	 */
-	public function format( $articles ) {
+	public function format( array $articles ): string {
 		return $this->formatList( $articles, 0, count( $articles ) );
 	}
 
