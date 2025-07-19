@@ -621,14 +621,10 @@ class Parse {
 		}
 
 		// The dominant section must be one of the sections mentioned in includepage.
-		if (
-			$this->parameters->getParameter( 'dominantsection' ) > 0 &&
-			count( $this->parameters->getParameter( 'seclabels' ) ) < $this->parameters->getParameter( 'dominantsection' )
-		) {
-			$this->logger->addMessage(
-				Constants::FATAL_DOMINANTSECTIONRANGE,
-				(string)count( $this->parameters->getParameter( 'seclabels' ) )
-			);
+		$dominantSection = $this->parameters->getParameter( 'dominantsection' );
+		$secLabelsCount = count( $this->parameters->getParameter( 'seclabels' ) ?? [] );
+		if ( $dominantSection > 0 && $secLabelsCount < $dominantSection ) {
+			$this->logger->addMessage( Constants::FATAL_DOMINANTSECTIONRANGE, (string)$secLabelsCount );
 			return false;
 		}
 
