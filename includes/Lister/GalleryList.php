@@ -45,13 +45,12 @@ class GalleryList extends Lister {
 	/** @inheritDoc */
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle->getPrefixedText();
+		$this->listAttributes = ' mode=' . $this->parameters->getParameter( 'gallerymode' );
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
-				// We use mode=packed for PageImages galleries
-				$this->listAttributes = ' mode=packed';
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
 					"[[$item]]{$this->itemEnd}link=$item";
