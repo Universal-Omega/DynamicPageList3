@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
+use PageImages\PageImages;
 
 class GalleryList extends Lister {
 	/**
@@ -41,38 +42,32 @@ class GalleryList extends Lister {
 	 */
 	public $itemEnd = '|';
 
-	/**
-	 * Format an item.
-	 *
-	 * @param Article $article
-	 * @param string|null $pageText
-	 * @return string
-	 */
+	/** @inheritDoc */
 	public function formatItem( Article $article, $pageText = null ) {
-		$item = $article->mTitle;
+		$item = $article->mTitle->getPrefixedText();
 
-		// If PageImages is loaded and we are not in the file namespace, attempt to assemble a gallery of PageImages
+		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
-			$pageImage = $this->getPageImage( $article->mID ) ?: false;
-
-			if ( $pageImage ) {
-				// Successfully got a page image, wrapping it
-				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
+			$pageImage = PageImages::getPageImage( $article->mTitle );
+			if ( $pageImage && $pageImage->exists() ) {
+				// Successfully got a page image, wrapping it.
+				$item = $this->getItemStart() . $pageImage->getURL() . $this->itemEnd .
+					"[[$item]]{$this->itemEnd}link=$item";
 			} else {
-				// Failed to get a page image
-				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
-			}
-		} else {
-			if ( $pageText !== null ) {
-				// Include parsed/processed wiki markup content after each item before the closing tag.
-				$item .= $pageText;
+				// Failed to get a page image.
+				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$item]]";
 			}
 
-			$item = $this->getItemStart() . $item . $this->itemEnd;
+			return $this->replaceTagParameters( $item, $article );
 		}
 
-		$item = $this->replaceTagParameters( $item, $article );
+		if ( $pageText !== null ) {
+			// Include parsed/processed wiki markup content
+			// after each item before the closing tag.
+			$item .= $pageText;
+		}
 
-		return $item;
+		$item = $this->getItemStart() . $item . $this->itemEnd;
+		return $this->replaceTagParameters( $item, $article );
 	}
 }
