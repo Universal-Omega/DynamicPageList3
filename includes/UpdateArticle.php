@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\DynamicPageList4;
 use Article;
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\Revision\SlotRecord;
@@ -368,8 +369,6 @@ class UpdateArticle {
 		if ( $exec == 'set' ) {
 			return self::doUpdateArticle( $title, $text, $summary );
 		} elseif ( $exec == 'preview' ) {
-			global $wgScriptPath;
-
 			$request = RequestContext::getMain()->getRequest();
 
 			$titleX = Title::newFromText( $title );
@@ -377,25 +376,59 @@ class UpdateArticle {
 
 			$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
 
-			$form = '<html>
-	<form id="editform" name="editform" method="post" action="' .
-				$wgScriptPath . '/index.php?title=' . urlencode( $title ) .
-				'&action=submit" enctype="multipart/form-data">
-		<input type="hidden" value="" name="wpSection" />
-		<input type="hidden" value="' . wfTimestampNow() . '" name="wpStarttime" />
-		<input type="hidden" value="' . $articleX->getPage()->getTimestamp() . '" name="wpEdittime" />
-		<input type="hidden" value="" name="wpScrolltop" id="wpScrolltop" />
-		<textarea tabindex="1" accesskey="," name="wpTextbox1" id="wpTextbox1" rows="' .
-				$userOptionsLookup->getIntOption( $user, 'rows' ) . '" cols="' .
-				$userOptionsLookup->getIntOption( $user, 'cols' ) . '" >' .
-				htmlspecialchars( $text ) . '</textarea>
-		<input type="hidden" name="wpSummary value="' . $summary . '" id="wpSummary" />
-		<input name="wpAutoSummary" type="hidden" value="" />
-		<input id="wpSave" name="wpSave" type="submit" value="Save page" accesskey="s" title="Save your changes [s]" />
-		<input type="hidden" value="' . $request->getVal( 'token' ) . '" name="wpEditToken" />
-	</form>
-</html>';
-			return $form;
+			$formDescriptor = [
+				'wpSection' => [
+					'type' => 'hidden',
+					'default' => '',
+				],
+				'wpStarttime' => [
+					'type' => 'hidden',
+					'default' => wfTimestampNow(),
+				],
+				'wpEdittime' => [
+					'type' => 'hidden',
+					'default' => $articleX->getPage()->getTimestamp(),
+				],
+				'wpScrolltop' => [
+					'type' => 'hidden',
+					'id' => 'wpScrolltop',
+					'default' => '',
+				],
+				'wpTextbox1' => [
+					'type' => 'textarea',
+					'label-message' => 'text',
+					'id' => 'wpTextbox1',
+					'rows' => $userOptionsLookup->getIntOption( $user, 'rows' ),
+					'cols' => $userOptionsLookup->getIntOption( $user, 'cols' ),
+					'default' => $text,
+					'tabindex' => 1,
+					'accesskey' => ',',
+				],
+				'wpSummary' => [
+					'type' => 'hidden',
+					'id' => 'wpSummary',
+					'default' => $summary,
+				],
+				'wpAutoSummary' => [
+					'type' => 'hidden',
+					'default' => '',
+				],
+				'wpEditToken' => [
+					'type' => 'hidden',
+					'default' => $request->getVal( 'token' ),
+				],
+			];
+
+			$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $context )
+				->setMethod( 'post' )
+				->setAction( $titleX->getLocalURL( [ 'action' => 'submit' ] ) )
+				->setId( 'editform' )
+				->setName( 'editform' )
+				->setSubmitText( 'Save page' )
+				->setSubmitID( 'wpSave' )
+				->setSubmitName( 'wpSave' );
+
+			return $htmlForm->prepareForm()->getHTML();
 		}
 
 		return "exec must be one of the following: edit, preview, set";
