@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This is a modified and enhanced copy of a mediawiki extension called
  *
@@ -46,86 +47,56 @@ class LST {
 
 	/**
 	 * Register what we're working on in the parser, so we don't fall into a trap.
-	 *
-	 * @param Parser $parser
-	 * @param string $part1
-	 * @return bool
 	 */
-	public static function open( $parser, $part1 ) {
+	private static function open( Parser $parser, string $part1 ): bool {
 		// Infinite loop test
-		// @phan-suppress-next-line PhanDeprecatedProperty
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
-
 			return false;
-		} else {
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			if ( !$parser->mTemplatePath ) {
-				// @phan-suppress-next-line PhanDeprecatedProperty
-				$parser->mTemplatePath = [];
-			}
-
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			$parser->mTemplatePath[$part1] = 1;
-
-			return true;
 		}
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		$parser->mTemplatePath ??= [];
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		$parser->mTemplatePath[$part1] = 1;
+		return true;
 	}
 
 	/**
 	 * Finish processing the function.
-	 *
-	 * @param Parser $parser
-	 * @param string $part1
 	 */
-	public static function close( $parser, $part1 ) {
+	private static function close( Parser $parser, string $part1 ): void {
 		// Infinite loop test
-		// @phan-suppress-next-line PhanDeprecatedProperty
-		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			// @phan-suppress-next-line PhanDeprecatedProperty
-			unset( $parser->mTemplatePath[$part1] );
-		} else {
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		if ( !isset( $parser->mTemplatePath[$part1] ) ) {
 			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
+			return;
 		}
+
+		/** @phan-suppress-next-line PhanDeprecatedProperty */
+		unset( $parser->mTemplatePath[$part1] );
 	}
 
 	/**
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
-	 *
-	 * @param Parser $parser
-	 * @param string $text
-	 * @param string $part1
-	 * @param bool $recursionCheck
-	 * @param int $maxLength
-	 * @param string $link
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return string
 	 */
 	private static function parse(
-		$parser,
-		$text,
-		$part1,
-		$recursionCheck = true,
-		$maxLength = -1,
-		$link = '',
-		$trim = false,
-		$skipPattern = []
-	) {
-		// if someone tries something like<section begin=blah>lst only</section>
-		// text, may as well do the right thing.
+		Parser $parser,
+		string $text,
+		string $part1,
+		bool $recursionCheck = true,
+		int $maxLength = -1,
+		string $link = '',
+		bool $trim = false,
+		array $skipPattern = []
+	): string {
 		$text = str_replace( '</section>', '', $text );
-
-		// if desired we remove portions of the text, esp. template calls
-		foreach ( $skipPattern as $skipPat ) {
-			$text = preg_replace( $skipPat, '', $text );
-		}
-
+		$text = preg_replace( $skipPattern, '', $text );
 		if ( self::open( $parser, $part1 ) ) {
-
-			// Handle recursion here, so we can break cycles.
-			if ( $recursionCheck == false ) {
+			if ( !$recursionCheck ) {
 				$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
 				self::close( $parser, $part1 );
 			}
@@ -133,15 +104,12 @@ class LST {
 			if ( $maxLength > 0 ) {
 				$text = self::limitTranscludedText( $text, $maxLength, $link );
 			}
-			if ( $trim ) {
-				return trim( $text );
-			} else {
-				return $text;
-			}
-		} else {
-			$title = Title::castFromPageReference( $parser->getPage() );
-			return "[[" . $title->getPrefixedText() . "]]" . "<!-- WARNING: LST loop detected -->";
+
+			return $trim ? trim( $text ) : $text;
 		}
+
+		$title = Title::castFromPageReference( $parser->getPage() );
+		return "[[{$title->getPrefixedText()}]]<!-- WARNING: LST loop detected -->";
 	}
 
 	/*
@@ -150,30 +118,18 @@ class LST {
 
 	/**
 	 * Generate a regex to match the section(s) we're interested in.
-	 *
-	 * @param string $sec
-	 * @param bool &$any
-	 * @return string
 	 */
-	private static function createSectionPattern( $sec, &$any ) {
-		$any = false;
+	private static function createSectionPattern( string $sec, bool &$any ): string {
+		$any = $sec[0] === '*';
+		$sec = match ( true ) {
+			$any && $sec === '**' => '[^\/>"\']+',
+			$any => str_replace( '/', '\/', substr( $sec, 1 ) ),
+			default => preg_quote( $sec, '/' ),
+		};
 
-		if ( $sec[0] == '*' ) {
-			$any = true;
-			if ( $sec == '**' ) {
-				$sec = '[^\/>"' . "']+";
-			} else {
-				$sec = str_replace( '/', '\/', substr( $sec, 1 ) );
-			}
-		} else {
-			$sec = preg_quote( $sec, '/' );
-		}
-
-		$ws = "(?:\s+[^>]+)?";
-
-		return "/<section$ws\s+(?i:begin)=['\"]?" . "($sec)" .
-			"['\"]?$ws\/?>(.*?)\n?<section$ws\s+(?:[^>]+\s+)?(?i:end)=" .
-			"['\"]?\\1['\"]?" . "$ws\/?>/s";
+		$ws = '(?:\s+[^>]+)?';
+		return "/<section$ws\s+(?i:begin)=['\"]?($sec)['\"]?$ws\/?>(.*?)\n?"
+			. "<section$ws\s+(?:[^>]+\s+)?(?i:end)=['\"]?\\1['\"]?$ws\/?>/s";
 	}
 
 	/**
@@ -182,71 +138,63 @@ class LST {
 	 *
 	 * @param Parser $parser
 	 * @param string $page title text of target page
-	 * @param Title|string &$title normalized title object
 	 * @param string &$text wikitext output
 	 * @return bool true if returning text, false if target not found
 	 */
-	public static function text( $parser, $page, &$title, &$text ) {
+	public static function text( Parser $parser, string $page, string &$text ): bool {
 		$title = Title::newFromText( $page );
-
 		if ( $title === null ) {
 			$text = '';
 			return true;
-		} else {
-			$text = $parser->fetchTemplateAndTitle( $title )[0];
 		}
 
-		// if article doesn't exist, return a red link.
-		if ( $text == false ) {
-			$text = "[[" . $title->getPrefixedText() . "]]";
+		$text = $parser->fetchTemplateAndTitle( $title )[0];
+		// If article doesn't exist, return a red link.
+		if ( $text === false ) {
+			$text = "[[{$title->getPrefixedText()}]]";
 			return false;
-		} else {
-			return true;
 		}
+
+		return true;
 	}
 
 	/**
 	 * section inclusion - include all matching sections
-	 *
-	 * @param Parser $parser
-	 * @param string $page
-	 * @param string $sec
-	 * @param bool $recursionCheck
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return array
 	 */
 	public static function includeSection(
-		$parser,
-		$page = '',
-		$sec = '',
-		$recursionCheck = true,
-		$trim = false,
-		$skipPattern = []
-	) {
-		$output = [];
-
-		if ( self::text( $parser, $page, $title, $text ) == false ) {
-			$output[] = $text;
-			return $output;
+		Parser $parser,
+		string $page = '',
+		string $sec = '',
+		bool $recursionCheck = true,
+		bool $trim = false,
+		array $skipPattern = []
+	): array {
+		$text = '';
+		if ( !self::text( $parser, $page, $text ) ) {
+			return [ $text ];
 		}
 
 		$any = false;
 		$pat = self::createSectionPattern( $sec, $any );
 
-		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
+		preg_match_all( $pat, $text, $matches, PREG_PATTERN_ORDER );
 
-		foreach ( $m[2] as $nr => $piece ) {
+		$output = [];
+		foreach ( $matches[2] as $nr => $piece ) {
 			$piece = self::parse(
-				$parser, $piece, "#lst:{$page}|{$sec}",
-				$recursionCheck, -1, '', $trim, $skipPattern
+				parser: $parser,
+				text: $piece,
+				part1: "#lst:$page|$sec",
+				recursionCheck: $recursionCheck,
+				maxLength: -1,
+				link: '',
+				trim: $trim,
+				skipPattern: $skipPattern
 			);
 
-			if ( $any ) {
-				$output[] = $m[1][$nr] . '::' . $piece;
-			} else {
-				$output[] = $piece;
-			}
+			$output[] = $any ?
+				( $matches[1][$nr] . '::' . $piece ) :
+				$piece;
 		}
 
 		return $output;
@@ -270,156 +218,117 @@ class LST {
 	 *         if the text is already shorter than the limit, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	public static function limitTranscludedText( $text, $limit, $link = '' ) {
-		// if text is smaller than limit return complete text
+	public static function limitTranscludedText( string $text, int $limit, string $link = '' ): string {
+		// If text is smaller than limit return complete text.
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// otherwise strip html comments and check again
+		// Otherwise strip html comments and check again.
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// search latest position with balanced brackets/braces
-		// store also the position of the last preceding space
-
+		// Search latest position with balanced brackets/braces
+		// store also the position of the last preceding space.
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
-		$nb = 0;
+		$nb = -1;
 
 		for ( $i = 0; $i < $limit; $i++ ) {
 			$c = $text[$i];
-			if ( $c == '[' ) {
-				$brackets++;
-			}
+			match ( $c ) {
+				'[' => $brackets++,
+				']' => $brackets--,
+				'{' => $cbrackets++,
+				'}' => $cbrackets--,
+				default => null,
+			};
 
-			if ( $c == ']' ) {
-				$brackets--;
-			}
-
-			if ( $c == '{' ) {
-				$cbrackets++;
-			}
-
-			if ( $c == '}' ) {
-				$cbrackets--;
-			}
-
-			// we store the position if it is valid in terms of parentheses balancing
-			if ( $brackets == 0 && $cbrackets == 0 ) {
+			// We store the position if it is valid in terms of parentheses balancing.
+			if ( $brackets === 0 && $cbrackets === 0 ) {
 				$n0 = $i;
-				if ( $c == ' ' ) {
+				if ( $c === ' ' ) {
 					$nb = $i;
 				}
 			}
 		}
 
-		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
-		if ( $n0 >= 0 ) {
-			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
-			if ( $nb > 0 && $nb + 15 > $n0 ) {
-				$n0 = $nb;
+		if ( $n0 < 0 ) {
+			if ( $limit === 0 ) {
+				return $link;
 			}
 
-			$cut = substr( $text, 0, $n0 + 1 );
-
-			// an open html comment would be fatal, but this should not happen as we already have
-			// eliminated html comments at the beginning
-
-			// some tags are critical: ref, pre, nowiki
-			// if these tags were not balanced they would spoil the result completely
-			// we enforce balance by appending the necessary amount of corresponding closing tags
-			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
-			// This simple approach may fail in some cases ...
-
-			$matches = [];
-			$noMatches = preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-			$tags = [
-				'ref' => 0,
-				'pre' => 0,
-				'nowiki' => 0
-			];
-
-			if ( $noMatches > 0 ) {
-				// calculate tag count (ignoring nesting)
-				foreach ( $matches[1] as $mm ) {
-					if ( $mm[0] == '/' ) {
-						$tags[substr( $mm, 1 )]--;
-					} else {
-						$tags[$mm]++;
-					}
-				}
-
-				// append missing closing tags - should the tags be ordered by precedence ?
-				foreach ( $tags as $tagName => $level ) {
-					// @phan-suppress-next-line PhanPluginLoopVariableReuse
-					while ( $level > 0 ) {
-						// avoid empty ref tag
-						if ( $tagName == 'ref' && substr( $cut, strlen( $cut ) - 5 ) == '<ref>' ) {
-							$cut = substr( $cut, 0, strlen( $cut ) - 5 );
-						} else {
-							$cut .= '</' . $tagName . '>';
-						}
-
-						$level--;
-					}
-				}
-			}
-
-			return $cut . $link;
-		} elseif ( $limit == 0 ) {
-			return $link;
-		} else {
-			// otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
+			// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
 			// it will at least produce some output at all; otherwise the reader might think that there
-			// is no information at all
+			// is no information at all.
 			return self::limitTranscludedText( $text, $limit * 2, $link );
 		}
-	}
 
-	/**
-	 * @param Parser $parser
-	 * @param string $page
-	 * @param string $sec
-	 * @param string $to
-	 * @param array &$sectionHeading
-	 * @param bool $recursionCheck
-	 * @param int $maxLength
-	 * @param string $link
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return array
-	 */
-	public static function includeHeading(
-		$parser,
-		$page,
-		$sec,
-		$to,
-		&$sectionHeading,
-		$recursionCheck,
-		$maxLength,
-		$link,
-		$trim,
-		$skipPattern
-	) {
-		$output = [];
-
-		if ( self::text( $parser, $page, $title, $text ) == false ) {
-			$output[0] = $text;
-			return $output;
+		// We try to cut off at a word boundary, this may lead to a shortening of max. 15 chars.
+		if ( $nb >= 0 && $nb + 15 > $n0 ) {
+			$n0 = $nb;
 		}
 
-		// throw away comments
+		$cut = substr( $text, 0, $n0 + 1 );
+
+		// An open html comment would be fatal, but this should not happen as we already have
+		// eliminated html comments at the beginning.
+
+		// Some tags are critical: ref, pre, nowiki
+		// if these tags were not balanced they would spoil the result completely
+		// we enforce balance by appending the necessary amount of corresponding closing tags
+		// currently we ignore the nesting, i.e. all closing tags are appended at the end.
+		// This simple approach may fail in some cases...
+		$matches = [];
+		preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
+
+		$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
+		foreach ( $matches[1] ?? [] as $mm ) {
+			$tagName = ltrim( $mm, '/' );
+			$tags[$tagName] += str_starts_with( $mm, '/' ) ? -1 : 1;
+		}
+
+		foreach ( $tags as $tagName => $level ) {
+			$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
+		}
+
+		return $cut . $link;
+	}
+
+	public static function includeHeading(
+		Parser $parser,
+		string $page,
+		string $sec,
+		string $to,
+		array &$sectionHeading,
+		bool $recursionCheck,
+		int $maxLength,
+		string $link,
+		bool $trim,
+		array $skipPattern
+	): array {
+		$text = '';
+		if ( !self::text( $parser, $page, $text ) ) {
+			return [ $text ];
+		}
+
+		// Throw away comments
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		return self::extractHeadingFromText(
-			$parser, $page, $text,
-			$sec, $to, $sectionHeading,
-			$recursionCheck, $maxLength,
-			$link, $trim, $skipPattern
+			parser: $parser,
+			page: $page,
+			text: $text,
+			sec: $sec,
+			to: $to,
+			sectionHeading: $sectionHeading,
+			recursionCheck: $recursionCheck,
+			maxLength: $maxLength,
+			cLink: $link,
+			trim: $trim,
+			skipPattern: $skipPattern
 		);
 	}
 
@@ -983,12 +892,8 @@ class LST {
 		return $output;
 	}
 
-	/**
-	 * @param string $pattern
-	 * @return string
-	 */
-	public static function spaceOrUnderscore( $pattern ) {
-		// returns a pettern that matches underscores as well as spaces
+	private static function spaceOrUnderscore( string $pattern ): string {
+		// Returns a pettern that matches underscores as well as spaces.
 		return str_replace( ' ', '[ _]', $pattern );
 	}
 
@@ -1007,7 +912,7 @@ class LST {
 	 * Using Parser::recursivePreprocess() prevents the cache clear, and thus repetitive calls reuse the
 	 * previously generated template DOM which brings a decent performance improvement when called multiple times.
 	 */
-	protected static function callParserPreprocess(
+	private static function callParserPreprocess(
 		Parser $parser,
 		string $text,
 		?PageReference $page,
