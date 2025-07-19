@@ -160,46 +160,41 @@ class LST {
 
 	/**
 	 * section inclusion - include all matching sections
-	 *
-	 * @param Parser $parser
-	 * @param string $page
-	 * @param string $sec
-	 * @param bool $recursionCheck
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return array
 	 */
 	public static function includeSection(
-		$parser,
-		$page = '',
-		$sec = '',
-		$recursionCheck = true,
-		$trim = false,
-		$skipPattern = []
-	) {
-		$output = [];
+		Parser $parser,
+		string $page = '',
+		string $sec = '',
+		bool $recursionCheck = true,
+		bool $trim = false,
+		array $skipPattern = []
+	): array {
 		$text = '';
 		if ( !self::text( $parser, $page, $text ) ) {
-			$output[] = $text;
-			return $output;
+			return [ $text ];
 		}
 
 		$any = false;
 		$pat = self::createSectionPattern( $sec, $any );
 
-		preg_match_all( $pat, $text, $m, PREG_PATTERN_ORDER );
+		preg_match_all( $pat, $text, $matches, PREG_PATTERN_ORDER );
 
-		foreach ( $m[2] as $nr => $piece ) {
+		$output = [];
+		foreach ( $matches[2] as $nr => $piece ) {
 			$piece = self::parse(
-				$parser, $piece, "#lst:{$page}|{$sec}",
-				$recursionCheck, -1, '', $trim, $skipPattern
+				parser: $parser,
+				text: $piece,
+				part1: "#lst:$page|$sec",
+				recursionCheck: $recursionCheck,
+				maxLength: -1,
+				link: '',
+				trim: $trim,
+				skipPattern: $skipPattern
 			);
 
-			if ( $any ) {
-				$output[] = $m[1][$nr] . '::' . $piece;
-			} else {
-				$output[] = $piece;
-			}
+			$output[] = $any ?
+				( $matches[1][$nr] . '::' . $piece ) :
+				$piece;
 		}
 
 		return $output;
@@ -223,21 +218,20 @@ class LST {
 	 *         if the text is already shorter than the limit, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	public static function limitTranscludedText( $text, $limit, $link = '' ) {
-		// if text is smaller than limit return complete text
+	public static function limitTranscludedText( string $text, int $limit, string $link = '' ): string {
+		// If text is smaller than limit return complete text.
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// otherwise strip html comments and check again
+		// Otherwise strip html comments and check again.
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// search latest position with balanced brackets/braces
-		// store also the position of the last preceding space
-
+		// Search latest position with balanced brackets/braces
+		// store also the position of the last preceding space.
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
@@ -245,134 +239,96 @@ class LST {
 
 		for ( $i = 0; $i < $limit; $i++ ) {
 			$c = $text[$i];
-			if ( $c == '[' ) {
-				$brackets++;
-			}
+			match ( $c ) {
+				'[' => $brackets++,
+				']' => $brackets--,
+				'{' => $cbrackets++,
+				'}' => $cbrackets--,
+				default => null,
+			};
 
-			if ( $c == ']' ) {
-				$brackets--;
-			}
-
-			if ( $c == '{' ) {
-				$cbrackets++;
-			}
-
-			if ( $c == '}' ) {
-				$cbrackets--;
-			}
-
-			// we store the position if it is valid in terms of parentheses balancing
-			if ( $brackets == 0 && $cbrackets == 0 ) {
+			// We store the position if it is valid in terms of parentheses balancing.
+			if ( $brackets === 0 && $cbrackets === 0 ) {
 				$n0 = $i;
-				if ( $c == ' ' ) {
+				if ( $c === ' ' ) {
 					$nb = $i;
 				}
 			}
 		}
 
-		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
-		if ( $n0 >= 0 ) {
-			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
-			if ( $nb > 0 && $nb + 15 > $n0 ) {
-				$n0 = $nb;
+		if ( $n0 < 0 ) {
+			if ( $limit === 0 ) {
+				return $link;
 			}
 
-			$cut = substr( $text, 0, $n0 + 1 );
-
-			// an open html comment would be fatal, but this should not happen as we already have
-			// eliminated html comments at the beginning
-
-			// some tags are critical: ref, pre, nowiki
-			// if these tags were not balanced they would spoil the result completely
-			// we enforce balance by appending the necessary amount of corresponding closing tags
-			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
-			// This simple approach may fail in some cases ...
-
-			$matches = [];
-			$noMatches = preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-			$tags = [
-				'ref' => 0,
-				'pre' => 0,
-				'nowiki' => 0
-			];
-
-			if ( $noMatches > 0 ) {
-				// calculate tag count (ignoring nesting)
-				foreach ( $matches[1] as $mm ) {
-					if ( $mm[0] == '/' ) {
-						$tags[substr( $mm, 1 )]--;
-					} else {
-						$tags[$mm]++;
-					}
-				}
-
-				// append missing closing tags - should the tags be ordered by precedence ?
-				foreach ( $tags as $tagName => $level ) {
-					// @phan-suppress-next-line PhanPluginLoopVariableReuse
-					while ( $level > 0 ) {
-						// avoid empty ref tag
-						if ( $tagName == 'ref' && substr( $cut, strlen( $cut ) - 5 ) == '<ref>' ) {
-							$cut = substr( $cut, 0, strlen( $cut ) - 5 );
-						} else {
-							$cut .= '</' . $tagName . '>';
-						}
-
-						$level--;
-					}
-				}
-			}
-
-			return $cut . $link;
-		} elseif ( $limit == 0 ) {
-			return $link;
-		} else {
-			// otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
+			// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
 			// it will at least produce some output at all; otherwise the reader might think that there
-			// is no information at all
+			// is no information at all.
 			return self::limitTranscludedText( $text, $limit * 2, $link );
 		}
-	}
 
-	/**
-	 * @param Parser $parser
-	 * @param string $page
-	 * @param string $sec
-	 * @param string $to
-	 * @param array &$sectionHeading
-	 * @param bool $recursionCheck
-	 * @param int $maxLength
-	 * @param string $link
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return array
-	 */
-	public static function includeHeading(
-		$parser,
-		$page,
-		$sec,
-		$to,
-		&$sectionHeading,
-		$recursionCheck,
-		$maxLength,
-		$link,
-		$trim,
-		$skipPattern
-	) {
-		$output = [];
-		$text = '';
-		if ( !self::text( $parser, $page, $text ) ) {
-			$output[0] = $text;
-			return $output;
+		// We try to cut off at a word boundary, this may lead to a shortening of max. 15 chars.
+		if ( $nb > 0 && $nb + 15 > $n0 ) {
+			$n0 = $nb;
 		}
 
-		// throw away comments
+		$cut = substr( $text, 0, $n0 + 1 );
+
+		// An open html comment would be fatal, but this should not happen as we already have
+		// eliminated html comments at the beginning.
+
+		// Some tags are critical: ref, pre, nowiki
+		// if these tags were not balanced they would spoil the result completely
+		// we enforce balance by appending the necessary amount of corresponding closing tags
+		// currently we ignore the nesting, i.e. all closing tags are appended at the end.
+		// This simple approach may fail in some cases...
+		$matches = [];
+		preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
+
+		$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
+		foreach ( $matches[1] ?? [] as $mm ) {
+			$tagName = ltrim( $mm, '/' );
+			$tags[$tagName] += str_starts_with( $mm, '/' ) ? -1 : 1;
+		}
+
+		foreach ( $tags as $tagName => $level ) {
+			$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
+		}
+
+		return $cut . $link;
+	}
+
+	public static function includeHeading(
+		Parser $parser,
+		string $page,
+		string $sec,
+		string $to,
+		array &$sectionHeading,
+		bool $recursionCheck,
+		int $maxLength,
+		string $link,
+		bool $trim,
+		array $skipPattern
+	): array {
+		$text = '';
+		if ( !self::text( $parser, $page, $text ) ) {
+			return [ $text ];
+		}
+
+		// Throw away comments
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		return self::extractHeadingFromText(
-			$parser, $page, $text,
-			$sec, $to, $sectionHeading,
-			$recursionCheck, $maxLength,
-			$link, $trim, $skipPattern
+			parser: $parser,
+			page: $page,
+			text: $text,
+			sec: $sec,
+			to: $to,
+			sectionHeading: $sectionHeading,
+			recursionCheck: $recursionCheck,
+			maxLength: $maxLength,
+			cLink: $link,
+			trim: $trim,
+			skipPattern: $skipPattern
 		);
 	}
 
