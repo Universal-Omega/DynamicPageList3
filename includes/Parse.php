@@ -212,7 +212,7 @@ class Parse {
 		/*********************/
 		/* Handle No Results */
 		/*********************/
-		if ( $numRows === 0 || !$articles ) {
+		if ( $numRows === 0 || $articles === [] ) {
 			return $this->getFullOutput( 0, false );
 		}
 
@@ -300,53 +300,47 @@ class Parse {
 
 	/**
 	 * Process Query Results
-	 *
-	 * @param array $rows
-	 * @param Parser $parser
-	 * @return array
+	 * @return Article[]
 	 */
-	private function processQueryResults( $rows, Parser $parser ) {
+	private function processQueryResults( array $rows, Parser $parser ): array {
 		/*******************************/
 		/* Random Count Pick Generator */
 		/*******************************/
 		$randomCount = $this->parameters->getParameter( 'randomcount' );
+		$pick = [];
+
 		if ( $randomCount > 0 ) {
 			$nResults = count( $rows );
 
 			// Constrain the total amount of random results to not be greater than the total results.
-			if ( $randomCount > $nResults ) {
-				$randomCount = $nResults;
-			}
+			$randomCount = min( $randomCount, $nResults );
 
 			// Generate pick numbers for results.
 			$pick = range( 1, $nResults );
 
-			// Shuffle the pick numbers.
+			// Shuffle and select the first N picks
 			shuffle( $pick );
-
-			// Select pick numbers from the beginning to the maximum of $randomCount.
 			$pick = array_slice( $pick, 0, $randomCount );
 		}
-
-		$articles = [];
 
 		/**********************/
 		/* Article Processing */
 		/**********************/
-		$i = 0;
-		foreach ( $rows as $row ) {
-			$i++;
-
+		$articles = [];
+		foreach ( array_values( $rows ) as $index => $row ) {
+			$position = $index + 1;
 			// In random mode skip articles which were not chosen.
-			if ( $randomCount > 0 && !in_array( $i, $pick ?? [] ) ) {
+			if ( $randomCount > 0 && !in_array( $position, $pick, true ) ) {
 				continue;
 			}
 
-			if ( $this->parameters->getParameter( 'goal' ) == 'categories' ) {
+			$pageNamespace = $pageTitle = null;
+			if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 				$pageNamespace = NS_CATEGORY;
 				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
-				if ( count( $this->parameters->getParameter( 'imagecontainer' ) ?? [] ) > 0 ) {
+				$imageContainer = $this->parameters->getParameter( 'imagecontainer' ) ?? [];
+				if ( $imageContainer ) {
 					$pageNamespace = NS_FILE;
 					$pageTitle = $row->il_to;
 				} else {
@@ -364,7 +358,7 @@ class Parse {
 			$thisTitle = Title::castFromPageReference( $parser->getPage() );
 
 			// Block recursion from happening by seeing if this result row is the page the DPL query was ran from.
-			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle->equals( $title ) ) {
+			if ( $this->parameters->getParameter( 'skipthispage' ) && $thisTitle?->equals( $title ) ) {
 				continue;
 			}
 
@@ -965,17 +959,8 @@ class Parse {
 		$page = $parser->getPage();
 		$parserOutput = $page ? $localParser->parse( $output, $page, $parser->getOptions() ) : null;
 
-		if ( !is_array( $reset ) ) {
-			$reset = [];
-		}
-
-		$reset = array_merge( $reset, (array)$this->parameters->getParameter( 'reset' ) );
-
-		if ( !is_array( $eliminate ) ) {
-			$eliminate = [];
-		}
-
-		$eliminate = array_merge( $eliminate, (array)$this->parameters->getParameter( 'eliminate' ) );
+		$reset = array_merge( $reset, $this->parameters->getParameter( 'reset' ) ?? [] );
+		$eliminate = array_merge( $eliminate, $this->parameters->getParameter( 'eliminate' ) ?? [] );
 
 		if ( $isParserTag === true ) {
 			// In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
@@ -1072,44 +1057,43 @@ class Parse {
 	/**
 	 * Sort an array of Article objects by the card suit symbol.
 	 *
-	 * @param array	$articles
-	 * @return array
+	 * @param Article[] $articles
+	 * @return Article[]
 	 */
-	private function cardSuitSort( $articles ) {
+	private function cardSuitSort( array $articles ): array {
 		$sortKeys = [];
-
 		foreach ( $articles as $key => $article ) {
-			$title = preg_replace( '/.*:/', '', $article->mTitle );
-			$tokens = preg_split( '/ - */', $title );
+			$title = preg_replace( '/.*:/', '', $article->mTitle->getPrefixedText() );
+			$tokens = preg_split( '/ - */', $title ) ?: [];
 			$newKey = '';
 
 			foreach ( $tokens as $token ) {
-				$initial = substr( $token, 0, 1 );
-
+				$initial = strtolower( $token[0] ?? '' );
 				if ( $initial >= '1' && $initial <= '7' ) {
 					$newKey .= $initial;
 					$suit = substr( $token, 1 );
-
-					if ( $suit == '♣' ) {
-						$newKey .= '1';
-					} elseif ( $suit == '♦' ) {
-						$newKey .= '2';
-					} elseif ( $suit == '♥' ) {
-						$newKey .= '3';
-					} elseif ( $suit == '♠' ) {
-						$newKey .= '4';
-					} elseif ( strtolower( $suit ) == 'sa' || strtolower( $suit ) == 'nt' ) {
-						$newKey .= '5 ';
-					} else {
-						$newKey .= $suit;
-					}
-				} elseif ( strtolower( $initial ) == 'p' ) {
-					$newKey .= '0 ';
-				} elseif ( strtolower( $initial ) == 'x' ) {
-					$newKey .= '8 ';
-				} else {
-					$newKey .= $token;
+					$newKey .= match ( strtolower( $suit ) ) {
+						'♣' => '1',
+						'♦' => '2',
+						'♥' => '3',
+						'♠' => '4',
+						'sa', 'nt' => '5 ',
+						default => $suit,
+					};
+					continue;
 				}
+
+				if ( $initial === 'p' ) {
+					$newKey .= '0 ';
+					continue;
+				}
+
+				if ( $initial === 'x' ) {
+					$newKey .= '8 ';
+					continue;
+				}
+
+				$newKey .= $token;
 			}
 
 			$sortKeys[$key] = $newKey;
@@ -1118,7 +1102,7 @@ class Parse {
 		asort( $sortKeys );
 
 		$sortedArticles = [];
-		foreach ( $sortKeys as $oldKey => $_ ) {
+		foreach ( array_keys( $sortKeys ) as $oldKey ) {
 			$sortedArticles[] = $articles[$oldKey];
 		}
 
