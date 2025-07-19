@@ -369,7 +369,8 @@ class UpdateArticle {
 		if ( $exec == 'set' ) {
 			return self::doUpdateArticle( $title, $text, $summary );
 		} elseif ( $exec == 'preview' ) {
-			$request = RequestContext::getMain()->getRequest();
+			$context = RequestContext::getMain();
+			$request = $context->getRequest();
 
 			$titleX = Title::newFromText( $title );
 			$articleX = new Article( $titleX );
@@ -419,7 +420,7 @@ class UpdateArticle {
 				],
 			];
 
-			$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $request->getContext() )
+			$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $context )
 				->setMethod( 'post' )
 				->setAction( $titleX->getLocalURL( [ 'action' => 'submit' ] ) )
 				->setId( 'editform' )
