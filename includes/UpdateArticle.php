@@ -419,7 +419,7 @@ class UpdateArticle {
 				],
 			];
 
-			$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $context )
+			$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $request->getContext() )
 				->setMethod( 'post' )
 				->setAction( $titleX->getLocalURL( [ 'action' => 'submit' ] ) )
 				->setId( 'editform' )
@@ -428,7 +428,7 @@ class UpdateArticle {
 				->setSubmitID( 'wpSave' )
 				->setSubmitName( 'wpSave' );
 
-			return $htmlForm->prepareForm()->getHTML();
+			return $htmlForm->prepareForm()->getHTML( true );
 		}
 
 		return "exec must be one of the following: edit, preview, set";
