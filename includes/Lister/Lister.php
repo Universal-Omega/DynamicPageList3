@@ -992,8 +992,6 @@ class Lister {
 	 */
 	private function parseImageUrlWithPath( Article|string $article ): string {
 		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
-		$pageImagesEnabled = ExtensionRegistry::getInstance()->isLoaded( 'PageImages' );
-
 		if ( $article instanceof Article ) {
 			if ( $article->mNamespace === NS_FILE ) {
 				// Calculate the URL for existing files.
@@ -1005,7 +1003,7 @@ class Lister {
 				return $this->stripImagesPrefix( $url );
 			}
 
-			if ( $pageImagesEnabled ) {
+			if ( ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
 				// Get the PageImage URL.
 				$pageImage = PageImages::getPageImage( $article->mTitle );
 				if ( !$pageImage || !$pageImage->exists() ) {
