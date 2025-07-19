@@ -235,7 +235,7 @@ class LST {
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
-		$nb = 0;
+		$nb = -1;
 
 		for ( $i = 0; $i < $limit; $i++ ) {
 			$c = $text[$i];
@@ -268,7 +268,7 @@ class LST {
 		}
 
 		// We try to cut off at a word boundary, this may lead to a shortening of max. 15 chars.
-		if ( $nb > 0 && $nb + 15 > $n0 ) {
+		if ( $nb >= 0 && $nb + 15 > $n0 ) {
 			$n0 = $nb;
 		}
 
