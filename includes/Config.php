@@ -10,26 +10,19 @@ class Config extends MultiConfig {
 
 	private static ?self $instance = null;
 
-	public function __construct() {
+	private function __construct() {
 		$globalConfig = new GlobalVarConfig();
-
-		$dplSettings = $globalConfig->has( 'DplSettings' )
-			? $globalConfig->get( 'DplSettings' )
-			: [];
+		$dplSettings = $globalConfig->has( 'DplSettings' ) ?
+			$globalConfig->get( 'DplSettings' ) : [];
 
 		parent::__construct( [
 			new HashConfig( $dplSettings ),
-			$globalConfig
+			$globalConfig,
 		] );
 	}
 
 	public static function getInstance(): self {
 		self::$instance ??= new self();
 		return self::$instance;
-	}
-
-	public static function getSetting( string $setting ): mixed {
-		$config = self::getInstance();
-		return $config->get( $setting );
 	}
 }
