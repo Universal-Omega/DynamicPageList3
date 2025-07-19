@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Article;
+use MediaWiki\Extension\DynamicPageList4\Config;
 use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Extension\DynamicPageList4\UpdateArticle;
@@ -30,6 +31,8 @@ class Lister {
 	public const LIST_CATEGORY = 7;
 
 	public const LIST_USERFORMAT = 8;
+
+	protected readonly Config $config;
 
 	/**
 	 * Listing style for this class.
@@ -275,6 +278,7 @@ class Lister {
 		$this->setPageTextMatchRegex( (array)$parameters->getParameter( 'seclabelsmatch' ) );
 		$this->setPageTextMatchNotRegex( (array)$parameters->getParameter( 'seclabelsnotmatch' ) );
 		$this->setIncludePageParsed( $parameters->getParameter( 'incparsed' ) );
+		$this->config = Config::getInstance();
 		$this->parameters = $parameters;
 		$this->parser = clone $parser;
 	}
