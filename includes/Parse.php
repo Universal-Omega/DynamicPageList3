@@ -235,7 +235,10 @@ class Parse {
 		/*******************/
 		$lister = Lister::newFromStyle( $this->parameters->getParameter( 'mode' ), $this->parameters, $parser );
 		$heading = Heading::newFromStyle( $this->parameters->getParameter( 'headingmode' ), $this->parameters );
-		$this->addOutput( $heading?->format( $articles, $lister ) ?? $lister->format( $articles ) );
+
+		$output = $heading?->format( $articles, $lister );
+		$output ??= $lister->format( $articles );
+		$this->addOutput( $output );
 
 		if ( $foundRows === null ) {
 			// Get row count after calling format() otherwise the count will be inaccurate.
