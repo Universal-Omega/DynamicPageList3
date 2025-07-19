@@ -51,8 +51,7 @@ class GalleryList extends Lister {
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
 				// We use mode=packed for PageImages galleries
-				$this->listAttributes .= ' mode=packed';
-				var_dump( $pageImage->getName() );
+				$this->listAttributes = ' mode=packed';
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
 					"[[$item]]{$this->itemEnd}link=$item";
