@@ -4,7 +4,6 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Category\CategoryViewer;
 use MediaWiki\Extension\DynamicPageList4\Article;
-use MediaWiki\Extension\DynamicPageList4\Config;
 
 class CategoryList extends Lister {
 	/**
@@ -37,7 +36,7 @@ class CategoryList extends Lister {
 
 		$this->rowCount = $filteredCount;
 
-		if ( count( $articleLinks ) > Config::getSetting( 'categoryStyleListCutoff' ) ) {
+		if ( count( $articleLinks ) > $this->config->get( 'categoryStyleListCutoff' ) ) {
 			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::columnList( $articleLinks, $articleStartChars );
 		} elseif ( count( $articleLinks ) > 0 ) {
 			// for short lists of articles in categories.
