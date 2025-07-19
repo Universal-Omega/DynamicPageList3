@@ -1013,7 +1013,8 @@ class LST {
 		?PageReference $page,
 		ParserOptions $options
 	): string {
-		if ( Config::getSetting( 'recursivePreprocess' ) ) {
+		$config = Config::getInstance();
+		if ( $config->get( 'recursivePreprocess' ) ) {
 			self::softResetParser( $parser );
 			$parser->setOutputType( OT_PREPROCESS );
 
