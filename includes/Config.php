@@ -12,9 +12,8 @@ class Config extends MultiConfig {
 
 	private function __construct() {
 		$globalConfig = new GlobalVarConfig();
-		$dplSettings = $globalConfig->has( 'DplSettings' )
-			? $globalConfig->get( 'DplSettings' )
-			: [];
+		$dplSettings = $globalConfig->has( 'DplSettings' ) ?
+			$globalConfig->get( 'DplSettings' ) : [];
 
 		parent::__construct( [
 			new HashConfig( $dplSettings ),
