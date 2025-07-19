@@ -50,7 +50,8 @@ class GalleryList extends Lister {
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
-				$this->listAttributes = 'mode=packed';
+				// We use mode=packed for PageImages galleries
+				$this->listAttributes .= ' mode=packed';
 				var_dump( $pageImage->getName() );
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
