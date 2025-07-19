@@ -71,7 +71,7 @@ class Parse {
 		// @phan-suppress-next-line PhanDeprecatedProperty
 		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Constants::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
-			return $this->getFullOutput();
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
 		// Check if DPL shall only be executed from protected pages.
@@ -85,7 +85,7 @@ class Parse {
 			// be protected. However, how can one find out from which wiki source an extension
 			// has been invoked???
 			$this->logger->addMessage( Constants::FATAL_NOTPROTECTED, $title->getPrefixedText() );
-			return $this->getFullOutput();
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
 		/************************************/
@@ -111,7 +111,7 @@ class Parse {
 		if ( $cleanParameters === [] ) {
 			// Short circuit.
 			$this->logger->addMessage( Constants::FATAL_NOSELECTION );
-			return $this->getFullOutput();
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
 		$cleanParameters = Parameters::sortByPriority( $cleanParameters );
@@ -154,7 +154,7 @@ class Parse {
 		/* Check Errors */
 		/****************/
 		if ( $this->doQueryErrorChecks() === false ) {
-			return $this->getFullOutput();
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
 		$needsCalcRows = !$this->config->get( 'allowUnlimitedResults' ) &&
@@ -188,7 +188,7 @@ class Parse {
 			}
 		} catch ( Exception $e ) {
 			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
-			return $this->getFullOutput();
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
 		$foundRows = $rows['count'] ?? null;
@@ -213,7 +213,7 @@ class Parse {
 		/* Handle No Results */
 		/*********************/
 		if ( $numRows === 0 || $articles === [] ) {
-			return $this->getFullOutput( 0, false );
+			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: false );
 		}
 
 		// Backward scrolling: If the user specified only titlelt with descending reverse the output order.
@@ -296,7 +296,11 @@ class Parse {
 			: 0;
 		$parser->getOutput()->updateCacheExpiry( $expiry );
 
-		$finalOutput = $this->getFullOutput( $foundRows, false );
+		$finalOutput = $this->getFullOutput(
+			totalResults: $foundRows,
+			skipHeaderFooter: false
+		);
+
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
 		return $finalOutput;
 	}
@@ -372,14 +376,12 @@ class Parse {
 
 	/**
 	 * Do basic clean up and structuring of raw user input.
-	 *
-	 * @param string $input
-	 * @return array
+	 * @return array<string, list<string>>
 	 */
-	private function prepareUserInput( $input ) {
+	private function prepareUserInput( string $input ): array {
 		// We replace double angle brackets with single angle brackets to avoid premature tag expansion in the input.
 		// The ¦ symbol is an alias for |.
-		// The combination '²{' and '}²'will be translated to double curly braces; this allows postponed template
+		// The combination '²{' and '}²' will be translated to double curly braces; this allows postponed template
 		// execution which is crucial for DPL queries which call other DPL queries.
 		$input = str_replace( [ '«', '»', '¦', '²{', '}²' ], [ '<', '>', '|', '{{', '}}' ], $input );
 
@@ -390,38 +392,21 @@ class Parse {
 
 		$parameters = [];
 		foreach ( $rawParameters as $parameterOption ) {
-			if ( !$parameterOption ) {
+			if ( $parameterOption === '' ) {
 				// Softly ignore blank lines.
 				continue;
 			}
 
-			if ( strpos( $parameterOption, '=' ) === false ) {
+			if ( !str_contains( $parameterOption, '=' ) ) {
 				$this->logger->addMessage( Constants::WARN_PARAMNOOPTION, $parameterOption );
-
 				continue;
 			}
 
 			[ $parameter, $option ] = explode( '=', $parameterOption, 2 );
-			$parameter = trim( $parameter );
+			$parameter = strtolower( str_replace( [ '<', '>' ], [ 'lt', 'gt' ], trim( $parameter ) ) );
 			$option = trim( $option );
 
-			if ( strpos( $parameter, '<' ) !== false || strpos( $parameter, '>' ) !== false ) {
-				// Having the actual less than and greater than symbols is nasty
-				// for programatic look up. The old parameter is still supported
-				// along with the new, but we just fix it here before calling it.
-				$parameter = str_replace( '<', 'lt', $parameter );
-				$parameter = str_replace( '>', 'gt', $parameter );
-			}
-
-			// Force lower case for ease of use.
-			$parameter = strtolower( $parameter );
-			if (
-				!$parameter || substr( $parameter, 0, 1 ) == '#' ||
-				(
-					$this->parameters->exists( $parameter ) &&
-					!$this->parameters->testRichness( $parameter )
-				)
-			) {
+			if ( $parameter === '' || str_starts_with( $parameter, '#' ) ) {
 				continue;
 			}
 
@@ -430,20 +415,19 @@ class Parse {
 					Constants::WARN_UNKNOWNPARAM, $parameter,
 					implode( ', ', $this->parameters->getParametersForRichness() )
 				);
-
 				continue;
 			}
 
-			// Ignore parameter settings without argument (except namespace and category).
-			if ( !strlen( $option ) ) {
-				if (
-					$parameter != 'namespace' &&
-					$parameter != 'notnamespace' &&
-					$parameter != 'category' &&
-					$this->parameters->exists( $parameter )
-				) {
-					continue;
-				}
+			if ( !$this->parameters->testRichness( $parameter ) ) {
+				continue;
+			}
+
+			// Ignore parameter settings without argument (except namespace for backward compatibility).
+			if (
+				$option === '' &&
+				!in_array( $parameter, [ 'namespace', 'notnamespace' ], true )
+			) {
+				continue;
 			}
 
 			$parameters[$parameter][] = $option;
@@ -454,19 +438,15 @@ class Parse {
 
 	/**
 	 * Concatenate output
-	 *
-	 * @param string $output
 	 */
-	private function addOutput( $output ) {
+	private function addOutput( string $output ): void {
 		$this->output .= $output;
 	}
 
 	/**
 	 * Set the output text.
-	 *
-	 * @return string
 	 */
-	private function getOutput() {
+	private function getOutput(): string {
 		// @TODO: 2015-08-28 Consider calling $this->replaceVariables() here.
 		// Might cause issues with text returned in the results.
 		return $this->output;
@@ -474,142 +454,91 @@ class Parse {
 
 	/**
 	 * Return output optionally including header and footer.
-	 *
-	 * @param bool|int $totalResults
-	 * @param bool $skipHeaderFooter
-	 * @return string
 	 */
-	private function getFullOutput( $totalResults = false, $skipHeaderFooter = true ) {
+	private function getFullOutput( int $totalResults, bool $skipHeaderFooter ): string {
 		if ( !$skipHeaderFooter ) {
-			$header = '';
-			$footer = '';
+			$headerType = $this->getHeaderFooterType( 'header', $totalResults );
+			$footerType = $this->getHeaderFooterType( 'footer', $totalResults );
 
-			// Only override header and footers if specified.
-			$headerType = $this->getHeaderFooterType( 'header', (int)$totalResults );
-			if ( $headerType !== false ) {
-				$header = $this->parameters->getParameter( $headerType );
-			}
-
-			$footerType = $this->getHeaderFooterType( 'footer', (int)$totalResults );
-			if ( $footerType !== false ) {
-				$footer = $this->parameters->getParameter( $footerType );
-			}
-
-			$this->setHeader( $header );
-			$this->setFooter( $footer );
+			$this->setHeader( $headerType !== false ? $this->parameters->getParameter( $headerType ) : '' );
+			$this->setFooter( $footerType !== false ? $this->parameters->getParameter( $footerType ) : '' );
 		}
 
-		if ( !$totalResults && !strlen( $this->getHeader() ) && !strlen( $this->getFooter() ) ) {
+		if ( $totalResults === 0 && $this->getHeader() === '' && $this->getFooter() === '' ) {
 			$this->logger->addMessage( Constants::WARN_NORESULTS );
 		}
 
-		$messages = $this->logger->getMessages( false );
-
-		return ( count( $messages ) ? implode( "<br/>\n", $messages ) : null ) .
-			$this->getHeader() . $this->getOutput() . $this->getFooter();
+		$messages = $this->logger->getMessages( clearBuffer: false );
+		return ( $messages ? implode( "<br/>\n", $messages ) : '' )
+			. $this->getHeader()
+			. $this->getOutput()
+			. $this->getFooter();
 	}
 
-	/**
-	 * Set the header text.
-	 *
-	 * @param string $header
-	 */
-	private function setHeader( $header ) {
-		if ( Utils::getDebugLevel() == 5 ) {
+	private function setHeader( string $header ): void {
+		if ( Utils::getDebugLevel() === 5 ) {
 			$header = '<pre><nowiki>' . $header;
 		}
 
 		$this->header = $this->replaceVariables( $header );
 	}
 
-	/**
-	 * Set the header text.
-	 *
-	 * @return string
-	 */
-	private function getHeader() {
+	private function getHeader(): string {
 		return $this->header;
 	}
 
-	/**
-	 * Set the footer text.
-	 *
-	 * @param string $footer
-	 */
-	private function setFooter( $footer ) {
-		if ( Utils::getDebugLevel() == 5 ) {
+	private function setFooter( string $footer ): void {
+		if ( Utils::getDebugLevel() === 5 ) {
 			$footer .= '</nowiki></pre>';
 		}
 
 		$this->footer = $this->replaceVariables( $footer );
 	}
 
-	/**
-	 * Set the footer text.
-	 *
-	 * @return string
-	 */
-	private function getFooter() {
+	private function getFooter(): string {
 		return $this->footer;
 	}
 
 	/**
 	 * Determine the header/footer type to use based on what output format
 	 * parameters were chosen and the number of results.
-	 *
-	 * @param string $position
-	 * @param int $count
-	 * @return mixed Type to use: 'results', 'oneresult', or 'noresults'. False if invalid or none should be used.
 	 */
-	private function getHeaderFooterType( $position, $count ) {
-		$count = (int)$count;
-
-		if ( $position != 'header' && $position != 'footer' ) {
+	private function getHeaderFooterType( string $position, int $count ): string|false {
+		if ( $position !== 'header' && $position !== 'footer' ) {
 			return false;
 		}
 
 		if (
 			$this->parameters->getParameter( 'results' . $position ) !== null &&
-			(
-				$count >= 2 ||
-				(
-					$this->parameters->getParameter( 'oneresult' . $position ) === null &&
-					$count >= 1
-				)
-			)
+			( $count >= 2 || ( $this->parameters->getParameter( 'oneresult' . $position ) === null && $count >= 1 ) )
 		) {
-			$type = 'results' . $position;
-		} elseif ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
-			$type = 'oneresult' . $position;
-		} elseif ( $count === 0 && $this->parameters->getParameter( 'noresults' . $position ) !== null ) {
-			$type = 'noresults' . $position;
-		} else {
-			$type = false;
+			return 'results' . $position;
 		}
 
-		return $type;
+		if ( $count === 1 && $this->parameters->getParameter( 'oneresult' . $position ) !== null ) {
+			return 'oneresult' . $position;
+		}
+
+		if ( $count === 0 && $this->parameters->getParameter( 'noresults' . $position ) !== null ) {
+			return 'noresults' . $position;
+		}
+
+		return false;
 	}
 
 	/**
 	 * Set a variable to be replaced with the provided text later at the end of the output.
-	 *
-	 * @param string $variable
-	 * @param string $replacement
 	 */
-	private function setVariable( $variable, $replacement ) {
-		$variable = "%" . mb_strtoupper( $variable, "UTF-8" ) . "%";
+	private function setVariable( string $variable, string $replacement ): void {
+		$variable = '%' . mb_strtoupper( $variable, 'UTF-8' ) . '%';
 		$this->replacementVariables[$variable] = $replacement;
 	}
 
 	/**
 	 * Return text with variables replaced.
-	 *
-	 * @param string $text
-	 * @return string
 	 */
-	private function replaceVariables( $text ) {
+	private function replaceVariables( string $text ): string {
 		$text = self::replaceNewLines( $text );
-
 		foreach ( $this->replacementVariables as $variable => $replacement ) {
 			$text = str_replace( $variable, $replacement, $text );
 		}
@@ -619,12 +548,9 @@ class Parse {
 
 	/**
 	 * Return text with custom new line characters replaced.
-	 *
-	 * @param string $text
-	 * @return string
 	 */
-	public static function replaceNewLines( $text ) {
-		return str_replace( [ '\n', "¶" ], "\n", $text );
+	public static function replaceNewLines( string $text ): string {
+		return str_replace( [ '\n', '¶' ], "\n", $text );
 	}
 
 	/**
@@ -840,13 +766,9 @@ class Parse {
 
 	/**
 	 * Create keys for TableRow which represent the structure of the "include=" arguments.
-	 *
-	 * @param array	$tableRow
-	 * @param array	$sectionLabels
-	 * @return array
 	 */
-	private static function updateTableRowKeys( $tableRow, $sectionLabels ) {
-		$originalRow = (array)$tableRow;
+	private static function updateTableRowKeys( array $tableRow, array $sectionLabels ): array {
+		$originalRow = $tableRow;
 		$tableRow = [];
 		$groupNr = -1;
 		$t = -1;
@@ -854,24 +776,21 @@ class Parse {
 		foreach ( $sectionLabels as $label ) {
 			$t++;
 			$groupNr++;
-			$cols = explode( '}:', $label );
 
-			if ( count( $cols ) <= 1 ) {
-				if ( array_key_exists( $t, $originalRow ) ) {
+			if ( !str_contains( $label, '}:' ) ) {
+				if ( isset( $originalRow[$t] ) ) {
 					$tableRow[$groupNr] = $originalRow[$t];
 				}
-			} else {
-				$n = count( explode( ':', $cols[1] ) );
-				$colNr = -1;
-				$t--;
+				continue;
+			}
 
-				for ( $i = 1; $i <= $n; $i++ ) {
-					$colNr++;
-					$t++;
+			[ , $colsPart ] = explode( '}:', $label, 2 );
+			$n = substr_count( $colsPart, ':' ) + 1;
+			$t--;
 
-					if ( array_key_exists( $t, $originalRow ) ) {
-						$tableRow[$groupNr . '.' . $colNr] = $originalRow[$t];
-					}
+			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
+				if ( isset( $originalRow[$t] ) ) {
+					$tableRow["$groupNr.$colNr"] = $originalRow[$t];
 				}
 			}
 		}
@@ -881,24 +800,18 @@ class Parse {
 
 	/**
 	 * Resolve arguments in the input that would normally be in the URL.
-	 *
-	 * @param string $input
-	 * @param array $arguments
-	 * @return string
 	 */
-	private function resolveUrlArguments( $input, $arguments ) {
-		$arguments = (array)$arguments;
-
+	private function resolveUrlArguments( string $input, array $arguments ): string {
 		foreach ( $arguments as $arg ) {
-			$dplArg = $this->request->getVal( $arg, '' );
-
-			if ( $dplArg == '' ) {
-				$input = preg_replace( '/\{%' . $arg . ':(.*)%\}/U', '\1', $input );
+			$dplArg = $this->request->getText( $arg );
+			if ( $dplArg === '' ) {
+				$input = preg_replace( '/\{%' . $arg . ':(.*)%\}/U', '$1', $input );
 				$input = str_replace( '{%' . $arg . '%}', '', $input );
-			} else {
-				$input = preg_replace( '/\{%' . $arg . ':.*%\}/U  ', $dplArg, $input );
-				$input = str_replace( '{%' . $arg . '%}', $dplArg, $input );
+				continue;
 			}
+
+			$input = preg_replace( '/\{%' . $arg . ':.*%\}/U', $dplArg, $input );
+			$input = str_replace( '{%' . $arg . '%}', $dplArg, $input );
 		}
 
 		return $input;
@@ -907,19 +820,14 @@ class Parse {
 	/**
 	 * This function uses the Variables extension to provide URL-arguments like &DPL_xyz=abc in the form
 	 * of a variable which can be accessed as {{#var:xyz}} if Extension:Variables is installed.
-	 *
-	 * @param Parser $parser
 	 */
-	private function getUrlArgs( Parser $parser ) {
-		$args = $this->request->getValues();
-
-		foreach ( $args as $argName => $argValue ) {
-			if ( strpos( $argName, 'DPL_' ) === false ) {
+	private function getUrlArgs( Parser $parser ): void {
+		foreach ( $this->request->getValues() as $argName => $argValue ) {
+			if ( !str_starts_with( $argName, 'DPL_' ) ) {
 				continue;
 			}
 
 			Variables::setVar( [ '', '', $argName, $argValue ] );
-
 			if ( ExtensionRegistry::getInstance()->isLoaded( 'Variables' ) ) {
 				ExtVariables::get( $parser )->setVarValue( $argName, $argValue );
 			}
@@ -942,14 +850,14 @@ class Parse {
 
 	/**
 	 * Trigger Resets and Eliminates that run at the end of parsing.
-	 *
-	 * @param string $output
-	 * @param array &$reset
-	 * @param array &$eliminate
-	 * @param bool $isParserTag
-	 * @param Parser $parser
 	 */
-	private function triggerEndResets( $output, &$reset, &$eliminate, $isParserTag, Parser $parser ) {
+	private function triggerEndResets(
+		string $output,
+		array &$reset,
+		array &$eliminate,
+		bool $isParserTag,
+		Parser $parser
+	): void {
 		$localParser = MediaWikiServices::getInstance()->getParserFactory()->create();
 
 		$page = $parser->getPage();
@@ -958,95 +866,78 @@ class Parse {
 		$reset = array_merge( $reset, $this->parameters->getParameter( 'reset' ) ?? [] );
 		$eliminate = array_merge( $eliminate, $this->parameters->getParameter( 'eliminate' ) ?? [] );
 
-		if ( $isParserTag === true ) {
+		if ( $isParserTag ) {
 			// In tag mode 'eliminate' is the same as 'reset' for templates, categories, and images.
-			if ( !empty( $eliminate['templates'] ) ) {
-				$reset['templates'] = true;
-				$eliminate['templates'] = false;
-			}
-
-			if ( !empty( $eliminate['categories'] ) ) {
-				$reset['categories'] = true;
-				$eliminate['categories'] = false;
-			}
-
-			if ( !empty( $eliminate['images'] ) ) {
-				$reset['images'] = true;
-				$eliminate['images'] = false;
+			foreach ( [ 'templates', 'categories', 'images' ] as $key ) {
+				if ( !empty( $eliminate[$key] ) ) {
+					$reset[$key] = true;
+					$eliminate[$key] = false;
+				}
 			}
 		} else {
-			if ( !empty( $reset['templates'] ) ) {
-				Utils::$createdLinks['resetTemplates'] = true;
-			}
-
-			if ( !empty( $reset['categories'] ) ) {
-				Utils::$createdLinks['resetCategories'] = true;
-			}
-
-			if ( !empty( $reset['images'] ) ) {
-				Utils::$createdLinks['resetImages'] = true;
+			foreach ( [ 'templates', 'categories', 'images' ] as $key ) {
+				if ( !empty( $reset[$key] ) ) {
+					Utils::$createdLinks[ 'reset' . ucfirst( $key ) ] = true;
+				}
 			}
 		}
 
 		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
-
-		if ( ( $isParserTag === true && isset( $reset['links'] ) ) || $isParserTag === false ) {
+		if ( ( $isParserTag && isset( $reset['links'] ) ) || !$isParserTag ) {
 			if ( isset( $reset['links'] ) ) {
 				Utils::$createdLinks['resetLinks'] = true;
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy',
-				[ new Reset(), 'onParserAfterTidy' ]
-			);
+			$hookContainer->register( 'ParserAfterTidy', [ new Reset(), 'onParserAfterTidy' ] );
 		}
 
 		if ( array_sum( $eliminate ) ) {
-			if ( $parserOutput && !empty( $eliminate['links'] ) ) {
-				// Trigger the mediawiki parser to find links, images, categories etc.
-				// which are contained in the DPL output. This allows us to remove these
-				// links from the link list later. If the article containing the DPL
-				// statement itself uses one of these links they will be thrown away!
-				Utils::$createdLinks[0] = [];
-				foreach (
-					$parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL )
-					as [ 'link' => $link, 'pageid' => $pageid ]
-				) {
-					Utils::$createdLinks[0][$link->getNamespace()][$link->getDBkey()] = $pageid;
+			if ( $parserOutput ) {
+				if ( !empty( $eliminate['links'] ) ) {
+					// Trigger the mediawiki parser to find links, images, categories etc.
+					// which are contained in the DPL output. This allows us to remove these
+					// links from the link list later. If the article containing the DPL
+					// statement itself uses one of these links they will be thrown away!
+					Utils::$createdLinks[0] = [];
+					foreach (
+						$parserOutput->getLinkList( ParserOutputLinkTypes::LOCAL )
+						as [ 'link' => $link, 'pageid' => $pageid ]
+					) {
+						Utils::$createdLinks[0][$link->getNamespace()][$link->getDBkey()] = $pageid;
+					}
 				}
-			}
 
-			if ( $parserOutput && !empty( $eliminate['templates'] ) ) {
-				Utils::$createdLinks[1] = [];
-				foreach (
-					$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
-					as [ 'link' => $link, 'pageid' => $pageid ]
-				) {
-					Utils::$createdLinks[1][$link->getNamespace()][$link->getDBkey()] = $pageid;
+				if ( !empty( $eliminate['templates'] ) ) {
+					Utils::$createdLinks[1] = [];
+					foreach (
+						$parserOutput->getLinkList( ParserOutputLinkTypes::TEMPLATE )
+						as [ 'link' => $link, 'pageid' => $pageid ]
+					) {
+						Utils::$createdLinks[1][$link->getNamespace()][$link->getDBkey()] = $pageid;
+					}
 				}
-			}
 
-			if ( $parserOutput && !empty( $eliminate['categories'] ) ) {
-				Utils::$createdLinks[2] = [];
-				foreach ( $parserOutput->getCategoryNames() as $name ) {
-					Utils::$createdLinks[2][ $name ] = $parserOutput->getCategorySortKey( $name ) ?? '';
+				if ( !empty( $eliminate['categories'] ) ) {
+					Utils::$createdLinks[2] = [];
+					foreach ( $parserOutput->getCategoryNames() as $name ) {
+						Utils::$createdLinks[2][$name] = $parserOutput->getCategorySortKey( $name ) ?? '';
+					}
 				}
-			}
 
-			if ( $parserOutput && !empty( $eliminate['images'] ) ) {
-				Utils::$createdLinks[3] = [];
-				foreach (
-					$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
-					as [ 'link' => $link ]
-				) {
-					Utils::$createdLinks[3][ $link->getDBkey() ] = 1;
+				if ( !empty( $eliminate['images'] ) ) {
+					Utils::$createdLinks[3] = [];
+					foreach (
+						$parserOutput->getLinkList( ParserOutputLinkTypes::MEDIA )
+						as [ 'link' => $link ]
+					) {
+						Utils::$createdLinks[3][$link->getDBkey()] = 1;
+					}
 				}
 			}
 
 			// Register a hook to reset links which were produced during parsing DPL output.
-			$hookContainer->register( 'ParserAfterTidy',
-				[ new Eliminate(), 'onParserAfterTidy' ]
-			);
+			$hookContainer->register( 'ParserAfterTidy', [ new Eliminate(), 'onParserAfterTidy' ] );
 		}
 	}
 
