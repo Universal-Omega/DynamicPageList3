@@ -19,7 +19,7 @@ class GalleryList extends Lister {
 	 *
 	 * @var string
 	 */
-	public $listStart = '<gallery mode=packed%s>';
+	public $listStart = '<gallery%s>';
 
 	/**
 	 * List(Section) End
@@ -50,6 +50,7 @@ class GalleryList extends Lister {
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
+				$this->listAttributes = 'mode=packed';
 				var_dump( $pageImage->getName() );
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
