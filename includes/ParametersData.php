@@ -22,6 +22,7 @@ class ParametersData {
 			'addfirstcategorydate',
 			'category',
 			'count',
+			'gallerymode',
 			'hiddencategories',
 			'mode',
 			'namespace',
@@ -761,6 +762,18 @@ class ParametersData {
 				'subpage',
 				'unordered',
 				'userformat',
+			],
+		],
+
+		'gallerymode' => [
+			'default' => 'traditional',
+			'values' => [
+				'nolines',
+				'packed',
+				'packed-hover',
+				'packed-overlay',
+				'slideshow',
+				'traditional',
 			],
 		],
 
