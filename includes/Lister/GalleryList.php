@@ -50,9 +50,8 @@ class GalleryList extends Lister {
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
-				var_dump( $pageImage->getURL() );
 				// Successfully got a page image, wrapping it.
-				$item = $this->getItemStart() . $pageImage->getURL() . $this->itemEnd .
+				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
 					"[[$item]]{$this->itemEnd}link=$item";
 			} else {
 				// Failed to get a page image.
