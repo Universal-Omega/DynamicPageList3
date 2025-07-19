@@ -565,7 +565,14 @@ class Parse {
 		foreach ( [ 'category', 'notcategory' ] as $param ) {
 			foreach ( $this->parameters->getParameter( $param ) ?? [] as $operatorTypes ) {
 				foreach ( $operatorTypes as $categoryGroups ) {
-					foreach ( (array)$categoryGroups as $categories ) {
+					if ( is_string( $categoryGroups ) ) {
+						// If $categoryGroups is a string, just count as 1.
+						// This may be the case for notcategory.
+						$totalCategories++;
+						continue;
+					}
+
+					foreach ( $categoryGroups as $categories ) {
 						if ( is_array( $categories ) ) {
 							$totalCategories += count( $categories );
 						}
