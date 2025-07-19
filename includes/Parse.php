@@ -573,6 +573,7 @@ class Parse {
 					}
 
 					foreach ( $categoryGroups as $categories ) {
+						var_dump( $categories );
 						if ( is_array( $categories ) ) {
 							$totalCategories += count( $categories );
 						}
