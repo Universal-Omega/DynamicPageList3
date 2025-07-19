@@ -153,7 +153,7 @@ class Parse {
 		/****************/
 		/* Check Errors */
 		/****************/
-		if ( $this->doQueryErrorChecks() === false ) {
+		if ( !$this->doQueryErrorChecks() ) {
 			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
 
