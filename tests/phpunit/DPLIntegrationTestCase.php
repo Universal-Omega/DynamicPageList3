@@ -102,7 +102,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		];
 
 		$html = $this->runDPLQuery( $params );
-		var_dump( $html );
 		$doc = new DOMDocument();
 		$doc->loadHTML( $html );
 		$queryResults = $doc->getElementById( 'dpl-test-query' );
