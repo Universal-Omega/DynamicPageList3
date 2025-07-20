@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
@@ -135,7 +136,7 @@ class Article {
 				$article->mRevision = $row->rev_id ?? 0;
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp ?? '';
-				$article->mComment = htmlspecialchars( $row->rev_comment_text ?? '' );
+				$article->mComment = Html::element( 'nowiki', [], $row->rev_comment_text ?? '' );
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
