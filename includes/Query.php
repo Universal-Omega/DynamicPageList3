@@ -459,17 +459,17 @@ class Query {
 
 		$this->queryBuilder->select( [
 			"{$tableAlias}rev_actor",
-			"{$tableAlias}rev_comment_id",
 			"{$tableAlias}rev_deleted",
 		] );
 
 		if ( $this->isFormatUsed( '%EDITSUMMARY%' ) ) {
+			$this->queryBuilder->join( 'page', 'page', "page.page_id = {$tableAlias}rev_page" );
 			$this->queryBuilder->select( [
 				'rev_comment_text' => 'comment_rev_comment.comment_text',
 			] );
 
 			$this->queryBuilder->join( 'comment', 'comment_rev_comment',
-				"comment_rev_comment.comment_id = {$tableAlias}rev_comment_id"
+				"comment_rev_comment.comment_id = rev_comment_id"
 			);
 		}
 	}
