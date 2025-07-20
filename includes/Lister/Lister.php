@@ -1010,7 +1010,7 @@ class Lister {
 					return '';
 				}
 
-				return $this->stripImagesPrefix( $pageImage->getURL() );
+				return $this->stripImagesPrefix( $pageImage->getFullURL() );
 			}
 
 			return '';
