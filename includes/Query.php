@@ -9,6 +9,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
+use MediaWiki\Title\Title;
 use MediaWiki\User\UserFactory;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
@@ -2000,7 +2001,7 @@ class Query {
 		$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 		if ( str_starts_with( $option, '=_' ) ) {
-			$option = substr( $option, 2 );
+			$option = Title::newFromText( substr( $option, 2 ) )->getDBkey();
 			$this->queryBuilder->where( $this->dbr->expr( $field, '>=', $option ) );
 			return;
 		}
@@ -2012,6 +2013,7 @@ class Query {
 			return;
 		}
 
+		$option = Title::newFromText( $option )->getDBkey();
 		$this->queryBuilder->where( $this->dbr->expr( $field, '>', $option ) );
 	}
 
@@ -2023,7 +2025,7 @@ class Query {
 		$field = $openReferences ? 'lt_title' : 'page.page_title';
 
 		if ( str_starts_with( $option, '=_' ) ) {
-			$option = substr( $option, 2 );
+			$option = Title::newFromText( substr( $option, 2 ) )->getDBkey();
 			$this->queryBuilder->where( $this->dbr->expr( $field, '<=', $option ) );
 			return;
 		}
@@ -2035,6 +2037,7 @@ class Query {
 			return;
 		}
 
+		$option = Title::newFromText( $option )->getDBkey();
 		$this->queryBuilder->where( $this->dbr->expr( $field, '<', $option ) );
 	}
 
