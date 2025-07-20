@@ -142,6 +142,9 @@ class Article {
 						$comment = wfMessage( 'rev-deleted-comment' )->text();
 					}
 
+					// Wrap the edit summary in <nowiki> and escape it to:
+					// 1) Prevent any wikitext parsing.
+					// 2) Ensure any </nowiki> inside the summary doesn't prematurely close the tag.
 					$article->mComment = Html::element( 'nowiki', [], $comment );
 				}
 			}
