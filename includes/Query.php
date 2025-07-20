@@ -471,7 +471,7 @@ class Query {
 				->limit( 1 )
 				->caller( __METHOD__ )
 				->getSQL();
-			
+
 			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
 		}
 	}
