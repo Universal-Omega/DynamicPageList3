@@ -506,6 +506,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'namespace' ) ?? [];
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
 			$lowerParam = strtolower( $parameter );
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
@@ -544,6 +545,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'notnamespace' ) ?? [];
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
 			$lowerParam = strtolower( $parameter );
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
