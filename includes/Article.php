@@ -136,7 +136,14 @@ class Article {
 				$article->mRevision = $row->rev_id ?? 0;
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp ?? '';
-				$article->mComment = Html::element( 'nowiki', [], $row->rev_comment_text ?? '' );
+				if ( $row->rev_comment_text ?? '' ) {
+					$comment = $row->rev_comment_text;
+					if ( $row->rev_deleted & RevisionRecord::DELETED_COMMENT ) {
+						$comment = wfMessage( 'rev-deleted-comment' )->text();
+					}
+
+					$article->mComment = Html::element( 'nowiki', [], $comment );
+				}
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
