@@ -463,10 +463,12 @@ class Query {
 			"{$tableAlias}rev_deleted",
 		] );
 
-		if ( $this->isFormatUsed( '%EDITSUMMARY%' ) ) {
+		if ( $this->isFormatUsed( '%EDITSUMMARY%' ) &&
+			!isset( $this->queryBuilder->getQueryInfo()['fields']['rev_comment_text'] )
+		) {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'comment_text' )
-				->from( 'comment' )
+				->from( 'comment', )
 				->where( "comment.comment_id = {$tableAlias}rev_comment_id" )
 				->limit( 1 )
 				->caller( __METHOD__ )
