@@ -543,10 +543,11 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'firstrevisionsince' => '200812041300',
 			'ordermethod' => 'firstedit',
 			'adduser' => true,
-		], '%PAGE%, %REVISION%: %EDITSUMMARY%' );
+			'count' => 1,
+		], '%PAGE%: %EDITSUMMARY%' );
 
 		$this->assertArrayEquals( [
-			'DPLTestArticle 1: %EDITSUMMARY%',
+			'DPLTestArticle 3: Initial page version',
 		], $results, true );
 	}
 }
