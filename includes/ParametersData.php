@@ -1260,6 +1260,7 @@ class ParametersData {
 				'default' => 'unordered',
 				'values' => [
 					'none',
+					'gallery',
 					'ordered',
 					'unordered',
 				],
