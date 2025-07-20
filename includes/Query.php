@@ -21,6 +21,7 @@ use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
+use Wikimedia\Rdbms\Subquery;
 
 class Query {
 
@@ -461,6 +462,20 @@ class Query {
 			"{$tableAlias}rev_actor",
 			"{$tableAlias}rev_deleted",
 		] );
+
+		if ( $this->isFormatUsed( '%EDITSUMMARY%' ) &&
+			!isset( $this->queryBuilder->getQueryInfo()['fields']['rev_comment_text'] )
+		) {
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'comment_text' )
+				->from( 'comment', )
+				->where( "comment.comment_id = {$tableAlias}rev_comment_id" )
+				->limit( 1 )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
+		}
 	}
 
 	/**
