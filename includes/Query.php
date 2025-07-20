@@ -452,6 +452,17 @@ class Query {
 		return $parts ?: [ '' ];
 	}
 
+	private function adduser( string $tableAlias ): void {
+		if ( $tableAlias ) {
+			$tableAlias .= '.';
+		}
+
+		$this->queryBuilder->select( [
+			"{$tableAlias}rev_actor",
+			"{$tableAlias}rev_deleted",
+		] );
+	}
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -473,7 +484,7 @@ class Query {
 				"rev.rev_timestamp = ($minTimestampSubquery)",
 			] );
 
-			$this->_adduser( null, 'rev' );
+			$this->adduser( tableAlias: 'rev' );
 		}
 	}
 
@@ -581,7 +592,7 @@ class Query {
 				"rev.rev_timestamp = ($maxTimestampSubquery)",
 			] );
 
-			$this->_adduser( null, 'rev' );
+			$this->adduser( tableAlias: 'rev' );
 		}
 	}
 
@@ -625,17 +636,10 @@ class Query {
 	/**
 	 * Set SQL for 'adduser' parameter.
 	 *
-	 * @param ?bool $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _adduser( ?bool $option, string $tableAlias = '' ): void {
-		if ( $tableAlias ) {
-			$tableAlias .= '.';
-		}
-
-		$this->queryBuilder->select( [
-			"{$tableAlias}rev_actor",
-			"{$tableAlias}rev_deleted",
-		] );
+	private function _adduser( bool $option ): void {
+		$this->addUser( tableAlias: '' );
 	}
 
 	/**
@@ -823,7 +827,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
-		$this->_adduser( null, 'creation_rev' );
+		$this->adduser( tableAlias: 'creation_rev' );
 
 		$this->queryBuilder->where( [
 			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
@@ -1811,7 +1815,7 @@ class Query {
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
 					$this->queryBuilder->table( 'revision', 'rev' );
-					$this->_adduser( null, 'rev' );
+					$this->adduser( tableAlias: 'rev' );
 					break;
 				case 'none':
 					break;
