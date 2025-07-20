@@ -14,6 +14,7 @@ use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
+use PageImages\PageImages;
 
 class Lister {
 	public const LIST_DEFINITION = 1;
@@ -988,51 +989,37 @@ class Lister {
 
 	/**
 	 * Prepends an image name with its hash path.
-	 *
-	 * @param Article|string $article
-	 * @return string
 	 */
-	protected function parseImageUrlWithPath( $article ) {
+	private function parseImageUrlWithPath( Article|string $article ): string {
 		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
-		$pageImagesEnabled = ExtensionRegistry::getInstance()->isLoaded( 'PageImages' );
-
-		$imageUrl = '';
 		if ( $article instanceof Article ) {
-			if ( $article->mNamespace == NS_FILE ) {
-				// calculate URL for existing images
-				// $img = Image::newFromName( $article->mTitle->getText() );
+			if ( $article->mNamespace === NS_FILE ) {
+				// Calculate the URL for existing files.
+				$file = $repoGroup->findFile( $article->mTitle );
+				return $file && $file->exists()
+					? $file->getRel()
+					: $repoGroup->getLocalRepo()->newFile( $article->mTitle )->getRel();
+			}
 
-				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $article->mTitle->getText() ) );
-				if ( $img && $img->exists() ) {
-					$imageUrl = $img->getURL();
-				} else {
-					$fileTitle = Title::makeTitleSafe( NS_FILE, $article->mTitle->getDBKey() );
-					$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
-				}
-			} elseif ( $pageImagesEnabled ) {
-				$pageImage = self::getPageImage( $article->mID ) ?: false;
-				if ( !$pageImage ) {
+			if ( ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+				// Get the PageImage URL.
+				$pageImage = PageImages::getPageImage( $article->mTitle );
+				if ( !$pageImage || !$pageImage->exists() ) {
 					return '';
 				}
-				$img = $repoGroup->findFile( Title::makeTitle( NS_FILE, $pageImage ) );
-				if ( $img && $img->exists() ) {
-					$imageUrl = $img->getURL();
-				}
-			}
-		} else {
-			$title = Title::newfromText( 'File:' . $article );
 
-			if ( $title !== null ) {
-				$fileTitle = Title::makeTitleSafe( 6, $title->getDBKey() );
-
-				$imageUrl = $repoGroup->getLocalRepo()->newFile( $fileTitle )->getPath();
+				return $pageImage->getRel();
 			}
+
+			return '';
 		}
 
-		// @TODO: Check this preg_replace. Probably only works for stock file repositories.
-		$imageUrl = preg_replace( '~^.*images/(.*)~', '\1', $imageUrl );
+		$title = Title::newFromText( $article, NS_FILE );
+		if ( !$title ) {
+			return '';
+		}
 
-		return $imageUrl;
+		return $repoGroup->getLocalRepo()->newFile( $title )->getRel();
 	}
 
 	/**
@@ -1436,31 +1423,5 @@ class Lister {
 	 */
 	public function getRowCount() {
 		return $this->rowCount;
-	}
-
-	/**
-	 * Get the page image from the page_props table
-	 *
-	 * @param int $pageID
-	 * @return mixed|false
-	 */
-	public function getPageImage( int $pageID ) {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
-		// In the future, a check could be made for page_image too,
-		// but page_image_free is the default, should do for now.
-		$propValue = $dbr->selectField(
-			// Table to use
-			'page_props',
-			// Field to select
-			'pp_value',
-			// Where conditions
-			[
-				'pp_page' => $pageID,
-				'pp_propname' => 'page_image_free',
-			],
-			__METHOD__
-		);
-
-		return $propValue;
 	}
 }

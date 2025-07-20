@@ -22,6 +22,7 @@ class ParametersData {
 			'addfirstcategorydate',
 			'category',
 			'count',
+			'gallerymode',
 			'hiddencategories',
 			'mode',
 			'namespace',
@@ -764,6 +765,18 @@ class ParametersData {
 			],
 		],
 
+		'gallerymode' => [
+			'default' => 'traditional',
+			'values' => [
+				'nolines',
+				'packed',
+				'packed-hover',
+				'packed-overlay',
+				'slideshow',
+				'traditional',
+			],
+		],
+
 		/**
 		 * by default links to articles of type image or category are escaped (i.e. they appear as a link and do not
 		 * actually assign the category or show the image; this can be changed.
@@ -1247,6 +1260,7 @@ class ParametersData {
 				'default' => 'unordered',
 				'values' => [
 					'none',
+					'gallery',
 					'ordered',
 					'unordered',
 				],
