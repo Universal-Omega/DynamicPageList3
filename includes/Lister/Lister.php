@@ -996,11 +996,9 @@ class Lister {
 			if ( $article->mNamespace === NS_FILE ) {
 				// Calculate the URL for existing files.
 				$file = $repoGroup->findFile( $article->mTitle );
-				$url = $file && $file->exists()
-					? $file->getURL()
-					: $repoGroup->getLocalRepo()->newFile( $article->mTitle )->getPath();
-
-				return $this->stripImagesPrefix( $url );
+				return $file && $file->exists()
+					? $file->getRel()
+					: $repoGroup->getLocalRepo()->newFile( $article->mTitle )->getRel();
 			}
 
 			if ( ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
@@ -1010,7 +1008,7 @@ class Lister {
 					return '';
 				}
 
-				return $this->stripImagesPrefix( $pageImage->getFullURL() );
+				return $pageImage->getRel();
 			}
 
 			return '';
@@ -1021,16 +1019,7 @@ class Lister {
 			return '';
 		}
 
-		$url = $repoGroup->getLocalRepo()->newFile( $title )->getPath();
-		return $this->stripImagesPrefix( $url );
-	}
-
-	/**
-	 * Removes everything up to and including "images/" from the URL or path.
-	 */
-	private function stripImagesPrefix( string $url ): string {
-		// @TODO: Check this preg_replace. Probably only works for stock file repositories.
-		return preg_replace( '~^.*images/(.*)~', '$1', $url ) ?? '';
+		return $repoGroup->getLocalRepo()->newFile( $title )->getRel();
 	}
 
 	/**
