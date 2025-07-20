@@ -1042,7 +1042,7 @@ class ParametersData {
 		 */
 		'redirects' => [
 			'default' => 'exclude',
-			'values' => [ 'exclude', 'only' ],
+			'values' => [ 'include', 'exclude', 'only' ],
 		],
 
 		/**

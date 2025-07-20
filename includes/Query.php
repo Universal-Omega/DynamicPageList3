@@ -1843,7 +1843,7 @@ class Query {
 	 * Set SQL for 'redirects' parameter.
 	 */
 	private function _redirects( string $option ): void {
-		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+		if ( $option === 'include' || $this->parameters->getParameter( 'openreferences' ) ) {
 			return;
 		}
 
