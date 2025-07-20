@@ -135,8 +135,7 @@ class Article {
 				$article->mRevision = $row->rev_id ?? 0;
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp ?? '';
-
-				// $article->mComment = $row->rev_comment;
+				$article->mComment = $row->rev_comment_text ?? '';
 			}
 
 			// SHOW "PAGE_TOUCHED" DATE, "FIRSTCATEGORYDATE" OR (FIRST/LAST) EDIT DATE
