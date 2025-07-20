@@ -649,7 +649,8 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _adduser( bool $option ): void {
-		$this->addUser( tableAlias: '' );
+		$this->queryBuilder->table( 'revision', 'rev' );
+		$this->addUser( tableAlias: 'rev' );
 	}
 
 	/**
