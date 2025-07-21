@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use DateInterval;
-use DateTime;
 use LogicException;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -11,6 +9,7 @@ use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserFactory;
+use MediaWiki\Utils\MWTimestamp;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
@@ -314,7 +313,7 @@ class Query {
 	 */
 	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl4' );
+			->getReplicaDatabase( group: 'dpl4' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
@@ -346,42 +345,18 @@ class Query {
 	 * Helper method to handle relative timestamps.
 	 */
 	private function convertTimestamp( string $inputDate ): string {
-		$timestamp = $inputDate;
-		switch ( $inputDate ) {
-			case 'today':
-				$timestamp = date( 'YmdHis' );
-				break;
-			case 'last hour':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1H' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last day':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1D' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last week':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P7D' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last month':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1M' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last year':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1Y' ) );
-				$timestamp = $date->format( 'YmdHis' );
+		if ( is_numeric( $inputDate ) ) {
+			return $inputDate;
 		}
 
-		if ( is_numeric( $timestamp ) ) {
-			return $timestamp;
+		// Apply relative time modifications like 'last week', '-1 day', '+2 hours'
+		$timestamp = MWTimestamp::getInstance()->timestamp;
+		$modified = $timestamp->modify( $inputDate );
+		if ( $modified ) {
+			return $modified->format( 'YmdHis' );
 		}
 
-		throw new LogicException( "Invalid timestamp: $timestamp" );
+		throw new LogicException( "Invalid timestamp: $inputDate" );
 	}
 
 	private function caseInsensitiveComparison(
@@ -469,7 +444,7 @@ class Query {
 		) {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'comment_text' )
-				->from( 'comment', )
+				->from( 'comment' )
 				->where( "comment.comment_id = {$tableAlias}rev_comment_id" )
 				->limit( 1 )
 				->caller( __METHOD__ )
