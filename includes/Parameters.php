@@ -94,15 +94,14 @@ class Parameters extends ParametersData {
 		// Timestamp handling
 		if ( $parameterData['timestamp'] ?? false ) {
 			$option = strtolower( $option );
-			$option = match ( $option ) {
-				'today', 'last hour', 'last day', 'last week',
-				'last month', 'last year' => $option,
-				default => wfTimestamp( TS_MW,
-					str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' )
-				) ?: false,
-			};
+			if ( is_numeric( $option ) ) {
+				$option = str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' );
+				$timestamp = wfTimestamp( TS_MW, $option ) ?: false;
+			} else {
+				$timestamp = strtotime( $timestamp );
+			}
 
-			if ( $option === false ) {
+			if ( $timestamp === false ) {
 				$success = false;
 			}
 		}
