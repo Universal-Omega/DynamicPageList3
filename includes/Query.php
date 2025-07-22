@@ -641,14 +641,17 @@ class Query {
 	 */
 	private function _allrevisionsbefore( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( [
+			'rev_id' => 'rev.rev_id',
+			'rev_timestamp' => 'rev.rev_timestamp',
+		] );
 
-		$this->addOrderBy( 'rev.rev_id' );
+		$this->addOrderBy( 'rev_id' );
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
+			$this->dbr->expr( 'rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 	}
 
@@ -657,14 +660,17 @@ class Query {
 	 */
 	private function _allrevisionssince( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( [
+			'rev_id' => 'rev.rev_id',
+			'rev_timestamp' => 'rev.rev_timestamp',
+		] );
 
-		$this->addOrderBy( 'rev.rev_id' );
+		$this->addOrderBy( 'rev_id' );
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
+			$this->dbr->expr( 'rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 	}
 
@@ -845,12 +851,15 @@ class Query {
 	 */
 	private function _firstrevisionsince( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( [
+			'rev_id' => 'rev.rev_id',
+			'rev_timestamp' => 'rev.rev_timestamp',
+		] );
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
+			$this->dbr->expr( 'rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 
 		$minTimestampSinceSubquery = $this->queryBuilder->newSubquery()
@@ -865,7 +874,7 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where( "rev.rev_timestamp = ($minTimestampSinceSubquery)" );
+		$this->queryBuilder->where( "rev_timestamp = ($minTimestampSinceSubquery)" );
 	}
 
 	/**
@@ -982,12 +991,15 @@ class Query {
 	 */
 	private function _lastrevisionbefore( string $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
-		$this->queryBuilder->select( [ 'rev.rev_id', 'rev.rev_timestamp' ] );
+		$this->queryBuilder->select( [
+			'rev_id' => 'rev.rev_id',
+			'rev_timestamp' => 'rev.rev_timestamp',
+		] );
 
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
+			$this->dbr->expr( 'rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 
 		$subquery = $this->queryBuilder->newSubquery()
@@ -1002,7 +1014,7 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
+		$this->queryBuilder->where( "rev_timestamp = ($subquery)" );
 	}
 
 	/**
