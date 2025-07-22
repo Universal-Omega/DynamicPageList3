@@ -180,7 +180,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Utils::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
+			if ( Utils::getDebugLevel() >= 4 && !$this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
@@ -347,13 +347,13 @@ class Query {
 	private function convertTimestamp( string $inputDate ): string {
 		try {
 			if ( is_numeric( $inputDate ) ) {
-				return $this->dbr->timestamp( wfTimestamp( TS_MW, $inputDate ) );
+				return $this->dbr->timestamp( $inputDate );
 			}
 
 			// Apply relative time modifications like 'last week', '-1 day', '5 days ago', etc...
 			$timestamp = strtotime( $inputDate );
 			if ( $timestamp !== false ) {
-				return $this->dbr->timestamp( wfTimestamp( TS_MW, $timestamp ) );
+				return $this->dbr->timestamp( $timestamp );
 			}
 		} catch ( TimestampException ) {
 			// Handle the failure below
