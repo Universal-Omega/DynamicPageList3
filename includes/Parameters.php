@@ -94,16 +94,34 @@ class Parameters extends ParametersData {
 		// Timestamp handling
 		if ( $parameterData['timestamp'] ?? false ) {
 			$option = strtolower( $option );
-			$option = match ( $option ) {
-				'today', 'last hour', 'last day', 'last week',
-				'last month', 'last year' => $option,
-				default => wfTimestamp( TS_MW,
-					str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' )
-				) ?: false,
-			};
-
-			if ( $option === false ) {
-				$success = false;
+			if ( is_numeric( $option ) ) {
+				/**
+				 * Ensure the input is compatible with MediaWiki timestamps.
+				 * If we pad directly with 0s, incomplete dates like '2025' would become
+				 * '20250000000000', which contains invalid month ('00') and day ('00').
+				 *
+				 * PHP's DateTime parser normalizes these zero components instead of throwing
+				 * an error. A month value of '00' is interpreted as "one month before January,"
+				 * which is December of the previous year. Then, a day value of '00' is treated
+				 * as "one day before the 1st of the month," resulting in the last day of the
+				 * previous month.
+				 *
+				 * As a result, '20250000000000' is interpreted by DateTime as:
+				 *  - Year: 2025
+				 *  - Month: 00 → rolls back to December of 2024
+				 *  - Day: 00 → rolls back to November 30, 2024
+				 *
+				 * This is why padding with zeros can lead to unexpected results like
+				 * '20241130000000' instead of the intended start of 2025.
+				 *
+				 * To prevent this, we pad the month and day with '01' to ensure they are valid
+				 * (January 1st), and pad the hour, minute, and second with '0' to complete the
+				 * 14-digit timestamp expected by ConvertibleTimestamp with support for both
+				 * TS_MW (used by MySQL/MariaDB and SQLite) and TS_POSTGRES (used by PostgreSQL).
+				 */
+				$option = preg_replace( '#[^0-9]#', '', $option );
+				$option = str_pad( $option, 8, '01' );
+				$option = str_pad( $option, 14, '0' );
 			}
 		}
 
