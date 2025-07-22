@@ -91,6 +91,14 @@ class Parameters extends ParametersData {
 			}
 		}
 
+		// Timestamp handling
+		if ( $parameterData['timestamp'] ?? false ) {
+			$option = strtolower( $option );
+			if ( is_numeric( $option ) ) {
+				$option = str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' );
+			}
+		}
+
 		// Page name list
 		if ( $parameterData['page_name_list'] ?? false ) {
 			$pageGroups = $this->getParameter( $parameter ) ?? [];
