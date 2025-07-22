@@ -9,7 +9,6 @@ use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserFactory;
-use MediaWiki\Utils\MWTimestamp;
 use MediaWiki\WikiMap\WikiMap;
 use Wikimedia\ObjectCache\WANObjectCache;
 use Wikimedia\Rdbms\Database;
@@ -22,6 +21,7 @@ use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\Subquery;
+use Wikimedia\Timestamp\TimestampException;
 
 class Query {
 
@@ -345,15 +345,18 @@ class Query {
 	 * Helper method to handle relative timestamps.
 	 */
 	private function convertTimestamp( string $inputDate ): string {
-		if ( is_numeric( $inputDate ) ) {
-			return $inputDate;
-		}
+		try {
+			if ( is_numeric( $inputDate ) ) {
+				return $this->dbr->timestamp( $inputDate );
+			}
 
-		// Apply relative time modifications like 'last week', '-1 day', '+2 hours'
-		$timestamp = MWTimestamp::getInstance()->timestamp;
-		$modified = $timestamp->modify( $inputDate );
-		if ( $modified ) {
-			return $modified->format( 'YmdHis' );
+			// Apply relative time modifications like 'last week', '-1 day', '5 days ago', etc...
+			$timestamp = strtotime( $inputDate );
+			if ( $timestamp !== false ) {
+				return $this->dbr->timestamp( $timestamp );
+			}
+		} catch ( TimestampException ) {
+			// Handle the failure below
 		}
 
 		throw new LogicException( "Invalid timestamp: $inputDate" );
@@ -847,7 +850,7 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '>=', $option ),
+			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 
 		$minTimestampSinceSubquery = $this->queryBuilder->newSubquery()
@@ -984,9 +987,7 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '<',
-				$this->convertTimestamp( $option )
-			),
+			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 
 		$subquery = $this->queryBuilder->newSubquery()
