@@ -180,7 +180,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Utils::getDebugLevel() >= 4 && !$this->config->get( MainConfigNames::DebugDumpSql ) ) {
+			if ( Utils::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
