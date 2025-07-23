@@ -302,6 +302,10 @@ class Parse {
 		);
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
+		if ( $this->logger->getMessages( clearBuffer: false ) ) {
+			$parser->addTrackingCategory( 'dpl-errors-tracking-category' );
+		}
+
 		return $finalOutput;
 	}
 
