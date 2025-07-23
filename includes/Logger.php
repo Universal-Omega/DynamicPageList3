@@ -8,6 +8,7 @@ class Logger {
 
 	/** Buffer of debug messages. */
 	private array $buffer = [];
+	private int $debugLevel = 0;
 	private static ?self $instance = null;
 
 	public function addMessage( int $errorId, string ...$args ): void {
@@ -45,6 +46,14 @@ class Logger {
 		}
 
 		return $buffer;
+	}
+
+	public function getDebugLevel(): int {
+		return $this->debugLevel;
+	}
+
+	public function setDebugLevel( int $level ): void {
+		$this->debugLevel = $level;
 	}
 
 	public static function getInstance(): self {
