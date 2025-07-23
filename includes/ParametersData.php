@@ -7,6 +7,7 @@ use UnexpectedValueException;
 class ParametersData {
 
 	protected readonly Config $config;
+	protected readonly Logger $logger;
 
 	/**
 	 * Parameter Richness
@@ -1236,6 +1237,7 @@ class ParametersData {
 
 	public function __construct() {
 		$this->config = Config::getInstance();
+		$this->logger = new Logger();
 		$this->parameterRichness = $this->config->get( 'functionalRichness' );
 
 		if ( Utils::isLikeIntersection() ) {
