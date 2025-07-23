@@ -1,6 +1,6 @@
 {
-	"name": "DynamicPageList3",
-	"version": "PRE.6",
+	"name": "DynamicPageList4",
+	"version": "4.0.0-alpha.4",
 	"author": [
 		"'''Universal Omega'''",
 		"Alexia E. Smith",
@@ -24,27 +24,35 @@
 		"dpl_param_delete_rules"
 	],
 	"MessagesDirs": {
-		"DynamicPageList3": [
+		"DynamicPageList4": [
 			"i18n"
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
+		"DynamicPageList4Magic": "DynamicPageList4Magic.php"
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/",
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\": "maintenance/"
+		"MediaWiki\\Extension\\DynamicPageList4\\": "includes/",
+		"MediaWiki\\Extension\\DynamicPageList4\\Maintenance\\": "maintenance/"
 	},
 	"TestAutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\Tests\\": "tests/phpunit/"
+		"MediaWiki\\Extension\\DynamicPageList4\\Tests\\": "tests/phpunit/"
 	},
 	"Hooks": {
-		"ParserFirstCallInit": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onParserFirstCallInit"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onLoadExtensionSchemaUpdates"
-		]
+		"LoadExtensionSchemaUpdates": {
+			"handler": "Installer"
+		},
+		"ParserFirstCallInit": {
+			"handler": "Main"
+		}
+	},
+	"HookHandlers": {
+		"Installer": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Installer"
+		},
+		"Main": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Main"
+		}
 	},
 	"config": {
 		"DplSettings": {
@@ -68,6 +76,7 @@
 		}
 	},
 	"TrackingCategories": [
+		"dpl-tracking-category",
 		"dpl-tag-tracking-category",
 		"dpl-intersection-tracking-category",
 		"dpl-parserfunc-tracking-category",

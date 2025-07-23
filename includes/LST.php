@@ -25,9 +25,9 @@
  * -- Algorithmix
  */
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\Parser;
@@ -819,10 +819,10 @@ class LST {
 								'|%USER%=' . $user . '|%ARGS%=' .
 								str_replace(
 									'|', '§',
-									preg_replace(
-										'/[}]+/', '}',
-										preg_replace(
-											'/[{]+/', '{',
+									str_replace(
+										'}', '❵',
+										str_replace(
+											'{', '❴',
 											substr( $invocation, strlen( $template2 ) + 2 )
 										)
 									)
@@ -1013,7 +1013,8 @@ class LST {
 		?PageReference $page,
 		ParserOptions $options
 	): string {
-		if ( Config::getSetting( 'recursivePreprocess' ) ) {
+		$config = Config::getInstance();
+		if ( $config->get( 'recursivePreprocess' ) ) {
 			self::softResetParser( $parser );
 			$parser->setOutputType( OT_PREPROCESS );
 

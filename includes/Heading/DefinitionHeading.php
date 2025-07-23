@@ -1,93 +1,38 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 
 class DefinitionHeading extends Heading {
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement.  Example: <div%s>
-	 *
-	 * @var string
-	 */
-	public $headListStart = '<dt>';
 
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headListEnd = '</dt>';
+	private const HEAD_START_TAG = '<dt>';
+	private const HEAD_END_TAG = '</dt>';
 
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement.  Example: <div%s>
-	 *
-	 * @var string
-	 */
-	public $headItemStart = '';
-
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headItemEnd = '';
-
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<dl%s>';
-
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</dl>';
-
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<dd%s>';
-
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</dd>';
+	protected string $listStart = '<dl%s>';
+	protected string $listEnd = '</dl>';
+	protected string $itemStart = '<dd%s>';
+	protected string $itemEnd = '</dd>';
 
 	/**
 	 * Format a heading group.
-	 *
-	 * @param int $headingStart
-	 * @param int $headingCount
-	 * @param string $headingLink
-	 * @param array $articles
-	 * @param Lister $lister
-	 * @return string
 	 */
-	public function formatItem( $headingStart, $headingCount, $headingLink, $articles, Lister $lister ) {
-		$item = '';
-
-		$item .= $this->headListStart . $headingLink;
-
+	protected function formatItem(
+		int $headingStart,
+		int $headingCount,
+		string $headingLink,
+		array $articles,
+		Lister $lister
+	): string {
+		$item = self::HEAD_START_TAG . $headingLink;
 		if ( $this->showHeadingCount ) {
 			$item .= $this->articleCountMessage( $headingCount );
 		}
 
-		$item .= $this->headListEnd;
-		$item .= $this->getItemStart() . $lister->formatList(
-			$articles,
-			$headingStart,
-			$headingCount
-		) . $this->getItemEnd();
+		$item .= self::HEAD_END_TAG;
+		$item .= $this->getItemStart();
+		$item .= $lister->formatList( $articles, $headingStart, $headingCount );
+		$item .= $this->getItemEnd();
 
 		return $item;
 	}

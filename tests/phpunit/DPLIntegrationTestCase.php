@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Tests;
+namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use DOMDocument;
 use DOMXPath;
@@ -14,8 +14,7 @@ use MediaWikiIntegrationTestCase;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
-	/** @var Status */
-	private $importStreamSource;
+	private readonly Status $importStreamSource;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -24,7 +23,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$this->importStreamSource = ImportStreamSource::newFromFile( $file );
 
 		if ( !$this->importStreamSource->isGood() ) {
-			$this->fail( "Import source for {$file} failed" );
+			$this->fail( "Import source for $file failed." );
 		}
 	}
 
@@ -47,7 +46,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Import test accounts from seed data so that DPL queries can refer to them.
-	 * @param string $seedDataPath - path to seed data to be loaded
 	 */
 	private function seedTestUsers( string $seedDataPath ): void {
 		$doc = new DOMDocument();
@@ -57,11 +55,10 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$xpath = new DOMXPath( $doc );
 		$xpath->registerNamespace( 'mw', 'http://www.mediawiki.org/xml/export-0.11/' );
 
-		$userNodes = $xpath->query( '//mw:mediawiki/mw:page/mw:revision/mw:contributor/mw:username' );
-		$usersByName = [];
-
 		$authManager = $this->getServiceContainer()->getAuthManager();
 
+		$userNodes = $xpath->query( '//mw:mediawiki/mw:page/mw:revision/mw:contributor/mw:username' );
+		$usersByName = [];
 		foreach ( $userNodes as $node ) {
 			$userName = $node->nodeValue;
 
@@ -74,7 +71,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 			$user = $this->newUserFromName( $userName );
 
 			if ( !$user || $user->idForName() !== 0 ) {
-				// sanity
+				// Sanity check
 				return;
 			}
 
@@ -96,15 +93,12 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Convenience function to return the list of page titles matching a DPL query
-	 * @param array $params - DPL invocation parameters
-	 * @param string $format
-	 * @return string[]
+	 * Convenience function to return the list of page titles matching a DPL query.
 	 */
-	protected function getDPLQueryResults( array $params, string $format = '%PAGE%' ): array {
+	protected function getDPLQueryResults( array $params, string $format ): array {
 		$params += [
-			// Use a custom format for executing the query to allow easily extracting results
-			'format' => "<div id=\"dpl-test-query\">,$format,|,</div>"
+			// Use a custom format for executing the query to allow easily extracting results.
+			'format' => "<div id=\"dpl-test-query\">,$format,|,</div>",
 		];
 
 		$html = $this->runDPLQuery( $params );
@@ -112,7 +106,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		$doc->loadHTML( $html );
 		$queryResults = $doc->getElementById( 'dpl-test-query' );
 		if ( $queryResults ) {
-			return explode( "|", rtrim( $queryResults->textContent, "|" ) );
+			return explode( '|', rtrim( $queryResults->textContent, '|' ) );
 		}
 
 		return [];
@@ -120,8 +114,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Build and execute a DPL invocation using the given parameters and return the HTML output.
-	 * @param array $params
-	 * @return string
 	 */
 	protected function runDPLQuery( array $params ): string {
 		$this->doImport();
@@ -131,7 +123,6 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 		foreach ( $params as $paramName => $values ) {
 			// multi-value parameters
 			$values = (array)$values;
-
 			foreach ( $values as $value ) {
 				$invocation .= "$paramName=$value\n";
 			}
@@ -141,9 +132,7 @@ abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 
 		$parser = $this->getServiceContainer()->getParserFactory()->getInstance();
 		$title = $this->getServiceContainer()->getTitleFactory()->makeTitle( NS_MAIN, 'DPLQueryTest' );
-		$parserOptions = ParserOptions::newCanonical(
-			RequestContext::getMain()
-		);
+		$parserOptions = ParserOptions::newCanonical( RequestContext::getMain() );
 
 		$parserOutput = $parser->parse( $invocation, $title, $parserOptions );
 		return $parserOutput->getContentHolderText();

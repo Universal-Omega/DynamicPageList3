@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
@@ -10,8 +10,6 @@ use StringUtils;
 use Wikimedia\Rdbms\IExpression;
 
 class Parameters extends ParametersData {
-
-	private readonly Config $config;
 
 	/** Set parameter options. */
 	private array $parameterOptions = [];
@@ -27,7 +25,6 @@ class Parameters extends ParametersData {
 
 	public function __construct() {
 		parent::__construct();
-		$this->config = Config::getInstance();
 		$this->setDefaults();
 	}
 
@@ -49,9 +46,8 @@ class Parameters extends ParametersData {
 
 		$function = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
-
 		if ( method_exists( $this, $function ) ) {
-			return call_user_func_array( [ $this, $function ], $arguments );
+			return $this->$function( ...$arguments );
 		}
 
 		$option = $arguments[0];
@@ -98,16 +94,34 @@ class Parameters extends ParametersData {
 		// Timestamp handling
 		if ( $parameterData['timestamp'] ?? false ) {
 			$option = strtolower( $option );
-			$option = match ( $option ) {
-				'today', 'last hour', 'last day', 'last week',
-				'last month', 'last year' => $option,
-				default => wfTimestamp( TS_MW,
-					str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' )
-				) ?: false,
-			};
-
-			if ( $option === false ) {
-				$success = false;
+			if ( is_numeric( $option ) ) {
+				/**
+				 * Ensure the input is compatible with MediaWiki timestamps.
+				 * If we pad directly with 0s, incomplete dates like '2025' would become
+				 * '20250000000000', which contains invalid month ('00') and day ('00').
+				 *
+				 * PHP's DateTime parser normalizes these zero components instead of throwing
+				 * an error. A month value of '00' is interpreted as "one month before January,"
+				 * which is December of the previous year. Then, a day value of '00' is treated
+				 * as "one day before the 1st of the month," resulting in the last day of the
+				 * previous month.
+				 *
+				 * As a result, '20250000000000' is interpreted by DateTime as:
+				 *  - Year: 2025
+				 *  - Month: 00 → rolls back to December of 2024
+				 *  - Day: 00 → rolls back to November 30, 2024
+				 *
+				 * This is why padding with zeros can lead to unexpected results like
+				 * '20241130000000' instead of the intended start of 2025.
+				 *
+				 * To prevent this, we pad the month and day with '01' to ensure they are valid
+				 * (January 1st), and pad the hour, minute, and second with '0' to complete the
+				 * 14-digit timestamp expected by ConvertibleTimestamp with support for both
+				 * TS_MW (used by MySQL/MariaDB and SQLite) and TS_POSTGRES (used by PostgreSQL).
+				 */
+				$option = preg_replace( '#[^0-9]#', '', $option );
+				$option = str_pad( $option, 8, '01' );
+				$option = str_pad( $option, 14, '0' );
 			}
 		}
 
@@ -143,7 +157,6 @@ class Parameters extends ParametersData {
 
 		if ( $success ) {
 			$this->setParameter( $parameter, $option );
-
 			if ( $parameterData['set_criteria_found'] ?? false ) {
 				$this->setSelectionCriteriaFound( true );
 			}
@@ -166,25 +179,28 @@ class Parameters extends ParametersData {
 	public static function sortByPriority( array $parameters ): array {
 		// 'category' to get category headings first for ordermethod.
 		// 'include'/'includepage' to make sure section labels are ready for 'table'.
+		// The order of this array is very important!
 		$priority = [
-			'distinct' => 1,
-			'openreferences' => 2,
-			'ignorecase' => 3,
-			'category' => 4,
-			'title' => 5,
-			'goal' => 6,
-			'ordercollation' => 7,
-			'ordermethod' => 8,
-			'includepage' => 9,
-			'include' => 10,
+			'distinct',
+			'openreferences',
+			'ignorecase',
+			'category',
+			'title',
+			'goal',
+			'ordercollation',
+			'ordermethod',
+			'includepage',
+			'include',
 		];
 
 		$first = [];
-		foreach ( $priority as $parameter => $_ ) {
-			if ( isset( $parameters[$parameter] ) ) {
-				$first[$parameter] = $parameters[$parameter];
-				unset( $parameters[$parameter] );
+		foreach ( $priority as $parameter ) {
+			if ( !isset( $parameters[$parameter] ) ) {
+				continue;
 			}
+
+			$first[$parameter] = $parameters[$parameter];
+			unset( $parameters[$parameter] );
 		}
 
 		return $first + $parameters;
@@ -230,7 +246,7 @@ class Parameters extends ParametersData {
 
 			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
-					Hooks::setDebugLevel( $default );
+					Utils::setDebugLevel( $default );
 				}
 
 				$this->setParameter( $parameter, $default );
@@ -292,10 +308,10 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Check if a regular expression is valid.
+	 * Check if all regular expressions in an array are valid.
 	 */
-	private function isRegexValid( array|string $regexes, bool $forDb = false ): bool {
-		foreach ( (array)$regexes as $regex ) {
+	private function isRegexValid( array $regexes, bool $forDb ): bool {
+		foreach ( $regexes as $regex ) {
 			$regex = trim( $regex );
 			if ( $regex === '' ) {
 				continue;
@@ -318,7 +334,6 @@ class Parameters extends ParametersData {
 	 */
 	public function _category( string $option ): bool {
 		$option = trim( html_entity_decode( $option, ENT_QUOTES ) );
-
 		if ( $option === '' ) {
 			return false;
 		}
@@ -333,7 +348,7 @@ class Parameters extends ParametersData {
 
 		[ $parameters, $operator ] = str_contains( $option, '|' )
 			? [ explode( '|', $option ), 'OR' ]
-			: [ explode( '&', $option ), 'AND' ];
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		foreach ( $parameters as $parameter ) {
 			$parameter = trim( $parameter );
@@ -348,7 +363,7 @@ class Parameters extends ParametersData {
 			}
 
 			if ( str_starts_with( $parameter, '*' ) && strlen( $parameter ) >= 2 ) {
-				$depth = str_starts_with( substr( $parameter, 1, 1 ), '*' ) ? 2 : 1;
+				$depth = $parameter[1] === '*' ? 2 : 1;
 				$parameter = ltrim( $parameter, '*' );
 				$subCategories = Query::getSubcategories( $parameter, $depth );
 				$subCategories[] = $parameter;
@@ -374,9 +389,9 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'category' ) ?? [];
 		$data['='] ??= [];
 
-		foreach ( $categories as $_operator => $_categories ) {
-			$data['='][$_operator] ??= [];
-			$data['='][$_operator][] = $_categories;
+		foreach ( $categories as $operatorType => $categoryList ) {
+			$data['='][$operatorType] ??= [];
+			$data['='][$operatorType][] = $categoryList;
 		}
 
 		$this->setParameter( 'category', $data );
@@ -394,7 +409,6 @@ class Parameters extends ParametersData {
 		}
 
 		$this->setOpenReferencesConflict( true );
-
 		return true;
 	}
 
@@ -402,7 +416,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'categoryregexp' parameter.
 	 */
 	public function _categoryregexp( string $option ): bool {
-		if ( !$this->isRegexValid( $option, true ) ) {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
@@ -423,7 +437,7 @@ class Parameters extends ParametersData {
 	public function _categorymatch( string $option ): bool {
 		[ $newMatches, $operator ] = str_contains( $option, '|' )
 			? [ explode( '|', $option ), 'OR' ]
-			: [ explode( '&', $option ), 'AND' ];
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		$data = $this->getParameter( 'category' ) ?? [];
 		$data[IExpression::LIKE][$operator] ??= [];
@@ -457,7 +471,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'notcategoryregexp' parameter.
 	 */
 	public function _notcategoryregexp( string $option ): bool {
-		if ( !$this->isRegexValid( $option, true ) ) {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
@@ -498,7 +512,6 @@ class Parameters extends ParametersData {
 			$this->config->get( 'maxResultCount' );
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
-
 		return true;
 	}
 
@@ -509,11 +522,10 @@ class Parameters extends ParametersData {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$allowedNamespaces = $this->config->get( 'allowedNamespaces' );
 		$data = $this->getParameter( 'namespace' ) ?? [];
-
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
 			$lowerParam = strtolower( $parameter );
-
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
@@ -549,11 +561,10 @@ class Parameters extends ParametersData {
 	public function _notnamespace( string $option ): bool {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$data = $this->getParameter( 'notnamespace' ) ?? [];
-
 		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
 			$lowerParam = strtolower( $parameter );
-
 			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
@@ -606,7 +617,6 @@ class Parameters extends ParametersData {
 	public function _ordermethod( string $option ): bool {
 		$methods = array_map( 'trim', explode( ',', $option ) );
 		$validMethods = $this->getData( 'ordermethod' )['values'] ?? [];
-
 		foreach ( $methods as $method ) {
 			if ( !in_array( $method, $validMethods, true ) ) {
 				return false;
@@ -654,9 +664,9 @@ class Parameters extends ParametersData {
 			return true;
 		}
 
-		$boolean = $this->filterBoolean( $option );
-		if ( $boolean !== null ) {
-			$this->setParameter( 'distinctresultset', $boolean );
+		$option = $this->filterBoolean( $option );
+		if ( $option !== null ) {
+			$this->setParameter( 'distinctresultset', $option );
 			return true;
 		}
 
@@ -747,7 +757,7 @@ class Parameters extends ParametersData {
 		$data['REGEXP'] ??= [];
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
 
@@ -783,7 +793,7 @@ class Parameters extends ParametersData {
 		$data['REGEXP'] ??= [];
 
 		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
 
@@ -823,19 +833,19 @@ class Parameters extends ParametersData {
 			$request = RequestContext::getMain()->getRequest();
 
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
-			$titlegt = $request->getVal( 'DPL_findTitle', '' );
+			$titlegt = $request->getText( 'DPL_findTitle' );
 			$titlegt = $titlegt !== '' ? '=_' . ucfirst( $titlegt ) :
-				ucfirst( $request->getVal( 'DPL_fromTitle', '' ) );
+				ucfirst( $request->getText( 'DPL_fromTitle' ) );
 
 			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = ucfirst( $request->getVal( 'DPL_toTitle', '' ) );
+			$titlelt = ucfirst( $request->getText( 'DPL_toTitle' ) );
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the
 			// Variables extension and in the header/footer replacements.
-			$this->setParameter( 'scrolldir', $request->getVal( 'DPL_scrollDir', '' ) );
+			$this->setParameter( 'scrolldir', $request->getText( 'DPL_scrollDir' ) );
 
 			// Also set count limit from URL if not otherwise set.
 			$this->_count( $request->getInt( 'DPL_count' ) );
@@ -852,13 +862,11 @@ class Parameters extends ParametersData {
 	public function _replaceintitle( string $option ): bool {
 		// We offer a possibility to replace some part of the title
 		$replaceInTitle = explode( ',', $option, 2 );
-
 		if ( isset( $replaceInTitle[1] ) ) {
 			$replaceInTitle[1] = $this->stripHtmlTags( $replaceInTitle[1] );
 		}
 
 		$this->setParameter( 'replaceintitle', $replaceInTitle );
-
 		return true;
 	}
 
@@ -866,8 +874,13 @@ class Parameters extends ParametersData {
 	 * Clean and test 'debug' parameter.
 	 */
 	public function _debug( string $option ): bool {
+		if ( !is_numeric( $option ) ) {
+			return false;
+		}
+
+		$option = (int)$option;
 		if ( in_array( $option, $this->getData( 'debug' )['values'] ?? [], true ) ) {
-			Hooks::setDebugLevel( $option );
+			Utils::setDebugLevel( $option );
 			return true;
 		}
 
@@ -900,7 +913,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includematch( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -925,7 +938,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includematchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -939,7 +952,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includenotmatch( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -952,7 +965,7 @@ class Parameters extends ParametersData {
 	 */
 	public function _includenotmatchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
@@ -989,7 +1002,6 @@ class Parameters extends ParametersData {
 
 		$withHLink = "[[%PAGE%|%TITLE%]]\n|";
 		$listSeparators = [];
-
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
 			if ( $tabnr === 0 ) {
 				$tab = $tab !== '' ? $tab : 'class=wikitable';
@@ -1018,7 +1030,7 @@ class Parameters extends ParametersData {
 		// Overwrite 'listseparators'.
 		$this->setParameter( 'listseparators', $listSeparators );
 
-		$sectionLabels = (array)$this->getParameter( 'seclabels' );
+		$sectionLabels = $this->getParameter( 'seclabels' ) ?? [];
 		$sectionSeparators = $this->getParameter( 'secseparators' ) ?? [];
 		$multiSectionSeparators = $this->getParameter( 'multisecseparators' ) ?? [];
 
@@ -1027,14 +1039,15 @@ class Parameters extends ParametersData {
 				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
 				$sectionSeparators[1] = '';
 				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
-			} else {
-				$sectionSeparators[2 * $i] = "\n|";
-				$sectionSeparators[2 * $i + 1] = '';
-
-				$multiSectionSeparators[$i] = (
-					is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] === '#'
-				) ? "\n----\n" : "<br/>\n";
+				continue;
 			}
+
+			$sectionSeparators[2 * $i] = "\n|";
+			$sectionSeparators[2 * $i + 1] = '';
+
+			$multiSectionSeparators[$i] = (
+				is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] === '#'
+			) ? "\n----\n" : "<br/>\n";
 		}
 
 		// Overwrite 'secseparators' and 'multisecseparators'.
@@ -1074,7 +1087,6 @@ class Parameters extends ParametersData {
 		}
 
 		$option = $this->filterBoolean( $option );
-
 		if ( $option !== null ) {
 			$this->setParameter( 'allowcachedresults', $option );
 			return true;
@@ -1087,7 +1099,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'fixcategory' parameter.
 	 */
 	public function _fixcategory( string $option ): bool {
-		Hooks::fixCategory( $option );
+		Utils::fixCategory( $option );
 		return true;
 	}
 
