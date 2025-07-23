@@ -480,7 +480,7 @@ class Parse {
 	}
 
 	private function setHeader( string $header ): void {
-		if ( Utils::getDebugLevel() === 5 ) {
+		if ( $this->logger->getDebugLevel() === 5 ) {
 			$header = '<pre><nowiki>' . $header;
 		}
 
@@ -492,7 +492,7 @@ class Parse {
 	}
 
 	private function setFooter( string $footer ): void {
-		if ( Utils::getDebugLevel() === 5 ) {
+		if ( $this->logger->getDebugLevel() === 5 ) {
 			$footer .= '</nowiki></pre>';
 		}
 

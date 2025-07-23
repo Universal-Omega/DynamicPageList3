@@ -15,7 +15,7 @@ class Logger {
 		$errorLevel = (int)floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
 
-		if ( Utils::getDebugLevel() < $errorLevel ) {
+		if ( $this->getDebugLevel() < $errorLevel ) {
 			return;
 		}
 
