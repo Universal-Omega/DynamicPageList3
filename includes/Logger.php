@@ -33,7 +33,7 @@ class Logger {
 		$text ??= wfMessage( "dpl_log_$errorMessageId", $args )->text();
 
 		$version = Utils::getVersion();
-		$this->buffer[] = Html::element( 'p', [],
+		$this->buffer[$errorId] = Html::element( 'p', [],
 			"Extension:DynamicPageList4 (DPL4), version $version: $text"
 		);
 	}
