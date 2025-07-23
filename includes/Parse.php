@@ -46,7 +46,7 @@ class Parse {
 
 	public function __construct() {
 		$this->config = Config::getInstance();
-		$this->logger = new Logger();
+		$this->logger = Logger::getInstance();
 		$this->parameters = new Parameters();
 		$this->request = RequestContext::getMain()->getRequest();
 	}
