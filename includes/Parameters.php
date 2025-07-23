@@ -34,6 +34,7 @@ class Parameters extends ParametersData {
 	public function __call( string $parameter, array $arguments ): bool {
 		$parameterData = $this->getData( $parameter );
 		if ( $parameterData === false ) {
+			$this->logger->addMessage( Constants::WARN_UNKNOWNPARAM, $parameter );
 			return false;
 		}
 
@@ -246,7 +247,7 @@ class Parameters extends ParametersData {
 
 			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
 				if ( $parameter === 'debug' ) {
-					Utils::setDebugLevel( $default );
+					$this->logger->setDebugLevel( $default );
 				}
 
 				$this->setParameter( $parameter, $default );
@@ -880,7 +881,7 @@ class Parameters extends ParametersData {
 
 		$option = (int)$option;
 		if ( in_array( $option, $this->getData( 'debug' )['values'] ?? [], true ) ) {
-			Utils::setDebugLevel( $option );
+			$this->logger->setDebugLevel( $option );
 			return true;
 		}
 
