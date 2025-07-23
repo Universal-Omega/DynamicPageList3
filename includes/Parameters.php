@@ -34,7 +34,7 @@ class Parameters extends ParametersData {
 	public function __call( string $parameter, array $arguments ): bool {
 		$parameterData = $this->getData( $parameter );
 		if ( $parameterData === false ) {
-			$this->logger->addMessage( Constants::WARN_UNKNOWN_PARAMETER, $parameter );
+			$this->logger->addMessage( Constants::WARN_UNKNOWNPARAM, $parameter );
 			return false;
 		}
 
