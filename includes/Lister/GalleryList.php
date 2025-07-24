@@ -57,7 +57,10 @@ class GalleryList extends Lister {
 			$this->listAttributes .= " widths=$width heights=$height";
 		}
 
-		$this->listAttributes .= ' mode=' . $this->parameters->getParameter( 'gallerymode' );
+		$galleryMode = $this->parameters->getParameter( 'gallerymode' );
+		if ( $galleryMode ) {
+			$this->listAttributes .= " mode=$galleryMode";
+		}
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
