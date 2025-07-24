@@ -17,254 +17,120 @@ use MediaWiki\Title\Title;
 use PageImages\PageImages;
 
 class Lister {
-	public const LIST_DEFINITION = 1;
 
-	public const LIST_GALLERY = 2;
+	protected const LIST_DEFINITION = 1;
 
-	public const LIST_HEADING = 3;
+	protected const LIST_GALLERY = 2;
 
-	public const LIST_INLINE = 4;
+	protected const LIST_HEADING = 3;
 
-	public const LIST_ORDERED = 5;
+	protected const LIST_INLINE = 4;
 
-	public const LIST_UNORDERED = 6;
+	protected const LIST_ORDERED = 5;
 
-	public const LIST_CATEGORY = 7;
+	protected const LIST_UNORDERED = 6;
 
-	public const LIST_USERFORMAT = 8;
+	protected const LIST_CATEGORY = 7;
+
+	protected const LIST_USERFORMAT = 8;
 
 	protected readonly Config $config;
 
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int|null
-	 */
-	public $style = null;
+	protected int $style = self::LIST_UNORDERED;
 
 	/**
 	 * Heading List Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $headListStart = '';
-
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headListEnd = '';
+	protected string $headListStart = '';
+	protected string $headListEnd = '';
 
 	/**
 	 * Heading List Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $headItemStart = '';
-
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headItemEnd = '';
+	protected string $headItemStart = '';
+	protected string $headItemEnd = '';
 
 	/**
 	 * List(Section) Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $listStart = '';
-
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '';
+	protected string $listStart = '';
+	protected string $listEnd = '';
 
 	/**
 	 * Item Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $itemStart = '';
+	protected string $itemStart = '';
+	protected string $itemEnd = '';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '';
+	/** Extra head list HTML attributes. */
+	protected string $headListAttributes = '';
 
-	/**
-	 * Extra head list HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $headListAttributes = '';
+	/** Extra head item HTML attributes. */
+	protected string $headItemAttributes = '';
 
-	/**
-	 * Extra head item HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $headItemAttributes = '';
+	/** Extra list HTML attributes. */
+	protected string $listAttributes = '';
 
-	/**
-	 * Extra list HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $listAttributes = '';
+	/** Extra item HTML attributes. */
+	protected string $itemAttributes = '';
 
-	/**
-	 * Extra item HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $itemAttributes = '';
+	/** Count tipping point to mark a section as dominant. */
+	protected int $dominantSectionCount = -1;
+	protected string $templateSuffix = '';
 
-	/**
-	 * Count tipping point to mark a section as dominant.
-	 *
-	 * @var int
-	 */
-	protected $dominantSectionCount = -1;
+	/** Trim included wiki text. */
+	protected bool $trimIncluded = false;
+	protected bool $escapeLinks = true;
 
-	/**
-	 * Template Suffix
-	 *
-	 * @var string
-	 */
-	protected $templateSuffix = '';
+	/** Index of the table column to sort by. */
+	protected ?int $tableSortColumn = null;
+	protected ?string $tableSortMethod = null;
 
-	/**
-	 * Trim included wiki text.
-	 *
-	 * @var bool
-	 */
-	protected $trimIncluded = false;
+	protected ?int $titleMaxLength = null;
 
-	/**
-	 * Trim included wiki text.
-	 *
-	 * @var bool
-	 */
-	protected $escapeLinks = true;
-
-	/**
-	 * Index of the table column to sort by.
-	 *
-	 * @var int|null
-	 */
-	protected $tableSortColumn = null;
-
-	/**
-	 * @var string|null
-	 */
-	protected $tableSortMethod = null;
-
-	/**
-	 * Maximum title length.
-	 *
-	 * @var int|null
-	 */
-	protected $titleMaxLength = null;
-
-	/**
-	 * Section separators that separate transcluded pages/sections of wiki text.
-	 *
-	 * @var array
-	 */
-	protected $sectionSeparators = [];
+	/** Section separators that separate transcluded pages/sections of wiki text. */
+	protected array $sectionSeparators = [];
 
 	/**
 	 * Section separators that separate transcluded pages/sections that refer to
 	 * the same chapter or tempalte of wiki text.
-	 *
-	 * @var array
 	 */
-	protected $multiSectionSeparators = [];
+	protected array $multiSectionSeparators = [];
 
-	/**
-	 * Include page text in output.
-	 *
-	 * @var bool
-	 */
-	protected $includePageText = false;
+	/** Include page text in output. */
+	protected bool $includePageText = false;
 
-	/**
-	 * Maximum length before truncated included wiki text.
-	 *
-	 * @var int|null
-	 */
-	protected $includePageMaxLength = null;
+	/** Maximum length before truncated included wiki text. */
+	protected ?int $includePageMaxLength = null;
 
-	/**
-	 * Array of plain text matches for page transclusion. (include)
-	 *
-	 * @var array
-	 */
-	protected $pageTextMatch;
+	/** Array of plain text matches for page transclusion. (include) */
+	protected array $pageTextMatch;
 
-	/**
-	 * Array of regex text matches for page transclusion. (includematch)
-	 *
-	 * @var array
-	 */
-	protected $pageTextMatchRegex;
+	/** Array of regex text matches for page transclusion. (includematch) */
+	protected array $pageTextMatchRegex;
 
-	/**
-	 * Array of not regex text matches for page transclusion. (includenotmatch)
-	 *
-	 * @var array
-	 */
-	protected $pageTextMatchNotRegex;
+	/** Array of not regex text matches for page transclusion. (includenotmatch) */
+	protected array $pageTextMatchNotRegex;
 
-	/**
-	 * Parsed wiki text into HTML before running include/includematch/includenotmatch.
-	 *
-	 * @var bool
-	 */
-	protected $includePageParsed = false;
+	/** Parsed wiki text into HTML before running include/includematch/includenotmatch. */
+	protected bool $includePageParsed = false;
 
-	/**
-	 * Total result count after parsing, transcluding, and such.
-	 *
-	 * @var int
-	 */
-	public $rowCount = 0;
+	/** Total result count after parsing, transcluding, and such. */
+	protected int $rowCount = 0;
 
-	/**
-	 * Parameters
-	 *
-	 * @var Parameters
-	 */
-	protected $parameters;
-
-	/**
-	 * Parser
-	 *
-	 * @var Parser
-	 */
-	protected $parser;
-
-	/**
-	 * @param Parameters $parameters
-	 * @param Parser $parser
-	 */
-	public function __construct( Parameters $parameters, Parser $parser ) {
+	protected function __construct(
+		protected readonly Parameters $parameters,
+		protected readonly Parser $parser
+	) {
 		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
 		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
 		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
 		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
-		$this->setDominantSectionCount( $parameters->getParameter( 'dominantsection' ) );
+		$this->setDominantSectionCount(  );
 		$this->setTemplateSuffix( $parameters->getParameter( 'defaulttemplatesuffix' ) );
 		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
 		$this->setTableSortColumn( $parameters->getParameter( 'tablesortcol' ) );
@@ -275,127 +141,49 @@ class Lister {
 		$this->setMultiSectionSeparators( $parameters->getParameter( 'multisecseparators' ) );
 		$this->setIncludePageText( $parameters->getParameter( 'incpage' ) );
 		$this->setIncludePageMaxLength( $parameters->getParameter( 'includemaxlen' ) );
-		$this->setPageTextMatch( (array)$parameters->getParameter( 'seclabels' ) );
-		$this->setPageTextMatchRegex( (array)$parameters->getParameter( 'seclabelsmatch' ) );
-		$this->setPageTextMatchNotRegex( (array)$parameters->getParameter( 'seclabelsnotmatch' ) );
+		$this->setPageTextMatch( $parameters->getParameter( 'seclabels' ) ?? [] );
+		$this->setPageTextMatchRegex( $parameters->getParameter( 'seclabelsmatch' ) ?? [] );
+		$this->setPageTextMatchNotRegex( $parameters->getParameter( 'seclabelsnotmatch' ) ?? [] );
 		$this->setIncludePageParsed( $parameters->getParameter( 'incparsed' ) );
+
+		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
 		$this->config = Config::getInstance();
-		$this->parameters = $parameters;
-		$this->parser = clone $parser;
 	}
 
-	/**
-	 * Get a new List subclass based on user selection.
-	 *
-	 * @param string $style
-	 * @param Parameters $parameters
-	 * @param Parser $parser
-	 * @return mixed
-	 */
-	public static function newFromStyle( $style, Parameters $parameters, Parser $parser ) {
+	public static function newFromStyle(
+		string $style,
+		Parameters $parameters,
+		Parser $parser
+	): self {
 		$style = strtolower( $style );
-
-		switch ( $style ) {
-			case 'category':
-				$class = CategoryList::class;
-				break;
-			case 'definition':
-				$class = DefinitionList::class;
-				break;
-			case 'gallery':
-				$class = GalleryList::class;
-				break;
-			case 'inline':
-				$class = InlineList::class;
-				break;
-			case 'ordered':
-				$class = OrderedList::class;
-				break;
-			case 'subpage':
-				$class = SubPageList::class;
-				break;
-			default:
-			case 'unordered':
-				$class = UnorderedList::class;
-				break;
-			case 'userformat':
-				$class = UserFormatList::class;
-				break;
-		}
+		$class = match ( $style ) {
+			'category' => CategoryList::class,
+			'definition' => DefinitionList::class,
+			'gallery' => GalleryList::class,
+			'inline' => InlineList::class,
+			'ordered' => OrderedList::class,
+			'subpage' => SubPageList::class,
+			'userformat' => UserFormatList::class,
+			'unordered', default => UnorderedList::class,
+		};
 
 		return new $class( $parameters, $parser );
 	}
 
-	/**
-	 * Get the Parameters object this object was constructed with.
-	 *
-	 * @return Parameters
-	 */
-	public function getParameters() {
-		return $this->parameters;
-	}
-
-	/**
-	 * Set extra list attributes for header wraps.
-	 *
-	 * @param string $attributes
-	 */
-	public function setHeadListAttributes( $attributes ) {
+	private function setHeadListAttributes( string $attributes ): void {
 		$this->headListAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
 	}
 
-	/**
-	 * Set extra item attributes for header items.
-	 *
-	 * @param string $attributes
-	 */
-	public function setHeadItemAttributes( $attributes ) {
+	private function setHeadItemAttributes( string $attributes ): void {
 		$this->headItemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
 	}
 
-	/**
-	 * Set extra list attributes.
-	 *
-	 * @param string $attributes
-	 */
-	public function setListAttributes( $attributes ) {
+	private function setListAttributes( string $attributes ): void {
 		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
 	}
 
-	/**
-	 * Set extra item attributes.
-	 *
-	 * @param string $attributes
-	 */
-	public function setItemAttributes( $attributes ) {
+	private function setItemAttributes( string $attributes ): void {
 		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
-	}
-
-	/**
-	 * Set the count of items to trigger a section as dominant.
-	 *
-	 * @param int $count
-	 */
-	public function setDominantSectionCount( $count = -1 ) {
-		$this->dominantSectionCount = (int)$count;
-	}
-
-	/**
-	 * Get the count of items to trigger a section as dominant.
-	 *
-	 * @return int
-	 */
-	public function getDominantSectionCount() {
-		return $this->dominantSectionCount;
-	}
-
-	/**
-	 * Return the list style.
-	 *
-	 * @return int
-	 */
-	public function getStyle() {
-		return $this->style;
 	}
 
 	/**
@@ -662,7 +450,7 @@ class Lister {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 			$item .= ' ' . Html::rawElement( 'bdi',
 				[ 'dir' => $contLang->getDir() ],
-				'(' . wfMessage( 'hitcounters-nviews', $lang->formatNum( $article->mCounter ) )->escaped() . ')'
+				'(' . wfMessage( 'hitcounters-nviews' )->numParams( $article->mCounter )->escaped() . ')'
 			);
 		}
 
@@ -683,7 +471,7 @@ class Lister {
 				implode( ' | ', $article->mCategoryLinks ) . '</small>';
 		}
 
-		if ( $this->getParameters()->getParameter( 'addexternallink' ) && $article->mExternalLink ) {
+		if ( $this->parameters->getParameter( 'addexternallink' ) && $article->mExternalLink ) {
 			$item .= ' → ' . $article->mExternalLink;
 		}
 
@@ -695,7 +483,6 @@ class Lister {
 		$item = $this->getItemStart() . $item . $this->getItemEnd();
 
 		$item = $this->replaceTagParameters( $item, $article );
-
 		return $item;
 	}
 
@@ -795,7 +582,7 @@ class Lister {
 		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
 
 		$title = $article->mTitle->getText();
-		$replaceInTitle = $this->getParameters()->getParameter( 'replaceintitle' );
+		$replaceInTitle = $this->parameters->getParameter( 'replaceintitle' );
 
 		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
@@ -834,7 +621,6 @@ class Lister {
 		$tag = str_replace( '%IMAGESEL%', str_replace( '_', ' ', $article->mImageSelTitle ), $tag );
 
 		$tag = $this->replaceTagCategory( $tag, $article );
-
 		return $tag;
 	}
 
@@ -879,7 +665,7 @@ class Lister {
 	 * @param Article $article
 	 */
 	private function replaceTagTableRow( &$pieces, $s, Article $article ) {
-		$tableFormat = $this->getParameters()->getParameter( 'tablerow' );
+		$tableFormat = $this->parameters->getParameter( 'tablerow' );
 		$firstCall = true;
 
 		foreach ( $pieces as $key => $val ) {
@@ -923,7 +709,7 @@ class Lister {
 	 * @return string
 	 */
 	public function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxLength, Article $article ) {
-		$tableFormat = $this->getParameters()->getParameter( 'tablerow' );
+		$tableFormat = $this->parameters->getParameter( 'tablerow' );
 
 		// we could try to format fields differently within the first call of a template
 		// currently we do not make such a difference
@@ -1037,10 +823,10 @@ class Lister {
 		if ( !$this->pageTextMatch || $this->pageTextMatch[0] == '*' ) {
 			$title = $article->mTitle->getPrefixedText();
 
-			if ( $this->getStyle() == self::LIST_USERFORMAT ) {
+			if ( $this->style === self::LIST_USERFORMAT ) {
 				$pageText = '';
 			} else {
-				$pageText = '<br/>';
+				$pageText = Html::element( 'br' );
 			}
 
 			$text = $this->parser->fetchTemplateAndTitle( Title::newFromText( $title ) )[0];
@@ -1063,8 +849,8 @@ class Lister {
 				$filteredCount++;
 
 				// update article if include=* and updaterules are given
-				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
-				$deleteRules = $this->getParameters()->getParameter( 'deleterules' );
+				$updateRules = $this->parameters->getParameter( 'updaterules' );
+				$deleteRules = $this->parameters->getParameter( 'deleterules' );
 
 				if ( $updateRules ) {
 					$ruleOutput = UpdateArticle::updateArticleByRule( $title, $text, $updateRules );
@@ -1080,9 +866,7 @@ class Lister {
 					// append full text to output
 					if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
 						$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
-						$pieces = [
-							0 => $text
-						];
+						$pieces = [ 0 => $text ];
 
 						$this->replaceTagTableRow( $pieces, 0, $article );
 						$pageText .= $pieces[0];
@@ -1246,8 +1030,8 @@ class Lister {
 					}
 
 					if (
-						$this->getDominantSectionCount() >= 0 &&
-						$s == $this->getDominantSectionCount() &&
+						$this->dominantSectionCount >= 0 &&
+						$s == $this->dominantSectionCount &&
 						count( $secPieces ) > 1
 					) {
 						$dominantPieces = $secPieces;
@@ -1295,8 +1079,8 @@ class Lister {
 					);
 
 					if (
-						$this->getDominantSectionCount() >= 0 &&
-						$s == $this->getDominantSectionCount() &&
+						$this->dominantSectionCount >= 0 &&
+						$s == $this->dominantSectionCount &&
 						count( $secPieces ) > 1
 					) {
 						$dominantPieces = $secPieces;
@@ -1324,8 +1108,8 @@ class Lister {
 					);
 
 					if (
-						$this->getDominantSectionCount() >= 0 &&
-						$s == $this->getDominantSectionCount() &&
+						$this->dominantSectionCount >= 0 &&
+						$s == $this->dominantSectionCount &&
 						count( $secPieces ) > 1
 					) {
 						$dominantPieces = $secPieces;
@@ -1385,7 +1169,7 @@ class Lister {
 			if ( $dominantPieces != false ) {
 				foreach ( $dominantPieces as $dominantPiece ) {
 					foreach ( $secPiece as $s => $piece ) {
-						if ( $s == $this->getDominantSectionCount() ) {
+						if ( $s == $this->dominantSectionCount ) {
 							$pageText .= $this->joinSectionTagPieces(
 								$dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]
 							);
