@@ -124,7 +124,7 @@ class Lister {
 
 	protected function __construct(
 		protected readonly Parameters $parameters,
-		protected readonly Parser $parser
+		private readonly Parser $parser
 	) {
 		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
 		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
