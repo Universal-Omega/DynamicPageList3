@@ -21,6 +21,7 @@ class ParametersData {
 			'category',
 			'count',
 			'gallerymode',
+			'gallerysize',
 			'hiddencategories',
 			'mode',
 			'namespace',
@@ -776,10 +777,20 @@ class ParametersData {
 		],
 
 		/**
+		 * Controls the size of images when the result output mode is a gallery.
+		 * Accepts either a single value (e.g. "80px") to use as both width and height,
+		 * or a comma-separated pair (e.g. "100px,150px") to set width and height separately.
+		 * The values are passed directly as `widths` and `heights` attributes in the gallery tag.
+		 */
+		'gallerysize' => [
+			'default' => null,
+		],
+
+		/**
 		 * by default links to articles of type image or category are escaped (i.e. they appear as a link and do not
 		 * actually assign the category or show the image; this can be changed.
 		 * 'true' default
-		 * 'false'	images are shown, categories are assigned to the current document
+		 * 'false' images are shown, categories are assigned to the current document
 		 */
 		'escapelinks' => [
 			'default' => true,
