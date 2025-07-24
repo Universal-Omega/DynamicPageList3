@@ -20,8 +20,6 @@ Please see the [releases page](https://github.com/Universal-Omega/DynamicPageLis
 ## Configuration
 These are DPL4's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList4#Configuration)**.
 
-**Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>. This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
-
 | Setting                                      | Default | Description                                                                                                                                                                                                                      |
 |:--------------------------------------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | $wgDplSettings['allowedNamespaces']         | []      | By default all existing namespaces are used when DPL4 initializes. Customize this setting with an array of namespace constants to restrict DPL4 to work only in those namespaces.                                   |
