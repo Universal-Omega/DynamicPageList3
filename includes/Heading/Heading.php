@@ -303,6 +303,6 @@ class Heading {
 			? 'categoryarticlecount'
 			: 'dpl_articlecount';
 
-		return Html::element( 'p', [], wfMessage( $message, $count )->text() );
+		return Html::element( 'p', [], wfMessage( $message )->numParams( $count )->text() );
 	}
 }
