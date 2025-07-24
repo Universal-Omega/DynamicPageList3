@@ -68,7 +68,9 @@
 				"maxQueryTime": 10000,
 				"maxResultCount": 500,
 				"minCategoryCount": 0,
-				"overrideParameterDefaults": [],
+				"overrideParameterDefaults": {
+					"count": 1
+				},
 				"queryCacheTime": 0,
 				"recursivePreprocess": true,
 				"recursiveTagParse": false,
