@@ -18,7 +18,7 @@ Complex look ups can result in computationally expensive database queries. Howev
 Please see the [releases page](https://github.com/Universal-Omega/DynamicPageList3/releases) for the latest releases.
 
 ## Configuration
-These are DPL4's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList3#Configuration)**.
+These are DPL4's configuration settings and along with their default values. To change them make sure they are defined before including the extension on the wiki. More configuration information is available on the **[MediaWiki extension page](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList4#Configuration)**.
 
 **Note:** In release 3.0.4 the configuration variable name was changed from <code>$dplSettings</code> to <code>$wgDplSettings</code>. This was to faciliate compatibility with Mediawiki 1.25's extension registration change.
 
