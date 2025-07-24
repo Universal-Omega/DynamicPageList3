@@ -35,7 +35,7 @@ class Heading {
 	/** If the article count per heading should be shown. */
 	protected bool $showHeadingCount = false;
 
-	public function __construct(
+	protected function __construct(
 		private readonly Parameters $parameters
 	) {
 		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
