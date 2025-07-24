@@ -1281,7 +1281,7 @@ class ParametersData {
 			}
 
 			if ( $this->data[$param]['default'] !== $overrideValue ) {
-				$this->data[ $param ]['default'] = $overrideValue;
+				$this->data[$param]['default'] = $overrideValue;
 			}
 		}
 	}
