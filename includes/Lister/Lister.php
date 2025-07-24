@@ -130,8 +130,6 @@ class Lister {
 		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
 		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
 		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
-		$this->setDominantSectionCount(  );
-		$this->setTemplateSuffix( $parameters->getParameter( 'defaulttemplatesuffix' ) );
 		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
 		$this->setTableSortColumn( $parameters->getParameter( 'tablesortcol' ) );
 		$this->setTableSortMethod( $parameters->getParameter( 'tablesortmethod' ) );
@@ -147,6 +145,7 @@ class Lister {
 		$this->setIncludePageParsed( $parameters->getParameter( 'incparsed' ) );
 
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
+		$this->templateSuffix = $parameters->getParameter( 'defaulttemplatesuffix' );
 		$this->config = Config::getInstance();
 	}
 
@@ -184,24 +183,6 @@ class Lister {
 
 	private function setItemAttributes( string $attributes ): void {
 		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
-	}
-
-	/**
-	 * Set the template suffix for whatever the hell uses it.
-	 *
-	 * @param string $suffix
-	 */
-	public function setTemplateSuffix( $suffix = '.default' ) {
-		$this->templateSuffix = $suffix;
-	}
-
-	/**
-	 * Get the template suffix for whatever the hell uses it.
-	 *
-	 * @return string
-	 */
-	public function getTemplateSuffix() {
-		return $this->templateSuffix;
 	}
 
 	/**
