@@ -491,8 +491,8 @@ class Parse {
 
 	private function setFooter( string $footer ): void {
 		if ( Utils::getDebugLevel() === 5 ) {
-			$footer .= Html::closeElement( 'pre' ) .
-				Html::closeElement( 'nowiki' );
+			$footer .= Html::closeElement( 'nowiki' ) .
+				Html::closeElement( 'pre' );
 		}
 
 		$this->footer = $this->replaceVariables( $footer );
