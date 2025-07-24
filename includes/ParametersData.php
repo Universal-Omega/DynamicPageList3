@@ -1237,6 +1237,7 @@ class ParametersData {
 	public function __construct() {
 		$this->config = Config::getInstance();
 		$this->parameterRichness = $this->config->get( 'functionalRichness' );
+		$this->data['count']['default'] = $this->config->get( 'defaultCount' );
 
 		if ( Utils::isLikeIntersection() ) {
 			$this->data['ordermethod'] = [
