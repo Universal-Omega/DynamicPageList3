@@ -88,7 +88,7 @@ class Lister {
 
 	/** Index of the table column to sort by. */
 	protected ?int $tableSortColumn = null;
-	protected ?string $tableSortMethod = null;
+	protected string $tableSortMethod;
 
 	protected ?int $titleMaxLength = null;
 
@@ -130,22 +130,22 @@ class Lister {
 		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
 		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
 		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
-		$this->setTrimIncluded( $parameters->getParameter( 'includetrim' ) );
-		$this->setTableSortColumn( $parameters->getParameter( 'tablesortcol' ) );
-		$this->setTableSortMethod( $parameters->getParameter( 'tablesortmethod' ) );
-		$this->setTitleMaxLength( $parameters->getParameter( 'titlemaxlen' ) );
-		$this->setEscapeLinks( $parameters->getParameter( 'escapelinks' ) );
-		$this->setSectionSeparators( $parameters->getParameter( 'secseparators' ) );
-		$this->setMultiSectionSeparators( $parameters->getParameter( 'multisecseparators' ) );
-		$this->setIncludePageText( $parameters->getParameter( 'incpage' ) );
-		$this->setIncludePageMaxLength( $parameters->getParameter( 'includemaxlen' ) );
-		$this->setPageTextMatch( $parameters->getParameter( 'seclabels' ) ?? [] );
-		$this->setPageTextMatchRegex( $parameters->getParameter( 'seclabelsmatch' ) ?? [] );
-		$this->setPageTextMatchNotRegex( $parameters->getParameter( 'seclabelsnotmatch' ) ?? [] );
-		$this->setIncludePageParsed( $parameters->getParameter( 'incparsed' ) );
 
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
+		$this->escapeLinks = $parameters->getParameter( 'escapelinks' );
+		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' );
+		$this->includePageParsed = $parameters->getParameter( 'incparsed' );
+		$this->includePageText = $parameters->getParameter( 'incpage' );
+		$this->multiSectionSeparators = $parameters->getParameter( 'multisecseparators' ) ?? [];
+		$this->pageTextMatch = $parameters->getParameter( 'seclabels' ) ?? [];
+		$this->pageTextMatchNotRegex = $parameters->getParameter( 'seclabelsnotmatch' ) ?? [];
+		$this->pageTextMatchRegex = $parameters->getParameter( 'seclabelsmatch' ) ?? [];
+		$this->sectionSeparators = $parameters->getParameter( 'secseparators' ) ?? [];
+		$this->tableSortColumn = $parameters->getParameter( 'tablesortcol' );
+		$this->tableSortMethod = $parameters->getParameter( 'tablesortmethod' );
 		$this->templateSuffix = $parameters->getParameter( 'defaulttemplatesuffix' );
+		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlen' );
+		$this->trimIncluded = $parameters->getParameter( 'includetrim' );
 		$this->config = Config::getInstance();
 	}
 
@@ -186,187 +186,20 @@ class Lister {
 	}
 
 	/**
-	 * Set if included wiki text should be trimmed.
-	 *
-	 * @param bool $trim
-	 */
-	public function setTrimIncluded( $trim = false ) {
-		$this->trimIncluded = (bool)$trim;
-	}
-
-	/**
-	 * Get if included wiki text should be trimmed.
-	 *
-	 * @return bool
-	 */
-	public function getTrimIncluded() {
-		return $this->trimIncluded;
-	}
-
-	/**
-	 * Set if links should be escaped?
-	 * @todo The naming of this parameter is weird and I am not sure what it does.
-	 *
-	 * @param bool $escape
-	 */
-	public function setEscapeLinks( $escape = true ) {
-		$this->escapeLinks = (bool)$escape;
-	}
-
-	/**
-	 * Get if links should be escaped.
-	 *
-	 * @return bool
-	 */
-	public function getEscapeLinks() {
-		return $this->escapeLinks;
-	}
-
-	/**
-	 * Set the index of the table column to sort by.
-	 *
-	 * @param int|null $index
-	 */
-	public function setTableSortColumn( $index = null ) {
-		$this->tableSortColumn = $index === null ? null : (int)$index;
-	}
-
-	/**
-	 * Get the index of the table column to sort by.
-	 *
-	 * @return int|null
-	 */
-	public function getTableSortColumn() {
-		return $this->tableSortColumn;
-	}
-
-	/**
-	 * Set the algorithm for table sorting
-	 *
-	 * @param string|null $method
-	 */
-	public function setTableSortMethod( $method = null ) {
-		$this->tableSortMethod = $method === null ? 'standard' : $method;
-	}
-
-	/**
-	 * Get the algorithm for table sorting
-	 *
-	 * @return string
-	 */
-	public function getTableSortMethod() {
-		return $this->tableSortMethod;
-	}
-
-	/**
-	 * Set the maximum title length for display.
-	 *
-	 * @param int|null $length
-	 */
-	public function setTitleMaxLength( $length = null ) {
-		$this->titleMaxLength = $length === null ? null : (int)$length;
-	}
-
-	/**
-	 * Get the maximum title length for display.
-	 *
-	 * @return int|null
-	 */
-	public function getTitleMaxLength() {
-		return $this->titleMaxLength;
-	}
-
-	/**
-	 * Set the separators that separate sections of matched page text.
-	 *
-	 * @param ?array $separators
-	 */
-	public function setSectionSeparators( ?array $separators ) {
-		$this->sectionSeparators = $separators ?? [];
-	}
-
-	/**
-	 * Set the separators that separate related sections of matched page text.
-	 *
-	 * @param ?array $separators
-	 */
-	public function setMultiSectionSeparators( ?array $separators ) {
-		$this->multiSectionSeparators = $separators ?? [];
-	}
-
-	/**
-	 * Set if wiki text should be included in output.
-	 *
-	 * @param bool $include
-	 */
-	public function setIncludePageText( $include = false ) {
-		$this->includePageText = (bool)$include;
-	}
-
-	/**
-	 * Set the maximum included page text length before truncating.
-	 *
-	 * @param int|null $length
-	 */
-	public function setIncludePageMaxLength( $length = null ) {
-		$this->includePageMaxLength = $length === null ? null : (int)$length;
-	}
-
-	/**
-	 * Set the plain string text matching for page transclusion.
-	 *
-	 * @param array	$pageTextMatch
-	 */
-	public function setPageTextMatch( array $pageTextMatch = [] ) {
-		$this->pageTextMatch = $pageTextMatch;
-	}
-
-	/**
-	 * Set the regex text matching for page transclusion.
-	 *
-	 * @param array	$pageTextMatchRegex
-	 */
-	public function setPageTextMatchRegex( array $pageTextMatchRegex = [] ) {
-		$this->pageTextMatchRegex = $pageTextMatchRegex;
-	}
-
-	/**
-	 * Set the not regex text matching for page transclusion.
-	 *
-	 * @param array	$pageTextMatchNotRegex
-	 */
-	public function setPageTextMatchNotRegex( array $pageTextMatchNotRegex = [] ) {
-		$this->pageTextMatchNotRegex = $pageTextMatchNotRegex;
-	}
-
-	/**
-	 * Set if included wiki text should be parsed before being matched against.
-	 *
-	 * @param bool $parse
-	 */
-	public function setIncludePageParsed( $parse = false ) {
-		$this->includePageParsed = (bool)$parse;
-	}
-
-	/**
 	 * Shortcut to format all articles into a single formatted list.
-	 *
-	 * @param array $articles
-	 * @return string
 	 */
-	public function format( $articles ) {
+	public function format( array $articles ): string {
 		return $this->formatList( $articles, 0, count( $articles ) );
 	}
 
 	/**
 	 * Format a list of articles into a singular list.
-	 *
-	 * @param array $articles
-	 * @param int $start
-	 * @param int $count
-	 * @return string
 	 */
-	public function formatList( $articles, $start, $count ) {
+	public function formatList(
+		array $articles,
+		int $start,
+		int $count
+	): string {
 		$filteredCount = 0;
 		$items = [];
 
@@ -390,18 +223,13 @@ class Lister {
 		}
 
 		$this->rowCount = $filteredCount;
-
 		return $this->getListStart() . $this->implodeItems( $items ) . $this->listEnd;
 	}
 
 	/**
 	 * Format a single item.
-	 *
-	 * @param Article $article
-	 * @param string|null $pageText
-	 * @return string
 	 */
-	public function formatItem( Article $article, $pageText = null ) {
+	protected function formatItem( Article $article, ?string $pageText ): string {
 		$lang = RequestContext::getMain()->getLanguage();
 
 		$item = '';
@@ -469,78 +297,58 @@ class Lister {
 
 	/**
 	 * Return $this->headListStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getHeadListStart() {
+	protected function getHeadListStart(): string {
 		return sprintf( $this->headListStart, $this->headListAttributes );
 	}
 
 	/**
 	 * Return $this->headItemStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getHeadItemStart() {
+	protected function getHeadItemStart(): string {
 		return sprintf( $this->headItemStart, $this->headItemAttributes );
 	}
 
 	/**
 	 * Return $this->headItemStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getHeadItemEnd() {
+	protected function getHeadItemEnd(): string {
 		return $this->headItemEnd;
 	}
 
 	/**
 	 * Return $this->listStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getListStart() {
+	protected function getListStart(): string {
 		return sprintf( $this->listStart, $this->listAttributes );
 	}
 
 	/**
 	 * Return $this->itemStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemStart() {
+	protected function getItemStart(): string {
 		return sprintf( $this->itemStart, $this->itemAttributes );
 	}
 
 	/**
 	 * Return $this->itemEnd with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemEnd() {
+	protected function getItemEnd(): string {
 		return $this->itemEnd;
 	}
 
 	/**
 	 * Join together items after being processed by formatItem().
-	 *
-	 * @param array $items
-	 * @return string
 	 */
-	protected function implodeItems( $items ) {
+	protected function implodeItems( array $items ): string {
 		return implode( '', $items );
 	}
 
 	/**
 	 * Replace user tag parameters.
-	 *
-	 * @param string $tag
-	 * @param Article $article
-	 * @return string
 	 */
-	protected function replaceTagParameters( $tag, Article $article ) {
+	protected function replaceTagParameters( string $tag, Article $article ): string {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-
 		$namespaces = $contLang->getNamespaces();
 
 		if ( strpos( $tag, '%' ) === false ) {
@@ -607,12 +415,8 @@ class Lister {
 
 	/**
 	 * Replace user tag parameters for categories.
-	 *
-	 * @param string $tag
-	 * @param Article $article
-	 * @return string
 	 */
-	protected function replaceTagCategory( $tag, Article $article ) {
+	private function replaceTagCategory( string $tag, Article $article ): string {
 		if ( $article->mCategoryLinks ) {
 			$tag = str_replace( '%CATLIST%', implode( ', ', $article->mCategoryLinks ), $tag );
 			$tag = str_replace( '%CATBULLETS%', '* ' . implode( "\n* ", $article->mCategoryLinks ), $tag );
@@ -628,24 +432,16 @@ class Lister {
 
 	/**
 	 * Replace the %NR%(current article sequence number) in text.
-	 *
-	 * @param string $tag
-	 * @param int $nr
-	 * @return string
 	 */
-	protected function replaceTagCount( $tag, $nr ) {
+	protected function replaceTagCount( string $tag, int $nr ): string {
 		return str_replace( '%NR%', (string)$nr, $tag );
 	}
 
 	/**
 	 * Format one single item of an entry in the output list
 	 * i.e. one occurence of one item from the include parameter
-	 *
-	 * @param array &$pieces
-	 * @param mixed $s Index of the table row position.
-	 * @param Article $article
 	 */
-	private function replaceTagTableRow( &$pieces, $s, Article $article ) {
+	private function replaceTagTableRow( array &$pieces, int $s, Article $article ): void {
 		$tableFormat = $this->parameters->getParameter( 'tablerow' );
 		$firstCall = true;
 
@@ -680,16 +476,15 @@ class Lister {
 	/**
 	 * Format one single template argument of one occurence of one item from the include parameter.
 	 * This is called via a backlink from LST::includeTemplate().
-	 *
-	 * @param string $arg
-	 * @param mixed	$s Index of the table row position.
-	 * @param mixed $argNr Other part of the index of the table row position?
-	 * @param bool $firstCall
-	 * @param int $maxLength
-	 * @param Article $article
-	 * @return string
 	 */
-	public function formatTemplateArg( $arg, $s, $argNr, $firstCall, $maxLength, Article $article ) {
+	public function formatTemplateArg(
+		string $arg,
+		int $s,
+		int $argNr,
+		bool $firstCall,
+		int $maxLength,
+		Article $article
+	): string {
 		$tableFormat = $this->parameters->getParameter( 'tablerow' );
 
 		// we could try to format fields differently within the first call of a template
@@ -739,14 +534,11 @@ class Lister {
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
-	 * @param int $lim
-	 * @param string $text
-	 *
 	 * @return string the truncated text; note that in some cases it may be slightly longer than the given limit
 	 * if the text is alread shorter than the limit or if the limit is negative, the text
 	 * will be returned without any checks for balance of tags
 	 */
-	private function cutAt( $lim, $text ) {
+	private function cutAt( int $lim, string $text ): string {
 		if ( $lim < 0 ) {
 			return $text;
 		}
@@ -791,12 +583,8 @@ class Lister {
 
 	/**
 	 * Transclude a page contents.
-	 *
-	 * @param Article $article
-	 * @param int &$filteredCount
-	 * @return string
 	 */
-	public function transcludePage( Article $article, &$filteredCount ) {
+	protected function transcludePage( Article $article, int &$filteredCount ): string {
 		$matchFailed = false;
 		$septag = [];
 
@@ -1171,22 +959,15 @@ class Lister {
 
 	/**
 	 * Wrap seciton pieces with start and end tags.
-	 *
-	 * @param string $piece
-	 * @param string $start
-	 * @param string $end
-	 * @return string
 	 */
-	protected function joinSectionTagPieces( $piece, $start, $end ) {
+	private function joinSectionTagPieces( string $piece, string $start, string $end ): string {
 		return $start . $piece . $end;
 	}
 
 	/**
 	 * Get the count of listed items after formatting, transcluding, and such.
-	 *
-	 * @return int
 	 */
-	public function getRowCount() {
+	public function getRowCount(): int {
 		return $this->rowCount;
 	}
 }
