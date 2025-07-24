@@ -303,6 +303,6 @@ class Heading {
 			? 'category-article-count-limited'
 			: 'dpl_articlecount';
 
-		return Html::element( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
+		return Html::rawElement( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
 	}
 }
