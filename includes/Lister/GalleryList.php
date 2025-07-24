@@ -45,7 +45,19 @@ class GalleryList extends Lister {
 	/** @inheritDoc */
 	public function formatItem( Article $article, $pageText = null ) {
 		$item = $article->mTitle->getPrefixedText();
-		$this->listAttributes = ' mode=' . $this->parameters->getParameter( 'gallerymode' );
+		$this->listAttributes = '';
+
+		$gallerySize = $this->parameters->getParameter( 'gallerysize' );
+		if ( $gallerySize ) {
+			if ( str_contains( $gallerySize, ',' ) ) {
+				[ $width, $height ] = array_map( 'trim', explode( ',', $gallerySize, 2 ) );
+			} else {
+				$width = $height = trim( $gallerySize );
+			}
+			$this->listAttributes .= " widths=$width heights=$height";
+		}
+
+		$this->listAttributes .= ' mode=' . $this->parameters->getParameter( 'gallerymode' );
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
