@@ -749,22 +749,20 @@ class Parse {
 		$originalRow = $tableRow;
 		$tableRow = [];
 		$groupNr = -1;
-		$t = -1;
+		$t = 0;
 
 		foreach ( $sectionLabels as $label ) {
-			$t++;
 			$groupNr++;
-
 			if ( !str_contains( $label, '}:' ) ) {
 				if ( isset( $originalRow[$t] ) ) {
 					$tableRow[$groupNr] = $originalRow[$t];
 				}
+				$t++;
 				continue;
 			}
 
 			[ , $colsPart ] = explode( '}:', $label, 2 );
 			$n = substr_count( $colsPart, ':' ) + 1;
-			$t--;
 
 			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
 				if ( isset( $originalRow[$t] ) ) {
