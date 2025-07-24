@@ -41,7 +41,6 @@ class OrderedList extends UnorderedList {
 	 */
 	public function formatList( $articles, $start, $count ) {
 		$this->offsetCount = $count;
-
 		return parent::formatList( $articles, $start, $count );
 	}
 
@@ -53,7 +52,7 @@ class OrderedList extends UnorderedList {
 	public function getListStart() {
 		// increase start value of ordered lists at multi-column output
 		// The offset that comes from the URL parameter is zero based, but has to be +1'ed for display.
-		$offset = $this->getParameters()->getParameter( 'offset' ) + 1;
+		$offset = $this->parameters->getParameter( 'offset' ) + 1;
 
 		if ( $offset != 0 ) {
 			// @TODO: So this adds the total count of articles to the offset.
