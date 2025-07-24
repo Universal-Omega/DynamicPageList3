@@ -163,7 +163,8 @@ class Lister {
 			'ordered' => OrderedList::class,
 			'subpage' => SubPageList::class,
 			'userformat' => UserFormatList::class,
-			'unordered', default => UnorderedList::class,
+			'unordered' => UnorderedList::class,
+			default => UnorderedList::class,
 		};
 
 		return new $class( $parameters, $parser );
