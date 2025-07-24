@@ -57,21 +57,21 @@
 	"config": {
 		"DplSettings": {
 			"value": {
-				"allowedNamespaces": null,
+				"allowedNamespaces": [],
 				"allowUnlimitedCategories": false,
 				"allowUnlimitedResults": false,
+				"alwaysCacheResults": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
-				"maxCategoryCount": 4,
-				"minCategoryCount": 0,
-				"maxResultCount": 500,
-				"recursiveTagParse": false,
-				"recursivePreprocess": false,
-				"runFromProtectedPagesOnly": false,
 				"handleSectionTag": false,
-				"alwaysCacheResults": false,
+				"maxCategoryCount": 4,
 				"maxQueryTime": 10000,
-				"queryCacheTime": 0
+				"maxResultCount": 500,
+				"minCategoryCount": 0,
+				"queryCacheTime": 0,
+				"recursivePreprocess": true,
+				"recursiveTagParse": false,
+				"runFromProtectedPagesOnly": false
 			}
 		}
 	},
