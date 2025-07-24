@@ -765,7 +765,7 @@ class ParametersData {
 		],
 
 		'gallerymode' => [
-			'default' => 'traditional',
+			'default' => null,
 			'values' => [
 				'nolines',
 				'packed',
