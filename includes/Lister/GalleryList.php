@@ -54,6 +54,7 @@ class GalleryList extends Lister {
 			} else {
 				$width = $height = trim( $gallerySize );
 			}
+
 			$this->listAttributes .= " widths=$width heights=$height";
 		}
 
