@@ -4,9 +4,9 @@ The **DynamicPageList4** extension is a reporting tool for MediaWiki, listing ca
 
 When invoked with a basic set of selection parameters DPL4 displays a list of pages in one or more categories. Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles. Output takes a variety of forms, some of which incorporate elements of selected articles.
 
-This extension is invoked with the parser function <code>{{#dpl: .... }}</code> or parser tag <code>&lt;DPL&gt;</nowiki></code>. A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with <code>&lt;DynamicPageList&gt;</code>.
+This extension is invoked with the parser function `{{#dpl: .... }}` or parser tag `<DPL>`. A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with `<DynamicPageList>`.
 
-Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [DPL:Parameters: Other Parameters](https://dpl3.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
+Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [Other Parameters](https://dpl3.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
 * Manual and Complete Documentation: [Documentation](https://dpl3.wikitide.org)
 * Source Code: [Source code at GitHub](https://github.com/Universal-Omega/DynamicPageList3)
@@ -38,29 +38,29 @@ These are DPL4's configuration settings and along with their default values. To 
 | $wgDplSettings['recursiveTagParse']         | false   | Do recursive tag parsing on `<dpl>` parser tags converting tags and functions such as magic words like `{{PAGENAME}}`. This is similar to the `{{#dpl}}` parser function call, but may not work exactly the same in all cases.   |
 | $wgDplSettings['runFromProtectedPagesOnly'] | false   | Set this to true to allow DPL4 to run from protected pages only. This is recommended if wiki administrators are having issues with malicious users creating computationally intensive queries.                            |
 
-The global variable <code>$wgNonincludableNamespaces</code> is automatically respected by DPL4. It will prevent the contents of the listed namespaces from appearing in DPL4's output.
+The global variable `$wgNonincludableNamespaces` is automatically respected by DPL4. It will prevent the contents of the listed namespaces from appearing in DPL4's output.
 
-**Note: <code>$wgDplSettings['maxResultCount']</code> is a LIMIT *on the SQL query itself*. Some DPL4 query parameters like <code>includematch</code> are applied *after* the SQL query, however, so results here may easily be misleading.**
+**Note: `$wgDplSettings['maxResultCount']` is a LIMIT *on the SQL query itself*. Some DPL4 query parameters like `includematch` are applied *after* the SQL query, however, so results here may easily be misleading.**
 
 ### Functional Richness
 
 DynamicPageList4 has many features which are unlocked based on the maximum functional richness level. There are some that can cause high CPU or database load and should be used sparingly.
 
-* <code>$wgDplSettings['functionalRichness'] = 0</code> is equivalent to Wikimedia's [DynamicPageList](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))
-* <code>$wgDplSettings['functionalRichness'] = 1</code> adds additional formatting parameters
-* <code>$wgDplSettings['functionalRichness'] = 2</code> adds performance equivalent features for templates and pagelinks
-* <code>$wgDplSettings['functionalRichness'] = 3</code> allows more-expensive page inclusion features and regular expression queries.
-* <code>$wgDplSettings['functionalRichness'] = 4</code> permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites. Includes debugging parameters for testing and development.
+* `$wgDplSettings['functionalRichness'] = 0` is equivalent to Wikimedia's [DynamicPageList](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))
+* `$wgDplSettings['functionalRichness'] = 1` adds additional formatting parameters
+* `$wgDplSettings['functionalRichness'] = 2` adds performance equivalent features for templates and pagelinks
+* `$wgDplSettings['functionalRichness'] = 3` allows more-expensive page inclusion features and regular expression queries.
+* `$wgDplSettings['functionalRichness'] = 4` permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites. Includes debugging parameters for testing and development.
 
 
 ## Usage
 ### Extended DPL4 Functionality
-Extended DPL4 is invoked by using the parser function <code>{{#dpl: .... }}</code>, or the parser extension tag <code>&lt;DPL&gt; .... &lt;/DPL&gt;</code>.
+Extended DPL4 is invoked by using the parser function `{{#dpl: .... }}`, or the parser extension tag `<DPL> .... </DPL>`.
 
-*See [Manual - **General Usage and Invocation Syntax**](https://dpl3.wikitide.org/wiki/General_usage_and_invocation_syntax) and [DPL:Parameters: **Criteria for Page Selection**](https://dpl3.wikitide.org/wiki/Criteria_for_page_selection)*
+*See [Manual - **General Usage and Invocation Syntax**](https://dpl3.wikitide.org/wiki/General_usage_and_invocation_syntax) and [**Criteria for Page Selection**](https://dpl3.wikitide.org/wiki/Criteria_for_page_selection)*
 
 ### Backwards Compatibility
-Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with <code>&lt;DynamicPageList&gt; .... &lt;/DynamicPageList&gt;</code>. Further information can be found on the [Compatibility manual page](https://dpl3.wikitide.org/wiki/Compatibility).
+Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with `<DynamicPageList> .... </DynamicPageList>`. Further information can be found on the [Compatibility manual page](https://dpl3.wikitide.org/wiki/Compatibility).
 
 ## Usage Philosophy and Overview
 With the assumption there are some articles writtne about *countries* those articles will typically have three things in common:
@@ -70,12 +70,12 @@ With the assumption there are some articles writtne about *countries* those arti
 
 ### Generate a Report Based on **countries**
 If there was a need to assemble a report of what countries practice a certain religion this could be easily done with the **category** and **linksto** parameters.
-<pre><nowiki>
+<pre>
 {{#dpl:
 category=countries
 |linksto=Pastafarianism
 }}
-</nowiki></pre>
+</pre>
 
 With DPL4 one could:
 * Generate a list of all those articles (or a random sample)
