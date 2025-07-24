@@ -82,7 +82,7 @@ class UserFormatList extends Lister {
 		$this->rowCount = $filteredCount;
 
 		// if requested we sort the table by the contents of a given column
-		$sortColumn = $this->getTableSortColumn();
+		$sortColumn = $this->tableSortColumn;
 		if ( $sortColumn != 0 ) {
 			$rowsKey = [];
 
@@ -139,7 +139,7 @@ class UserFormatList extends Lister {
 	 * @param int $sortColumn
 	 */
 	protected function sort( &$rowsKey, $sortColumn ) {
-		$sortMethod = $this->getTableSortMethod();
+		$sortMethod = $this->tableSortMethod;
 
 		if ( $sortColumn < 0 ) {
 			switch ( $sortMethod ) {
