@@ -1267,6 +1267,20 @@ class ParametersData {
 			$this->data['userdateformat'] = [
 				'default' => 'Y-m-d: ',
 			];
+
+			return;
+		}
+
+		$overrides = $this->config->get( 'overrideParameterDefaults' );
+		foreach ( $overrides as $param => $overrideValue ) {
+			// Use array_key_exists since 'default' might be null.
+			if ( !array_key_exists( 'default', $this->data[$param] ?? [] ) ) {
+				continue;
+			}
+
+			if ( $this->data[$param]['default'] !== $overrideValue ) {
+				$this->data[$param]['default'] = $overrideValue;
+			}
 		}
 	}
 
