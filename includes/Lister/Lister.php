@@ -105,7 +105,7 @@ class Lister {
 	protected bool $includePageText = false;
 
 	/** Maximum length before truncated included wiki text. */
-	protected ?int $includePageMaxLength = null;
+	protected int $includePageMaxLength;
 
 	/** Array of plain text matches for page transclusion. (include) */
 	protected array $pageTextMatch;
@@ -133,7 +133,7 @@ class Lister {
 
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
 		$this->escapeLinks = $parameters->getParameter( 'escapelinks' );
-		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' );
+		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' ) ?? -1;
 		$this->includePageParsed = $parameters->getParameter( 'incparsed' );
 		$this->includePageText = $parameters->getParameter( 'incpage' );
 		$this->multiSectionSeparators = $parameters->getParameter( 'multisecseparators' ) ?? [];
@@ -358,7 +358,7 @@ class Lister {
 		$imageUrl = $this->parseImageUrlWithPath( $article );
 
 		$pagename = $article->mTitle->getPrefixedText();
-		if ( $this->getEscapeLinks() && ( $article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE ) ) {
+		if ( $this->escapeLinks && ( $article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE ) ) {
 			// links to categories or images need an additional ":"
 			$pagename = ':' . $pagename;
 		}
@@ -377,9 +377,8 @@ class Lister {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
 		}
 
-		$titleMaxLength = $this->getTitleMaxLength();
-		if ( $titleMaxLength !== null && ( strlen( $title ) > $titleMaxLength ) ) {
-			$title = substr( $title, 0, $titleMaxLength ) . '...';
+		if ( $this->titleMaxLength !== null && ( strlen( $title ) > $this->titleMaxLength ) ) {
+			$title = substr( $title, 0, $this->titleMaxLength ) . '...';
 		}
 
 		$tag = str_replace( '%TITLE%', $title, $tag );
@@ -633,7 +632,7 @@ class Lister {
 					$pageText .= $ruleOutput;
 				} else {
 					// append full text to output
-					if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
+					if ( array_key_exists( '0', $this->sectionSeparators ) ) {
 						$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
 						$pieces = [ 0 => $text ];
 
@@ -709,7 +708,6 @@ class Lister {
 
 				// find out if the user specified an includematch / includenotmatch condition
 				if (
-					is_array( $this->pageTextMatchRegex ) &&
 					count( $this->pageTextMatchRegex ) > $s &&
 					!empty( $this->pageTextMatchRegex[$s] )
 				) {
@@ -719,7 +717,6 @@ class Lister {
 				}
 
 				if (
-					is_array( $this->pageTextMatchNotRegex ) &&
 					count( $this->pageTextMatchNotRegex ) > $s &&
 					!empty( $this->pageTextMatchNotRegex[$s] )
 				) {
@@ -748,7 +745,7 @@ class Lister {
 						false,
 						$maxLength,
 						$cutLink ?? 'default',
-						$this->getTrimIncluded(),
+						$this->trimIncluded,
 						$skipPattern ?? []
 					);
 
@@ -831,7 +828,7 @@ class Lister {
 						$article,
 						$template1,
 						$template2,
-						$template2 . $this->getTemplateSuffix(),
+						$template2 . $this->templateSuffix,
 						$mustMatch,
 						$mustNotMatch,
 						$this->includePageParsed,
@@ -867,7 +864,7 @@ class Lister {
 					// include labeled sections from the page
 					$secPieces = LST::includeSection(
 						$this->parser, $article->mTitle->getPrefixedText(),
-						$sSecLabel, false, $this->getTrimIncluded(),
+						$sSecLabel, false, $this->trimIncluded,
 						$skipPattern ?? []
 					);
 					$secPiece[$s] = implode(
@@ -897,7 +894,7 @@ class Lister {
 				}
 
 				// separator tags
-				if ( is_array( $this->sectionSeparators ) && count( $this->sectionSeparators ) == 1 ) {
+				if ( count( $this->sectionSeparators ) == 1 ) {
 					// If there is only one separator tag use it always
 					$septag[$s * 2] = str_replace(
 						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
