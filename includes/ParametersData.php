@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use UnexpectedValueException;
-
 class ParametersData {
 
 	protected readonly Config $config;
@@ -17,7 +15,7 @@ class ParametersData {
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
 	 */
-	private static array $parametersForRichnessLevel = [
+	private array $parametersForRichnessLevel = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
@@ -1291,7 +1289,7 @@ class ParametersData {
 	 */
 	public function testRichness( string $function ): bool {
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			if ( in_array( $function, self::$parametersForRichnessLevel[$i], true ) ) {
+			if ( in_array( $function, $this->parametersForRichnessLevel[$i], true ) ) {
 				return true;
 			}
 		}
@@ -1305,98 +1303,10 @@ class ParametersData {
 	public function getParametersForRichness(): array {
 		$parameters = [];
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			$parameters = array_merge( $parameters, self::$parametersForRichnessLevel[$i] );
+			$parameters = array_merge( $parameters, $this->parametersForRichnessLevel[$i] );
 		}
 
 		sort( $parameters );
 		return $parameters;
-	}
-
-	/**
-	 * Return the default value for the parameter. Unused?
-	 */
-	public function getDefault( string $parameter ): mixed {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['default'] ?? null;
-	}
-
-	/**
-	 * Return the acceptable values for the parameter. Unused?
-	 */
-	public function getValues( string $parameter ): array {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['values'] ?? [];
-	}
-
-	/**
-	 * Does the parameter set that criteria for selection was found? Unused?
-	 */
-	public function setsCriteriaFound( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['set_criteria_found'] ?? false;
-	}
-
-	/**
-	 * Does the parameter cause an open reference conflict? Unused?
-	 */
-	public function isOpenReferenceConflict( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['open_ref_conflict'] ?? false;
-	}
-
-	/**
-	 * Should this parameter preserve the case of the user supplied input? Unused?
-	 */
-	public function shouldPreserveCase( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['preserve_case'] ?? false;
-	}
-
-	/**
-	 * Does this parameter take a list of page names? Unused?
-	 */
-	public function isPageNameList( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['page_name_list'] ?? false;
-	}
-
-	/**
-	 * Is the parameter supposed to be parsed as a boolean? Unused?
-	 */
-	public function isBoolean( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['boolean'] ?? false;
-	}
-
-	/**
-	 * Is the parameter supposed to be parsed as a Mediawiki timestamp? Unused?
-	 */
-	public function isTimestamp( string $parameter ): bool {
-		if ( !isset( $this->data[$parameter] ) ) {
-			throw new UnexpectedValueException( __METHOD__ . ': Attempted to load a parameter that does not exist.' );
-		}
-
-		return $this->data[$parameter]['timestamp'] ?? false;
 	}
 }
