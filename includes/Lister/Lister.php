@@ -251,9 +251,8 @@ class Lister {
 		}
 
 		if ( $article->mSize > 0 ) {
-			$byte = 'B';
-			$pageLength = $lang->formatNum( $article->mSize );
-			$item .= " [{$pageLength} {$byte}]";
+			$pageSize = $lang->formatSize( $article->mSize );
+			$item .= " [$pageSize]";
 		}
 
 		if ( $article->mCounter > 0 ) {
