@@ -300,9 +300,9 @@ class Heading {
 	protected function articleCountMessage( int $count ): string {
 		$orderMethods = $this->parameters->getParameter( 'ordermethod' );
 		$message = ( $orderMethods[0] ?? null ) === 'category'
-			? 'categoryarticlecount'
+			? 'category-article-count-limited'
 			: 'dpl_articlecount';
 
-		return Html::element( 'p', [], wfMessage( $message )->numParams( $count )->text() );
+		return Html::element( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
 	}
 }
