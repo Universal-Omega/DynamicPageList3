@@ -539,8 +539,8 @@ class Parameters extends ParametersData {
 
 			if (
 				$namespaceId === false || (
-				is_array( $allowedNamespaces ) &&
-					!in_array( $parameter, $allowedNamespaces, true )
+				$allowedNamespaces &&
+					!in_array( $namespaceId, $allowedNamespaces, true )
 				)
 			) {
 				return false;
@@ -570,10 +570,7 @@ class Parameters extends ParametersData {
 			}
 
 			$namespaceId = $contLang->getNsIndex( $parameter );
-
-			if (
-				$namespaceId === false &&
-				is_numeric( $parameter ) &&
+			if ( $namespaceId === false && is_numeric( $parameter ) &&
 				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
 			) {
 				$namespaceId = (int)$parameter;
