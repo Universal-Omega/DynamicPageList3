@@ -1065,7 +1065,7 @@ class Lister {
 				if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
 					$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
 					$pieces = [
-							0 => $text
+						0 => $text
 					];
 
 					$this->replaceTagTableRow( $pieces, 0, $article );
