@@ -11,7 +11,7 @@ class UserFormatList extends Lister {
 	protected int $style = parent::LIST_USERFORMAT;
 	private string $textSeparator = '';
 
-	protected function __construct( Parameters $parameters, Parser $parser ) {
+	public function __construct( Parameters $parameters, Parser $parser ) {
 		parent::__construct( $parameters, $parser );
 
 		$this->textSeparator = $parameters->getParameter( 'inlinetext' );
