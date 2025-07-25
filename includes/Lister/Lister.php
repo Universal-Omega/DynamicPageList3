@@ -2,7 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
-use MediaWiki\Content\ContentHandler;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Config;
@@ -13,7 +12,6 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
-use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
 
@@ -578,21 +576,15 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
+			$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+			$key = $cache->makeKey( 'dpl4-template-text', $article->mTitle->getPrefixedDBkey() );
+			$text = $cache->getWithSetCallback(
+				$key,
+				3600,
+				fn () => $this->parser->fetchTemplateAndTitle( $article->mTitle )[0]
+			);
+
 			// $text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
-
-			$wikiPage = MediaWikiServices::getInstance()
-				->getWikiPageFactory()
-				->newFromTitle( $article->mTitle );
-
-			$revision = $wikiPage->getRevisionRecord();
-
-			$text = '';
-			if ( $revision instanceof RevisionRecord ) {
-				$content = $revision->getMainContentRaw();
-				if ( $content !== null ) {
-					$text = ContentHandler::getContentText( $content );
-				}
-			}
 
 			$match = (
 				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
