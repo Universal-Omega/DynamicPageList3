@@ -80,7 +80,7 @@ class UserFormatList extends Lister {
 
 			$this->sort( $rowsKey, $sortColumn );
 			$items = array_map(
-				fn ( int $index ): string => $items[$index],
+				static fn ( int $index ): string => $items[$index],
 				array_keys( $rowsKey )
 			);
 		}
