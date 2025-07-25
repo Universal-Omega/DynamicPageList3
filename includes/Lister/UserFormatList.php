@@ -22,7 +22,7 @@ class UserFormatList extends Lister {
 			$this->itemStart,
 			$this->itemEnd,
 			$this->listEnd,
-		] = array_replace( [ null, null, null, null ], $separators );
+		] = array_replace( [ '', '', '', '' ], $separators );
 	}
 
 	public function formatList( array $articles, int $start, int $count ): string {
