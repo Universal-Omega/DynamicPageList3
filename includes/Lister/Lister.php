@@ -273,8 +273,8 @@ class Lister {
 
 		if ( $article->mCategoryLinks ) {
 			$lang = RequestContext::getMain()->getLanguage();
-			$item .= ' . . ' . Html::element( 'small', [],
-				wfMessage( 'categories' )->text() . wfMessage( 'colon-separator' )->text() .
+			$item .= ' . . ' . Html::rawElement( 'small', [],
+				wfMessage( 'categories' )->escaped() . wfMessage( 'colon-separator' )->escaped() .
 				$lang->pipeList( $article->mCategoryLinks )
 			);
 		}
@@ -372,7 +372,7 @@ class Lister {
 		}
 
 		$tag = strtr( $tag, [
-			'%PAGE%' => $pagename,
+			'%PAGE%' => $pageName,
 			'%PAGEID%' => (string)$article->mID,
 			'%NAMESPACE%' => $namespaces[$article->mNamespace],
 			'%IMAGE%' => $imageUrl,
