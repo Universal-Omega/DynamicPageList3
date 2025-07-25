@@ -11,11 +11,7 @@ class OrderedList extends UnorderedList {
 
 	private int $offsetCount = 0;
 
-	public function formatList(
-		array $articles,
-		int $start,
-		int $count
-	): string {
+	public function formatList( array $articles, int $start, int $count ): string {
 		$this->offsetCount = $count;
 		return parent::formatList( $articles, $start, $count );
 	}
