@@ -132,7 +132,7 @@ class Lister {
 
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
 		$this->escapeLinks = $parameters->getParameter( 'escapelinks' );
-		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' ) ?? -1;
+		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' ) ?? 0;
 		$this->includePageParsed = $parameters->getParameter( 'incparsed' ) ?? false;
 		$this->includePageText = $parameters->getParameter( 'incpage' ) ?? false;
 		$this->multiSectionSeparators = $parameters->getParameter( 'multisecseparators' ) ?? [];
@@ -195,29 +195,24 @@ class Lister {
 	/**
 	 * Format a list of articles into a singular list.
 	 */
-	public function formatList(
-		array $articles,
-		int $start,
-		int $count
-	): string {
-		$filteredCount = 0;
+	public function formatList( array $articles, int $start, int $count ): string {
 		$items = [];
+		$filteredCount = 0;
 
-		for ( $i = $start; $i < $start + $count; $i++ ) {
-			$article = $articles[$i];
-
-			if ( !$article || empty( $article->mTitle ) ) {
+		$limit = $start + $count;
+		for ( $i = $start; $i < $limit; $i++ ) {
+			$article = $articles[$i] ?? null;
+			if ( !$article?->mTitle ) {
 				continue;
 			}
 
-			$pageText = null;
-			if ( $this->includePageText ) {
-				$pageText = $this->transcludePage( $article, $filteredCount );
-			} else {
+			$pageText = $this->includePageText
+				? $this->transcludePage( $article, $filteredCount )
+				: null;
+
+			if ( !$this->includePageText ) {
 				$filteredCount++;
 			}
-
-			$this->rowCount = $filteredCount;
 
 			$items[] = $this->formatItem( $article, $pageText );
 		}
@@ -230,68 +225,73 @@ class Lister {
 	 * Format a single item.
 	 */
 	protected function formatItem( Article $article, ?string $pageText ): string {
-		$lang = RequestContext::getMain()->getLanguage();
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 		$item = '';
-
 		$date = $article->getDate();
 		if ( $date ) {
 			$item .= $date . ' ';
-
 			if ( $article->mRevision > 0 ) {
-				$item .= '[{{fullurl:' . $article->mTitle . '|oldid=' .
-					$article->mRevision . '}} ' . htmlspecialchars( $article->mTitle ) . ']';
+				$titleText = $article->mTitle->getPrefixedText();
+				$title = htmlspecialchars( $titleText );
+				$item .= "[{{fullurl:$titleText|oldid={$article->mRevision}}} $title]";
 			} else {
 				$item .= $article->mLink;
 			}
 		} else {
-			// output the link to the article
 			$item .= $article->mLink;
 		}
 
 		if ( $article->mSize > 0 ) {
-			$pageSize = $lang->formatSize( $article->mSize );
-			$item .= " [$pageSize]";
+			$item .= wfMessage( 'brackets' )
+				->sizeParams( $article->mSize )
+				->escaped();
 		}
 
 		if ( $article->mCounter > 0 ) {
-			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-			$item .= ' ' . Html::rawElement( 'bdi',
+			$views = wfMessage( 'hitcounters-pop-page-line' )
+				->numParams( $article->mCounter )
+				->text();
+
+			$item .= ' ' . Html::element( 'bdi',
 				[ 'dir' => $contLang->getDir() ],
-				'(' . wfMessage( 'hitcounters-nviews' )->numParams( $article->mCounter )->escaped() . ')'
+				wfMessage( 'parentheses', $views )->text()
 			);
 		}
 
 		if ( $article->mUserLink ) {
-			$item .= ' . . [[User:' . $article->mUser . '|' . $article->mUser . ']]';
-
-			if ( $article->mComment != '' ) {
+			$item .= " . . [[User:{$article->mUser}|{$article->mUser}]]";
+			if ( $article->mComment !== '' ) {
 				$item .= ' { ' . $article->mComment . ' }';
 			}
 		}
 
 		if ( $article->mContributor ) {
-			$item .= ' . . [[User:' . $article->mContributor . '|' . $article->mContributor . " $article->mContrib]]";
+			$item .= ' . . [[User:' . $article->mContributor . '|' .
+				$article->mContributor . ' ' . $article->mContrib . ']]';
 		}
 
 		if ( $article->mCategoryLinks ) {
-			$item .= ' . . <small>' . wfMessage( 'categories' ) . ': ' .
-				implode( ' | ', $article->mCategoryLinks ) . '</small>';
+			$lang = RequestContext::getMain()->getLanguage();
+			$item .= ' . . ' . Html::element( 'small', [],
+				wfMessage( 'categories' )->text() . wfMessage( 'colon-separator' )->text() .
+				$lang->pipeList( $article->mCategoryLinks )
+			);
 		}
 
-		if ( $this->parameters->getParameter( 'addexternallink' ) && $article->mExternalLink ) {
-			$item .= ' → ' . $article->mExternalLink;
+		if (
+			$this->parameters->getParameter( 'addexternallink' )
+			&& $article->mExternalLink
+		) {
+			$item .= " {$contLang->getArrow()} {$article->mExternalLink}";
 		}
 
 		if ( $pageText !== null ) {
-			// Include parsed/processed wiki markup content after each item before the closing tag.
 			$item .= $pageText;
 		}
 
 		$item = $this->getItemStart() . $item . $this->getItemEnd();
-
-		$item = $this->replaceTagParameters( $item, $article );
-		return $item;
+		return $this->replaceTagParameters( $item, $article );
 	}
 
 	/**
@@ -347,85 +347,74 @@ class Lister {
 	 * Replace user tag parameters.
 	 */
 	protected function replaceTagParameters( string $tag, Article $article ): string {
-		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-		$namespaces = $contLang->getNamespaces();
-
-		if ( strpos( $tag, '%' ) === false ) {
+		if ( !str_contains( $tag, '%' ) ) {
 			return $tag;
 		}
 
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+		$namespaces = $contLang->getNamespaces();
 		$imageUrl = $this->parseImageUrlWithPath( $article );
 
-		$pagename = $article->mTitle->getPrefixedText();
-		if ( $this->escapeLinks && ( $article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE ) ) {
-			// links to categories or images need an additional ":"
-			$pagename = ':' . $pagename;
+		$pageName = $article->mTitle->getPrefixedText();
+		if ( $this->escapeLinks && $article->mTitle->inNamespaces( NS_CATEGORY, NS_FILE ) ) {
+			$pageName = ':' . $pageName;
 		}
 
-		$tag = str_replace( '%PAGE%', $pagename, $tag );
-		$tag = str_replace( '%PAGEID%', (string)$article->mID, $tag );
-		$tag = str_replace( '%NAMESPACE%', $namespaces[$article->mNamespace], $tag );
-		$tag = str_replace( '%IMAGE%', $imageUrl, $tag );
-		$tag = str_replace( '%EXTERNALLINK%', $article->mExternalLink, $tag );
-		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
-
 		$title = $article->mTitle->getText();
-		$replaceInTitle = $this->parameters->getParameter( 'replaceintitle' );
+		$replaceInTitle = $this->parameters->getParameter( 'replaceintitle' ) ?? [];
 
-		if ( is_array( $replaceInTitle ) && count( $replaceInTitle ) === 2 ) {
+		if ( count( $replaceInTitle ) === 2 ) {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
 		}
 
-		if ( $this->titleMaxLength > 0 && ( strlen( $title ) > $this->titleMaxLength ) ) {
-			$title = substr( $title, 0, $this->titleMaxLength ) . '...';
+		if ( $this->titleMaxLength > 0 && strlen( $title ) > $this->titleMaxLength ) {
+			$title = substr( $title, 0, $this->titleMaxLength ) . wfMessage( 'ellipsis' )->escaped();
 		}
 
-		$tag = str_replace( '%TITLE%', $title, $tag );
-		$tag = str_replace( '%DISPLAYTITLE%', $article->mDisplayTitle ?: $title, $tag );
-
-		$tag = str_replace( '%COUNT%', (string)$article->mCounter, $tag );
-		$tag = str_replace( '%COUNTFS%', (string)( floor( log( $article->mCounter ) * 0.7 ) ), $tag );
-		$tag = str_replace( '%COUNTFS2%', (string)( floor( sqrt( log( $article->mCounter ) ) ) ), $tag );
-		$tag = str_replace( '%SIZE%', (string)$article->mSize, $tag );
-		$tag = str_replace( '%SIZEFS%', (string)( floor( sqrt( log( $article->mSize ) ) * 2.5 - 5 ) ), $tag );
-		$tag = str_replace( '%DATE%', $article->getDate(), $tag );
-		$tag = str_replace( '%REVISION%', (string)$article->mRevision, $tag );
-		$tag = str_replace( '%CONTRIBUTION%', (string)$article->mContribution, $tag );
-		$tag = str_replace( '%CONTRIB%', $article->mContrib, $tag );
-		$tag = str_replace( '%CONTRIBUTOR%', $article->mContributor, $tag );
-		$tag = str_replace( '%USER%', $article->mUser, $tag );
+		$tag = strtr( $tag, [
+			'%PAGE%' => $pagename,
+			'%PAGEID%' => (string)$article->mID,
+			'%NAMESPACE%' => $namespaces[$article->mNamespace],
+			'%IMAGE%' => $imageUrl,
+			'%EXTERNALLINK%' => $article->mExternalLink,
+			'%EDITSUMMARY%' => $article->mComment,
+			'%TITLE%' => $title,
+			'%DISPLAYTITLE%' => $article->mDisplayTitle ?: $title,
+			'%COUNT%' => (string)$article->mCounter,
+			'%COUNTFS%' => (string)floor( log( $article->mCounter ) * 0.7 ),
+			'%COUNTFS2%' => (string)floor( sqrt( log( $article->mCounter ) ) ),
+			'%SIZE%' => (string)$article->mSize,
+			'%SIZEFS%' => (string)floor( sqrt( log( $article->mSize ) ) * 2.5 - 5 ),
+			'%DATE%' => $article->getDate(),
+			'%REVISION%' => (string)$article->mRevision,
+			'%CONTRIBUTION%' => (string)$article->mContribution,
+			'%CONTRIB%' => $article->mContrib,
+			'%CONTRIBUTOR%' => $article->mContributor,
+			'%USER%' => $article->mUser,
+		] );
 
 		if ( $article->mSelTitle ) {
-			if ( $article->mSelNamespace == 0 ) {
-				$tag = str_replace( '%PAGESEL%', str_replace( '_', ' ', $article->mSelTitle ), $tag );
-			} else {
-				$tag = str_replace( '%PAGESEL%', $namespaces[$article->mSelNamespace] . ':' .
-					str_replace( '_', ' ', $article->mSelTitle ), $tag
-				);
-			}
+			$pageSel = $article->mSelNamespace === NS_MAIN
+				? str_replace( '_', ' ', $article->mSelTitle )
+				: $namespaces[$article->mSelNamespace] . ':' . str_replace( '_', ' ', $article->mSelTitle );
+
+			$tag = str_replace( '%PAGESEL%', $pageSel, $tag );
 		}
 
 		$tag = str_replace( '%IMAGESEL%', str_replace( '_', ' ', $article->mImageSelTitle ), $tag );
-
-		$tag = $this->replaceTagCategory( $tag, $article );
-		return $tag;
+		return $this->replaceTagCategory( $tag, $article );
 	}
 
 	/**
 	 * Replace user tag parameters for categories.
 	 */
 	private function replaceTagCategory( string $tag, Article $article ): string {
-		if ( $article->mCategoryLinks ) {
-			$tag = str_replace( '%CATLIST%', implode( ', ', $article->mCategoryLinks ), $tag );
-			$tag = str_replace( '%CATBULLETS%', '* ' . implode( "\n* ", $article->mCategoryLinks ), $tag );
-			$tag = str_replace( '%CATNAMES%', implode( ', ', $article->mCategoryTexts ), $tag );
-		} else {
-			$tag = str_replace( '%CATLIST%', '', $tag );
-			$tag = str_replace( '%CATBULLETS%', '', $tag );
-			$tag = str_replace( '%CATNAMES%', '', $tag );
-		}
-
-		return $tag;
+		$hasCats = $article->mCategoryLinks !== [];
+		return strtr( $tag, [
+			'%CATLIST%' => $hasCats ? implode( ', ', $article->mCategoryLinks ) : '',
+			'%CATBULLETS%' => $hasCats ? '* ' . implode( "\n* ", $article->mCategoryLinks ) : '',
+			'%CATNAMES%' => $hasCats ? implode( ', ', $article->mCategoryTexts ) : '',
+		] );
 	}
 
 	/**
@@ -441,31 +430,35 @@ class Lister {
 	 */
 	private function replaceTagTableRow( array &$pieces, int $s, Article $article ): void {
 		$tableFormat = $this->parameters->getParameter( 'tablerow' );
+
 		$firstCall = true;
-
 		foreach ( $pieces as $key => $val ) {
-			if ( isset( $tableFormat[$s] ) ) {
-				if ( $s == 0 || $firstCall ) {
-					$pieces[$key] = str_replace( '%%', $val, $tableFormat[$s] );
-				} else {
-					$n = strpos( $tableFormat[$s], '|' );
-
-					if (
-						$n === false ||
-						!( strpos( substr( $tableFormat[$s], 0, $n ), '{' ) === false ) ||
-						!( strpos( substr( $tableFormat[$s], 0, $n ), '[' ) === false )
-					) {
-						$pieces[$key] = str_replace( '%%', $val, $tableFormat[$s] );
-					} else {
-						$pieces[$key] = str_replace( '%%', $val, substr( $tableFormat[$s], $n + 1 ) );
-					}
-				}
-
-				$pieces[$key] = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $val ), $pieces[$key] );
-				$pieces[$key] = str_replace( '%PAGE%', $article->mTitle->getPrefixedText(), $pieces[$key] );
-
-				$pieces[$key] = $this->replaceTagCategory( $pieces[$key], $article );
+			if ( !isset( $tableFormat[$s] ) ) {
+				$firstCall = false;
+				continue;
 			}
+
+			$format = $tableFormat[$s];
+			$pipePos = strpos( $format, '|' );
+			$beforePipe = $pipePos !== false ? substr( $format, 0, $pipePos ) : null;
+
+			$isFirst = $s === 0 || $firstCall;
+			$hasBracketSyntax = str_contains( $beforePipe ?? '', '{' ) || str_contains( $beforePipe ?? '', '[' );
+
+			if ( $isFirst || $pipePos === false || $hasBracketSyntax ) {
+				$row = str_replace( '%%', $val, $format );
+			} else {
+				$row = str_replace( '%%', $val, substr( $format, $pipePos + 1 ) );
+			}
+
+			$row = str_replace(
+				[ '%IMAGE%', '%PAGE%' ],
+				[ $this->parseImageUrlWithPath( $val ), $article->mTitle->getPrefixedText() ],
+				$row
+			);
+
+			$row = $this->replaceTagCategory( $row, $article );
+			$pieces[$key] = $row;
 
 			$firstCall = false;
 		}
@@ -485,45 +478,35 @@ class Lister {
 	): string {
 		$tableFormat = $this->parameters->getParameter( 'tablerow' );
 
-		// we could try to format fields differently within the first call of a template
-		// currently we do not make such a difference
+		$key = "$s.$argNr";
+		if ( !isset( $tableFormat[$key] ) ) {
+			$result = $this->cutAt( $maxLength, $arg );
+			return $result !== '' && $result[0] === '-' ? ' ' . $result : $result;
+		}
 
-		// if the result starts with a '-' we add a leading space; thus we avoid a misinterpretation of |- as
-		// a start of a new row (wiki table syntax)
-		if ( array_key_exists( "$s.$argNr", $tableFormat ) ) {
-			$n = -1;
+		$format = $tableFormat[$key];
+		$n = -1;
 
-			if ( $s >= 1 && $argNr == 0 && !$firstCall ) {
-				$n = strpos( $tableFormat["$s.$argNr"], '|' );
-				if (
-					$n === false ||
-					!( strpos( substr( $tableFormat["$s.$argNr"], 0, $n ), '{' ) === false ) ||
-					!( strpos( substr( $tableFormat["$s.$argNr"], 0, $n ), '[' ) === false )
-				) {
-					$n = -1;
-				}
-			}
-
-			$result = str_replace( '%%', $arg, substr( $tableFormat["$s.$argNr"], $n + 1 ) );
-			$result = str_replace( '%PAGE%', $article->mTitle->getPrefixedText(), $result );
-
-			// @TODO: This just blindly passes the argument through hoping it is an image.
-			$result = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $arg ), $result );
-			$result = $this->cutAt( $maxLength, $result );
-
-			if ( strlen( $result ) > 0 && $result[0] == '-' ) {
-				return ' ' . $result;
-			} else {
-				return $result;
+		if ( $s >= 1 && $argNr === 0 && !$firstCall ) {
+			$pipePos = strpos( $format, '|' );
+			$beforePipe = $pipePos !== false ? substr( $format, 0, $pipePos ) : null;
+			if (
+				$pipePos !== false &&
+				!str_contains( $beforePipe ?? '', '{' ) &&
+				!str_contains( $beforePipe ?? '', '[' )
+			) {
+				$n = $pipePos;
 			}
 		}
 
-		$result = $this->cutAt( $maxLength, $arg );
-		if ( strlen( $result ) > 0 && $result[0] == '-' ) {
-			return ' ' . $result;
-		} else {
-			return $result;
-		}
+		$result = str_replace(
+			[ '%%', '%PAGE%', '%IMAGE%' ],
+			[ $arg, $article->mTitle->getPrefixedText(), $this->parseImageUrlWithPath( $arg ) ],
+			substr( $format, $n + 1 )
+		);
+
+		$result = $this->cutAt( $maxLength, $result );
+		return $result !== '' && $result[0] === '-' ? ' ' . $result : $result;
 	}
 
 	/**
