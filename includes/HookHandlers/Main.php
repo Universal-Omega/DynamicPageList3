@@ -242,8 +242,8 @@ class Main implements ParserFirstCallInitHook {
 	public function dplReplaceParserFunction(
 		Parser $parser,
 		string $text,
-		string $pat = '',
-		string $repl = ''
+		string $pat,
+		string $repl
 	): string {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
 
@@ -278,7 +278,7 @@ class Main implements ParserFirstCallInitHook {
 		Parser $parser,
 		string $text = '',
 		string $heading = ' ',
-		string|int $maxLength = -1,
+		int $maxLength = -1,
 		string $page = '?page?',
 		string $link = 'default',
 		bool $trim = false
@@ -286,7 +286,7 @@ class Main implements ParserFirstCallInitHook {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
 		$output = LST::extractHeadingFromText(
 			$parser, $page, $text, $heading, '',
-			$sectionHeading, true, (int)$maxLength, $link, $trim
+			$sectionHeading, true, $maxLength, $link, $trim
 		);
 
 		return $output[0] ?? '';
@@ -295,10 +295,10 @@ class Main implements ParserFirstCallInitHook {
 	public function dplMatrixParserFunction(
 		Parser $parser,
 		string $name,
-		string $yes = '',
-		string $no = '',
-		string $flip = '',
-		string $matrix = ''
+		string $yes,
+		string $no,
+		string $flip,
+		string $matrix
 	): string {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
 
