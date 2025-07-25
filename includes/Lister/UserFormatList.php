@@ -44,6 +44,7 @@ class UserFormatList extends Lister {
 				$filteredCount++;
 			}
 
+			$this->rowCount = $filteredCount;
 			$items[] = $this->formatItem( $article, $pageText );
 		}
 
