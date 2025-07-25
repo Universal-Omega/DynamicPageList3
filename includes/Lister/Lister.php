@@ -166,7 +166,7 @@ class Lister {
 			default => UnorderedList::class,
 		};
 
-		return new $class( $parameters, $parser );
+		return new $class( $parameters, clone $parser );
 	}
 
 	private function setHeadListAttributes( string $attributes ): void {
