@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
+use MediaWiki\Content\ContentHandler;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Config;
@@ -587,7 +588,7 @@ class Lister {
 
 			$text = '';
 			if ( $revision instanceof RevisionRecord ) {
-				$content = $revision->getContent( RevisionRecord::RAW );
+				$content = $revision->getMainContentRaw();
 				if ( $content !== null ) {
 					$text = ContentHandler::getContentText( $content );
 				}
