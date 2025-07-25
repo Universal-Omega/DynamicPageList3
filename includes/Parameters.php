@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\DynamicPageList4;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PermissionsError;
 use StringUtils;
 use Wikimedia\Rdbms\IExpression;
 
@@ -37,13 +36,6 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
-		if ( isset( $parameterData['permission'] ) ) {
-			$user = RequestContext::getMain()->getUser();
-			if ( !$user->isAllowed( $parameterData['permission'] ) ) {
-				throw new PermissionsError( $parameterData['permission'] );
-			}
-		}
-
 		$function = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
 		if ( method_exists( $this, $function ) ) {
@@ -55,7 +47,7 @@ class Parameters extends ParametersData {
 		$success = true;
 
 		// Validate allowed values
-		if ( isset( $parameterData['values'] ) && is_array( $parameterData['values'] ) ) {
+		if ( isset( $parameterData['values'] ) ) {
 			if ( !in_array( strtolower( $option ), $parameterData['values'], true ) ) {
 				$success = false;
 			}
@@ -80,6 +72,7 @@ class Parameters extends ParametersData {
 				$option = $parameterData['default'] ?? null;
 				$success = $option !== null;
 			}
+
 			$option = (int)$option;
 		}
 

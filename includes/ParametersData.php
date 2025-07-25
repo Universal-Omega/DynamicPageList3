@@ -144,11 +144,7 @@ class ParametersData {
 			'openreferences',
 			'titleregexp',
 		],
-		4 => [
-			'deleterules',
-			'goal',
-			'updaterules',
-		],
+		4 => [ 'goal' ],
 	];
 
 	/**
@@ -877,14 +873,6 @@ class ParametersData {
 		'userdateformat' => [
 			'default' => 'Y-m-d H:i:s',
 			'strip_html' => true,
-		],
-		'updaterules' => [
-			'default' => null,
-			'permission' => 'dpl_param_update_rules',
-		],
-		'deleterules' => [
-			'default' => null,
-			'permission' => 'dpl_param_delete_rules',
 		],
 
 		/**
