@@ -12,11 +12,7 @@ class SubPageList extends UnorderedList {
 	protected string $itemStart = '<li%s>';
 	protected string $itemEnd = '</li>';
 
-	public function formatList(
-		array $articles,
-		int $start,
-		int $count
-	): string {
+	public function formatList( array $articles, int $start, int $count ): string {
 		$items = [];
 		$filteredCount = 0;
 
@@ -27,20 +23,20 @@ class SubPageList extends UnorderedList {
 				continue;
 			}
 
-			$pageText = null;
-			if ( $this->includePageText ) {
-				$pageText = $this->transcludePage( $article, $filteredCount );
-			} else {
+			$pageText = $this->includePageText
+				? $this->transcludePage( $article, $filteredCount )
+				: null;
+
+			if ( !$this->includePageText ) {
 				$filteredCount++;
 			}
 
-			$this->rowCount = $filteredCount;
-
-			$parts = explode( '/', $article->mTitle );
+			$parts = explode( '/', $article->mTitle->getPrefixedText() );
 			$item = $this->formatItem( $article, $pageText );
 			$items = $this->nestItem( $parts, $items, $item );
 		}
 
+		$this->rowCount = $filteredCount;
 		return $this->getListStart() . $this->implodeItems( $items ) . $this->listEnd;
 	}
 
