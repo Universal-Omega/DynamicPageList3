@@ -37,8 +37,6 @@
 	"dpl_log_24": "Used as debug message",
 	"dpl_log_25": "Used as debug message",
 	"dpl_articlecount": "Used to show count of article inside this heading",
-	"action-dpl_param_update_rules": "{{doc-action|dpl_param_update_rules}}",
-	"action-dpl_param_delete_rules": "{{doc-action|dpl_param_delete_rules}}",
 	"dpl_query_error": "Used as query error message",
 	"dpl-tracking-category": "'Pages using DynamicPageList4' tracking category",
 	"dpl-tag-tracking-category": "'Pages using DynamicPageList4 parser tag' tracking category",
@@ -48,7 +46,5 @@
 	"dplvar-parserfunc-tracking-category": "'Pages using DynamicPageList4 dplvar parser function' tracking category",
 	"dplreplace-parserfunc-tracking-category": "'Pages using DynamicPageList4 dplreplace parser function' tracking category",
 	"dplchapter-parserfunc-tracking-category": "'Pages using DynamicPageList4 dplchapter parser function' tracking category",
-	"dplmatrix-parserfunc-tracking-category": "'Pages using DynamicPageList4 dplmatrix parser function' tracking category",
-	"right-dpl_param_delete_rules": "{{doc-right|dpl_param_delete_rules}}",
-	"right-dpl_param_update_rules": "{{doc-right|dpl_param_update_rules}}"
+	"dplmatrix-parserfunc-tracking-category": "'Pages using DynamicPageList4 dplmatrix parser function' tracking category"
 }
