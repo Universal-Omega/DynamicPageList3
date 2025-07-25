@@ -768,8 +768,13 @@ class Lister {
 			$sectionHeadingStr = $sectionHeading[0] ?? '';
 			$left = $this->sectionSeparators[$s * 2] ?? '';
 			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
-			$septag[$s * 2] = str_replace( '%SECTION%', $sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount ) );
-			$septag[$s * 2 + 1] = str_replace( '%SECTION%', $sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount ) );
+			$septag[$s * 2] = str_replace( '%SECTION%',
+				$sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount )
+			);
+
+			$septag[$s * 2 + 1] = str_replace( '%SECTION%',
+				$sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount )
+			);
 		}
 
 		if ( $matchFailed ) {
