@@ -1,9 +1,10 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
-use MediaWiki\Extension\DynamicPageList3\Article;
+use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
+use PageImages\PageImages;
 
 class GalleryList extends Lister {
 	/**
@@ -41,38 +42,49 @@ class GalleryList extends Lister {
 	 */
 	public $itemEnd = '|';
 
-	/**
-	 * Format an item.
-	 *
-	 * @param Article $article
-	 * @param string|null $pageText
-	 * @return string
-	 */
+	/** @inheritDoc */
 	public function formatItem( Article $article, $pageText = null ) {
-		$item = $article->mTitle;
+		$item = $article->mTitle->getPrefixedText();
+		$this->listAttributes = '';
 
-		// If PageImages is loaded and we are not in the file namespace, attempt to assemble a gallery of PageImages
-		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
-			$pageImage = $this->getPageImage( $article->mID ) ?: false;
-
-			if ( $pageImage ) {
-				// Successfully got a page image, wrapping it
-				$item = $this->getItemStart() . $pageImage . '| [[' . $item . ']]' . $this->itemEnd . 'link=' . $item;
+		$gallerySize = $this->parameters->getParameter( 'gallerysize' );
+		if ( $gallerySize ) {
+			if ( str_contains( $gallerySize, ',' ) ) {
+				[ $width, $height ] = array_map( 'trim', explode( ',', $gallerySize, 2 ) );
 			} else {
-				// Failed to get a page image
-				$item = $this->getItemStart() . $item . $this->itemEnd . '[[' . $item . ']]';
-			}
-		} else {
-			if ( $pageText !== null ) {
-				// Include parsed/processed wiki markup content after each item before the closing tag.
-				$item .= $pageText;
+				$width = $height = trim( $gallerySize );
 			}
 
-			$item = $this->getItemStart() . $item . $this->itemEnd;
+			$this->listAttributes .= " widths=$width heights=$height";
 		}
 
-		$item = $this->replaceTagParameters( $item, $article );
+		$galleryMode = $this->parameters->getParameter( 'gallerymode' );
+		if ( $galleryMode ) {
+			$this->listAttributes .= " mode=$galleryMode";
+		}
 
-		return $item;
+		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
+		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+			$pageImage = PageImages::getPageImage( $article->mTitle );
+			if ( $pageImage && $pageImage->exists() ) {
+				// Successfully got a page image, wrapping it.
+				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
+					"[[$item]]{$this->itemEnd}link=$item";
+			} else {
+				// Failed to get a page image.
+				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$item]]";
+			}
+
+			return $this->replaceTagParameters( $item, $article );
+		}
+
+		if ( $pageText !== null ) {
+			// Include parsed/processed wiki markup content
+			// after each item before the closing tag.
+			$item .= $pageText;
+		}
+
+		$item = $this->getItemStart() . $item . $this->itemEnd;
+		return $this->replaceTagParameters( $item, $article );
 	}
 }
