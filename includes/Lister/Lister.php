@@ -87,7 +87,7 @@ class Lister {
 	protected bool $escapeLinks = true;
 
 	/** Index of the table column to sort by. */
-	protected ?int $tableSortColumn = null;
+	protected int $tableSortColumn;
 	protected string $tableSortMethod;
 
 	protected ?int $titleMaxLength = null;
@@ -141,7 +141,7 @@ class Lister {
 		$this->pageTextMatchNotRegex = $parameters->getParameter( 'seclabelsnotmatch' ) ?? [];
 		$this->pageTextMatchRegex = $parameters->getParameter( 'seclabelsmatch' ) ?? [];
 		$this->sectionSeparators = $parameters->getParameter( 'secseparators' ) ?? [];
-		$this->tableSortColumn = $parameters->getParameter( 'tablesortcol' );
+		$this->tableSortColumn = $parameters->getParameter( 'tablesortcol' ) ?? 0;
 		$this->tableSortMethod = $parameters->getParameter( 'tablesortmethod' );
 		$this->templateSuffix = $parameters->getParameter( 'defaulttemplatesuffix' );
 		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlen' );
