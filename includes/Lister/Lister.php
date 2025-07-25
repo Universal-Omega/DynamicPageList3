@@ -7,7 +7,6 @@ use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Config;
 use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
-use MediaWiki\Extension\DynamicPageList4\UpdateArticle;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
@@ -1062,33 +1061,17 @@ class Lister {
 
 				$filteredCount++;
 
-				// update article if include=* and updaterules are given
-				$updateRules = $this->getParameters()->getParameter( 'updaterules' );
-				$deleteRules = $this->getParameters()->getParameter( 'deleterules' );
-
-				if ( $updateRules ) {
-					$ruleOutput = UpdateArticle::updateArticleByRule( $title, $text, $updateRules );
-
-					// append update message to output
-					$pageText .= $ruleOutput;
-				} elseif ( $deleteRules ) {
-					$ruleOutput = UpdateArticle::deleteArticleByRule( $title, $text, $deleteRules );
-
-					// append delete message to output
-					$pageText .= $ruleOutput;
-				} else {
-					// append full text to output
-					if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
-						$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
-						$pieces = [
+				// append full text to output
+				if ( is_array( $this->sectionSeparators ) && array_key_exists( '0', $this->sectionSeparators ) ) {
+					$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
+					$pieces = [
 							0 => $text
-						];
+					];
 
-						$this->replaceTagTableRow( $pieces, 0, $article );
-						$pageText .= $pieces[0];
-					} else {
-						$pageText .= $text;
-					}
+					$this->replaceTagTableRow( $pieces, 0, $article );
+					$pageText .= $pieces[0];
+				} else {
+					$pageText .= $text;
 				}
 			} else {
 				return '';
