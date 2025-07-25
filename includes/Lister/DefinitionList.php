@@ -9,9 +9,6 @@ class DefinitionList extends Lister {
 	protected string $headListStart = '<dt%s>';
 	protected string $headListEnd = '</dt>';
 
-	protected string $headItemStart = '';
-	protected string $headItemEnd = '';
-
 	protected string $listStart = '<dl%s>';
 	protected string $listEnd = '</dl>';
 
