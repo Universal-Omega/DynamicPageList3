@@ -569,352 +569,236 @@ class Lister {
 		$matchFailed = false;
 		$septag = [];
 
-		// include whole article
-		if ( !$this->pageTextMatch || $this->pageTextMatch[0] == '*' ) {
+		// Include whole article
+		if ( $this->pageTextMatch === [] || $this->pageTextMatch[0] === '*' ) {
 			$title = $article->mTitle->getPrefixedText();
+			$pageText = ( $this->style === self::LIST_USERFORMAT )
+				? ''
+				: Html::element( 'br' );
 
-			if ( $this->style === self::LIST_USERFORMAT ) {
-				$pageText = '';
-			} else {
-				$pageText = Html::element( 'br' );
-			}
+			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
 
-			$text = $this->parser->fetchTemplateAndTitle( Title::newFromText( $title ) )[0];
-			if (
-				(
-					count( $this->pageTextMatchRegex ) <= 0 ||
-					$this->pageTextMatchRegex[0] == '' ||
-					!( !preg_match( $this->pageTextMatchRegex[0], $text ) )
-				) &&
-				(
-					count( $this->pageTextMatchNotRegex ) <= 0 ||
-					$this->pageTextMatchNotRegex[0] == '' ||
-					preg_match( $this->pageTextMatchNotRegex[0], $text ) == false
-				)
-			) {
-				if ( $this->includePageMaxLength > 0 && ( strlen( $text ) > $this->includePageMaxLength ) ) {
-					$text = LST::limitTranscludedText( $text, $this->includePageMaxLength, ' [[' . $title . '|..→]]' );
-				}
+			$match = (
+				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
+				  preg_match( $this->pageTextMatchRegex[0], $text ) ) &&
+				( $this->pageTextMatchNotRegex === [] || $this->pageTextMatchNotRegex[0] === '' ||
+				  !preg_match( $this->pageTextMatchNotRegex[0], $text ) )
+			);
 
-				$filteredCount++;
-
-				// append full text to output
-				if ( array_key_exists( '0', $this->sectionSeparators ) ) {
-					$pageText .= $this->replaceTagCount( $this->sectionSeparators[0], $filteredCount );
-					$pieces = [ 0 => $text ];
-
-					$this->replaceTagTableRow( $pieces, 0, $article );
-					$pageText .= $pieces[0];
-				} else {
-					$pageText .= $text;
-				}
-			} else {
+			if ( !$match ) {
 				return '';
 			}
-		} else {
-			// identify section pieces
-			$secPiece = [];
-			$dominantPieces = false;
 
-			// ONE section can be marked as "dominant"; if this section contains multiple entries
-			// we will create a separate output row for each value of the dominant section
-			// the values of all other columns will be repeated
-
-			foreach ( $this->pageTextMatch as $s => $sSecLabel ) {
-				$sSecLabel = trim( $sSecLabel );
-
-				if ( $sSecLabel == '' ) {
-					break;
-				}
-
-				// if sections are identified by number we have a % at the beginning
-				if ( $sSecLabel[0] == '%' ) {
-					$sSecLabel = '#' . $sSecLabel;
-				}
-
-				$maxLength = -1;
-				if ( $sSecLabel == '-' ) {
-					// '-' is used as a dummy parameter which will produce no output
-					// if maxlen was 0 we suppress all output; note that for matching we used the full text
-					$secPieces = [
-						''
-					];
-
-					$this->replaceTagTableRow( $secPieces, $s, $article );
-				} elseif ( $sSecLabel[0] != '{' ) {
-					$limpos = strpos( $sSecLabel, '[' );
-					$cutLink = 'default';
-					$skipPattern = [];
-
-					if ( $limpos > 0 && $sSecLabel[strlen( $sSecLabel ) - 1] == ']' ) {
-						// regular expressions which define a skip pattern may precede the text
-						$fmtSec = explode( '~', substr( $sSecLabel, $limpos + 1, strlen( $sSecLabel ) - $limpos - 2 ) );
-						$sSecLabel = substr( $sSecLabel, 0, $limpos );
-						$cutInfo = explode( ' ', $fmtSec[count( $fmtSec ) - 1], 2 );
-						$maxLength = (int)$cutInfo[0];
-
-						if ( array_key_exists( '1', $cutInfo ) ) {
-							$cutLink = $cutInfo[1];
-						}
-
-						foreach ( $fmtSec as $skipKey => $skipPat ) {
-							if ( $skipKey == count( $fmtSec ) - 1 ) {
-								continue;
-							}
-
-							$skipPattern[] = $skipPat;
-						}
-					}
-
-					if ( $maxLength < 0 ) {
-						// without valid limit include whole section
-						$maxLength = -1;
-					}
-				}
-
-				// find out if the user specified an includematch / includenotmatch condition
-				if (
-					count( $this->pageTextMatchRegex ) > $s &&
-					!empty( $this->pageTextMatchRegex[$s] )
-				) {
-					$mustMatch = $this->pageTextMatchRegex[$s];
-				} else {
-					$mustMatch = '';
-				}
-
-				if (
-					count( $this->pageTextMatchNotRegex ) > $s &&
-					!empty( $this->pageTextMatchNotRegex[$s] )
-				) {
-					$mustNotMatch = $this->pageTextMatchNotRegex[$s];
-				} else {
-					$mustNotMatch = '';
-				}
-
-				// if chapters are selected by number, text or regexp we get the heading from LST::includeHeading
-				$sectionHeading = [];
-				$sectionHeading[0] = '';
-
-				if ( $sSecLabel == '-' ) {
-					$secPiece[$s] = $secPieces[0];
-				} elseif ( $sSecLabel[0] == '#' || $sSecLabel[0] == '@' ) {
-					$sectionHeading[0] = substr( $sSecLabel, 1 );
-
-					// Uses LST::includeHeading() from LabeledSectionTransclusion extension to
-					// include headings from the page
-					$secPieces = LST::includeHeading(
-						$this->parser,
-						$article->mTitle->getPrefixedText(),
-						substr( $sSecLabel, 1 ),
-						'',
-						$sectionHeading,
-						false,
-						$maxLength,
-						$cutLink ?? 'default',
-						$this->trimIncluded,
-						$skipPattern ?? []
-					);
-
-					if ( $mustMatch != '' || $mustNotMatch != '' ) {
-						$secPiecesTmp = $secPieces;
-						$offset = 0;
-
-						foreach ( $secPiecesTmp as $nr => $onePiece ) {
-							if ( ( $mustMatch != '' && preg_match( $mustMatch, $onePiece ) == false ) ||
-								( $mustNotMatch != '' && preg_match( $mustNotMatch, $onePiece ) != false )
-							) {
-								array_splice( $secPieces, $nr - $offset, 1 );
-								$offset++;
-							}
-						}
-					}
-
-					// if maxlen was 0 we suppress all output; note that for matching we used the full text
-					if ( $maxLength == 0 ) {
-						$secPieces = [
-							''
-						];
-					}
-
-					$this->replaceTagTableRow( $secPieces, $s, $article );
-					if ( !array_key_exists( 0, $secPieces ) ) {
-						// avoid matching against a non-existing array element
-						// and skip the article if there was a match condition
-						if ( $mustMatch != '' || $mustNotMatch != '' ) {
-							$matchFailed = true;
-						}
-						break;
-					}
-
-					$secPiece[$s] = $secPieces[0];
-					for ( $sp = 1; $sp < count( $secPieces ); $sp++ ) {
-						if ( isset( $this->multiSectionSeparators[$s] ) ) {
-							$secPiece[$s] .= str_replace(
-								'%SECTION%', $sectionHeading[$sp] ?? '',
-								$this->replaceTagCount(
-									$this->multiSectionSeparators[$s],
-									$filteredCount
-								)
-							);
-						}
-
-						$secPiece[$s] .= $secPieces[$sp];
-					}
-
-					if (
-						$this->dominantSectionCount >= 0 &&
-						$s == $this->dominantSectionCount &&
-						count( $secPieces ) > 1
-					) {
-						$dominantPieces = $secPieces;
-					}
-
-					if ( ( $mustMatch != '' || $mustNotMatch != '' ) && count( $secPieces ) <= 0 ) {
-						$matchFailed = true;
-						break;
-					}
-
-				} elseif ( $sSecLabel[0] == '{' ) {
-					// Uses LST::includeTemplate() from LabeledSectionTransclusion extension to
-					// include templates from the page primary syntax {template}suffix
-					$template1 = trim( substr( $sSecLabel, 1, strpos( $sSecLabel, '}' ) - 1 ) );
-					$template2 = trim( str_replace( '}', '', substr( $sSecLabel, 1 ) ) );
-
-					// alternate syntax: {template|surrogate}
-					if ( $template2 == $template1 && strpos( $template1, '|' ) > 0 ) {
-						$template1 = preg_replace( '/\|.*/', '', $template1 );
-						$template2 = preg_replace( '/^.+\|/', '', $template2 );
-					}
-
-					// Why was defaultTemplateSuffix passed all over the place for just here?
-					$secPieces = LST::includeTemplate(
-						$this->parser,
-						$this,
-						$s,
-						$article,
-						$template1,
-						$template2,
-						$template2 . $this->templateSuffix,
-						$mustMatch,
-						$mustNotMatch,
-						$this->includePageParsed,
-						implode( ', ', $article->mCategoryLinks )
-					);
-
-					$secPiece[$s] = implode(
-						isset( $this->multiSectionSeparators[$s] ) ?
-						$this->replaceTagCount(
-							$this->multiSectionSeparators[$s],
-							$filteredCount
-						) : '',
-						$secPieces
-					);
-
-					if (
-						$this->dominantSectionCount >= 0 &&
-						$s == $this->dominantSectionCount &&
-						count( $secPieces ) > 1
-					) {
-						$dominantPieces = $secPieces;
-					}
-
-					if (
-						( $mustMatch != '' || $mustNotMatch != '' ) &&
-						count( $secPieces ) <= 1 && $secPieces[0] == ''
-					) {
-						$matchFailed = true;
-						break;
-					}
-				} else {
-					// Uses LST::includeSection() from LabeledSectionTransclusion extension to
-					// include labeled sections from the page
-					$secPieces = LST::includeSection(
-						$this->parser, $article->mTitle->getPrefixedText(),
-						$sSecLabel, false, $this->trimIncluded,
-						$skipPattern ?? []
-					);
-					$secPiece[$s] = implode(
-						$this->replaceTagCount(
-							$this->multiSectionSeparators[$s] ?? '', $filteredCount
-						), $secPieces
-					);
-
-					if (
-						$this->dominantSectionCount >= 0 &&
-						$s == $this->dominantSectionCount &&
-						count( $secPieces ) > 1
-					) {
-						$dominantPieces = $secPieces;
-					}
-
-					if ( (
-						$mustMatch != '' &&
-						preg_match( $mustMatch, $secPiece[$s] ) == false
-					) || (
-						$mustNotMatch != '' &&
-						preg_match( $mustNotMatch, $secPiece[$s] ) != false
-					) ) {
-						$matchFailed = true;
-						break;
-					}
-				}
-
-				// separator tags
-				if ( count( $this->sectionSeparators ) == 1 ) {
-					// If there is only one separator tag use it always
-					$septag[$s * 2] = str_replace(
-						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
-							$this->sectionSeparators[0], $filteredCount
-						)
-					);
-				} elseif ( isset( $this->sectionSeparators[$s * 2] ) ) {
-					$septag[$s * 2] = str_replace(
-						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
-							$this->sectionSeparators[$s * 2], $filteredCount
-						)
-					);
-				} else {
-					$septag[$s * 2] = '';
-				}
-
-				if ( isset( $this->sectionSeparators[$s * 2 + 1] ) ) {
-					$septag[$s * 2 + 1] = str_replace(
-						'%SECTION%', $sectionHeading[0], $this->replaceTagCount(
-							$this->sectionSeparators[$s * 2 + 1], $filteredCount
-						)
-					);
-				} else {
-					$septag[$s * 2 + 1] = '';
-				}
-			}
-
-			// if there was a match condition on included contents which failed we skip the whole page
-			if ( $matchFailed ) {
-				return '';
+			if ( $this->includePageMaxLength > 0 && strlen( $text ) > $this->includePageMaxLength ) {
+				$text = LST::limitTranscludedText(
+					text: $text,
+					limit: $this->includePageMaxLength,
+					link: " [[$title|..→]]"
+				);
 			}
 
 			$filteredCount++;
-
-			// assemble parts with separators
-			$pageText = '';
-
-			if ( $dominantPieces != false ) {
-				foreach ( $dominantPieces as $dominantPiece ) {
-					foreach ( $secPiece as $s => $piece ) {
-						if ( $s == $this->dominantSectionCount ) {
-							$pageText .= $this->joinSectionTagPieces(
-								$dominantPiece, $septag[$s * 2], $septag[$s * 2 + 1]
-							);
-						} else {
-							$pageText .= $this->joinSectionTagPieces( $piece, $septag[$s * 2], $septag[$s * 2 + 1] );
-						}
-					}
-				}
+			if ( isset( $this->sectionSeparators[0] ) ) {
+				$pageText .= $this->replaceTagCount(
+					$this->sectionSeparators[0],
+					$filteredCount
+				);
+				$pieces = [ $text ];
+				$this->replaceTagTableRow( $pieces, 0, $article );
+				$pageText .= $pieces[0];
 			} else {
-				foreach ( $secPiece as $s => $piece ) {
-					$pageText .= $this->joinSectionTagPieces( $piece, $septag[$s * 2], $septag[$s * 2 + 1] );
+				$pageText .= $text;
+			}
+
+			return $pageText;
+		}
+
+		// Identify section pieces
+		$secPiece = [];
+		$dominantPieces = false;
+
+		// ONE section can be marked as "dominant"; if this section contains multiple entries
+		// we will create a separate output row for each value of the dominant section
+		// the values of all other columns will be repeated.
+		foreach ( $this->pageTextMatch as $s => $secLabel ) {
+			$secLabel = trim( $secLabel );
+			if ( $secLabel === '' ) {
+				break;
+			}
+
+			// If sections are identified by number we have a % at the beginning.
+			if ( str_starts_with( $secLabel, '%' ) ) {
+				$secLabel = "#$secLabel";
+			}
+
+			$maxLength = -1;
+			$cutLink = 'default';
+			$skipPattern = [];
+
+			if ( $secLabel === '-' ) {
+				// '-' is used as a dummy parameter which will produce no output.
+				// If maxlen was 0 we suppress all output; note that for matching we used the full text.
+				$secPieces = [ '' ];
+				$this->replaceTagTableRow( $secPieces, $s, $article );
+				$secPiece[$s] = $secPieces[0];
+				continue;
+			}
+
+			if ( !str_starts_with( $secLabel, '{' ) ) {
+				$limpos = strpos( $secLabel, '[' );
+				if ( $limpos > 0 && str_ends_with( $secLabel, ']' ) ) {
+					$fmtSec = explode( '~',
+						substr( $secLabel, $limpos + 1, strlen( $secLabel ) - $limpos - 2 )
+					);
+					$secLabel = substr( $secLabel, 0, $limpos );
+					$cutInfo = explode( ' ', end( $fmtSec ), 2 );
+					$maxLength = (int)$cutInfo[0];
+					$cutLink = $cutInfo[1] ?? 'default';
+					$skipPattern = array_slice( $fmtSec, 0, -1 );
 				}
 			}
+
+			$mustMatch = $this->pageTextMatchRegex[$s] ?? '';
+			$mustNotMatch = $this->pageTextMatchNotRegex[$s] ?? '';
+			$sectionHeading = [ '' ];
+
+			if ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
+				$sectionHeading[0] = substr( $secLabel, 1 );
+				$secPieces = LST::includeHeading(
+					parser: $this->parser,
+					page: $article->mTitle->getPrefixedText(),
+					sec: substr( $secLabel, 1 ),
+					to: '',
+					sectionHeading: $sectionHeading,
+					recursionCheck: false,
+					maxLength: $maxLength,
+					link: $cutLink,
+					trim: $this->trimIncluded,
+					skipPattern: $skipPattern
+				);
+
+				if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
+					$secPieces = array_values( array_filter( $secPieces, static fn ( string $piece ): bool =>
+						( $mustMatch === '' || preg_match( $mustMatch, $piece ) ) &&
+						( $mustNotMatch === '' || !preg_match( $mustNotMatch, $piece ) )
+					) );
+				}
+
+				if ( $maxLength === 0 ) {
+					$secPieces = [ '' ];
+				}
+
+				$this->replaceTagTableRow( $secPieces, $s, $article );
+				if ( !isset( $secPieces[0] ) ) {
+					if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
+						$matchFailed = true;
+					}
+					break;
+				}
+
+				$secPiece[$s] = $secPieces[0];
+				for ( $sp = 1, $len = count( $secPieces ); $sp < $len; $sp++ ) {
+					if ( isset( $this->multiSectionSeparators[$s] ) ) {
+						$secPiece[$s] .= str_replace(
+							'%SECTION%', $sectionHeading[$sp] ?? '',
+							$this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount )
+						);
+					}
+
+					$secPiece[$s] .= $secPieces[$sp];
+				}
+			} elseif ( str_starts_with( $secLabel, '{' ) ) {
+				$template1 = trim( substr( $secLabel, 1, strpos( $secLabel, '}' ) - 1 ) );
+				$template2 = trim( str_replace( '}', '', substr( $secLabel, 1 ) ) );
+				if ( $template2 === $template1 && str_contains( $template1, '|' ) ) {
+					$template1 = preg_replace( '/\|.*/', '', $template1 );
+					$template2 = preg_replace( '/^.+\|/', '', $template2 );
+				}
+
+				$secPieces = LST::includeTemplate(
+					parser: $this->parser,
+					lister: $this,
+					dplNr: $s,
+					article: $article,
+					template1: $template1,
+					template2: $template2,
+					defaultTemplate: $template2 . $this->templateSuffix,
+					mustMatch: $mustMatch,
+					mustNotMatch: $mustNotMatch,
+					matchParsed: $this->includePageParsed,
+					catlist: implode( ', ', $article->mCategoryLinks )
+				);
+
+				$secPiece[$s] = implode(
+					isset( $this->multiSectionSeparators[$s] )
+						? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount )
+						: '',
+					$secPieces
+				);
+
+			} else {
+				$secPieces = LST::includeSection(
+					parser: $this->parser,
+					page: $article->mTitle->getPrefixedText(),
+					sec: $secLabel,
+					recursionCheck: false,
+					trim: $this->trimIncluded,
+					skipPattern: $skipPattern
+				);
+
+				$secPiece[$s] = implode( $this->replaceTagCount(
+					$this->multiSectionSeparators[$s] ?? '',
+					$filteredCount
+				), $secPieces );
+			}
+
+			if ( $this->dominantSectionCount >= 0 && $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+				$dominantPieces = $secPieces;
+			}
+
+			if (
+				( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
+				( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
+			) {
+				$matchFailed = true;
+				break;
+			}
+
+			// Separator tags
+			$sectionHeadingStr = $sectionHeading[0] ?? '';
+			$left = $this->sectionSeparators[$s * 2] ?? '';
+			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
+			$septag[$s * 2] = str_replace( '%SECTION%', $sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount ) );
+			$septag[$s * 2 + 1] = str_replace( '%SECTION%', $sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount ) );
+		}
+
+		if ( $matchFailed ) {
+			return '';
+		}
+
+		$filteredCount++;
+		$pageText = '';
+
+		if ( $dominantPieces !== false ) {
+			foreach ( $dominantPieces as $dominantPiece ) {
+				foreach ( $secPiece as $s => $piece ) {
+					$pageText .= $this->joinSectionTagPieces(
+						$s === $this->dominantSectionCount ? $dominantPiece : $piece,
+						$septag[$s * 2],
+						$septag[$s * 2 + 1]
+					);
+				}
+			}
+
+			return $pageText;
+		}
+
+		foreach ( $secPiece as $s => $piece ) {
+			$pageText .= $this->joinSectionTagPieces(
+				$piece,
+				$septag[$s * 2],
+				$septag[$s * 2 + 1]
+			);
 		}
 
 		return $pageText;
