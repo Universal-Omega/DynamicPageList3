@@ -364,12 +364,6 @@ class ParametersData {
 		'headingmode' => [
 			'default' => 'none',
 			'values' => [
-				'H1',
-				'H2',
-				'H3',
-				'H4',
-				'H5',
-				'H6',
 				'h1',
 				'h2',
 				'h3',
@@ -858,11 +852,13 @@ class ParametersData {
 			'default' => null,
 			'db_format' => true,
 			'set_criteria_found' => true,
+			'preserve_case' => true,
 		],
 		'titlegt' => [
 			'default' => null,
 			'db_format' => true,
 			'set_criteria_found' => true,
+			'preserve_case' => true,
 		],
 		'scroll' => [
 			'default' => false,
