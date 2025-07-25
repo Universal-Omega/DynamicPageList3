@@ -243,7 +243,7 @@ class Lister {
 		}
 
 		if ( $article->mSize > 0 ) {
-			$item .= wfMessage( 'brackets' )
+			$item .= ' ' . wfMessage( 'brackets' )
 				->sizeParams( $article->mSize )
 				->escaped();
 		}
@@ -576,15 +576,7 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
-			$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
-			$key = $cache->makeKey( 'dpl4-template-text', $article->mTitle->getPrefixedDBkey() );
-			$text = $cache->getWithSetCallback(
-				$key,
-				3600,
-				fn () => $this->parser->fetchTemplateAndTitle( $article->mTitle )[0]
-			);
-
-			// $text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
+			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
 
 			$match = (
 				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
