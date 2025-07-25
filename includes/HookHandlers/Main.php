@@ -278,7 +278,7 @@ class Main implements ParserFirstCallInitHook {
 		Parser $parser,
 		string $text = '',
 		string $heading = ' ',
-		int $maxLength = -1,
+		string|int $maxLength = -1,
 		string $page = '?page?',
 		string $link = 'default',
 		bool $trim = false
@@ -286,7 +286,7 @@ class Main implements ParserFirstCallInitHook {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
 		$output = LST::extractHeadingFromText(
 			$parser, $page, $text, $heading, '',
-			$sectionHeading, true, $maxLength, $link, $trim
+			$sectionHeading, true, (int)$maxLength, $link, $trim
 		);
 
 		return $output[0] ?? '';
