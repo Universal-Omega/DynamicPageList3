@@ -576,7 +576,8 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
-			$text = $this->parser->getTemplateDom( $article->mTitle )[0];
+			$text = $this->parser->fetchCurrentRevisionRecordOfTitle( $article->mTitle )
+				->getMainContentRaw()->getWikitextForTransclusion();
 
 			$match = (
 				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
