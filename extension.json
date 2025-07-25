@@ -13,16 +13,6 @@
 	"requires": {
 		"MediaWiki": ">= 1.43.0"
 	},
-	"GroupPermissions": {
-		"sysop": {
-			"dpl_param_update_rules": true,
-			"dpl_param_delete_rules": true
-		}
-	},
-	"AvailableRights": [
-		"dpl_param_update_rules",
-		"dpl_param_delete_rules"
-	],
 	"MessagesDirs": {
 		"DynamicPageList4": [
 			"i18n"
