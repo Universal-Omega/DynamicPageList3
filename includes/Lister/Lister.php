@@ -12,6 +12,7 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
+use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
 
@@ -576,8 +577,21 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
-			$text = $this->parser->fetchCurrentRevisionRecordOfTitle( $article->mTitle )
-				->getMainContentRaw()->getWikitextForTransclusion();
+			// $text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
+
+			$wikiPage = MediaWikiServices::getInstance()
+				->getWikiPageFactory()
+				->newFromTitle( $article->mTitle );
+
+			$revision = $wikiPage->getRevisionRecord();
+
+			$text = '';
+			if ( $revision instanceof RevisionRecord ) {
+				$content = $revision->getContent( RevisionRecord::RAW );
+				if ( $content !== null ) {
+					$text = ContentHandler::getContentText( $content );
+				}
+			}
 
 			$match = (
 				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
