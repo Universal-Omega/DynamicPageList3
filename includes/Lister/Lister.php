@@ -17,112 +17,112 @@ use PageImages\PageImages;
 
 class Lister {
 
-	protected const LIST_DEFINITION = 1;
+	private const LIST_DEFINITION = 1;
 
-	protected const LIST_GALLERY = 2;
+	private const LIST_GALLERY = 2;
 
-	protected const LIST_HEADING = 3;
+	private const LIST_HEADING = 3;
 
-	protected const LIST_INLINE = 4;
+	private const LIST_INLINE = 4;
 
-	protected const LIST_ORDERED = 5;
+	private const LIST_ORDERED = 5;
 
-	protected const LIST_UNORDERED = 6;
+	private const LIST_UNORDERED = 6;
 
-	protected const LIST_CATEGORY = 7;
+	private const LIST_CATEGORY = 7;
 
-	protected const LIST_USERFORMAT = 8;
+	private const LIST_USERFORMAT = 8;
 
-	protected readonly Config $config;
+	private readonly Config $config;
 
-	protected int $style = self::LIST_UNORDERED;
-
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement. Example: <div%s>
-	 */
-	protected string $headListStart = '';
-	protected string $headListEnd = '';
+	private int $style = self::LIST_UNORDERED;
 
 	/**
 	 * Heading List Start
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
-	protected string $headItemStart = '';
-	protected string $headItemEnd = '';
+	private string $headListStart = '';
+	private string $headListEnd = '';
+
+	/**
+	 * Heading List Start
+	 * Use %s for attribute placement. Example: <div%s>
+	 */
+	private string $headItemStart = '';
+	private string $headItemEnd = '';
 
 	/**
 	 * List(Section) Start
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
-	protected string $listStart = '';
-	protected string $listEnd = '';
+	private string $listStart = '';
+	private string $listEnd = '';
 
 	/**
 	 * Item Start
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
-	protected string $itemStart = '';
-	protected string $itemEnd = '';
+	private string $itemStart = '';
+	private string $itemEnd = '';
 
 	/** Extra head list HTML attributes. */
-	protected string $headListAttributes = '';
+	private string $headListAttributes = '';
 
 	/** Extra head item HTML attributes. */
-	protected string $headItemAttributes = '';
+	private string $headItemAttributes = '';
 
 	/** Extra list HTML attributes. */
-	protected string $listAttributes = '';
+	private string $listAttributes = '';
 
 	/** Extra item HTML attributes. */
-	protected string $itemAttributes = '';
+	private string $itemAttributes = '';
 
 	/** Count tipping point to mark a section as dominant. */
-	protected int $dominantSectionCount;
-	protected string $templateSuffix;
+	private int $dominantSectionCount;
+	private string $templateSuffix;
 
 	/** Trim included wiki text. */
-	protected bool $trimIncluded;
-	protected bool $escapeLinks;
+	private bool $trimIncluded;
+	private bool $escapeLinks;
 
 	/** Index of the table column to sort by. */
-	protected int $tableSortColumn;
-	protected string $tableSortMethod;
+	private int $tableSortColumn;
+	private string $tableSortMethod;
 
-	protected int $titleMaxLength;
+	private int $titleMaxLength;
 
 	/** Section separators that separate transcluded pages/sections of wiki text. */
-	protected array $sectionSeparators;
+	private array $sectionSeparators;
 
 	/**
 	 * Section separators that separate transcluded pages/sections that refer to
 	 * the same chapter or tempalte of wiki text.
 	 */
-	protected array $multiSectionSeparators;
+	private array $multiSectionSeparators;
 
 	/** Include page text in output. */
-	protected bool $includePageText;
+	private bool $includePageText;
 
 	/** Maximum length before truncated included wiki text. */
-	protected int $includePageMaxLength;
+	private int $includePageMaxLength;
 
 	/** Array of plain text matches for page transclusion. (include) */
-	protected array $pageTextMatch;
+	private array $pageTextMatch;
 
 	/** Array of regex text matches for page transclusion. (includematch) */
-	protected array $pageTextMatchRegex;
+	private array $pageTextMatchRegex;
 
 	/** Array of not regex text matches for page transclusion. (includenotmatch) */
-	protected array $pageTextMatchNotRegex;
+	private array $pageTextMatchNotRegex;
 
 	/** Parsed wiki text into HTML before running include/includematch/includenotmatch. */
-	protected bool $includePageParsed;
+	private bool $includePageParsed;
 
 	/** Total result count after parsing, transcluding, and such. */
-	protected int $rowCount = 0;
+	private int $rowCount = 0;
 
-	protected function __construct(
-		protected readonly Parameters $parameters,
+	private function __construct(
+		private readonly Parameters $parameters,
 		private readonly Parser $parser
 	) {
 		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
@@ -224,7 +224,7 @@ class Lister {
 	/**
 	 * Format a single item.
 	 */
-	protected function formatItem( Article $article, ?string $pageText ): string {
+	private function formatItem( Article $article, ?string $pageText ): string {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 		$item = '';
@@ -297,56 +297,56 @@ class Lister {
 	/**
 	 * Return $this->headListStart with attributes replaced.
 	 */
-	protected function getHeadListStart(): string {
+	private function getHeadListStart(): string {
 		return sprintf( $this->headListStart, $this->headListAttributes );
 	}
 
 	/**
 	 * Return $this->headItemStart with attributes replaced.
 	 */
-	protected function getHeadItemStart(): string {
+	private function getHeadItemStart(): string {
 		return sprintf( $this->headItemStart, $this->headItemAttributes );
 	}
 
 	/**
 	 * Return $this->headItemStart with attributes replaced.
 	 */
-	protected function getHeadItemEnd(): string {
+	private function getHeadItemEnd(): string {
 		return $this->headItemEnd;
 	}
 
 	/**
 	 * Return $this->listStart with attributes replaced.
 	 */
-	protected function getListStart(): string {
+	private function getListStart(): string {
 		return sprintf( $this->listStart, $this->listAttributes );
 	}
 
 	/**
 	 * Return $this->itemStart with attributes replaced.
 	 */
-	protected function getItemStart(): string {
+	private function getItemStart(): string {
 		return sprintf( $this->itemStart, $this->itemAttributes );
 	}
 
 	/**
 	 * Return $this->itemEnd with attributes replaced.
 	 */
-	protected function getItemEnd(): string {
+	private function getItemEnd(): string {
 		return $this->itemEnd;
 	}
 
 	/**
 	 * Join together items after being processed by formatItem().
 	 */
-	protected function implodeItems( array $items ): string {
+	private function implodeItems( array $items ): string {
 		return implode( '', $items );
 	}
 
 	/**
 	 * Replace user tag parameters.
 	 */
-	protected function replaceTagParameters( string $tag, Article $article ): string {
+	private function replaceTagParameters( string $tag, Article $article ): string {
 		if ( !str_contains( $tag, '%' ) ) {
 			return $tag;
 		}
@@ -420,7 +420,7 @@ class Lister {
 	/**
 	 * Replace the %NR%(current article sequence number) in text.
 	 */
-	protected function replaceTagCount( string $tag, int $nr ): string {
+	private function replaceTagCount( string $tag, int $nr ): string {
 		return str_replace( '%NR%', (string)$nr, $tag );
 	}
 
@@ -565,7 +565,7 @@ class Lister {
 	/**
 	 * Transclude a page contents.
 	 */
-	protected function transcludePage( Article $article, int &$filteredCount ): string {
+	private function transcludePage( Article $article, int &$filteredCount ): string {
 		$matchFailed = false;
 		$septag = [];
 
