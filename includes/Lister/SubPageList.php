@@ -45,15 +45,11 @@ class SubPageList extends UnorderedList {
 	 */
 	private function nestItem( array &$parts, array $items, string $item ): array {
 		$firstPart = reset( $parts );
-
 		if ( count( $parts ) > 1 ) {
 			array_shift( $parts );
-
-			if ( !isset( $items[$firstPart] ) ) {
-				$items[$firstPart] = [];
-			}
-
+			$items[$firstPart] ??= [];
 			$items[$firstPart] = $this->nestItem( $parts, $items[$firstPart], $item );
+
 			return $items;
 		}
 
