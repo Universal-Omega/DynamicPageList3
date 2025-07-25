@@ -295,10 +295,10 @@ class Main implements ParserFirstCallInitHook {
 	public function dplMatrixParserFunction(
 		Parser $parser,
 		string $name,
-		string $yes,
-		string $no,
-		string $flip,
-		string $matrix
+		string $yes = '',
+		string $no = '',
+		string $flip = '',
+		string $matrix = ''
 	): string {
 		$parser->addTrackingCategory( 'dplmatrix-parserfunc-tracking-category' );
 
