@@ -576,7 +576,7 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
-			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
+			$text = $this->parser->getTemplateDom( $article->mTitle )[0];
 
 			$match = (
 				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
