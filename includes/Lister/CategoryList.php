@@ -6,54 +6,35 @@ use MediaWiki\Category\CategoryViewer;
 use MediaWiki\Extension\DynamicPageList4\Article;
 
 class CategoryList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_CATEGORY;
 
-	/**
-	 * Format the list of articles.
-	 *
-	 * @param array $articles
-	 * @param int $start
-	 * @param int $count
-	 * @return string Formatted list.
-	 */
-	public function formatList( $articles, $start, $count ) {
+	protected int $style = parent::LIST_CATEGORY;
+
+	public function formatList( array $articles, int $start, int $count ): string {
 		$articleLinks = [];
 		$articleStartChars = [];
 
-		$filteredCount = 0;
-
-		for ( $i = $start; $i < $start + $count; $i++ ) {
+		$limit = $start + $count;
+		for ( $i = $start; $i < $limit; $i++ ) {
 			$articleLinks[] = $articles[$i]->mLink;
 			$articleStartChars[] = $articles[$i]->mStartChar;
-
-			$filteredCount++;
 		}
 
-		$this->rowCount = $filteredCount;
-
-		if ( count( $articleLinks ) > $this->config->get( 'categoryStyleListCutoff' ) ) {
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::columnList( $articleLinks, $articleStartChars );
-		} elseif ( count( $articleLinks ) > 0 ) {
-			// for short lists of articles in categories.
-			return "__NOTOC____NOEDITSECTION__" . CategoryViewer::shortList( $articleLinks, $articleStartChars );
+		$this->rowCount = count( $articleLinks );
+		if ( $this->rowCount === 0 ) {
+			return '';
 		}
 
-		return '';
+		$prefix = '__NOTOC____NOEDITSECTION__';
+		return $this->rowCount > $this->config->get( 'categoryStyleListCutoff' )
+			? $prefix . CategoryViewer::columnList( $articleLinks, $articleStartChars )
+			: $prefix . CategoryViewer::shortList( $articleLinks, $articleStartChars );
 	}
 
 	/**
-	 * Format a single item.
-	 *
 	 * @param Article $article @phan-unused-param
-	 * @param string|null $pageText @phan-unused-param
-	 * @return string
+	 * @param ?string $pageText @phan-unused-param
 	 */
-	public function formatItem( Article $article, $pageText = null ) {
+	public function formatItem( Article $article, ?string $pageText ): string {
 		return '';
 	}
 }
