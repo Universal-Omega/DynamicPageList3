@@ -9,7 +9,7 @@ use MediaWiki\Parser\Parser;
 class UserFormatList extends Lister {
 
 	protected int $style = parent::LIST_USERFORMAT;
-	private string $textSeparator = '';
+	private string $textSeparator;
 
 	public function __construct( Parameters $parameters, Parser $parser ) {
 		parent::__construct( $parameters, $parser );
@@ -74,6 +74,7 @@ class UserFormatList extends Lister {
 					if ( str_contains( $value, '|' ) ) {
 						$value = trim( explode( '|', $value, 2 )[1] ?? $value );
 					}
+
 					$rowsKey[$index] = $value;
 				}
 			}
@@ -100,21 +101,20 @@ class UserFormatList extends Lister {
 				'natural' => uasort( $rowsKey,
 					static fn ( string $a, string $b ): int => strnatcmp( $b, $a )
 				),
-				default => arsort( $rowsKey ),
+				'standard' => arsort( $rowsKey ),
 			};
 			return;
 		}
 
 		match ( $method ) {
 			'natural' => natsort( $rowsKey ),
-			default => asort( $rowsKey ),
+			'standard' => asort( $rowsKey ),
 		};
 	}
 
 	protected function formatItem( Article $article, ?string $pageText ): string {
 		// Include parsed/processed wiki markup content after each item before the closing tag.
 		$content = $pageText ?? '';
-
 		$item = $this->getItemStart() . $content . $this->getItemEnd();
 		return $this->replaceTagParameters( $item, $article );
 	}
