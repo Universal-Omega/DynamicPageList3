@@ -79,30 +79,30 @@ class Lister {
 	protected string $itemAttributes = '';
 
 	/** Count tipping point to mark a section as dominant. */
-	protected int $dominantSectionCount = -1;
-	protected string $templateSuffix = '';
+	protected int $dominantSectionCount;
+	protected string $templateSuffix;
 
 	/** Trim included wiki text. */
-	protected bool $trimIncluded = false;
-	protected bool $escapeLinks = true;
+	protected bool $trimIncluded;
+	protected bool $escapeLinks;
 
 	/** Index of the table column to sort by. */
 	protected int $tableSortColumn;
 	protected string $tableSortMethod;
 
-	protected ?int $titleMaxLength = null;
+	protected int $titleMaxLength;
 
 	/** Section separators that separate transcluded pages/sections of wiki text. */
-	protected array $sectionSeparators = [];
+	protected array $sectionSeparators;
 
 	/**
 	 * Section separators that separate transcluded pages/sections that refer to
 	 * the same chapter or tempalte of wiki text.
 	 */
-	protected array $multiSectionSeparators = [];
+	protected array $multiSectionSeparators;
 
 	/** Include page text in output. */
-	protected bool $includePageText = false;
+	protected bool $includePageText;
 
 	/** Maximum length before truncated included wiki text. */
 	protected int $includePageMaxLength;
@@ -117,7 +117,7 @@ class Lister {
 	protected array $pageTextMatchNotRegex;
 
 	/** Parsed wiki text into HTML before running include/includematch/includenotmatch. */
-	protected bool $includePageParsed = false;
+	protected bool $includePageParsed;
 
 	/** Total result count after parsing, transcluding, and such. */
 	protected int $rowCount = 0;
@@ -134,8 +134,8 @@ class Lister {
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
 		$this->escapeLinks = $parameters->getParameter( 'escapelinks' );
 		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' ) ?? -1;
-		$this->includePageParsed = $parameters->getParameter( 'incparsed' );
-		$this->includePageText = $parameters->getParameter( 'incpage' );
+		$this->includePageParsed = $parameters->getParameter( 'incparsed' ) ?? false;
+		$this->includePageText = $parameters->getParameter( 'incpage' ) ?? false;
 		$this->multiSectionSeparators = $parameters->getParameter( 'multisecseparators' ) ?? [];
 		$this->pageTextMatch = $parameters->getParameter( 'seclabels' ) ?? [];
 		$this->pageTextMatchNotRegex = $parameters->getParameter( 'seclabelsnotmatch' ) ?? [];
@@ -144,8 +144,8 @@ class Lister {
 		$this->tableSortColumn = $parameters->getParameter( 'tablesortcol' ) ?? 0;
 		$this->tableSortMethod = $parameters->getParameter( 'tablesortmethod' );
 		$this->templateSuffix = $parameters->getParameter( 'defaulttemplatesuffix' );
-		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlen' );
-		$this->trimIncluded = $parameters->getParameter( 'includetrim' );
+		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlen' ) ?? 0;
+		$this->trimIncluded = $parameters->getParameter( 'includetrim' ) ?? false;
 		$this->config = Config::getInstance();
 	}
 
@@ -377,7 +377,7 @@ class Lister {
 			$title = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $title );
 		}
 
-		if ( $this->titleMaxLength !== null && ( strlen( $title ) > $this->titleMaxLength ) ) {
+		if ( $this->titleMaxLength > 0 && ( strlen( $title ) > $this->titleMaxLength ) ) {
 			$title = substr( $title, 0, $this->titleMaxLength ) . '...';
 		}
 
