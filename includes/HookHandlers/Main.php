@@ -242,8 +242,8 @@ class Main implements ParserFirstCallInitHook {
 	public function dplReplaceParserFunction(
 		Parser $parser,
 		string $text,
-		string $pat,
-		string $repl
+		string $pat = '',
+		string $repl = ''
 	): string {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
 
