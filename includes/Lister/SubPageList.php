@@ -3,57 +3,27 @@
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 class SubPageList extends UnorderedList {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_UNORDERED;
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<ul%s>';
+	protected int $style = parent::LIST_UNORDERED;
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</ul>';
+	protected string $listStart = '<ul%s>';
+	protected string $listEnd = '</ul>';
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<li%s>';
+	protected string $itemStart = '<li%s>';
+	protected string $itemEnd = '</li>';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</li>';
-
-	/**
-	 * Format a list of articles into a singular list.
-	 *
-	 * @param array $articles
-	 * @param int $start
-	 * @param int $count
-	 * @return string
-	 */
-	public function formatList( $articles, $start, $count ) {
-		$filteredCount = 0;
+	public function formatList(
+		array $articles,
+		int $start,
+		int $count
+	): string {
 		$items = [];
+		$filteredCount = 0;
 
-		for ( $i = $start; $i < $start + $count; $i++ ) {
-			$article = $articles[$i];
-
-			if ( !$article || empty( $article->mTitle ) ) {
+		$limit = $start + $count;
+		for ( $i = $start; $i < $limit; $i++ ) {
+			$article = $articles[$i] ?? null;
+			if ( !$article?->mTitle ) {
 				continue;
 			}
 
@@ -64,7 +34,7 @@ class SubPageList extends UnorderedList {
 				$filteredCount++;
 			}
 
-			$this->rowCount = $filteredCount++;
+			$this->rowCount = $filteredCount;
 
 			$parts = explode( '/', $article->mTitle );
 			$item = $this->formatItem( $article, $pageText );
@@ -76,13 +46,8 @@ class SubPageList extends UnorderedList {
 
 	/**
 	 * Nest items down to the proper level.
-	 *
-	 * @param array &$parts
-	 * @param array $items
-	 * @param string $item
-	 * @return array
 	 */
-	private function nestItem( &$parts, $items, $item ) {
+	private function nestItem( array &$parts, array $items, string $item ): array {
 		$firstPart = reset( $parts );
 
 		if ( count( $parts ) > 1 ) {
@@ -93,24 +58,15 @@ class SubPageList extends UnorderedList {
 			}
 
 			$items[$firstPart] = $this->nestItem( $parts, $items[$firstPart], $item );
-
 			return $items;
 		}
 
 		$items[$firstPart][] = $item;
-
 		return $items;
 	}
 
-	/**
-	 * Join together items after being processed by formatItem().
-	 *
-	 * @param array $items
-	 * @return string
-	 */
-	protected function implodeItems( $items ) {
+	protected function implodeItems( array $items ): string {
 		$list = '';
-
 		foreach ( $items as $key => $item ) {
 			if ( is_string( $item ) ) {
 				$list .= $item;
@@ -118,8 +74,12 @@ class SubPageList extends UnorderedList {
 			}
 
 			if ( is_array( $item ) ) {
-				$list .= $this->getItemStart() . $key . $this->getListStart() .
-					$this->implodeItems( $item ) . $this->listEnd . $this->getItemEnd();
+				$list .= $this->getItemStart()
+					. $key
+					. $this->getListStart()
+					. $this->implodeItems( $item )
+					. $this->listEnd
+					. $this->getItemEnd();
 			}
 		}
 
