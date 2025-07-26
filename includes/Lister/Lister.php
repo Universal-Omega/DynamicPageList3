@@ -58,45 +58,45 @@ class Lister {
 	private string $itemAttributes = '';
 
 	/** Count tipping point to mark a section as dominant. */
-	private int $dominantSectionCount;
-	private string $templateSuffix;
+	private readonly int $dominantSectionCount;
+	private readonly string $templateSuffix;
 
 	/** Trim included wiki text. */
-	private bool $trimIncluded;
-	private bool $escapeLinks;
+	private readonly bool $trimIncluded;
+	private readonly bool $escapeLinks;
 
 	/** Index of the table column to sort by. */
-	protected int $tableSortColumn;
-	protected string $tableSortMethod;
+	protected readonly int $tableSortColumn;
+	protected readonly string $tableSortMethod;
 
-	private int $titleMaxLength;
+	private readonly int $titleMaxLength;
 
 	/** Section separators that separate transcluded pages/sections of wiki text. */
-	private array $sectionSeparators;
+	private readonly array $sectionSeparators;
 
 	/**
 	 * Section separators that separate transcluded pages/sections that refer to
 	 * the same chapter or tempalte of wiki text.
 	 */
-	private array $multiSectionSeparators;
+	private readonly array $multiSectionSeparators;
 
 	/** Include page text in output. */
-	protected bool $includePageText;
+	protected readonly bool $includePageText;
 
 	/** Maximum length before truncated included wiki text. */
-	private int $includePageMaxLength;
+	private readonly int $includePageMaxLength;
 
 	/** Array of plain text matches for page transclusion. (include) */
-	private array $pageTextMatch;
+	private readonly array $pageTextMatch;
 
 	/** Array of regex text matches for page transclusion. (includematch) */
-	private array $pageTextMatchRegex;
+	private readonly array $pageTextMatchRegex;
 
 	/** Array of not regex text matches for page transclusion. (includenotmatch) */
-	private array $pageTextMatchNotRegex;
+	private readonly array $pageTextMatchNotRegex;
 
 	/** Parsed wiki text into HTML before running include/includematch/includenotmatch. */
-	private bool $includePageParsed;
+	private readonly bool $includePageParsed;
 
 	/** Total result count after parsing, transcluding, and such. */
 	protected int $rowCount = 0;
