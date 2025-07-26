@@ -798,7 +798,7 @@ class SectionTranscluder {
 		$config = Config::getInstance();
 		if ( $config->get( 'recursivePreprocess' ) ) {
 			self::softResetParser( $parser );
-			$parser->setOutputType( OT_PREPROCESS );
+			$parser->setOutputType( Parser::OT_PREPROCESS );
 
 			$text = $parser->recursivePreprocess( $text );
 			return $text;
