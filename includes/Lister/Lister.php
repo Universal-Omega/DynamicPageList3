@@ -5,8 +5,8 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Config;
-use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\Extension\DynamicPageList4\SectionTranscluder;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
@@ -415,7 +415,7 @@ class Lister {
 
 	/**
 	 * Format one single template argument of one occurence of one item from the include parameter.
-	 * This is called via a backlink from LST::includeTemplate().
+	 * This is called via a backlink from SectionTranscluder::includeTemplate().
 	 */
 	public function formatTemplateArg(
 		string $arg,
@@ -473,7 +473,7 @@ class Lister {
 			return $text;
 		}
 
-		return LST::limitTranscludedText( $text, $lim );
+		return SectionTranscluder::limitTranscludedText( $text, $lim );
 	}
 
 	/**
@@ -539,7 +539,7 @@ class Lister {
 			}
 
 			if ( $this->includePageMaxLength > 0 && strlen( $text ) > $this->includePageMaxLength ) {
-				$text = LST::limitTranscludedText(
+				$text = SectionTranscluder::limitTranscludedText(
 					text: $text,
 					limit: $this->includePageMaxLength,
 					link: " [[$title|..→]]"
@@ -611,7 +611,7 @@ class Lister {
 
 			if ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
 				$sectionHeading[0] = substr( $secLabel, 1 );
-				$secPieces = LST::includeHeading(
+				$secPieces = SectionTranscluder::includeHeading(
 					parser: $this->parser,
 					page: $article->mTitle->getPrefixedText(),
 					sec: substr( $secLabel, 1 ),
@@ -664,7 +664,7 @@ class Lister {
 					$template2 = preg_replace( '/^.+\|/', '', $template2 );
 				}
 
-				$secPieces = LST::includeTemplate(
+				$secPieces = SectionTranscluder::includeTemplate(
 					parser: $this->parser,
 					lister: $this,
 					dplNr: $s,
@@ -685,7 +685,7 @@ class Lister {
 
 				$secPiece[$s] = implode( $separator, $secPieces );
 			} else {
-				$secPieces = LST::includeSection(
+				$secPieces = SectionTranscluder::includeSection(
 					parser: $this->parser,
 					page: $article->mTitle->getPrefixedText(),
 					sec: $secLabel,

@@ -1,31 +1,5 @@
 <?php
 
-/**
- * This is a modified and enhanced copy of a mediawiki extension called
- *
- *       LabeledSectionTransclusion
- *
- * @link http://www.mediawiki.org/wiki/Extension:Labeled_Section_Transclusion Documentation
- *
- *
- * @author Steve Sanbeg
- * @copyright Copyright © 2006, Steve Sanbeg
- * @license GPL-2.0-or-later
- *
- *
- * This copy was made to avoid version conflicts between the two extensions.
- * In this copy names were changed (wfLst.. --> wfDplLst..).
- * So any version of LabeledSectionTransclusion can be installed together with DPL
- *
- * Enhancements were made to
- *     -  allow inclusion of templates ("template swapping")
- *     -  reduce the size of the transcluded text to a limit of <n> characters
- *
- *
- * Thanks to Steve for his great work!
- * -- Algorithmix
- */
-
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
@@ -38,7 +12,7 @@ use MediaWiki\Title\Title;
 use ReflectionClass;
 use ReflectionException;
 
-class LST {
+class SectionTranscluder {
 
 	/*
 	 * To do transclusion from an extension, we need to interact with the parser
@@ -109,7 +83,7 @@ class LST {
 		}
 
 		$title = Title::castFromPageReference( $parser->getPage() );
-		return "[[{$title->getPrefixedText()}]]<!-- WARNING: LST loop detected -->";
+		return "[[{$title->getPrefixedText()}]]<!-- WARNING: SectionTranscluder loop detected -->";
 	}
 
 	/*
@@ -911,7 +885,7 @@ class LST {
 	 * The improved method uses Parser::recursivePreprocess() that saves a decent amount of processing time
 	 * by preserving the internal cache leveraging the repetitive call pattern.
 	 *
-	 * Parser::preprocess() was mainly called from LST::includeTemplate() for the same template(s) with different
+	 * Parser::preprocess() was mainly called from self::includeTemplate() for the same template(s) with different
 	 * set of arguments for each article found. In the original implementation using Parser::preprocess(),
 	 * the internal cache is cleared at each call and parsing the same template text into template DOM is repeated
 	 * multiple times.

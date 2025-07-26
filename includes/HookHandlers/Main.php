@@ -3,8 +3,8 @@
 namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
-use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parse;
+use MediaWiki\Extension\DynamicPageList4\SectionTranscluder;
 use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Extension\DynamicPageList4\Variables;
 use MediaWiki\Hook\ParserFirstCallInitHook;
@@ -284,7 +284,7 @@ class Main implements ParserFirstCallInitHook {
 		bool $trim = false
 	): string {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
-		$output = LST::extractHeadingFromText(
+		$output = SectionTranscluder::extractHeadingFromText(
 			$parser, $page, $text, $heading, '',
 			$sectionHeading, true, $maxLength, $link, $trim
 		);
