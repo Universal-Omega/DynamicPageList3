@@ -587,7 +587,6 @@ class Lister {
 				// If maxlen was 0 we suppress all output; note that for matching we used the full text.
 				$secPieces = [ '' ];
 				$this->replaceTagTableRow( $secPieces, $s, $article );
-				$secPiece[$s] = $secPieces[0];
 			} elseif ( !str_starts_with( $secLabel, '{' ) ) {
 				$limpos = strpos( $secLabel, '[' );
 				if ( $limpos > 0 && str_ends_with( $secLabel, ']' ) ) {
@@ -655,6 +654,10 @@ class Lister {
 
 					$secPiece[$s] .= $secPieces[$sp];
 				}
+
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
 			} elseif ( str_starts_with( $secLabel, '{' ) ) {
 				$template1 = trim( substr( $secLabel, 1, strpos( $secLabel, '}' ) - 1 ) );
 				$template2 = trim( str_replace( '}', '', substr( $secLabel, 1 ) ) );
@@ -683,6 +686,17 @@ class Lister {
 					: '';
 
 				$secPiece[$s] = implode( $separator, $secPieces );
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
+
+				if (
+					( $mustMatch !== '' || $mustNotMatch !== '' ) &&
+					count( $secPieces ) <= 1 && ( $secPieces[0] ?? '' ) === ''
+				) {
+					$matchFailed = true;
+					break;
+				}
 			} else {
 				$secPieces = LST::includeSection(
 					parser: $this->parser,
@@ -697,18 +711,18 @@ class Lister {
 					$this->multiSectionSeparators[$s] ?? '',
 					$filteredCount
 				), $secPieces );
-			}
 
-			if ( $this->dominantSectionCount >= 0 && $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
-				$dominantPieces = $secPieces;
-			}
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
 
-			if (
-				( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
-				( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
-			) {
-				$matchFailed = true;
-				break;
+				if (
+					( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
+					( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
+				) {
+					$matchFailed = true;
+					break;
+				}
 			}
 
 			// Separator tags
