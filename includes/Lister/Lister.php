@@ -38,20 +38,6 @@ class Lister {
 	protected int $style = self::LIST_UNORDERED;
 
 	/**
-	 * Heading List Start
-	 * Use %s for attribute placement. Example: <div%s>
-	 */
-	protected string $headListStart = '';
-	protected string $headListEnd = '';
-
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement. Example: <div%s>
-	 */
-	private string $headItemStart = '';
-	private string $headItemEnd = '';
-
-	/**
 	 * List(Section) Start
 	 * Use %s for attribute placement. Example: <div%s>
 	 */
@@ -64,12 +50,6 @@ class Lister {
 	 */
 	protected string $itemStart = '';
 	protected string $itemEnd = '';
-
-	/** Extra head list HTML attributes. */
-	private string $headListAttributes = '';
-
-	/** Extra head item HTML attributes. */
-	private string $headItemAttributes = '';
 
 	/** Extra list HTML attributes. */
 	protected string $listAttributes = '';
@@ -125,8 +105,6 @@ class Lister {
 		protected readonly Parameters $parameters,
 		private readonly Parser $parser
 	) {
-		$this->setHeadListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
-		$this->setHeadItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
 		$this->setListAttributes( $parameters->getParameter( 'listattr' ) ?? '' );
 		$this->setItemAttributes( $parameters->getParameter( 'itemattr' ) ?? '' );
 
@@ -167,14 +145,6 @@ class Lister {
 		};
 
 		return new $class( $parameters, clone $parser );
-	}
-
-	private function setHeadListAttributes( string $attributes ): void {
-		$this->headListAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
-	}
-
-	private function setHeadItemAttributes( string $attributes ): void {
-		$this->headItemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
 	}
 
 	private function setListAttributes( string $attributes ): void {
@@ -292,27 +262,6 @@ class Lister {
 
 		$item = $this->getItemStart() . $item . $this->getItemEnd();
 		return $this->replaceTagParameters( $item, $article );
-	}
-
-	/**
-	 * Return $this->headListStart with attributes replaced.
-	 */
-	private function getHeadListStart(): string {
-		return sprintf( $this->headListStart, $this->headListAttributes );
-	}
-
-	/**
-	 * Return $this->headItemStart with attributes replaced.
-	 */
-	private function getHeadItemStart(): string {
-		return sprintf( $this->headItemStart, $this->headItemAttributes );
-	}
-
-	/**
-	 * Return $this->headItemStart with attributes replaced.
-	 */
-	private function getHeadItemEnd(): string {
-		return $this->headItemEnd;
 	}
 
 	/**
