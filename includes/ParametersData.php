@@ -1208,11 +1208,11 @@ class ParametersData {
 		/**
 		 * The sorting algorithm for table columns when 'tablesortcol'
 		 * is used.
-		 * - standard: Use PHP asort() and arsort()
+		 * - standard: Use PHP asort() and arsort() (default)
 		 * - natural: Use PHP natsort()
 		 */
 		'tablesortmethod' => [
-			'default' => null,
+			'default' => 'standard',
 			'values' => [ 'standard', 'natural' ],
 		],
 

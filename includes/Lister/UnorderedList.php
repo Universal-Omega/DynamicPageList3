@@ -3,38 +3,12 @@
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 class UnorderedList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_UNORDERED;
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<ul%s>';
+	protected int $style = parent::LIST_UNORDERED;
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</ul>';
+	protected string $listStart = '<ul%s>';
+	protected string $listEnd = '</ul>';
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<li%s>';
-
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</li>';
+	protected string $itemStart = '<li%s>';
+	protected string $itemEnd = '</li>';
 }

@@ -256,7 +256,7 @@ class Parse {
 
 		// This could be different than TOTALPAGES. PAGES represents the total
 		// results within the constraints of SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() );
+		$this->setVariable( 'PAGES', (string)$lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$dplTime = sprintf( '%.3f sec. (%s)', microtime( true ) - $dplStartTime, date( 'Y/m/d H:i:s' ) );
