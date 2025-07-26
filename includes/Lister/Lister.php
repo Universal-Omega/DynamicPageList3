@@ -587,11 +587,7 @@ class Lister {
 				// If maxlen was 0 we suppress all output; note that for matching we used the full text.
 				$secPieces = [ '' ];
 				$this->replaceTagTableRow( $secPieces, $s, $article );
-				$secPiece[$s] = $secPieces[0];
-				continue;
-			}
-
-			if ( !str_starts_with( $secLabel, '{' ) ) {
+			} elseif ( !str_starts_with( $secLabel, '{' ) ) {
 				$limpos = strpos( $secLabel, '[' );
 				if ( $limpos > 0 && str_ends_with( $secLabel, ']' ) ) {
 					$fmtSec = explode( '~',
@@ -609,7 +605,9 @@ class Lister {
 			$mustNotMatch = $this->pageTextMatchNotRegex[$s] ?? '';
 			$sectionHeading = [ '' ];
 
-			if ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
+			if ( $secLabel === '-' ) {
+				$secPiece[$s] = $secPieces[0];
+			} elseif ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
 				$sectionHeading[0] = substr( $secLabel, 1 );
 				$secPieces = SectionTranscluder::includeHeading(
 					parser: $this->parser,
@@ -656,6 +654,10 @@ class Lister {
 
 					$secPiece[$s] .= $secPieces[$sp];
 				}
+
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
 			} elseif ( str_starts_with( $secLabel, '{' ) ) {
 				$template1 = trim( substr( $secLabel, 1, strpos( $secLabel, '}' ) - 1 ) );
 				$template2 = trim( str_replace( '}', '', substr( $secLabel, 1 ) ) );
@@ -684,6 +686,17 @@ class Lister {
 					: '';
 
 				$secPiece[$s] = implode( $separator, $secPieces );
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
+
+				if (
+					( $mustMatch !== '' || $mustNotMatch !== '' ) &&
+					count( $secPieces ) <= 1 && ( $secPieces[0] ?? '' ) === ''
+				) {
+					$matchFailed = true;
+					break;
+				}
 			} else {
 				$secPieces = SectionTranscluder::includeSection(
 					parser: $this->parser,
@@ -698,28 +711,33 @@ class Lister {
 					$this->multiSectionSeparators[$s] ?? '',
 					$filteredCount
 				), $secPieces );
-			}
 
-			if ( $this->dominantSectionCount >= 0 && $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
-				$dominantPieces = $secPieces;
-			}
+				if ( $s === $this->dominantSectionCount && count( $secPieces ) > 1 ) {
+					$dominantPieces = $secPieces;
+				}
 
-			if (
-				( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
-				( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
-			) {
-				$matchFailed = true;
-				break;
+				if (
+					( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
+					( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
+				) {
+					$matchFailed = true;
+					break;
+				}
 			}
 
 			// Separator tags
 			$sectionHeadingStr = $sectionHeading[0] ?? '';
-			$left = $this->sectionSeparators[$s * 2] ?? '';
-			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
+			if ( count( $this->sectionSeparators ) === 1 ) {
+				$left = $this->sectionSeparators[0];
+			} else {
+				$left = $this->sectionSeparators[$s * 2] ?? '';
+			}
+
 			$septag[$s * 2] = str_replace( '%SECTION%',
 				$sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount )
 			);
 
+			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
 			$septag[$s * 2 + 1] = str_replace( '%SECTION%',
 				$sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount )
 			);
