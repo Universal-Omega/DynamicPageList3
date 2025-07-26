@@ -315,33 +315,20 @@ class SectionTranscluder {
 
 	/**
 	 * Section inclusion - include all matching sections
-	 *
-	 * @param Parser $parser
-	 * @param string $page
-	 * @param string $text
-	 * @param string $sec
-	 * @param string $to
-	 * @param array &$sectionHeading
-	 * @param bool $recursionCheck
-	 * @param int $maxLength
-	 * @param string $cLink
-	 * @param bool $trim
-	 * @param array $skipPattern
-	 * @return array
 	 */
 	public static function extractHeadingFromText(
-		$parser,
-		$page,
-		$text,
-		$sec,
-		$to,
-		&$sectionHeading,
-		$recursionCheck,
-		$maxLength,
-		$cLink,
-		$trim,
-		$skipPattern = []
-	) {
+		Parser $parser,
+		string $page,
+		string $text,
+		string $sec,
+		string $to,
+		array &$sectionHeading,
+		bool $recursionCheck,
+		int $maxLength,
+		string $cLink,
+		bool $trim,
+		array $skipPattern = []
+	): array {
 		$continueSearch = true;
 		$output = [];
 
@@ -527,33 +514,20 @@ class SectionTranscluder {
 	 * we return an array containing all occurences of the template call which match the condition "$mustMatch"
 	 * and do NOT match the condition "$mustNotMatch" (if specified)
 	 * we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
-	 *
-	 * @param Parser $parser
-	 * @param Lister $lister
-	 * @param mixed $dplNr
-	 * @param Article $article
-	 * @param string $template1
-	 * @param string $template2
-	 * @param string $defaultTemplate
-	 * @param string $mustMatch
-	 * @param string $mustNotMatch
-	 * @param bool $matchParsed
-	 * @param string $catlist
-	 * @return array
 	 */
 	public static function includeTemplate(
-		$parser,
+		Parser $parser,
 		Lister $lister,
-		$dplNr,
-		$article,
-		$template1,
-		$template2,
-		$defaultTemplate,
-		$mustMatch,
-		$mustNotMatch,
-		$matchParsed,
-		$catlist
-	) {
+		int $dplNr,
+		Article $article,
+		string $template1,
+		string $template2,
+		string $defaultTemplate,
+		string $mustMatch,
+		string $mustNotMatch,
+		bool $matchParsed,
+		string $catlist
+	): array {
 		$page = $article->mTitle->getPrefixedText();
 		$date = $article->myDate;
 		$user = $article->mUserLink;
