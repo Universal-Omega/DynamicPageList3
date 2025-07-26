@@ -350,7 +350,7 @@ class SectionTranscluder {
 
 		$continueSearch = true;
 
-		do {
+		while ( true ) {
 			$headLine = '';
 			$beginOff = 0;
 
@@ -420,6 +420,7 @@ class SectionTranscluder {
 
 			// If no end offset yet, find next heading of same or higher level
 			if ( $endOff === null ) {
+				$headLength ??= 6;
 				$pat = $nr !== 0
 					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
 					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
@@ -436,15 +437,11 @@ class SectionTranscluder {
 				? substr( $text, $beginOff, $endOff - $beginOff )
 				: substr( $text, $beginOff );
 
-			if ( $endOff === 0 && $sec !== '' ) {
+			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
 				break;
 			}
 
-			match ( true ) {
-				$sec === '' => $continueSearch = false,
-				$endOff !== null => $text = substr( $text, $endOff ),
-				default => $continueSearch = false,
-			};
+			$text = substr( $text, $endOff );
 
 			// Store matched heading
 			$sectionHeading[$n] = $headLine;
@@ -497,7 +494,7 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
-		} while ( $continueSearch );
+		}
 
 		return $output;
 	}
