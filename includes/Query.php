@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use DateInterval;
-use DateTime;
 use LogicException;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -21,6 +19,8 @@ use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
+use Wikimedia\Rdbms\Subquery;
+use Wikimedia\Timestamp\TimestampException;
 
 class Query {
 
@@ -312,7 +312,7 @@ class Query {
 	 */
 	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl4' );
+			->getReplicaDatabase( group: 'dpl4' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
@@ -344,42 +344,21 @@ class Query {
 	 * Helper method to handle relative timestamps.
 	 */
 	private function convertTimestamp( string $inputDate ): string {
-		$timestamp = $inputDate;
-		switch ( $inputDate ) {
-			case 'today':
-				$timestamp = date( 'YmdHis' );
-				break;
-			case 'last hour':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1H' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last day':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1D' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last week':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P7D' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last month':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1M' ) );
-				$timestamp = $date->format( 'YmdHis' );
-				break;
-			case 'last year':
-				$date = new DateTime();
-				$date->sub( new DateInterval( 'P1Y' ) );
-				$timestamp = $date->format( 'YmdHis' );
+		try {
+			if ( is_numeric( $inputDate ) ) {
+				return $this->dbr->timestamp( $inputDate );
+			}
+
+			// Apply relative time modifications like 'last week', '-1 day', '5 days ago', etc...
+			$timestamp = strtotime( $inputDate );
+			if ( $timestamp !== false ) {
+				return $this->dbr->timestamp( $timestamp );
+			}
+		} catch ( TimestampException ) {
+			// Handle the failure below
 		}
 
-		if ( is_numeric( $timestamp ) ) {
-			return $timestamp;
-		}
-
-		throw new LogicException( "Invalid timestamp: $timestamp" );
+		throw new LogicException( "Invalid timestamp: $inputDate" );
 	}
 
 	private function caseInsensitiveComparison(
@@ -452,6 +431,31 @@ class Query {
 		return $parts ?: [ '' ];
 	}
 
+	private function adduser( string $tableAlias ): void {
+		if ( $tableAlias ) {
+			$tableAlias .= '.';
+		}
+
+		$this->queryBuilder->select( [
+			"{$tableAlias}rev_actor",
+			"{$tableAlias}rev_deleted",
+		] );
+
+		if ( $this->isFormatUsed( '%EDITSUMMARY%' ) &&
+			!isset( $this->queryBuilder->getQueryInfo()['fields']['rev_comment_text'] )
+		) {
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'comment_text' )
+				->from( 'comment' )
+				->where( "comment.comment_id = {$tableAlias}rev_comment_id" )
+				->limit( 1 )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
+		}
+	}
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -473,7 +477,7 @@ class Query {
 				"rev.rev_timestamp = ($minTimestampSubquery)",
 			] );
 
-			$this->_adduser( null, 'rev' );
+			$this->adduser( tableAlias: 'rev' );
 		}
 	}
 
@@ -581,7 +585,7 @@ class Query {
 				"rev.rev_timestamp = ($maxTimestampSubquery)",
 			] );
 
-			$this->_adduser( null, 'rev' );
+			$this->adduser( tableAlias: 'rev' );
 		}
 	}
 
@@ -625,17 +629,10 @@ class Query {
 	/**
 	 * Set SQL for 'adduser' parameter.
 	 *
-	 * @param ?bool $option @phan-unused-param
+	 * @param bool $option @phan-unused-param
 	 */
-	private function _adduser( ?bool $option, string $tableAlias = '' ): void {
-		if ( $tableAlias ) {
-			$tableAlias .= '.';
-		}
-
-		$this->queryBuilder->select( [
-			"{$tableAlias}rev_actor",
-			"{$tableAlias}rev_deleted",
-		] );
+	private function _adduser( bool $option ): void {
+		$this->addUser( tableAlias: '' );
 	}
 
 	/**
@@ -823,7 +820,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
-		$this->_adduser( null, 'creation_rev' );
+		$this->adduser( tableAlias: 'creation_rev' );
 
 		$this->queryBuilder->where( [
 			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
@@ -852,7 +849,7 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '>=', $option ),
+			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 
 		$minTimestampSinceSubquery = $this->queryBuilder->newSubquery()
@@ -989,9 +986,7 @@ class Query {
 		// Tell the query optimizer not to look at rows that the following subquery will filter out anyway
 		$this->queryBuilder->where( [
 			'page.page_id = rev.rev_page',
-			$this->dbr->expr( 'rev.rev_timestamp', '<',
-				$this->convertTimestamp( $option )
-			),
+			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 
 		$subquery = $this->queryBuilder->newSubquery()
@@ -1811,7 +1806,7 @@ class Query {
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
 					$this->queryBuilder->table( 'revision', 'rev' );
-					$this->_adduser( null, 'rev' );
+					$this->adduser( tableAlias: 'rev' );
 					break;
 				case 'none':
 					break;
@@ -1823,7 +1818,7 @@ class Query {
 	 * Set SQL for 'redirects' parameter.
 	 */
 	private function _redirects( string $option ): void {
-		if ( $this->parameters->getParameter( 'openreferences' ) ) {
+		if ( $option === 'include' || $this->parameters->getParameter( 'openreferences' ) ) {
 			return;
 		}
 

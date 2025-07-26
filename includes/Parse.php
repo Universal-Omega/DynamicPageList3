@@ -9,6 +9,7 @@ use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOutputLinkTypes;
@@ -255,7 +256,7 @@ class Parse {
 
 		// This could be different than TOTALPAGES. PAGES represents the total
 		// results within the constraints of SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() );
+		$this->setVariable( 'PAGES', (string)$lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$dplTime = sprintf( '%.3f sec. (%s)', microtime( true ) - $dplStartTime, date( 'Y/m/d H:i:s' ) );
@@ -469,7 +470,7 @@ class Parse {
 		}
 
 		$messages = $this->logger->getMessages( clearBuffer: false );
-		return ( $messages ? implode( "<br/>\n", $messages ) : '' )
+		return ( $messages ? implode( Html::element( 'br' ), $messages ) : '' )
 			. $this->getHeader()
 			. $this->getOutput()
 			. $this->getFooter();
@@ -477,7 +478,8 @@ class Parse {
 
 	private function setHeader( string $header ): void {
 		if ( Utils::getDebugLevel() === 5 ) {
-			$header = '<pre><nowiki>' . $header;
+			$header = Html::openElement( 'pre' ) .
+				Html::openElement( 'nowiki' ) . $header;
 		}
 
 		$this->header = $this->replaceVariables( $header );
@@ -489,7 +491,8 @@ class Parse {
 
 	private function setFooter( string $footer ): void {
 		if ( Utils::getDebugLevel() === 5 ) {
-			$footer .= '</nowiki></pre>';
+			$footer .= Html::closeElement( 'nowiki' ) .
+				Html::closeElement( 'pre' );
 		}
 
 		$this->footer = $this->replaceVariables( $footer );
@@ -640,10 +643,8 @@ class Parse {
 			$this->parameters->getParameter( 'mode' ) === 'category' &&
 			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
 		) {
-			$this->logger->addMessage(
-				Constants::FATAL_WRONGORDERMETHOD,
-				'mode=category',
-				'sortkey | title | titlewithoutnamespace'
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
+				'mode=category', 'sortkey | title | titlewithoutnamespace'
 			);
 			return false;
 		}
@@ -653,10 +654,8 @@ class Parse {
 			$this->parameters->getParameter( 'addpagetoucheddate' ) &&
 			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
 		) {
-			$this->logger->addMessage(
-				Constants::FATAL_WRONGORDERMETHOD,
-				'addpagetoucheddate=true',
-				'pagetouched | title'
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
+				'addpagetoucheddate=true', 'pagetouched | title'
 			);
 			return false;
 		}
@@ -750,22 +749,20 @@ class Parse {
 		$originalRow = $tableRow;
 		$tableRow = [];
 		$groupNr = -1;
-		$t = -1;
+		$t = 0;
 
 		foreach ( $sectionLabels as $label ) {
-			$t++;
 			$groupNr++;
-
 			if ( !str_contains( $label, '}:' ) ) {
 				if ( isset( $originalRow[$t] ) ) {
 					$tableRow[$groupNr] = $originalRow[$t];
 				}
+				$t++;
 				continue;
 			}
 
 			[ , $colsPart ] = explode( '}:', $label, 2 );
 			$n = substr_count( $colsPart, ':' ) + 1;
-			$t--;
 
 			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
 				if ( isset( $originalRow[$t] ) ) {

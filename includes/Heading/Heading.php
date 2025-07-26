@@ -35,7 +35,7 @@ class Heading {
 	/** If the article count per heading should be shown. */
 	protected bool $showHeadingCount = false;
 
-	public function __construct(
+	protected function __construct(
 		private readonly Parameters $parameters
 	) {
 		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
@@ -300,9 +300,9 @@ class Heading {
 	protected function articleCountMessage( int $count ): string {
 		$orderMethods = $this->parameters->getParameter( 'ordermethod' );
 		$message = ( $orderMethods[0] ?? null ) === 'category'
-			? 'categoryarticlecount'
+			? 'category-article-count-limited'
 			: 'dpl_articlecount';
 
-		return Html::element( 'p', [], wfMessage( $message, $count )->text() );
+		return Html::rawElement( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
 	}
 }

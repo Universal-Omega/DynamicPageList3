@@ -7,45 +7,34 @@ use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
 
 class GalleryList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_GALLERY;
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<gallery%s>';
+	protected int $style = parent::LIST_GALLERY;
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</gallery>';
+	protected string $listStart = '<gallery%s>';
+	protected string $listEnd = '</gallery>';
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = "\n";
+	protected string $itemStart = "\n";
+	protected string $itemEnd = '|';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '|';
-
-	/** @inheritDoc */
-	public function formatItem( Article $article, $pageText = null ) {
+	protected function formatItem( Article $article, ?string $pageText ): string {
 		$item = $article->mTitle->getPrefixedText();
-		$this->listAttributes = ' mode=' . $this->parameters->getParameter( 'gallerymode' );
+		$this->listAttributes = '';
+
+		$gallerySize = $this->parameters->getParameter( 'gallerysize' );
+		if ( $gallerySize ) {
+			if ( str_contains( $gallerySize, ',' ) ) {
+				[ $width, $height ] = array_map( 'trim', explode( ',', $gallerySize, 2 ) );
+			} else {
+				$width = $height = trim( $gallerySize );
+			}
+
+			$this->listAttributes .= " widths=$width heights=$height";
+		}
+
+		$galleryMode = $this->parameters->getParameter( 'gallerymode' );
+		if ( $galleryMode ) {
+			$this->listAttributes .= " mode=$galleryMode";
+		}
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {

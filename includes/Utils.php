@@ -29,7 +29,7 @@ class Utils {
 
 	public static function getVersion(): string {
 		static $version;
-		$version ??= ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList3']['version'];
+		$version ??= ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList4']['version'];
 		return $version;
 	}
 
