@@ -2,9 +2,9 @@ name: Quibble and Phan
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, pre-release ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, pre-release ]
 
 jobs:
   test:

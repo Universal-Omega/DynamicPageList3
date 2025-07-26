@@ -1,8 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+namespace MediaWiki\Extension\DynamicPageList4;
 
 trait ExternalDomainPatternParser {
+
 	/**
 	 * We provide:
 	 * * full support for "standalone" wildcard usage (eg. `%.fandom.com`)
