@@ -7,7 +7,7 @@ use MediaWiki\Extension\DynamicPageList4\Parameters;
 
 class TieredHeading extends Heading {
 
-	private string $tierLevel = 'eader';
+	private readonly string $tierLevel;
 
 	protected string $listStart = '<div%s>';
 	protected string $listEnd = '</div>';
