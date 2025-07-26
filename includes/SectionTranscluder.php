@@ -770,7 +770,7 @@ class SectionTranscluder {
 	}
 
 	private static function spaceOrUnderscore( string $pattern ): string {
-		// Returns a pettern that matches underscores as well as spaces.
+		// Returns a pattern that matches underscores as well as spaces.
 		return str_replace( ' ', '[ _]', $pattern );
 	}
 
