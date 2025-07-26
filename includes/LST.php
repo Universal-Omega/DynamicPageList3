@@ -256,7 +256,10 @@ class LST {
 			}
 		}
 
+		// If there is a valid cut-off point we use it; it will be the largest one which is not above the limit.
 		if ( $n0 >= 0 ) {
+			// We try to cut off at a word boundary, this may lead to a shortening of maximum 15 chars.
+			// @phan-suppress-next-line PhanSuspiciousValueComparison
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
