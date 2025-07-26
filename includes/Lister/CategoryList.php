@@ -34,7 +34,7 @@ class CategoryList extends Lister {
 	 * @param Article $article @phan-unused-param
 	 * @param ?string $pageText @phan-unused-param
 	 */
-	public function formatItem( Article $article, ?string $pageText ): string {
+	protected function formatItem( Article $article, ?string $pageText ): string {
 		return '';
 	}
 }
