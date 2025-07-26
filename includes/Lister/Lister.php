@@ -547,11 +547,9 @@ class Lister {
 			}
 
 			$filteredCount++;
-			if ( isset( $this->sectionSeparators[0] ) ) {
-				$pageText .= $this->replaceTagCount(
-					$this->sectionSeparators[0],
-					$filteredCount
-				);
+			$sectionSep = $this->sectionSeparators[0] ?? null;
+			if ( $sectionSep !== null ) {
+				$pageText .= $this->replaceTagCount( $sectionSep, $filteredCount );
 				$pieces = [ $text ];
 				$this->replaceTagTableRow( $pieces, 0, $article );
 				$pageText .= $pieces[0];
@@ -646,12 +644,13 @@ class Lister {
 				}
 
 				$secPiece[$s] = $secPieces[0];
+				$multiSep = $this->multiSectionSeparators[$s] ?? null;
 				for ( $sp = 1, $len = count( $secPieces ); $sp < $len; $sp++ ) {
-					if ( isset( $this->multiSectionSeparators[$s] ) ) {
-						$secPiece[$s] .= str_replace(
+					if ( $multiSep !== null ) {
+						$secPiece[$s] .= str_replace( '%SECTION%',
 							// @phan-suppress-next-line PhanCoalescingAlwaysNullInLoop
-							'%SECTION%', $sectionHeading[$sp] ?? '',
-							$this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount )
+							$sectionHeading[$sp] ?? '',
+							$this->replaceTagCount( $multiSep, $filteredCount )
 						);
 					}
 
@@ -679,13 +678,12 @@ class Lister {
 					catlist: implode( ', ', $article->mCategoryLinks )
 				);
 
-				$secPiece[$s] = implode(
-					isset( $this->multiSectionSeparators[$s] )
-						? $this->replaceTagCount( $this->multiSectionSeparators[$s], $filteredCount )
-						: '',
-					$secPieces
-				);
+				$multiSep = $this->multiSectionSeparators[$s] ?? null;
+				$separator = $multiSep !== null
+					? $this->replaceTagCount( $multiSep, $filteredCount )
+					: '';
 
+				$secPiece[$s] = implode( $separator, $secPieces );
 			} else {
 				$secPieces = LST::includeSection(
 					parser: $this->parser,
