@@ -314,7 +314,7 @@ class SectionTranscluder {
 	}
 
 	/**
-	 * Section inclusion - include all matching sections
+	 * Extract section(s) from wikitext based on a heading match
 	 */
 	public static function extractHeadingFromText(
 		Parser $parser,
@@ -329,180 +329,174 @@ class SectionTranscluder {
 		bool $trim,
 		array $skipPattern = []
 	): array {
-		$continueSearch = true;
-		$output = [];
-
+		$output = [ '' ];
 		$n = 0;
-		$output[$n] = '';
 		$nr = 0;
 
-		// check if we are going to fetch the n-th section
+		// Check if section selector is a numbered section
 		if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
-			$nr = substr( $sec, 1 );
-		}
-
-		if ( preg_match( '/^%0$/', $sec ) ) {
-			// transclude text before the first section
+			$nr = (int)substr( $sec, 1 );
+		} elseif ( preg_match( '/^%0$/', $sec ) ) {
+			// Special case: transclude text before the first heading
 			$nr = -2;
 		}
 
-		// if the section name starts with a # or with a @ we use it as regexp, otherwise as plain string
+		// Determine whether heading match is plain text or regex
 		$isPlain = true;
-
-		if ( $sec != '' && ( $sec[0] == '#' || $sec[0] == '@' ) ) {
+		if ( $sec !== '' && ( str_starts_with( $sec, '#' ) || str_starts_with( $sec, '@' ) ) ) {
 			$sec = substr( $sec, 1 );
 			$isPlain = false;
 		}
 
-		do {
-			// Generate a regex to match the === classical heading section(s) === we're
-			//interested in.
-			$headLine = '';
-			$begin_off = 0;
-			if ( $sec == '' ) {
-				$head_len = 6;
-			} else {
-				if ( $nr != 0 ) {
-					$pat = '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)';
-				} elseif ( $isPlain ) {
-					$pat = '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)';
-				} else {
-					$pat = '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)';
-				}
+		$continueSearch = true;
 
+		do {
+			$headLine = '';
+			$beginOff = 0;
+
+			// Check if section is empty (match all headings)
+			if ( $sec === '' ) {
+				$headLength = 6;
+			} else {
+				// Build match pattern depending on numeric/plain/regex match
+				$pat = match ( true ) {
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+				};
+
+				// Match against the section heading
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$begin_off = end( $m )[1];
-					$head_len = strlen( $m[1][0] );
-					$headLine = trim( $m[0][0], "\n =\t" );
-				} elseif ( $nr == -2 ) {
-					// take whole article if no heading found
+					$beginOff = end( $m )[1];
+					$headLength = strlen( $m[1][0] );
+					$headLine = trim( $m[0][0], " \t\n=" );
+				} elseif ( $nr === -2 ) {
+					// No heading found, fallback to full text
 					$m[1][1] = strlen( $text ) + 1;
 				} else {
-					// match failed
+					// No match, return empty output
 					return $output;
 				}
 			}
 
-			// create a link symbol (arrow, img, ...) in case we have to cut the text block to maxLength
-			$link = $cLink;
-			if ( $link == 'default' ) {
-				$link = ' [[' . $page . '#' . $headLine . '|..→]]';
-			} elseif ( strstr( $link, 'img=' ) != false ) {
-				$link = str_replace(
-					'img=', "<linkedimage>page=" . $page . '#' .
-					$headLine . "\nimg=Image:", $link
-				) . "\n</linkedimage>";
-			} elseif ( strstr( $link, '%SECTION%' ) == false ) {
-				$link = ' [[' . $page . '#' . $headLine . '|' . $link . ']]';
-			} else {
-				$link = str_replace( '%SECTION%', $page . '#' . $headLine, $link );
-			}
+			// Construct link formatting
+			$link = match ( true ) {
+				$cLink === 'default' => " [[$page#$headLine|..→]]",
+				str_contains( $cLink, 'img=' ) => str_replace(
+					'img=', "<linkedimage>page=$page#$headLine\nimg=Image:", $cLink
+				) . "\n</linkedimage>",
+				!str_contains( $cLink, '%SECTION%' ) => " [[$page#$headLine|$cLink]]",
+				default => str_replace( '%SECTION%', "$page#$headLine", $cLink ),
+			};
 
-			if ( $nr == -2 ) {
-				// output text before first section and done
-				$piece = substr( $text, 0, $m[1][1] - 1 );
+			// Handle special case: transclude content before first heading
+			if ( $nr === -2 ) {
 				$output[0] = self::parse(
-					$parser, $piece, "#lsth:{$page}|{$sec}",
-					$recursionCheck, $maxLength,
-					$link, $trim, $skipPattern
+					parser: $parser,
+					text: substr( $text, 0, $m[1][1] - 1 ),
+					part1: "#lsth:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
 				);
 
 				return $output;
 			}
 
-			if ( isset( $end_off ) ) {
-				unset( $end_off );
-			}
+			$endOff = null;
 
-			if ( $to != '' ) {
-				// if $to is supplied, try and match it. If we don't match, just ignore it.
-				if ( $isPlain ) {
-					$pat = '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$';
-				} else {
-					$pat = '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
-				}
+			// Try to match target end heading if provided
+			if ( $to !== '' ) {
+				$pat = $isPlain
+					? '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$'
+					: '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
 
-				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
-					$end_off = $mm[0][1] - 1;
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
 				}
 			}
 
-			if ( ( $end_off ?? null ) === null ) {
-				if ( $nr != 0 ) {
-					$pat = '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$';
-				} else {
-					// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
-					$pat = '^(={1,' . $head_len . '})(?!=)\s*.*?\1\s*$';
-				}
+			// If no end offset yet, find next heading of same or higher level
+			if ( $endOff === null ) {
+				$pat = $nr !== 0
+					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
+					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
 
-				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $begin_off ) ) {
-					$end_off = $mm[0][1] - 1;
-				} elseif ( $sec == '' ) {
-					$end_off = -1;
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
+				} elseif ( $sec === '' ) {
+					$endOff = -1;
 				}
 			}
 
-			if ( $end_off ?? false ) {
-				if ( $end_off == -1 ) {
-					return $output;
-				}
+			// Extract the section content based on matched offsets
+			$piece = $endOff !== null
+				? substr( $text, $beginOff, $endOff - $beginOff )
+				: substr( $text, $beginOff );
 
-				$piece = substr( $text, $begin_off, $end_off - $begin_off );
-				if ( $sec == '' ) {
-					$continueSearch = false;
-				} else {
-					if ( $end_off == 0 ) {
-						// we have made no progress - something has gone wrong, but at least don't loop forever
-						break;
-					}
-					// this could lead to quadratic runtime...
-					$text = substr( $text, $end_off );
-				}
-			} else {
-				$piece = substr( $text, $begin_off );
-				$continueSearch = false;
+			if ( $endOff === 0 && $sec !== '' ) {
+				break;
 			}
 
-			if ( $nr > 1 ) {
-				// skip until we reach the n-th section
-				$nr--;
-				continue;
-			}
+			match ( true ) {
+				$sec === '' => $continueSearch = false,
+				$endOff !== null => $text = substr( $text, $endOff ),
+				default => $continueSearch = false,
+			};
 
-			if ( isset( $m[0][0] ) ) {
-				$sectionHeading[$n] = $headLine;
-			} else {
-				$sectionHeading[0] = $headLine;
-			}
+			// Store matched heading
+			$sectionHeading[$n] = $headLine;
 
-			if ( $nr == 1 ) {
-				// output n-th section and done
+			// Output based on mode: single section, last section, or match by name
+			if ( $nr === 1 ) {
+				// Output n-th section and done
 				$output[0] = self::parse(
-					$parser, $piece, "#lsth:{$page}|{$sec}",
-					$recursionCheck, $maxLength,
-					$link, $trim, $skipPattern
+					parser: $parser,
+					text: $piece,
+					part1: "#lsth:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
 				);
 				break;
 			}
 
-			if ( $nr == -1 ) {
-				if ( !$end_off ) {
-					// output last section and done
-					$output[0] = self::parse(
-						$parser, $piece, "#lsth:{$page}|{$sec}",
-						$recursionCheck, $maxLength,
-						$link, $trim, $skipPattern
-					);
-					break;
-				}
-			} else {
-				// output section by name and continue search for another section with the same name
-				$output[$n++] = self::parse(
-					$parser, $piece, "#lsth:{$page}|{$sec}",
-					$recursionCheck, $maxLength,
-					$link, $trim, $skipPattern
+			if ( $nr === -1 && $endOff === null ) {
+				// Output last section and done
+				$output[0] = self::parse(
+					parser: $parser,
+					text: $piece,
+					part1: "#lsth:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
 				);
+				break;
 			}
+
+			if ( $nr > 1 ) {
+				// Skip until we reach the n-th section
+				$nr--;
+				continue;
+			}
+
+			// Output section by name and continue search for another section with the same name
+			$output[$n++] = self::parse(
+				parser: $parser,
+				text: $piece,
+				part1: "#lsth:$page|$sec",
+				recursionCheck: $recursionCheck,
+				maxLength: $maxLength,
+				link: $link,
+				trim: $trim,
+				skipPattern: $skipPattern
+			);
 		} while ( $continueSearch );
 
 		return $output;
