@@ -523,8 +523,6 @@ class SectionTranscluder {
 		$user = $article->mUserLink;
 
 		$text = preg_replace( '/<!--.*?-->/s', '', $parser->fetchTemplateAndTitle( $title )[0] );
-		$tCalls = [];
-
 		if ( $template1 !== '' && $template1[0] === '#' ) {
 			$template1 = substr( $template1, 1 );
 			$template2 = substr( $template2, 1 );
@@ -607,7 +605,7 @@ class SectionTranscluder {
 
 				for ( $i = 0; $i < $size; $i++ ) {
 					$c = $templateCall[$i];
-					$cbrackets += ( $c === '{' ) - ( $c === '}' );
+					$cbrackets += (int)( $c === '{' ) - (int)( $c === '}' );
 
 					if ( $cbrackets === 0 ) {
 						$callSegment = substr( $templateCall, 0, $i - 1 );
@@ -651,7 +649,7 @@ class SectionTranscluder {
 
 			for ( $i = 0; $i < $size; $i++ ) {
 				$c = $templateCall[$i];
-				$cbrackets += ( $c === '{' || $c === '[' ) - ( $c === '}' || $c === ']' );
+				$cbrackets += (int)( $c === '{' || $c === '[' ) - (int)( $c === '}' || $c === ']' );
 
 				if ( $cbrackets === 2 && $c === '|' ) {
 					$parms[] = trim( $parm );
