@@ -220,7 +220,8 @@ class LST {
 	 */
 	public static function limitTranscludedText( string $text, int $limit, string $link = '' ): string {
 		// If text is smaller than limit return complete text.
-		if ( $limit >= strlen( $text ) ) {
+		$length = strlen( $text );
+		if ( $limit >= $length ) {
 			return $text;
 		}
 
@@ -235,10 +236,10 @@ class LST {
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
-		$nb = -1;
+		$nb = 0;
 
 		for ( $i = 0; $i < $limit; $i++ ) {
-			$c = $text[$i];
+			$c = $text[$i] ?? '';
 			match ( $c ) {
 				'[' => $brackets++,
 				']' => $brackets--,
@@ -247,7 +248,6 @@ class LST {
 				default => null,
 			};
 
-			// We store the position if it is valid in terms of parentheses balancing.
 			if ( $brackets === 0 && $cbrackets === 0 ) {
 				$n0 = $i;
 				if ( $c === ' ' ) {
@@ -256,46 +256,50 @@ class LST {
 			}
 		}
 
-		if ( $n0 < 0 ) {
-			if ( $limit === 0 ) {
-				return $link;
+		if ( $n0 >= 0 ) {
+			if ( $nb > 0 && $nb + 15 > $n0 ) {
+				$n0 = $nb;
 			}
 
-			// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
-			// it will at least produce some output at all; otherwise the reader might think that there
-			// is no information at all.
-			return self::limitTranscludedText( $text, $limit * 2, $link );
+			$cut = substr( $text, 0, $n0 + 1 );
+
+			// An open html comment would be fatal, but this should not happen as we already have
+			// eliminated html comments at the beginning.
+
+			// Some tags are critical: ref, pre, nowiki
+			// if these tags were not balanced they would spoil the result completely
+			// we enforce balance by appending the necessary amount of corresponding closing tags
+			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
+			// This simple approach may fail in some cases...
+			preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)?>#im', $cut, $matches );
+			$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
+
+			foreach ( $matches[1] as $tag ) {
+				$tagName = ltrim( $tag, '/' );
+				$tags[$tagName] += str_starts_with( $tag, '/' ) ? -1 : 1;
+			}
+
+			foreach ( $tags as $tagName => $level ) {
+				// Avoid empty <ref> tag
+				if ( $tagName === 'ref' && str_ends_with( $cut, '<ref>' ) ) {
+					$cut = substr( $cut, 0, -5 );
+					$level--;
+				}
+
+				$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
+			}
+
+			return $cut . $link;
 		}
 
-		// We try to cut off at a word boundary, this may lead to a shortening of max. 15 chars.
-		if ( $nb >= 0 && $nb + 15 > $n0 ) {
-			$n0 = $nb;
+		if ( $limit === 0 ) {
+			return $link;
 		}
 
-		$cut = substr( $text, 0, $n0 + 1 );
-
-		// An open html comment would be fatal, but this should not happen as we already have
-		// eliminated html comments at the beginning.
-
-		// Some tags are critical: ref, pre, nowiki
-		// if these tags were not balanced they would spoil the result completely
-		// we enforce balance by appending the necessary amount of corresponding closing tags
-		// currently we ignore the nesting, i.e. all closing tags are appended at the end.
-		// This simple approach may fail in some cases...
-		$matches = [];
-		preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-
-		$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
-		foreach ( $matches[1] ?? [] as $mm ) {
-			$tagName = ltrim( $mm, '/' );
-			$tags[$tagName] += str_starts_with( $mm, '/' ) ? -1 : 1;
-		}
-
-		foreach ( $tags as $tagName => $level ) {
-			$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
-		}
-
-		return $cut . $link;
+		// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
+		// it will at least produce some output at all; otherwise the reader might think that there
+		// is no information at all.
+		return self::limitTranscludedText( $text, $limit * 2, $link );
 	}
 
 	public static function includeHeading(
