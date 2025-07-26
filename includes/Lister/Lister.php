@@ -588,10 +588,7 @@ class Lister {
 				$secPieces = [ '' ];
 				$this->replaceTagTableRow( $secPieces, $s, $article );
 				$secPiece[$s] = $secPieces[0];
-				continue;
-			}
-
-			if ( !str_starts_with( $secLabel, '{' ) ) {
+			} elseif ( !str_starts_with( $secLabel, '{' ) ) {
 				$limpos = strpos( $secLabel, '[' );
 				if ( $limpos > 0 && str_ends_with( $secLabel, ']' ) ) {
 					$fmtSec = explode( '~',
@@ -609,7 +606,9 @@ class Lister {
 			$mustNotMatch = $this->pageTextMatchNotRegex[$s] ?? '';
 			$sectionHeading = [ '' ];
 
-			if ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
+			if ( $secLabel === '-' ) {
+				$secPiece[$s] = $secPieces[0];
+			} elseif ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
 				$sectionHeading[0] = substr( $secLabel, 1 );
 				$secPieces = LST::includeHeading(
 					parser: $this->parser,
@@ -714,12 +713,17 @@ class Lister {
 
 			// Separator tags
 			$sectionHeadingStr = $sectionHeading[0] ?? '';
-			$left = $this->sectionSeparators[$s * 2] ?? '';
-			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
+			if ( count( $this->sectionSeparators ) === 1 ) {
+				$left = $this->sectionSeparators[0];
+			} else {
+				$left = $this->sectionSeparators[$s * 2] ?? '';
+			}
+
 			$septag[$s * 2] = str_replace( '%SECTION%',
 				$sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount )
 			);
 
+			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
 			$septag[$s * 2 + 1] = str_replace( '%SECTION%',
 				$sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount )
 			);
