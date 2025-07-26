@@ -33,7 +33,7 @@ class Heading {
 	protected string $itemAttributes = '';
 
 	/** If the article count per heading should be shown. */
-	protected bool $showHeadingCount = false;
+	protected readonly bool $showHeadingCount;
 
 	protected function __construct(
 		private readonly Parameters $parameters
