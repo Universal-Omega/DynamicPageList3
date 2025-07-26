@@ -141,7 +141,7 @@ class LST {
 	 * @param string &$text wikitext output
 	 * @return bool true if returning text, false if target not found
 	 */
-	public static function text( Parser $parser, string $page, string &$text ): bool {
+	private static function text( Parser $parser, string $page, string &$text ): bool {
 		$title = Title::newFromText( $page );
 		if ( $title === null ) {
 			$text = '';
