@@ -9,7 +9,7 @@ use MediaWiki\Parser\Parser;
 class UserFormatList extends Lister {
 
 	protected int $style = parent::LIST_USERFORMAT;
-	private string $textSeparator;
+	private readonly string $textSeparator;
 
 	public function __construct( Parameters $parameters, Parser $parser ) {
 		parent::__construct( $parameters, $parser );
