@@ -631,7 +631,10 @@ class SectionTranscluder {
 							);
 
 							$argChain .= "|%DATE%=$date|%USER%=$user|%ARGS%=$encodedArgs}}";
-							$output[++$n] = self::callParserPreprocess( $parser, $argChain, $parser->getPage(), $parser->getOptions() );
+							$output[++$n] = self::callParserPreprocess(
+								$parser, $argChain, $parser->getPage(),
+								$parser->getOptions()
+							);
 						}
 						break;
 					}
@@ -695,7 +698,14 @@ class SectionTranscluder {
 
 							if ( str_contains( $exParm, '%' ) ) {
 								$found = true;
-								$output[$n] .= $lister->formatTemplateArg( $exParm, $dplNr, $exParmKey, $firstCall, $maxlen, $article );
+								$output[$n] .= $lister->formatTemplateArg(
+									arg: $exParm,
+									s: $dplNr,
+									argNr: $exParmKey,
+									firstCall: $firstCall,
+									maxLength: $maxlen,
+									article: $article
+								);
 							} elseif ( !$found ) {
 								$exParmQuote = str_replace( '/', '\/', $exParm );
 								foreach ( $parms as $parm ) {
@@ -703,7 +713,14 @@ class SectionTranscluder {
 										continue;
 									}
 									$found = true;
-									$output[$n] .= $lister->formatTemplateArg( preg_replace( "/^$exParmQuote\s*=\s*/", '', $parm ), $dplNr, $exParmKey, $firstCall, $maxlen, $article );
+									$output[$n] .= $lister->formatTemplateArg(
+										arg: preg_replace( "/^$exParmQuote\s*=\s*/", '', $parm ),
+										s: $dplNr,
+										argNr: $exParmKey,
+										firstCall: $firstCall,
+										maxLength: $maxlen,
+										article: $article
+									);
 									break;
 								}
 							}
@@ -720,13 +737,27 @@ class SectionTranscluder {
 									}
 
 									$found = true;
-									$output[$n] .= $lister->formatTemplateArg( $parm, $dplNr, $exParmKey, $firstCall, $maxlen, $article );
+									$output[$n] .= $lister->formatTemplateArg(
+										arg: $parm,
+										s: $dplNr,
+										argNr: $exParmKey,
+										firstCall: $firstCall,
+										maxLength: $maxlen,
+										article: $article
+									);
 									break;
 								}
 							}
 
 							if ( !$found ) {
-								$output[$n] .= $lister->formatTemplateArg( '', $dplNr, $exParmKey, $firstCall, $maxlen, $article );
+								$output[$n] .= $lister->formatTemplateArg(
+									arg: '',
+									s: $dplNr,
+									argNr: $exParmKey,
+									firstCall: $firstCall,
+									maxLength: $maxlen,
+									article: $article
+								);
 							}
 						}
 					}
