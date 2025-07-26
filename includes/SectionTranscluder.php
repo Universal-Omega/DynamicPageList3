@@ -348,8 +348,6 @@ class SectionTranscluder {
 			$isPlain = false;
 		}
 
-		$continueSearch = true;
-
 		while ( true ) {
 			$headLine = '';
 			$beginOff = 0;
