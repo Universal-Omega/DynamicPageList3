@@ -430,7 +430,7 @@ class Query {
 		return $parts ?: [ '' ];
 	}
 
-	private function adduser( string $tableAlias ): void {
+	private function doAddUser( string $tableAlias ): void {
 		if ( $tableAlias ) {
 			$tableAlias .= '.';
 		}
@@ -584,7 +584,7 @@ class Query {
 				"rev.rev_timestamp = ($maxTimestampSubquery)",
 			] );
 
-			$this->adduser( tableAlias: 'rev' );
+			$this->doAddUser( tableAlias: 'rev' );
 		}
 	}
 
@@ -631,7 +631,7 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function adduser( bool $option ): void {
-		$this->addUser( tableAlias: '' );
+		$this->doAddUser( tableAlias: '' );
 	}
 
 	/**
@@ -819,7 +819,7 @@ class Query {
 		}
 
 		$this->queryBuilder->table( 'revision', 'creation_rev' );
-		$this->adduser( tableAlias: 'creation_rev' );
+		$this->doAddUser( tableAlias: 'creation_rev' );
 
 		$this->queryBuilder->where( [
 			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
@@ -1805,7 +1805,7 @@ class Query {
 				case 'user':
 					$this->addOrderBy( 'rev.rev_actor' );
 					$this->queryBuilder->table( 'revision', 'rev' );
-					$this->adduser( tableAlias: 'rev' );
+					$this->doAddUser( tableAlias: 'rev' );
 					break;
 				case 'none':
 					break;
