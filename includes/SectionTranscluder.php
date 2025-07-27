@@ -93,7 +93,7 @@ class SectionTranscluder {
 		}
 
 		$title = Title::castFromPageReference( $parser->getPage() );
-		return "[[{$title->getPrefixedText()}]]<!-- WARNING: SectionTranscluder loop detected -->";
+		return "[[{$title->getPrefixedText()}]]<!-- WARNING: DPL4 SectionTranscluder loop detected -->";
 	}
 
 	/**
