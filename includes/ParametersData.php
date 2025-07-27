@@ -15,7 +15,7 @@ class ParametersData {
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
 	 */
-	private array $parametersForRichnessLevel = [
+	private const PARAMETERS_BY_RICHNESS = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
@@ -1298,7 +1298,7 @@ class ParametersData {
 	 */
 	public function testRichness( string $function ): bool {
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			if ( in_array( $function, $this->parametersForRichnessLevel[$i], true ) ) {
+			if ( in_array( $function, self::PARAMETERS_BY_RICHNESS[$i], true ) ) {
 				return true;
 			}
 		}
@@ -1312,7 +1312,7 @@ class ParametersData {
 	public function getParametersForRichness(): array {
 		$parameters = [];
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			$parameters = array_merge( $parameters, $this->parametersForRichnessLevel[$i] );
+			$parameters = array_merge( $parameters, self::PARAMETERS_BY_RICHNESS[$i] );
 		}
 
 		sort( $parameters );
