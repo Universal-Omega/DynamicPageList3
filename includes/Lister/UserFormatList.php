@@ -5,6 +5,20 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Parser\Parser;
+use function abs;
+use function array_keys;
+use function array_map;
+use function array_replace;
+use function array_shift;
+use function arsort;
+use function asort;
+use function explode;
+use function natsort;
+use function str_contains;
+use function str_natcmp;
+use function str_starts_with;
+use function trim;
+use function uasort;
 
 class UserFormatList extends Lister {
 
