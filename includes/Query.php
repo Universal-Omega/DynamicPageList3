@@ -889,6 +889,7 @@ class Query {
 	 */
 	private function _hiddencategories( mixed $option ): void {
 		// @TODO: Unfinished functionality! Never implemented by original author.
+		throw new LogicException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
 	}
 
 	/**
