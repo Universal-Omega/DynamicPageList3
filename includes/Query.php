@@ -1203,7 +1203,7 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function linkstoexternal( array $option ): void {
-		$this->_linkstoexternaldomain( $option );
+		$this->linkstoexternaldomain( $option );
 	}
 
 	/**
