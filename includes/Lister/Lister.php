@@ -5,8 +5,8 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Config;
-use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\Extension\DynamicPageList4\SectionTranscluder;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
@@ -415,7 +415,7 @@ class Lister {
 
 	/**
 	 * Format one single template argument of one occurence of one item from the include parameter.
-	 * This is called via a backlink from LST::includeTemplate().
+	 * This is called via a backlink from SectionTranscluder::includeTemplate().
 	 */
 	public function formatTemplateArg(
 		string $arg,
@@ -460,7 +460,7 @@ class Lister {
 
 	/**
 	 * Truncate a portion of wikitext so that ..
-	 * ... it is not larger that $lim characters
+	 * ... it is not larger that $limit characters
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
@@ -468,12 +468,12 @@ class Lister {
 	 * if the text is alread shorter than the limit or if the limit is negative, the text
 	 * will be returned without any checks for balance of tags
 	 */
-	private function cutAt( int $lim, string $text ): string {
-		if ( $lim < 0 ) {
+	private function cutAt( int $limit, string $text ): string {
+		if ( $limit < 0 ) {
 			return $text;
 		}
 
-		return LST::limitTranscludedText( $text, $lim );
+		return SectionTranscluder::limitTranscludedText( $text, $limit, link: '' );
 	}
 
 	/**
@@ -539,7 +539,7 @@ class Lister {
 			}
 
 			if ( $this->includePageMaxLength > 0 && strlen( $text ) > $this->includePageMaxLength ) {
-				$text = LST::limitTranscludedText(
+				$text = SectionTranscluder::limitTranscludedText(
 					text: $text,
 					limit: $this->includePageMaxLength,
 					link: " [[$title|..→]]"
@@ -609,7 +609,7 @@ class Lister {
 				$secPiece[$s] = $secPieces[0];
 			} elseif ( str_starts_with( $secLabel, '#' ) || str_starts_with( $secLabel, '@' ) ) {
 				$sectionHeading[0] = substr( $secLabel, 1 );
-				$secPieces = LST::includeHeading(
+				$secPieces = SectionTranscluder::includeHeading(
 					parser: $this->parser,
 					page: $article->mTitle->getPrefixedText(),
 					sec: substr( $secLabel, 1 ),
@@ -666,7 +666,7 @@ class Lister {
 					$template2 = preg_replace( '/^.+\|/', '', $template2 );
 				}
 
-				$secPieces = LST::includeTemplate(
+				$secPieces = SectionTranscluder::includeTemplate(
 					parser: $this->parser,
 					lister: $this,
 					dplNr: $s,
@@ -698,7 +698,7 @@ class Lister {
 					break;
 				}
 			} else {
-				$secPieces = LST::includeSection(
+				$secPieces = SectionTranscluder::includeSection(
 					parser: $this->parser,
 					page: $article->mTitle->getPrefixedText(),
 					sec: $secLabel,

@@ -3,8 +3,8 @@
 namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
-use MediaWiki\Extension\DynamicPageList4\LST;
 use MediaWiki\Extension\DynamicPageList4\Parse;
+use MediaWiki\Extension\DynamicPageList4\SectionTranscluder;
 use MediaWiki\Extension\DynamicPageList4\Utils;
 use MediaWiki\Extension\DynamicPageList4\Variables;
 use MediaWiki\Hook\ParserFirstCallInitHook;
@@ -192,7 +192,6 @@ class Main implements ParserFirstCallInitHook {
 	 */
 	public function dplNumParserFunction( Parser $parser, string $text ): string {
 		$parser->addTrackingCategory( 'dplnum-parserfunc-tracking-category' );
-
 		$num = str_replace( [ '&#160;', '&nbsp;' ], ' ', $text );
 		$num = preg_replace( [
 			'/([0-9])([.])([0-9][0-9]?[^0-9,])/',
@@ -231,7 +230,6 @@ class Main implements ParserFirstCallInitHook {
 		mixed ...$args
 	): string {
 		$parser->addTrackingCategory( 'dplvar-parserfunc-tracking-category' );
-
 		return match ( $cmd ) {
 			'set' => Variables::setVar( [ $parser, $cmd, ...$args ] ),
 			'default' => Variables::setVarDefault( [ $parser, $cmd, ...$args ] ),
@@ -284,9 +282,19 @@ class Main implements ParserFirstCallInitHook {
 		bool $trim = false
 	): string {
 		$parser->addTrackingCategory( 'dplchapter-parserfunc-tracking-category' );
-		$output = LST::extractHeadingFromText(
-			$parser, $page, $text, $heading, '',
-			$sectionHeading, true, $maxLength, $link, $trim
+		$sectionHeading = [];
+		$output = SectionTranscluder::extractHeadingFromText(
+			parser: $parser,
+			page: $page,
+			text: $text,
+			sec: $heading,
+			to: '',
+			sectionHeading: $sectionHeading,
+			recursionCheck: true,
+			maxLength: $maxLength,
+			cLink: $link,
+			trim: $trim,
+			skipPattern: []
 		);
 
 		return $output[0] ?? '';
