@@ -244,7 +244,6 @@ class Main implements ParserFirstCallInitHook {
 		string $repl
 	): string {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
-
 		if ( $text === '' || $pat === '' ) {
 			return '';
 		}
@@ -356,8 +355,8 @@ class Main implements ParserFirstCallInitHook {
 		$rows = '';
 		if ( $flip ) {
 			foreach ( $targets as $to => $toName ) {
-				$row = "\n|-\n! [[{$to}|{$toName}]]";
-				foreach ( $sources as $from => $_ ) {
+				$row = "\n|-\n! [[$to|$toName]]";
+				foreach ( array_keys( $sources ) as $from ) {
 					$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
 				}
 
@@ -368,8 +367,8 @@ class Main implements ParserFirstCallInitHook {
 		}
 
 		foreach ( $sources as $from => $fromName ) {
-			$row = "\n|-\n! [[{$from}|{$fromName}]]";
-			foreach ( $targets as $to => $_ ) {
+			$row = "\n|-\n! [[$from|$fromName]]";
+			foreach ( array_keys( $targets ) as $to ) {
 				$row .= "\n| " . ( $m[$from][$to] ?? false ? $yes : $no );
 			}
 
