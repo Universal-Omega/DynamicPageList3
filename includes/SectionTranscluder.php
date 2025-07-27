@@ -371,9 +371,9 @@ class SectionTranscluder {
 			} else {
 				// Build match pattern depending on numeric/plain/regex match
 				$pat = match ( true ) {
-					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
-					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
-					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
 				};
 
 				// Match against the section heading
@@ -434,7 +434,7 @@ class SectionTranscluder {
 				$headLength ??= 6;
 				$pat = $nr !== 0
 					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
-					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
+					: '^(={1,' . $headLength . '})(?!=)\s*.*?\1\s*$';
 
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
 					$endOff = $mm[0][1] - 1;
@@ -447,12 +447,6 @@ class SectionTranscluder {
 			$piece = $endOff !== null
 				? substr( $text, $beginOff, $endOff - $beginOff )
 				: substr( $text, $beginOff );
-
-			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
-				break;
-			}
-
-			$text = substr( $text, $endOff );
 
 			// Store matched heading
 			$sectionHeading[$n] = $headLine;
@@ -505,6 +499,12 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+
+			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
+				break;
+			}
+
+			$text = substr( $text, $endOff );
 		}
 
 		return $output;
