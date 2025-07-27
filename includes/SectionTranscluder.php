@@ -205,92 +205,117 @@ class SectionTranscluder {
 	 *         if the text is already shorter than the limit, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	public static function limitTranscludedText( string $text, int $limit, string $link ): string {
-		// If text is smaller than limit return complete text.
-		$length = strlen( $text );
-		if ( $limit >= $length ) {
+	public static function limitTranscludedText( $text, $limit, $link = '' ) {
+		// if text is smaller than limit return complete text
+		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// Otherwise strip html comments and check again.
+		// otherwise strip html comments and check again
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// Search latest position with balanced brackets/braces
-		// store also the position of the last preceding space.
+		// search latest position with balanced brackets/braces
+		// store also the position of the last preceding space
+
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
 		$nb = 0;
 
 		for ( $i = 0; $i < $limit; $i++ ) {
-			$c = $text[$i] ?? '';
-			match ( $c ) {
-				'[' => $brackets++,
-				']' => $brackets--,
-				'{' => $cbrackets++,
-				'}' => $cbrackets--,
-				default => null,
-			};
+			$c = $text[$i];
+			if ( $c == '[' ) {
+				$brackets++;
+			}
 
-			if ( $brackets === 0 && $cbrackets === 0 ) {
+			if ( $c == ']' ) {
+				$brackets--;
+			}
+
+			if ( $c == '{' ) {
+				$cbrackets++;
+			}
+
+			if ( $c == '}' ) {
+				$cbrackets--;
+			}
+
+			// we store the position if it is valid in terms of parentheses balancing
+			if ( $brackets == 0 && $cbrackets == 0 ) {
 				$n0 = $i;
-				if ( $c === ' ' ) {
+				if ( $c == ' ' ) {
 					$nb = $i;
 				}
 			}
 		}
 
-		// If there is a valid cut-off point we use it; it will be the largest one which is not above the limit.
+		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
 		if ( $n0 >= 0 ) {
-			// We try to cut off at a word boundary, this may lead to a shortening of maximum 15 chars.
-			/** @phan-suppress-next-line PhanSuspiciousValueComparison */
+			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
+			// @phan-suppress-next-line PhanSuspiciousValueComparison
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
 
 			$cut = substr( $text, 0, $n0 + 1 );
 
-			// An open html comment would be fatal, but this should not happen as we already have
-			// eliminated html comments at the beginning.
+			// an open html comment would be fatal, but this should not happen as we already have
+			// eliminated html comments at the beginning
 
-			// Some tags are critical: ref, pre, nowiki
+			// some tags are critical: ref, pre, nowiki
 			// if these tags were not balanced they would spoil the result completely
 			// we enforce balance by appending the necessary amount of corresponding closing tags
 			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
-			// This simple approach may fail in some cases...
-			preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-			$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
+			// This simple approach may fail in some cases ...
 
-			foreach ( $matches[1] as $tag ) {
-				$tagName = ltrim( $tag, '/' );
-				$tags[$tagName] += str_starts_with( $tag, '/' ) ? -1 : 1;
-			}
+			$matches = [];
+			$noMatches = preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
+			$tags = [
+				'ref' => 0,
+				'pre' => 0,
+				'nowiki' => 0
+			];
 
-			foreach ( $tags as $tagName => $level ) {
-				// Avoid empty <ref> tag
-				if ( $tagName === 'ref' && str_ends_with( $cut, '<ref>' ) ) {
-					$cut = substr( $cut, 0, -5 );
-					$level--;
+			if ( $noMatches > 0 ) {
+				// calculate tag count (ignoring nesting)
+				foreach ( $matches[1] as $mm ) {
+					if ( $mm[0] == '/' ) {
+						$tags[substr( $mm, 1 )]--;
+					} else {
+						$tags[$mm]++;
+					}
 				}
 
-				$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
+				// append missing closing tags - should the tags be ordered by precedence ?
+				foreach ( $tags as $tagName => $level ) {
+					// @phan-suppress-next-line PhanPluginLoopVariableReuse
+					while ( $level > 0 ) {
+						// avoid empty ref tag
+						if ( $tagName == 'ref' && substr( $cut, strlen( $cut ) - 5 ) == '<ref>' ) {
+							$cut = substr( $cut, 0, strlen( $cut ) - 5 );
+						} else {
+							$cut .= '</' . $tagName . '>';
+						}
+
+						$level--;
+					}
+				}
 			}
 
 			return $cut . $link;
-		}
-
-		if ( $limit === 0 ) {
+		} elseif ( $limit == 0 ) {
 			return $link;
+		} else {
+			// otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
+			// it will at least produce some output at all; otherwise the reader might think that there
+			// is no information at all
+			return self::limitTranscludedText( $text, $limit * 2, $link );
 		}
-
-		// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
-		// it will at least produce some output at all; otherwise the reader might think that there
-		// is no information at all.
-		return self::limitTranscludedText( $text, $limit * 2, $link );
 	}
+
 
 	public static function includeHeading(
 		Parser $parser,
