@@ -32,8 +32,8 @@ use function iterator_to_array;
 use function mb_strtolower;
 use function method_exists;
 use function min;
-use function strtotime;
 use function str_replace;
+use function strtotime;
 use function wfMessage;
 use const NS_CATEGORY;
 

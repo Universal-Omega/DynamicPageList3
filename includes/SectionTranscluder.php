@@ -13,23 +13,23 @@ use MediaWiki\Title\Title;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
-use function str_replace;
-use function preg_replace;
-use function trim;
-use function substr;
-use function preg_quote;
-use function preg_match_all;
-use function strlen;
-use function preg_match;
-use function ltrim;
-use function str_starts_with;
-use function str_ends_with;
-use function max;
-use function str_repeat;
 use function filter_var;
-use const PREG_PATTERN_ORDER;
-use const PREG_OFFSET_CAPTURE;
+use function ltrim;
+use function max;
+use function preg_match;
+use function preg_match_all;
+use function preg_quote;
+use function preg_replace;
+use function str_ends_with;
+use function str_repeat;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function substr;
+use function trim;
 use const NS_TEMPLATE;
+use const PREG_OFFSET_CAPTURE;
+use const PREG_PATTERN_ORDER;
 
 class SectionTranscluder {
 

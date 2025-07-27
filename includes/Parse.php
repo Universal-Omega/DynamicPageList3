@@ -35,12 +35,9 @@ use function shuffle;
 use function sprintf;
 use function str_contains;
 use function str_replace;
-use function strpos;
 use function substr_count;
 use const NS_CATEGORY;
 use const NS_FILE;
-use const PREG_SPLIT_DELIM_CAPTURE;
-use const PREG_SPLIT_NO_EMPTY;
 
 class Parse {
 

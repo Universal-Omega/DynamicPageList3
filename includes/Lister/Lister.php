@@ -23,9 +23,9 @@ use function sprintf;
 use function sqrt;
 use function str_contains;
 use function str_replace;
-use function strtr;
 use function strpos;
 use function strtolower;
+use function strtr;
 use function substr;
 use function wfMessage;
 
