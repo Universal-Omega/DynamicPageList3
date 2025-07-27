@@ -448,7 +448,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testHeadingsStatic() {
 		// Test initial state
-		$this->assertEmpty( Article::getHeadings() );
+		$this->assertSame( [], Article::getHeadings() );
 
 		// Create article that adds to headings
 		$row = $this->createMockRow( [
@@ -490,7 +490,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		// Test reset
 		Article::resetHeadings();
-		$this->assertEmpty( Article::getHeadings() );
+		$this->assertSame( [], Article::getHeadings() );
 	}
 
 	/**
