@@ -3,18 +3,20 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\StripState;
 use MediaWiki\Title\Title;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 
 class SectionTranscluder {
 
-	/*
+	/**
 	 * To do transclusion from an extension, we need to interact with the parser
 	 * at a low level. This is the general transclusion functionality
 	 */
@@ -26,7 +28,9 @@ class SectionTranscluder {
 		// Infinite loop test
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			wfDebug( __METHOD__ . ": template loop broken at '$part1'\n" );
+			self::getLogger()->debug( 'Template loop broken at {part1}',
+				[ 'part1' => $part1 ]
+			);
 			return false;
 		}
 
@@ -45,12 +49,18 @@ class SectionTranscluder {
 		// Infinite loop test
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( !isset( $parser->mTemplatePath[$part1] ) ) {
-			wfDebug( __METHOD__ . ": close unopened template loop at '$part1'\n" );
+			self::getLogger()->debug( 'Closed an unopened template loop at {part1}',
+				[ 'part1' => $part1 ]
+			);
 			return;
 		}
 
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		unset( $parser->mTemplatePath[$part1] );
+	}
+
+	private static function getLogger(): LoggerInterface {
+		return LoggerFactory::getInstance( 'DynamicPageList4' );
 	}
 
 	/**
@@ -61,11 +71,11 @@ class SectionTranscluder {
 		Parser $parser,
 		string $text,
 		string $part1,
-		bool $recursionCheck = true,
-		int $maxLength = -1,
-		string $link = '',
-		bool $trim = false,
-		array $skipPattern = []
+		bool $recursionCheck,
+		int $maxLength,
+		string $link,
+		bool $trim,
+		array $skipPattern
 	): string {
 		$text = str_replace( '</section>', '', $text );
 		$text = preg_replace( $skipPattern, '', $text );
@@ -86,8 +96,8 @@ class SectionTranscluder {
 		return "[[{$title->getPrefixedText()}]]<!-- WARNING: SectionTranscluder loop detected -->";
 	}
 
-	/*
-	 * And now, the labeled section transclusion
+	/**
+	 * And now, the section transclusion
 	 */
 
 	/**
@@ -137,11 +147,11 @@ class SectionTranscluder {
 	 */
 	public static function includeSection(
 		Parser $parser,
-		string $page = '',
-		string $sec = '',
-		bool $recursionCheck = true,
-		bool $trim = false,
-		array $skipPattern = []
+		string $page,
+		string $sec,
+		bool $recursionCheck,
+		bool $trim,
+		array $skipPattern
 	): array {
 		$text = '';
 		if ( !self::text( $parser, $page, $text ) ) {
@@ -158,7 +168,7 @@ class SectionTranscluder {
 			$piece = self::parse(
 				parser: $parser,
 				text: $piece,
-				part1: "#lst:$page|$sec",
+				part1: "section:$page|$sec",
 				recursionCheck: $recursionCheck,
 				maxLength: -1,
 				link: '',
@@ -184,7 +194,7 @@ class SectionTranscluder {
 	 *
 	 * @param string $text the wikitext to be truncated
 	 * @param int $limit limit of character count for the result
-	 * @param string $link an optional link which will be appended to the text if it was truncated
+	 * @param string $link a link which, if not an empty string, will be appended to the text if it was truncated
 	 *
 	 * @return string the truncated text;
 	 *         note that the returned text may be longer than the limit if this is necessary
@@ -192,7 +202,7 @@ class SectionTranscluder {
 	 *         if the text is already shorter than the limit, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	public static function limitTranscludedText( string $text, int $limit, string $link = '' ): string {
+	public static function limitTranscludedText( string $text, int $limit, string $link ): string {
 		// If text is smaller than limit return complete text.
 		$length = strlen( $text );
 		if ( $limit >= $length ) {
@@ -233,7 +243,7 @@ class SectionTranscluder {
 		// If there is a valid cut-off point we use it; it will be the largest one which is not above the limit.
 		if ( $n0 >= 0 ) {
 			// We try to cut off at a word boundary, this may lead to a shortening of maximum 15 chars.
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
+			/** @phan-suppress-next-line PhanSuspiciousValueComparison */
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
@@ -327,7 +337,7 @@ class SectionTranscluder {
 		int $maxLength,
 		string $cLink,
 		bool $trim,
-		array $skipPattern = []
+		array $skipPattern
 	): array {
 		$output = [ '' ];
 		$n = 0;
@@ -392,7 +402,7 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: substr( $text, 0, $m[1][1] - 1 ),
-					part1: "#lsth:$page|$sec",
+					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -450,7 +460,7 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "#lsth:$page|$sec",
+					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -465,7 +475,7 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "#lsth:$page|$sec",
+					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -485,7 +495,7 @@ class SectionTranscluder {
 			$output[$n++] = self::parse(
 				parser: $parser,
 				text: $piece,
-				part1: "#lsth:$page|$sec",
+				part1: "heading:$page|$sec",
 				recursionCheck: $recursionCheck,
 				maxLength: $maxLength,
 				link: $link,
@@ -552,7 +562,7 @@ class SectionTranscluder {
 			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 			$nsNames = $contLang->getNamespaces();
 			$tCalls = preg_split(
-				'/\{\{\s*(Template:|' . $nsNames[NS_TEMPLATE] . ':)?' .
+				'/{{\s*(Template:|' . $nsNames[NS_TEMPLATE] . ':)?' .
 				self::spaceOrUnderscore( preg_quote( $template1, '/' ) ) . '\s*[|}]/i',
 				' ' . $text
 			);
@@ -615,7 +625,7 @@ class SectionTranscluder {
 							$mustNotMatch === '' || !preg_match( $mustNotMatch, $callSegment )
 						) ) {
 							$invocation = $callSegment;
-							$argChain = $invocation . "|%PAGE%=$page|%TITLE%={$title->getText()}";
+							$argChain = "$invocation|%PAGE%=$page|%TITLE%={$title->getText()}";
 
 							if ( $catlist !== '' ) {
 								$argChain .= "|%CATLIST%=$catlist";
@@ -723,7 +733,7 @@ class SectionTranscluder {
 								}
 							}
 
-							if ( !$found && is_numeric( $exParm ) && (int)$exParm == $exParm ) {
+							if ( !$found && filter_var( $exParm, FILTER_VALIDATE_INT ) !== false ) {
 								$np = 0;
 								foreach ( $parms as $parm ) {
 									if ( str_contains( $parm, '=' ) ) {
