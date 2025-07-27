@@ -593,7 +593,7 @@ class SectionTranscluder {
 				}
 			} else {
 				$output[0] = self::callParserPreprocess( $parser,
-					'{{' . $defaultTemplate . "|%PAGE%=$page|%TITLE%={$title->getText()}|%DATE%=$date|%USER%=$user" . '}}',
+					"{{{$defaultTemplate}|%PAGE%=$page|%TITLE%={$title->getText()}|%DATE%=$date|%USER%=$user}}",
 					$parser->getPage(), $parser->getOptions()
 				);
 			}
