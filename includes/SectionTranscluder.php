@@ -464,7 +464,11 @@ class SectionTranscluder {
 				$continueSearch = false;
 			}
 
-			$sectionHeading[$n] = $headLine;
+			if ( isset( $m[0][0] ) ) {
+				$sectionHeading[$n] = $headLine;
+			} else {
+				$sectionHeading[0] = $headLine;
+			}
 
 			if ( $nr === 1 ) {
 				$output[0] = self::parse(
