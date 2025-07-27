@@ -293,7 +293,8 @@ class Main implements ParserFirstCallInitHook {
 			recursionCheck: true,
 			maxLength: $maxLength,
 			cLink: $link,
-			trim: $trim
+			trim: $trim,
+			skipPattern: []
 		);
 
 		return $output[0] ?? '';
