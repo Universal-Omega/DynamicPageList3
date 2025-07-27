@@ -13,6 +13,16 @@ use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Parser\PPFrame;
 use ReflectionProperty;
 use StringUtils;
+use function array_keys;
+use function array_map;
+use function explode;
+use function implode;
+use function ksort;
+use function preg_replace;
+use function preg_split;
+use function str_replace;
+use function strlen;
+use function trim;
 
 class Main implements ParserFirstCallInitHook {
 
