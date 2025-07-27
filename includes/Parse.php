@@ -16,6 +16,31 @@ use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
+use function array_filter;
+use function array_intersect;
+use function array_key_last;
+use function array_reverse;
+use function array_slice;
+use function array_values;
+use function count;
+use function date;
+use function explode;
+use function microtime;
+use function min;
+use function preg_replace;
+use function preg_split;
+use function random_int;
+use function range;
+use function shuffle;
+use function sprintf;
+use function str_contains;
+use function str_replace;
+use function strpos;
+use function substr_count;
+use const NS_CATEGORY;
+use const NS_FILE;
+use const PREG_SPLIT_DELIM_CAPTURE;
+use const PREG_SPLIT_NO_EMPTY;
 
 class Parse {
 
