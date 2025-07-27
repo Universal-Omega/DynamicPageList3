@@ -5,6 +5,8 @@ namespace MediaWiki\Extension\DynamicPageList4;
 use function array_key_exists;
 use function in_array;
 use function range;
+use function array_merge;
+use function sort;
 
 class ParametersData {
 
