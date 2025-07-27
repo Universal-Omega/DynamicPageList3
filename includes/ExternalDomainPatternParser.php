@@ -5,6 +5,9 @@ namespace MediaWiki\Extension\DynamicPageList4;
 use function array_reverse;
 use function explode;
 use function str_contains;
+use function str_starts_with;
+use function str_ends_with;
+use function implode;
 
 trait ExternalDomainPatternParser {
 
