@@ -517,7 +517,7 @@ class SectionTranscluder {
 	 * and do NOT match the condition "$mustNotMatch" (if specified)
 	 * we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	 */
-	public static function includeTemplateNew(
+	public static function includeTemplate(
 		Parser $parser,
 		Lister $lister,
 		int $dplNr,
@@ -541,7 +541,7 @@ class SectionTranscluder {
 			$template2 = substr( $template2, 1 );
 			$defaultTemplate = substr( $defaultTemplate, 1 );
 
-			$text2 = preg_replace( '/{{\s*#(' . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=$1$2|', $text );
+			$text2 = preg_replace( '/{{\s*#(' . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=\1\2|', $text );
 			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
 
 			foreach ( $tCalls as $i => $tCall ) {
@@ -555,7 +555,7 @@ class SectionTranscluder {
 			$template2 = substr( $template2, 1 );
 			$defaultTemplate = substr( $defaultTemplate, 1 );
 
-			$text2 = preg_replace( '/<\s*(' . $template1 . ')\s*>/i', '°³²|%TAG%=$1|%TAGBODY%=', $text );
+			$text2 = preg_replace( '/<\s*(' . $template1 . ')\s*>/i', '°³²|%TAG%=\1|%TAGBODY%=', $text );
 			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
 
 			foreach ( $tCalls as $i => $tCall ) {
@@ -781,7 +781,7 @@ class SectionTranscluder {
 
 		return $output;
 	}
-	public static function includeTemplate(
+	public static function includeTemplateOld(
 		$parser,
 		Lister $lister,
 		$dplNr,
