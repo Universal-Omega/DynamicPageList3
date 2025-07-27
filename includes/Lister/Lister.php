@@ -460,7 +460,7 @@ class Lister {
 
 	/**
 	 * Truncate a portion of wikitext so that ..
-	 * ... it is not larger that $lim characters
+	 * ... it is not larger that $limit characters
 	 * ... it is balanced in terms of braces, brackets and tags
 	 * ... can be used as content of a wikitable field without spoiling the whole surrounding wikitext structure
 	 *
@@ -468,12 +468,12 @@ class Lister {
 	 * if the text is alread shorter than the limit or if the limit is negative, the text
 	 * will be returned without any checks for balance of tags
 	 */
-	private function cutAt( int $lim, string $text ): string {
-		if ( $lim < 0 ) {
+	private function cutAt( int $limit, string $text ): string {
+		if ( $limit < 0 ) {
 			return $text;
 		}
 
-		return SectionTranscluder::limitTranscludedText( $text, $lim );
+		return SectionTranscluder::limitTranscludedText( $text, $limit, link: '' );
 	}
 
 	/**
