@@ -363,7 +363,7 @@ class SectionTranscluder {
 
 		while ( true ) {
 			$headLine = '';
-			$beginOffset = 0;
+			$beginOff = 0;
 
 			// Check if section is empty (match all headings)
 			if ( $sec === '' ) {
@@ -371,16 +371,16 @@ class SectionTranscluder {
 			} else {
 				// Build match pattern depending on numeric/plain/regex match
 				$pat = match ( true ) {
-					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
-					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
-					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
 				};
 
 				// Match against the section heading
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$beginOffset = end( $m )[1];
+					$beginOff = end( $m )[1];
 					$headLength = strlen( $m[1][0] );
-					$headLine = trim( $m[0][0], "\n =\t" );
+					$headLine = trim( $m[0][0], " \t\n=" );
 				} elseif ( $nr === -2 ) {
 					// No heading found, fallback to full text
 					$m[1][1] = strlen( $text ) + 1;
@@ -416,7 +416,7 @@ class SectionTranscluder {
 				return $output;
 			}
 
-			$endOffset = null;
+			$endOff = null;
 
 			// Try to match target end heading if provided
 			if ( $to !== '' ) {
@@ -424,63 +424,38 @@ class SectionTranscluder {
 					? '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$'
 					: '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
 
-				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOffset ) ) {
-					$endOffset = $mm[0][1] - 1;
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
 				}
 			}
 
 			// If no end offset yet, find next heading of same or higher level
-			if ( $endOffset === null ) {
+			if ( $endOff === null ) {
 				$headLength ??= 6;
 				$pat = $nr !== 0
 					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
 					: '^(={1,' . $headLength . '})(?!=)\s*.*?\1\s*$';
 
-				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOffset ) ) {
-					$endOffset = $mm[0][1] - 1;
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
 				} elseif ( $sec === '' ) {
-					$endOffset = -1;
+					$endOff = -1;
 				}
 			}
-
-			// Whether this should be the last iteration of this loop
-			$continueSearch = true;
 
 			// Extract the section content based on matched offsets
-			if ( $endOffset !== null ) {
-				if ( $endOffset === -1 ) {
-					return $output;
-				}
-
-				$piece = substr( $text, $beginOffset, $endOffset - $beginOffset );
-				if ( $sec === '' ) {
-					$continueSearch = false;
-				} else {
-					if ( $endOffset === 0 ) {
-						// We have made no progress - something has gone wrong, but at least don't loop forever
-						break;
-					}
-
-					// This could lead to quadratic runtime...
-					$text = substr( $text, $endOffset );
-				}
-			} else {
-				$piece = substr( $text, $beginOffset );
-				$continueSearch = false;
+			$piece = $endOff !== null
+				? substr( $text, $beginOff, $endOff - $beginOff )
+				: substr( $text, $beginOff );
+			
+			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
+				break;
 			}
+
+			$text = substr( $text, $endOff );
 
 			// Store matched heading
-			if ( isset( $m[0][0] ) ) {
-				$sectionHeading[$n] = $headLine;
-			} else {
-				$sectionHeading[0] = $headLine;
-			}
-
-			if ( $nr > 1 ) {
-				// Skip until we reach the n-th section
-				$nr--;
-				continue;
-			}
+			$sectionHeading[$n] = $headLine;
 
 			// Output based on mode: single section, last section, or match by name
 			if ( $nr === 1 ) {
@@ -498,7 +473,7 @@ class SectionTranscluder {
 				break;
 			}
 
-			if ( $nr === -1 && $endOffset === null ) {
+			if ( $nr === -1 && $endOff === null ) {
 				// Output last section and done
 				$output[0] = self::parse(
 					parser: $parser,
@@ -513,6 +488,12 @@ class SectionTranscluder {
 				break;
 			}
 
+			if ( $nr > 1 ) {
+				// Skip until we reach the n-th section
+				$nr--;
+				continue;
+			}
+
 			// Output section by name and continue search for another section with the same name
 			$output[$n++] = self::parse(
 				parser: $parser,
@@ -524,11 +505,6 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
-
-			if ( !$continueSearch ) {
-				// This must be the end of the loop
-				break;
-			}
 		}
 
 		return $output;
