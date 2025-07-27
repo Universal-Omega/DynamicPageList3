@@ -844,6 +844,9 @@ class SectionTranscluder {
 					$reflectionCache[$property] = ( new ReflectionClass( Parser::class ) )->getProperty( $property );
 				} catch ( ReflectionException ) {
 					$reflectionCache[$property] = null;
+					self::getLogger()->warning( 'Failed to access parser property: {property}',
+						[ 'property' => $property ]
+					);
 				}
 			}
 
