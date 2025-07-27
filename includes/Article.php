@@ -83,7 +83,7 @@ class Article {
 		// Chop off title if longer than the 'titlemaxlen' parameter.
 		$titleMaxLen = $parameters->getParameter( 'titlemaxlen' );
 		if ( $titleMaxLen !== null && mb_strlen( $titleText ) > $titleMaxLen ) {
-			$titleText = mb_substr( $titleText, 0, $titleMaxLen ) .
+			$titleText = trim( mb_substr( $titleText, 0, $titleMaxLen ) ) .
 				wfMessage( 'ellipsis' )->text();
 		}
 
