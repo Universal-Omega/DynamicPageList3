@@ -4,13 +4,10 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
-use MediaWiki\Context\RequestContext;
-use MediaWiki\MediaWikiServices;
-use MediaWiki\Revision\RevisionRecord;
-use MediaWiki\User\ActorStore;
 use MediaWikiIntegrationTestCase;
 use stdClass;
 
@@ -30,420 +27,420 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	 * Test basic article creation with minimal data
 	 */
 	public function testNewFromRowBasic() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'page_len' => 1000,
 			'page_counter' => 5,
 			'displaytitle' => 'Test Page Display Title'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getPrefixedText')->willReturn('Test:Page');
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullURL')->willReturn('http://example.com/Test:Page');
-		$title->method('getFullText')->willReturn('Test:Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getPrefixedText' )->willReturn( 'Test:Page' );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Test:Page' );
+		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
-		$parameters = $this->createMockParameters([]);
+		$parameters = $this->createMockParameters( [] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertSame(123, $article->mID);
-		$this->assertSame(1000, $article->mSize);
-		$this->assertSame(5, $article->mCounter);
-		$this->assertSame('Test Page Display Title', $article->mDisplayTitle);
-		$this->assertSame(NS_MAIN, $article->mNamespace);
-		$this->assertSame($title, $article->mTitle);
+		$this->assertSame( 123, $article->mID );
+		$this->assertSame( 1000, $article->mSize );
+		$this->assertSame( 5, $article->mCounter );
+		$this->assertSame( 'Test Page Display Title', $article->mDisplayTitle );
+		$this->assertSame( NS_MAIN, $article->mNamespace );
+		$this->assertSame( $title, $article->mTitle );
 	}
 
 	/**
 	 * Test article link generation with shownamespace parameter
 	 */
 	public function testNewFromRowWithShowNamespace() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getPrefixedText')->willReturn('Test:Page');
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Test:Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getPrefixedText' )->willReturn( 'Test:Page' );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
-		$parameters = $this->createMockParameters(['shownamespace' => true]);
+		$parameters = $this->createMockParameters( [ 'shownamespace' => true ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains('Test:Page', $article->mLink);
+		$this->assertStringContains( 'Test:Page', $article->mLink );
 	}
 
 	/**
 	 * Test article link generation without shownamespace parameter
 	 */
 	public function testNewFromRowWithoutShowNamespace() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getPrefixedText')->willReturn('Test:Page');
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Test:Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getPrefixedText' )->willReturn( 'Test:Page' );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
-		$parameters = $this->createMockParameters(['shownamespace' => false]);
+		$parameters = $this->createMockParameters( [ 'shownamespace' => false ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains('Page', $article->mLink);
-		$this->assertStringNotContains('Test:', $article->mLink);
+		$this->assertStringContains( 'Page', $article->mLink );
+		$this->assertStringNotContains( 'Test:', $article->mLink );
 	}
 
 	/**
 	 * Test showcurid parameter generates correct link format
 	 */
 	public function testNewFromRowWithShowCurId() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullURL')->with(['curid' => 123])->willReturn('http://example.com/Page?curid=123');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->with( [ 'curid' => 123 ] )->willReturn( 'http://example.com/Page?curid=123' );
 
-		$parameters = $this->createMockParameters(['showcurid' => true]);
+		$parameters = $this->createMockParameters( [ 'showcurid' => true ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringStartsWith('[http://example.com/Page?curid=123', $article->mLink);
-		$this->assertStringContains('Page]', $article->mLink);
+		$this->assertStringStartsWith( '[http://example.com/Page?curid=123', $article->mLink );
+		$this->assertStringContains( 'Page]', $article->mLink );
 	}
 
 	/**
 	 * Test title replacement with replaceintitle parameter
 	 */
 	public function testNewFromRowWithReplaceInTitle() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Test_Page_Name');
-		$title->method('getFullText')->willReturn('Test_Page_Name');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Test_Page_Name' );
+		$title->method( 'getFullText' )->willReturn( 'Test_Page_Name' );
 
-		$parameters = $this->createMockParameters([
-			'replaceintitle' => ['/Test_/', 'Demo ']
-		]);
+		$parameters = $this->createMockParameters( [
+			'replaceintitle' => [ '/Test_/', 'Demo ' ]
+		] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Test_Page_Name');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Test_Page_Name' );
 
-		$this->assertStringContains('Demo Page_Name', $article->mLink);
+		$this->assertStringContains( 'Demo Page_Name', $article->mLink );
 	}
 
 	/**
 	 * Test title truncation with titlemaxlen parameter
 	 */
 	public function testNewFromRowWithTitleMaxLen() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('This is a very long page title');
-		$title->method('getFullText')->willReturn('This is a very long page title');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'This is a very long page title' );
+		$title->method( 'getFullText' )->willReturn( 'This is a very long page title' );
 
-		$parameters = $this->createMockParameters(['titlemaxlen' => 10]);
+		$parameters = $this->createMockParameters( [ 'titlemaxlen' => 10 ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'This is a very long page title');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'This is a very long page title' );
 
-		$this->assertStringContains('This is a...', $article->mLink);
+		$this->assertStringContains( 'This is a...', $article->mLink );
 	}
 
 	/**
 	 * Test escape links for category and file namespaces
 	 */
 	public function testNewFromRowWithEscapeLinks() {
-		$row = $this->createMockRow(['page_id' => 123]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('TestCategory');
-		$title->method('getFullText')->willReturn('Category:TestCategory');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'TestCategory' );
+		$title->method( 'getFullText' )->willReturn( 'Category:TestCategory' );
 
-		$parameters = $this->createMockParameters(['escapelinks' => true]);
+		$parameters = $this->createMockParameters( [ 'escapelinks' => true ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_CATEGORY, 'TestCategory');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_CATEGORY, 'TestCategory' );
 
-		$this->assertStringContains('[[:Category:TestCategory', $article->mLink);
+		$this->assertStringContains( '[[:Category:TestCategory', $article->mLink );
 	}
 
 	/**
 	 * Test external link handling
 	 */
 	public function testNewFromRowWithExternalLink() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'el_to' => 'https://example.com'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters([]);
+		$parameters = $this->createMockParameters( [] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertSame('https://example.com', $article->mExternalLink);
+		$this->assertSame( 'https://example.com', $article->mExternalLink );
 	}
 
 	/**
 	 * Test linksto and linksfrom parameters
 	 */
 	public function testNewFromRowWithLinksParameters() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'sel_title' => 'Selected Page',
 			'sel_ns' => NS_MAIN
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['linksto' => 'Selected Page']);
+		$parameters = $this->createMockParameters( [ 'linksto' => 'Selected Page' ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertSame('Selected Page', $article->mSelTitle);
-		$this->assertSame(NS_MAIN, $article->mSelNamespace);
+		$this->assertSame( 'Selected Page', $article->mSelTitle );
+		$this->assertSame( NS_MAIN, $article->mSelNamespace );
 	}
 
 	/**
 	 * Test imageused parameter
 	 */
 	public function testNewFromRowWithImageUsed() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'image_sel_title' => 'Test.jpg'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['imageused' => 'Test.jpg']);
+		$parameters = $this->createMockParameters( [ 'imageused' => 'Test.jpg' ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertSame('Test.jpg', $article->mImageSelTitle);
+		$this->assertSame( 'Test.jpg', $article->mImageSelTitle );
 	}
 
 	/**
 	 * Test revision handling with lastrevisionbefore parameter
 	 */
 	public function testNewFromRowWithRevisionData() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_id' => 456,
 			'rev_actor' => 789,
 			'rev_timestamp' => '20230101120000',
 			'rev_comment_text' => 'Test edit summary',
 			'rev_deleted' => 0
-		]);
-		unset($row);
+		] );
+		unset( $row );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		// Mock user for revision
-		$user = $this->createMock(User::class);
-		$user->method('getName')->willReturn('TestUser');
-		$user->method('isHidden')->willReturn(false);
+		$user = $this->createMock( User::class );
+		$user->method( 'getName' )->willReturn( 'TestUser' );
+		$user->method( 'isHidden' )->willReturn( false );
 
-		$userFactory = $this->createMock(UserFactory::class);
-		$userFactory->method('newFromActorId')->with(789)->willReturn($user);
+		$userFactory = $this->createMock( UserFactory::class );
+		$userFactory->method( 'newFromActorId' )->with( 789 )->willReturn( $user );
 
-		$services = $this->createMock(MediaWikiServices::class);
-		$services->method('getUserFactory')->willReturn($userFactory);
+		$services = $this->createMock( MediaWikiServices::class );
+		$services->method( 'getUserFactory' )->willReturn( $userFactory );
 
-		$parameters = $this->createMockParameters(['lastrevisionbefore' => '20230102000000']);
-		unset($parameters);
+		$parameters = $this->createMockParameters( [ 'lastrevisionbefore' => '20230102000000' ] );
+		unset( $parameters );
 
 		// We need to test this in integration context due to MediaWikiServices dependency
-		$this->markTestSkipped('Requires integration test setup for MediaWikiServices');
+		$this->markTestSkipped( 'Requires integration test setup for MediaWikiServices' );
 	}
 
 	/**
 	 * Test date handling with different date parameters
 	 */
 	public function testNewFromRowWithDateParameters() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'page_touched' => '20230101120000',
 			'cl_timestamp' => '20230101130000',
 			'rev_timestamp' => '20230101140000'
-		]);
-		unset($row);
+		] );
+		unset( $row );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		// Test addpagetoucheddate
-		$parameters = $this->createMockParameters(['addpagetoucheddate' => true]);
-		unset($parameters);
+		$parameters = $this->createMockParameters( [ 'addpagetoucheddate' => true ] );
+		unset( $parameters );
 
-		$this->markTestSkipped('Requires integration test setup for language services');
+		$this->markTestSkipped( 'Requires integration test setup for language services' );
 	}
 
 	/**
 	 * Test contribution handling
 	 */
 	public function testNewFromRowWithContribution() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'contribution' => 50,
 			'contributor' => 789,
 			'contrib_deleted' => 0
-		]);
-		unset($row);
+		] );
+		unset( $row );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['addcontribution' => true]);
-		unset($parameters);
+		$parameters = $this->createMockParameters( [ 'addcontribution' => true ] );
+		unset( $parameters );
 
-		$this->markTestSkipped('Requires integration test setup for UserFactory');
+		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
 	}
 
 	/**
 	 * Test user/author link handling
 	 */
 	public function testNewFromRowWithUserLinks() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 789
-		]);
-		unset($row);
+		] );
+		unset( $row );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['adduser' => true]);
-		unset($parameters);
+		$parameters = $this->createMockParameters( [ 'adduser' => true ] );
+		unset( $parameters );
 
-		$this->markTestSkipped('Requires integration test setup for UserFactory');
+		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
 	}
 
 	/**
 	 * Test category links handling
 	 */
 	public function testNewFromRowWithCategories() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cats' => 'Category1 | Category_2 | Category3'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['addcategories' => true]);
+		$parameters = $this->createMockParameters( [ 'addcategories' => true ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertCount(3, $article->mCategoryLinks);
-		$this->assertCount(3, $article->mCategoryTexts);
-		$this->assertStringContains('Category1', $article->mCategoryLinks[0]);
-		$this->assertStringContains('Category 2', $article->mCategoryLinks[1]);
-		$this->assertSame('Category1', $article->mCategoryTexts[0]);
-		$this->assertSame('Category 2', $article->mCategoryTexts[1]);
+		$this->assertCount( 3, $article->mCategoryLinks );
+		$this->assertCount( 3, $article->mCategoryTexts );
+		$this->assertStringContains( 'Category1', $article->mCategoryLinks[0] );
+		$this->assertStringContains( 'Category 2', $article->mCategoryLinks[1] );
+		$this->assertSame( 'Category1', $article->mCategoryTexts[0] );
+		$this->assertSame( 'Category 2', $article->mCategoryTexts[1] );
 	}
 
 	/**
 	 * Test heading mode with category ordermethod
 	 */
 	public function testNewFromRowWithHeadingModeCategory() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cl_to' => 'TestCategory'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters([
+		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => ['category']
-		]);
+			'ordermethod' => [ 'category' ]
+		] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains('TestCategory', $article->mParentHLink);
-		
+		$this->assertStringContains( 'TestCategory', $article->mParentHLink );
+
 		$headings = Article::getHeadings();
-		$this->assertArrayHasKey('TestCategory', $headings);
-		$this->assertSame(1, $headings['TestCategory']);
+		$this->assertArrayHasKey( 'TestCategory', $headings );
+		$this->assertSame( 1, $headings['TestCategory'] );
 	}
 
 	/**
 	 * Test heading mode with user ordermethod
 	 */
 	public function testNewFromRowWithHeadingModeUser() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 789
-		]);
-		unset($row);
+		] );
+		unset( $row );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters([
+		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => ['user']
-		]);
-		unset($parameters);
+			'ordermethod' => [ 'user' ]
+		] );
+		unset( $parameters );
 
-		$this->markTestSkipped('Requires integration test setup for UserFactory');
+		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
 	}
 
 	/**
 	 * Test uncategorized pages handling
 	 */
 	public function testNewFromRowWithUncategorizedPage() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cl_to' => ''
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters([
+		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => ['category']
-		]);
+			'ordermethod' => [ 'category' ]
+		] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains('Special:Uncategorizedpages', $article->mParentHLink);
+		$this->assertStringContains( 'Special:Uncategorizedpages', $article->mParentHLink );
 	}
 
 	/**
 	 * Test goal=categories parameter
 	 */
 	public function testNewFromRowWithGoalCategories() {
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_timestamp' => '20230101120000'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
 
-		$parameters = $this->createMockParameters(['goal' => 'categories']);
+		$parameters = $this->createMockParameters( [ 'goal' => 'categories' ] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		// When goal=categories, revision processing should be skipped
-		$this->assertSame('', $article->mDate);
-		$this->assertSame(0, $article->mRevision);
+		$this->assertSame( '', $article->mDate );
+		$this->assertSame( 0, $article->mRevision );
 	}
 
 	/**
@@ -451,49 +448,49 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testHeadingsStatic() {
 		// Test initial state
-		$this->assertEmpty(Article::getHeadings());
+		$this->assertEmpty( Article::getHeadings() );
 
 		// Create article that adds to headings
-		$row = $this->createMockRow([
+		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cl_to' => 'Category1'
-		]);
+		] );
 
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page1');
-		$title->method('getFullText')->willReturn('Page1');
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page1' );
+		$title->method( 'getFullText' )->willReturn( 'Page1' );
 
-		$parameters = $this->createMockParameters([
+		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => ['category']
-		]);
+			'ordermethod' => [ 'category' ]
+		] );
 
-		Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page1');
+		Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page1' );
 
 		// Check headings were added
 		$headings = Article::getHeadings();
-		$this->assertArrayHasKey('Category1', $headings);
-		$this->assertSame(1, $headings['Category1']);
+		$this->assertArrayHasKey( 'Category1', $headings );
+		$this->assertSame( 1, $headings['Category1'] );
 
 		// Create another article in same category
-		$row2 = $this->createMockRow([
+		$row2 = $this->createMockRow( [
 			'page_id' => 124,
 			'cl_to' => 'Category1'
-		]);
+		] );
 
-		$title2 = $this->createMock(Title::class);
-		$title2->method('getText')->willReturn('Page2');
-		$title2->method('getFullText')->willReturn('Page2');
+		$title2 = $this->createMock( Title::class );
+		$title2->method( 'getText' )->willReturn( 'Page2' );
+		$title2->method( 'getFullText' )->willReturn( 'Page2' );
 
-		Article::newFromRow($row2, $parameters, $title2, NS_MAIN, 'Page2');
+		Article::newFromRow( $row2, $parameters, $title2, NS_MAIN, 'Page2' );
 
 		// Check headings were incremented
 		$headings = Article::getHeadings();
-		$this->assertSame(2, $headings['Category1']);
+		$this->assertSame( 2, $headings['Category1'] );
 
 		// Test reset
 		Article::resetHeadings();
-		$this->assertEmpty(Article::getHeadings());
+		$this->assertEmpty( Article::getHeadings() );
 	}
 
 	/**
@@ -501,25 +498,25 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testGetDate() {
 		// Test with empty dates
-		$row = $this->createMockRow(['page_id' => 123]);
-		$title = $this->createMock(Title::class);
-		$title->method('getText')->willReturn('Page');
-		$title->method('getFullText')->willReturn('Page');
-		$parameters = $this->createMockParameters([]);
+		$row = $this->createMockRow( [ 'page_id' => 123 ] );
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$parameters = $this->createMockParameters( [] );
 
-		$article = Article::newFromRow($row, $parameters, $title, NS_MAIN, 'Page');
-		$this->assertSame('', $article->getDate());
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
+		$this->assertSame( '', $article->getDate() );
 
 		// Testing with actual dates would require integration test setup
-		$this->markTestSkipped('Full date testing requires integration test setup for language services');
+		$this->markTestSkipped( 'Full date testing requires integration test setup for language services' );
 	}
 
 	/**
 	 * Helper method to create mock database row
 	 */
-	private function createMockRow(array $data): stdClass {
+	private function createMockRow( array $data ): stdClass {
 		$row = new stdClass();
-		foreach ($data as $key => $value) {
+		foreach ( $data as $key => $value ) {
 			$row->$key = $value;
 		}
 		return $row;
@@ -528,10 +525,10 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Helper method to create mock Parameters object
 	 */
-	private function createMockParameters(array $params): Parameters {
-		$parameters = $this->createMock(Parameters::class);
-		$parameters->method('getParameter')->willReturnCallback(
-			function ($key) use ($params) {
+	private function createMockParameters( array $params ): Parameters {
+		$parameters = $this->createMock( Parameters::class );
+		$parameters->method( 'getParameter' )->willReturnCallback(
+			static function ( $key ) use ( $params ) {
 				return $params[$key] ?? null;
 			}
 		);
