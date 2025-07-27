@@ -733,13 +733,15 @@ class Lister {
 				$left = $this->sectionSeparators[$s * 2] ?? '';
 			}
 
-			$septag[$s * 2] = str_replace( '%SECTION%',
-				$sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount )
+			$septag[$s * 2] = str_replace( search: '%SECTION%',
+				replace: $sectionHeadingStr,
+				subject: $this->replaceTagCount( $left, $filteredCount )
 			);
 
 			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
-			$septag[$s * 2 + 1] = str_replace( '%SECTION%',
-				$sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount )
+			$septag[$s * 2 + 1] = str_replace( search: '%SECTION%',
+				replace: $sectionHeadingStr,
+				subject: $this->replaceTagCount( $right, $filteredCount )
 			);
 		}
 
