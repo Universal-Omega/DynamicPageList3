@@ -1,6 +1,7 @@
 <?php
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
+use function implode;
 
 class InlineList extends Lister {
 
