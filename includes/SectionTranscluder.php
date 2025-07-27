@@ -205,117 +205,92 @@ class SectionTranscluder {
 	 *         if the text is already shorter than the limit, the text
 	 *         will be returned without any checks for balance of tags
 	 */
-	public static function limitTranscludedText( $text, $limit, $link = '' ) {
-		// if text is smaller than limit return complete text
-		if ( $limit >= strlen( $text ) ) {
+	public static function limitTranscludedText( string $text, int $limit, string $link ): string {
+		// If text is smaller than limit return complete text.
+		$length = strlen( $text );
+		if ( $limit >= $length ) {
 			return $text;
 		}
 
-		// otherwise strip html comments and check again
+		// Otherwise strip html comments and check again.
 		$text = preg_replace( '/<!--.*?-->/s', '', $text );
 		if ( $limit >= strlen( $text ) ) {
 			return $text;
 		}
 
-		// search latest position with balanced brackets/braces
-		// store also the position of the last preceding space
-
+		// Search latest position with balanced brackets/braces
+		// store also the position of the last preceding space.
 		$brackets = 0;
 		$cbrackets = 0;
 		$n0 = -1;
 		$nb = 0;
 
 		for ( $i = 0; $i < $limit; $i++ ) {
-			$c = $text[$i];
-			if ( $c == '[' ) {
-				$brackets++;
-			}
+			$c = $text[$i] ?? '';
+			match ( $c ) {
+				'[' => $brackets++,
+				']' => $brackets--,
+				'{' => $cbrackets++,
+				'}' => $cbrackets--,
+				default => null,
+			};
 
-			if ( $c == ']' ) {
-				$brackets--;
-			}
-
-			if ( $c == '{' ) {
-				$cbrackets++;
-			}
-
-			if ( $c == '}' ) {
-				$cbrackets--;
-			}
-
-			// we store the position if it is valid in terms of parentheses balancing
-			if ( $brackets == 0 && $cbrackets == 0 ) {
+			if ( $brackets === 0 && $cbrackets === 0 ) {
 				$n0 = $i;
-				if ( $c == ' ' ) {
+				if ( $c === ' ' ) {
 					$nb = $i;
 				}
 			}
 		}
 
-		// if there is a valid cut-off point we use it; it will be the largest one which is not above the limit
+		// If there is a valid cut-off point we use it; it will be the largest one which is not above the limit.
 		if ( $n0 >= 0 ) {
-			// we try to cut off at a word boundary, this may lead to a shortening of max. 15 chars
-			// @phan-suppress-next-line PhanSuspiciousValueComparison
+			// We try to cut off at a word boundary, this may lead to a shortening of maximum 15 chars.
+			/** @phan-suppress-next-line PhanSuspiciousValueComparison */
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
 
 			$cut = substr( $text, 0, $n0 + 1 );
 
-			// an open html comment would be fatal, but this should not happen as we already have
-			// eliminated html comments at the beginning
+			// An open html comment would be fatal, but this should not happen as we already have
+			// eliminated html comments at the beginning.
 
-			// some tags are critical: ref, pre, nowiki
+			// Some tags are critical: ref, pre, nowiki
 			// if these tags were not balanced they would spoil the result completely
 			// we enforce balance by appending the necessary amount of corresponding closing tags
 			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
-			// This simple approach may fail in some cases ...
+			// This simple approach may fail in some cases...
+			preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)?>#im', $cut, $matches );
+			$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
 
-			$matches = [];
-			$noMatches = preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
-			$tags = [
-				'ref' => 0,
-				'pre' => 0,
-				'nowiki' => 0
-			];
+			foreach ( $matches[1] as $tag ) {
+				$tagName = ltrim( $tag, '/' );
+				$tags[$tagName] += str_starts_with( $tag, '/' ) ? -1 : 1;
+			}
 
-			if ( $noMatches > 0 ) {
-				// calculate tag count (ignoring nesting)
-				foreach ( $matches[1] as $mm ) {
-					if ( $mm[0] == '/' ) {
-						$tags[substr( $mm, 1 )]--;
-					} else {
-						$tags[$mm]++;
-					}
+			foreach ( $tags as $tagName => $level ) {
+				// Avoid empty <ref> tag
+				if ( $tagName === 'ref' && str_ends_with( $cut, '<ref>' ) ) {
+					$cut = substr( $cut, 0, -5 );
+					$level--;
 				}
 
-				// append missing closing tags - should the tags be ordered by precedence ?
-				foreach ( $tags as $tagName => $level ) {
-					// @phan-suppress-next-line PhanPluginLoopVariableReuse
-					while ( $level > 0 ) {
-						// avoid empty ref tag
-						if ( $tagName == 'ref' && substr( $cut, strlen( $cut ) - 5 ) == '<ref>' ) {
-							$cut = substr( $cut, 0, strlen( $cut ) - 5 );
-						} else {
-							$cut .= '</' . $tagName . '>';
-						}
-
-						$level--;
-					}
-				}
+				$cut .= str_repeat( "</$tagName>", max( 0, $level ) );
 			}
 
 			return $cut . $link;
-		} elseif ( $limit == 0 ) {
-			return $link;
-		} else {
-			// otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
-			// it will at least produce some output at all; otherwise the reader might think that there
-			// is no information at all
-			return self::limitTranscludedText( $text, $limit * 2, $link );
 		}
-	}
 
+		if ( $limit === 0 ) {
+			return $link;
+		}
+
+		// Otherwise we recurse and try again with twice the limit size; this will lead to bigger output but
+		// it will at least produce some output at all; otherwise the reader might think that there
+		// is no information at all.
+		return self::limitTranscludedText( $text, $limit * 2, $link );
+	}
 
 	public static function includeHeading(
 		Parser $parser,
@@ -542,7 +517,7 @@ class SectionTranscluder {
 	 * and do NOT match the condition "$mustNotMatch" (if specified)
 	 * we use a callback function to format retrieved parameters, accessible via $lister->formatTemplateArg()
 	 */
-	public static function includeTemplate(
+	public static function includeTemplateNew(
 		Parser $parser,
 		Lister $lister,
 		int $dplNr,
@@ -806,6 +781,338 @@ class SectionTranscluder {
 
 		return $output;
 	}
+	public static function includeTemplate(
+		$parser,
+		Lister $lister,
+		$dplNr,
+		$article,
+		$template1,
+		$template2,
+		$defaultTemplate,
+		$mustMatch,
+		$mustNotMatch,
+		$matchParsed,
+		$catlist
+	) {
+		$page = $article->mTitle->getPrefixedText();
+		$date = $article->myDate;
+		$user = $article->mUserLink;
+		$title = Title::newFromText( $page );
+
+		// get text and throw away html comments
+		$text = preg_replace( '/<!--.*?-->/s', '', $parser->fetchTemplateAndTitle( $title )[0] );
+
+		if ( $template1 != '' && $template1[0] == '#' ) {
+			// --------------------------------------------- looking for a parser function call
+			$template1 = substr( $template1, 1 );
+			$template2 = substr( $template2, 1 );
+			$defaultTemplate = substr( $defaultTemplate, 1 );
+
+			// when looking for parser function calls we accept regexp search patterns
+			$text2 = preg_replace( "/\{\{\s*#(" . $template1 . ')(\s*[:}])/i', '°³²|%PFUNC%=\1\2|', $text );
+			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
+
+			foreach ( $tCalls as $i => $tCall ) {
+				$n = strpos( $tCall, ':' );
+
+				if ( $n !== false ) {
+					$tCalls[$i][$n] = ' ';
+				}
+			}
+		} elseif ( $template1 != '' && $template1[0] == '~' ) {
+			// --------------------------------------------- looking for an xml-tag extension call
+			$template1 = substr( $template1, 1 );
+			$template2 = substr( $template2, 1 );
+			$defaultTemplate = substr( $defaultTemplate, 1 );
+
+			// looking for tags
+			$text2 = preg_replace( '/\<\s*(' . $template1 . ')\s*\>/i', '°³²|%TAG%=\1|%TAGBODY%=', $text );
+			$tCalls = preg_split( '/°³²/', ' ' . $text2 );
+
+			foreach ( $tCalls as $i => $tCall ) {
+				$tCalls[$i] = preg_replace( '/\<\s*\/' . $template1 . '\s*\>.*/is', '}}', $tCall );
+			}
+		} else {
+			// --------------------------------------------- looking for template call
+			// we accept plain text as a template name, space or underscore are the same
+			// the localized name for "Template:" may preceed the template name
+			// the name may start with a different namespace for the surrogate template, followed by ::
+			$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+
+			$nsNames = $contLang->getNamespaces();
+			$tCalls = preg_split(
+				'/\{\{\s*(Template:|' . $nsNames[10] . ':)?' .
+				self::spaceOrUnderscore( preg_quote( $template1, '/' ) ) .
+				'\s*[|}]/i', ' ' . $text
+			);
+
+			// We restore the first separator symbol (we had to include that symbol into the SPLIT, because we must make
+			// sure that we only accept exact matches of the complete template name
+			// (e.g. when looking for "foo" we must not accept "foo xyz")
+			foreach ( $tCalls as $nr => $tCall ) {
+				if ( $tCall[0] == '}' ) {
+					$tCalls[$nr] = '}' . $tCall;
+				} else {
+					$tCalls[$nr] = '|' . $tCall;
+				}
+			}
+		}
+
+		$output = [];
+		$extractParm = [];
+
+		// check if we want to extract parameters directly from the call
+		// in that case we won´t invoke template2 but will directly return the extracted parameters
+		// as a sequence of table columns;
+		if (
+			strlen( $template2 ) > strlen( $template1 ) &&
+			substr( $template2, 0, strlen( $template1 ) + 1 ) == ( $template1 . ':' )
+		) {
+			$extractParm = preg_split( '/:\s*/s', trim( substr( $template2, strlen( $template1 ) + 1 ) ) );
+		}
+
+		if ( count( $tCalls ) <= 1 ) {
+			// template was not called (note that count will be 1 if there is no template invocation)
+			if ( count( $extractParm ) > 0 ) {
+				// if parameters are required directly: return empty columns
+				if ( count( $extractParm ) > 1 ) {
+					$output[0] = $lister->formatTemplateArg( '', $dplNr, 0, true, -1, $article );
+
+					for ( $i = 1; $i < count( $extractParm ); $i++ ) {
+						$output[0] .= "\n|" . $lister->formatTemplateArg( '', $dplNr, $i, true, -1, $article );
+					}
+				} else {
+					$output[0] = $lister->formatTemplateArg( '', $dplNr, 0, true, -1, $article );
+				}
+			} else {
+				// put a red link into the output
+				$output[0] = self::callParserPreprocess( $parser,
+					'{{' . $defaultTemplate . '|%PAGE%=' .
+					$page . '|%TITLE%=' . $title->getText() .
+					'|%DATE%=' . $date . '|%USER%=' . $user . '}}',
+					$parser->getPage(), $parser->getOptions()
+				);
+			}
+
+			unset( $title );
+
+			return $output;
+		}
+
+		$output[0] = '';
+		$n = -2;
+
+		// loop for all template invocations
+		$firstCall = true;
+
+		foreach ( $tCalls as $tCall ) {
+			if ( $n == -2 ) {
+				$n++;
+				continue;
+			}
+
+			$c = $tCall[0];
+			// normally we construct a call for template2 with the parameters of template1
+			if ( count( $extractParm ) == 0 ) {
+				// find the end of the call: bracket level must be zero
+				$cbrackets = 0;
+				$templateCall = '{{' . $template2 . $tCall;
+				$size = strlen( $templateCall );
+
+				for ( $i = 0; $i < $size; $i++ ) {
+					$c = $templateCall[$i];
+					if ( $c == '{' ) {
+						$cbrackets++;
+					}
+
+					if ( $c == '}' ) {
+						$cbrackets--;
+					}
+
+					if ( $cbrackets == 0 ) {
+						// if we must match a condition: test against it
+						if ( (
+							$mustMatch == '' ||
+							preg_match( $mustMatch, substr( $templateCall, 0, $i - 1 ) )
+						) && (
+							$mustNotMatch == '' ||
+							!preg_match( $mustNotMatch, substr( $templateCall, 0, $i - 1 ) )
+						) ) {
+							$invocation = substr( $templateCall, 0, $i - 1 );
+							$argChain = $invocation . '|%PAGE%=' . $page . '|%TITLE%=' . $title->getText();
+
+							if ( $catlist != '' ) {
+								$argChain .= "|%CATLIST%=$catlist";
+							}
+
+							$argChain .= '|%DATE%=' . $date .
+								'|%USER%=' . $user . '|%ARGS%=' .
+								str_replace(
+									'|', '§',
+									str_replace(
+										'}', '❵',
+										str_replace(
+											'{', '❴',
+											substr( $invocation, strlen( $template2 ) + 2 )
+										)
+									)
+								) . '}}';
+
+							$output[++$n] = self::callParserPreprocess(
+								$parser, $argChain, $parser->getPage(), $parser->getOptions()
+							);
+						}
+						break;
+					}
+				}
+			} else {
+				// if the user wants parameters directly from the call line of template1 we return just those
+				$cbrackets = 2;
+				$templateCall = $tCall;
+				$size = strlen( $templateCall );
+				$parms = [];
+				$parm = '';
+				$hasParm = false;
+
+				for ( $i = 0; $i < $size; $i++ ) {
+					$c = $templateCall[$i];
+
+					if ( $c == '{' || $c == '[' ) {
+						// we count both types of brackets
+						$cbrackets++;
+					}
+
+					if ( $c == '}' || $c == ']' ) {
+						$cbrackets--;
+					}
+
+					if ( $cbrackets == 2 && $c == '|' ) {
+						$parms[] = trim( $parm );
+						$hasParm = true;
+						$parm = '';
+					} else {
+						$parm .= $c;
+					}
+
+					if ( $cbrackets == 0 ) {
+						if ( $hasParm ) {
+							$parms[] = trim( substr( $parm, 0, strlen( $parm ) - 2 ) );
+						}
+
+						array_splice( $parms, 0, 1 );
+						// if we must match a condition: test against it
+						$callText = substr( $templateCall, 0, $i - 1 );
+
+						if ( ( $mustMatch == '' || (
+							( $matchParsed && preg_match(
+								$mustMatch, $parser->recursiveTagParse( $callText )
+							) ) || ( !$matchParsed && preg_match(
+								$mustMatch, $callText
+							) ) ) ) && (
+							$mustNotMatch == '' || (
+								( $matchParsed && !preg_match(
+									$mustNotMatch, $parser->recursiveTagParse( $callText )
+								) ) || (
+									!$matchParsed && !preg_match(
+										$mustNotMatch, $callText
+									)
+								)
+							)
+						) ) {
+							$output[++$n] = '';
+							$second = false;
+
+							foreach ( $extractParm as $exParmKey => $exParm ) {
+								$maxlen = -1;
+								$limpos = strpos( $exParm, '[' );
+
+								if ( $limpos > 0 && $exParm[strlen( $exParm ) - 1] == ']' ) {
+									$maxlen = (int)substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 );
+									$exParm = substr( $exParm, 0, $limpos );
+								}
+
+								if ( $second ) {
+									// @phan-suppress-next-line PhanTypeInvalidDimOffset
+									if ( $output[$n] == '' || $output[$n][strlen( $output[$n] ) - 1] != "\n" ) {
+										$output[$n] .= "\n";
+									}
+
+									$output[$n] .= "|";
+								}
+
+								$found = false;
+
+								// % in parameter name
+								if ( strpos( $exParm, '%' ) !== false ) {
+									// %% is a short form for inclusion of %PAGE% and %TITLE%
+									$found = true;
+									$output[$n] .= $lister->formatTemplateArg(
+										$exParm, $dplNr, $exParmKey,
+										$firstCall, $maxlen, $article
+									);
+								}
+
+								if ( !$found ) {
+									// named parameter
+									$exParmQuote = str_replace( '/', '\/', $exParm );
+
+									foreach ( $parms as $parm ) {
+										if ( !preg_match( "/^\s*$exParmQuote\s*=/", $parm ) ) {
+											continue;
+										}
+
+										$found = true;
+										$output[$n] .= $lister->formatTemplateArg(
+											preg_replace( "/^$exParmQuote\s*=\s*/", "", $parm ),
+											$dplNr, $exParmKey, $firstCall,
+											$maxlen, $article
+										);
+										break;
+									}
+								}
+
+								if ( !$found && is_numeric( $exParm ) && (int)$exParm == $exParm ) {
+									// numeric parameter
+									$np = 0;
+
+									foreach ( $parms as $parm ) {
+										if ( strstr( $parm, '=' ) === false ) {
+											++$np;
+										}
+
+										if ( $np != $exParm ) {
+											continue;
+										}
+
+										$found = true;
+										$output[$n] .= $lister->formatTemplateArg(
+											$parm, $dplNr, $exParmKey,
+											$firstCall, $maxlen, $article
+										);
+										break;
+									}
+								}
+
+								if ( !$found ) {
+									$output[$n] .= $lister->formatTemplateArg(
+										'', $dplNr, $exParmKey, $firstCall, $maxlen, $article
+									);
+								}
+
+								$second = true;
+							}
+						}
+						break;
+					}
+				}
+			}
+
+			$firstCall = false;
+		}
+
+		return $output;
+	}
+
 
 	private static function spaceOrUnderscore( string $pattern ): string {
 		// Returns a pattern that matches underscores as well as spaces.
