@@ -2,6 +2,10 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function array_reverse;
+use function explode;
+use function str_contains;
+
 trait ExternalDomainPatternParser {
 
 	/**
