@@ -28,6 +28,20 @@ use function strtolower;
 use function strtr;
 use function substr;
 use function wfMessage;
+use function preg_replace;
+use function strlen;
+use function preg_match;
+use function trim;
+use function str_starts_with;
+use function str_ends_with;
+use function explode;
+use function end;
+use function array_slice;
+use function array_filter;
+use function array_values;
+use const NS_CATEGORY;
+use const NS_FILE;
+use const NS_MAIN;
 
 class Lister {
 
