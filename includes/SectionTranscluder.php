@@ -371,9 +371,9 @@ class SectionTranscluder {
 			} else {
 				// Build match pattern depending on numeric/plain/regex match
 				$pat = match ( true ) {
-					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
-					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
-					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
 				};
 
 				// Match against the section heading
