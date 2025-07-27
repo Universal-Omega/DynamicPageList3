@@ -261,7 +261,7 @@ class SectionTranscluder {
 			// we enforce balance by appending the necessary amount of corresponding closing tags
 			// currently we ignore the nesting, i.e. all closing tags are appended at the end.
 			// This simple approach may fail in some cases...
-			preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)?>#im', $cut, $matches );
+			preg_match_all( '#<\s*(/?ref|/?pre|/?nowiki)(\s+[^>]*?)*>#im', $cut, $matches );
 			$tags = [ 'ref' => 0, 'pre' => 0, 'nowiki' => 0 ];
 
 			foreach ( $matches[1] as $tag ) {
