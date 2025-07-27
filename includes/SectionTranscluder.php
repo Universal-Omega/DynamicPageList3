@@ -442,10 +442,11 @@ class SectionTranscluder {
 			break;
 		}
 
-		if ( $endOff === 0 ) {
-			// Prevent infinite loop
-			break;
-		}
+if ( $endOff === 0 || $endOff >= strlen( $text ) ) {
+	break;
+}
+
+$text = substr( $text, $endOff );
 
 		$text = substr( $text, $endOff );
 
