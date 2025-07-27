@@ -82,8 +82,9 @@ class Article {
 
 		// Chop off title if longer than the 'titlemaxlen' parameter.
 		$titleMaxLen = $parameters->getParameter( 'titlemaxlen' );
-		if ( $titleMaxLen !== null && strlen( $titleText ) > $titleMaxLen ) {
-			$titleText = substr( $titleText, 0, $titleMaxLen ) . '...';
+		if ( $titleMaxLen !== null && mb_strlen( $titleText ) > $titleMaxLen ) {
+			$titleText = mb_substr( $titleText, 0, $titleMaxLen ) .
+				wfMessage( 'ellipsis' )->escaped();
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
