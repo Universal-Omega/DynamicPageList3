@@ -887,7 +887,7 @@ class Query {
 	 *
 	 * @param mixed $option @phan-unused-param
 	 */
-	private function _hiddencategories( mixed $option ): void {
+	private function _hiddencategories( mixed $option ): never {
 		// @TODO: Unfinished functionality! Never implemented by original author.
 		throw new LogicException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
 	}
