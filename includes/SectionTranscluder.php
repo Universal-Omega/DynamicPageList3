@@ -378,7 +378,7 @@ class SectionTranscluder {
 
 				// Match against the section heading
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$beginOff = end( $m )[1];
+					$beginOff = $m[0][1];
 					$headLength = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], " \t\n=" );
 				} elseif ( $nr === -2 ) {
