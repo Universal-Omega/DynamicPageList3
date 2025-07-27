@@ -329,143 +329,163 @@ class SectionTranscluder {
 	/**
 	 * Extract section(s) from wikitext based on a heading match
 	 */
-public static function extractHeadingFromText(
-	Parser $parser,
-	string $page,
-	string $text,
-	string $sec,
-	string $to,
-	array &$sectionHeading,
-	bool $recursionCheck,
-	int $maxLength,
-	string $cLink,
-	bool $trim,
-	array $skipPattern
-): array {
-	$output = [ '' ];
-	$n = 0;
-	$nr = 0;
+	public static function extractHeadingFromText(
+		Parser $parser,
+		string $page,
+		string $text,
+		string $sec,
+		string $to,
+		array &$sectionHeading,
+		bool $recursionCheck,
+		int $maxLength,
+		string $cLink,
+		bool $trim,
+		array $skipPattern
+	): array {
+		$output = [ '' ];
+		$n = 0;
+		$nr = 0;
 
-	var_dump( 'DPL4', "Section requested: '$sec'" );
+		// Check if section selector is a numbered section
+		if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
+			$nr = (int)substr( $sec, 1 );
+		} elseif ( preg_match( '/^%0$/', $sec ) ) {
+			// Special case: transclude text before the first heading
+			$nr = -2;
+		}
 
-	// Check if section selector is a numbered section
-	if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
-		$nr = (int)substr( $sec, 1 );
-		var_dump( 'DPL4', "Detected numbered section: $nr" );
-	} elseif ( preg_match( '/^%0$/', $sec ) ) {
-		$nr = -2;
-		var_dump( 'DPL4', "Detected special %0 (before first heading)" );
-	}
+		// Determine whether heading match is plain text or regex
+		$isPlain = true;
+		if ( $sec !== '' && ( str_starts_with( $sec, '#' ) || str_starts_with( $sec, '@' ) ) ) {
+			$sec = substr( $sec, 1 );
+			$isPlain = false;
+		}
 
-	// Determine whether heading match is plain text or regex
-	$isPlain = true;
-	if ( $sec !== '' && ( str_starts_with( $sec, '#' ) || str_starts_with( $sec, '@' ) ) ) {
-		$sec = substr( $sec, 1 );
-		$isPlain = false;
-		var_dump( 'DPL4', "Detected regex section: '$sec'" );
-	}
+		while ( true ) {
+			$headLine = '';
+			$beginOff = 0;
 
-	while ( true ) {
-		$headLine = '';
-		$beginOff = 0;
+			// Check if section is empty (match all headings)
+			if ( $sec === '' ) {
+				$headLength = 6;
+			} else {
+				// Build match pattern depending on numeric/plain/regex match
+				$pat = match ( true ) {
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+				};
 
-		if ( $sec === '' ) {
-			$headLength = 6;
-			var_dump( 'DPL4', 'Matching all headings (sec is empty)' );
-		} else {
-			$pat = match ( true ) {
-				$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
-				$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
-				default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+				// Match against the section heading
+				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
+					$beginOff = end( $m )[1];
+					$headLength = strlen( $m[1][0] );
+					$headLine = trim( $m[0][0], " \t\n=" );
+				} elseif ( $nr === -2 ) {
+					// No heading found, fallback to full text
+					$m[1][1] = strlen( $text ) + 1;
+				} else {
+					// No match, return empty output
+					return $output;
+				}
+			}
+
+			// Construct link formatting
+			$link = match ( true ) {
+				$cLink === 'default' => " [[$page#$headLine|..→]]",
+				str_contains( $cLink, 'img=' ) => str_replace(
+					'img=', "<linkedimage>page=$page#$headLine\nimg=Image:", $cLink
+				) . "\n</linkedimage>",
+				!str_contains( $cLink, '%SECTION%' ) => " [[$page#$headLine|$cLink]]",
+				default => str_replace( '%SECTION%', "$page#$headLine", $cLink ),
 			};
 
-			var_dump( 'DPL4', "Looking for heading match: /$pat/i" );
-
-			if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-				var_dump( 'DPL4', "Match succeeded: " . print_r( $m, true ) );
-				$beginOff = $m[0][1] + strlen( $m[0][0] );
-				$headLength = strlen( $m[1][0] );
-				$headLine = trim( $m[0][0], " \t\n=" );
-				var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
-			} elseif ( $nr === -2 ) {
-				$m[1][1] = strlen( $text ) + 1;
-				var_dump( 'DPL4', "No heading found, using full text" );
-			} else {
-				var_dump( 'DPL4', "Match FAILED for pattern: /$pat/i" );
+			// Handle special case: transclude content before first heading
+			if ( $nr === -2 ) {
+				$output[0] = self::parse(
+					parser: $parser,
+					text: substr( $text, 0, $m[1][1] - 1 ),
+					part1: "heading:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
+				);
 				return $output;
 			}
-		}
 
-		$link = match ( true ) {
-			$cLink === 'default' => " [[$page#$headLine|..→]]",
-			str_contains( $cLink, 'img=' ) => str_replace(
-				'img=', "<linkedimage>page=$page#$headLine\nimg=Image:", $cLink
-			) . "\n</linkedimage>",
-			!str_contains( $cLink, '%SECTION%' ) => " [[$page#$headLine|$cLink]]",
-			default => str_replace( '%SECTION%', "$page#$headLine", $cLink ),
-		};
+			$endOff = null;
 
-		if ( $nr === -2 ) {
-			$output[0] = self::parse(
-				parser: $parser,
-				text: substr( $text, 0, $m[1][1] - 1 ),
-				part1: "heading:$page|$sec",
-				recursionCheck: $recursionCheck,
-				maxLength: $maxLength,
-				link: $link,
-				trim: $trim,
-				skipPattern: $skipPattern
-			);
-			var_dump( 'DPL4', "Returning %0 section: length=" . strlen( $output[0] ) );
-			return $output;
-		}
+			// Try to match target end heading if provided
+			if ( $to !== '' ) {
+				$pat = $isPlain
+					? '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$'
+					: '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
 
-		$endOff = null;
-
-		if ( $to !== '' ) {
-			$pat = $isPlain
-				? '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$'
-				: '^(={1,6})\s*' . str_replace( '/', '\/', $to ) . '\s*\1\s*$';
-
-			if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
-				$endOff = $mm[0][1] - 1;
-				var_dump( 'DPL4', "Found end section at offset=$endOff" );
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
+				}
 			}
-		}
 
-		if ( $endOff === null ) {
-			$headLength ??= 6;
-			$pat = $nr !== 0
-				? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
-				: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
+			// If no end offset yet, find next heading of same or higher level
+			if ( $endOff === null ) {
+				$headLength ??= 6;
+				$pat = $nr !== 0
+					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
+					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
 
-			if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
-				$endOff = $mm[0][1] - 1;
-				var_dump( 'DPL4', "Auto-detected end of section at offset=$endOff" );
-			} elseif ( $sec === '' ) {
-				$endOff = -1;
-				var_dump( 'DPL4', "No end found; using -1 (until EOF)" );
+				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
+					$endOff = $mm[0][1] - 1;
+				} elseif ( $sec === '' ) {
+					$endOff = -1;
+				}
 			}
-		}
 
-		$piece = $endOff !== null
-			? substr( $text, $beginOff, $endOff - $beginOff )
-			: substr( $text, $beginOff );
+			$piece = $endOff !== null
+				? substr( $text, $beginOff, $endOff - $beginOff )
+				: substr( $text, $beginOff );
 
-		var_dump( 'DPL4', "Section piece length=" . strlen( $piece ) );
-		var_dump( 'DPL4', "Section preview: " . substr( $piece, 0, 150 ) );
+			if ( $nr > 1 ) {
+				$nr--;
+				continue;
+			}
 
-		if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
-			var_dump( 'DPL4', "No more content to extract; breaking loop" );
-			break;
-		}
+			if ( isset( $m[0][0] ) ) {
+				$sectionHeading[$n] = $headLine;
+			} else {
+				$sectionHeading[0] = $headLine;
+			}
 
-		$text = substr( $text, $endOff );
+			if ( $nr === 1 ) {
+				$output[0] = self::parse(
+					parser: $parser,
+					text: $piece,
+					part1: "heading:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
+				);
+				break;
+			}
 
-		$sectionHeading[$n] = $headLine;
+			if ( $nr === -1 && $endOff === null ) {
+				$output[0] = self::parse(
+					parser: $parser,
+					text: $piece,
+					part1: "heading:$page|$sec",
+					recursionCheck: $recursionCheck,
+					maxLength: $maxLength,
+					link: $link,
+					trim: $trim,
+					skipPattern: $skipPattern
+				);
+				break;
+			}
 
-		if ( $nr === 1 ) {
-			$output[0] = self::parse(
+			$output[$n++] = self::parse(
 				parser: $parser,
 				text: $piece,
 				part1: "heading:$page|$sec",
@@ -475,47 +495,16 @@ public static function extractHeadingFromText(
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
-			var_dump( 'DPL4', "Parsed output[0] for numbered section: " . substr( $output[0], 0, 100 ) );
-			break;
+
+			if ( $endOff === null || $endOff === 0 ) {
+				break;
+			}
+
+			$text = substr( $text, $endOff );
 		}
 
-		if ( $nr === -1 && $endOff === null ) {
-			$output[0] = self::parse(
-				parser: $parser,
-				text: $piece,
-				part1: "heading:$page|$sec",
-				recursionCheck: $recursionCheck,
-				maxLength: $maxLength,
-				link: $link,
-				trim: $trim,
-				skipPattern: $skipPattern
-			);
-			var_dump( 'DPL4', "Parsed last section (nr=-1): " . substr( $output[0], 0, 100 ) );
-			break;
-		}
-
-		if ( $nr > 1 ) {
-			$nr--;
-			var_dump( 'DPL4', "Skipping to next section (nr now $nr)" );
-			continue;
-		}
-
-		$output[$n++] = self::parse(
-			parser: $parser,
-			text: $piece,
-			part1: "heading:$page|$sec",
-			recursionCheck: $recursionCheck,
-			maxLength: $maxLength,
-			link: $link,
-			trim: $trim,
-			skipPattern: $skipPattern
-		);
-		var_dump( 'DPL4', "Parsed output[$n-1]: " . substr( $output[$n - 1], 0, 100 ) );
+		return $output;
 	}
-
-	var_dump( 'DPL4', "Returning output: " . print_r( $output, true ) );
-	return $output;
-}
 
 	/**
 	 * Template inclusion - find the place(s) where template1 is called,
