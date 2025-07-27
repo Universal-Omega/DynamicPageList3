@@ -448,10 +448,6 @@ class SectionTranscluder {
 				? substr( $text, $beginOff, $endOff - $beginOff )
 				: substr( $text, $beginOff );
 
-			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
-				break;
-			}
-
 			$text = substr( $text, $endOff );
 
 			// Store matched heading
@@ -505,6 +501,10 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+
+			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
+				break;
+			}
 		}
 
 		return $output;
