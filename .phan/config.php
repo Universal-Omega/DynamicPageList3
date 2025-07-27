@@ -23,4 +23,34 @@ $cfg['suppress_issue_types'] = [
 	'PhanAccessMethodInternal',
 ];
 
+$cfg['plugins'] = array_merge( $cfg['plugins'], [
+	'AddNeverReturnTypePlugin',
+	'AlwaysReturnPlugin',
+	'DeprecateAliasPlugin',
+	'DollarDollarPlugin',
+	'DuplicateConstantPlugin',
+	'EmptyMethodAndFunctionPlugin',
+	'EmptyStatementListPlugin',
+	'FFIAnalysisPlugin',
+	'InlineHTMLPlugin',
+	'InvalidVariableIssetPlugin',
+	'InvokePHPNativeSyntaxCheckPlugin',
+	'LoopVariableReusePlugin',
+	// 'NotFullyQualifiedUsagePlugin',
+	'PHPDocRedundantPlugin',
+	'PHPUnitAssertionPlugin',
+	'PHPUnitNotDeadCodePlugin',
+	'PreferNamespaceUsePlugin',
+	'PrintfCheckerPlugin',
+	'RedundantAssignmentPlugin',
+	'SimplifyExpressionPlugin',
+	'SleepCheckerPlugin',
+	'StrictComparisonPlugin',
+	'StrictLiteralComparisonPlugin',
+	'SuspiciousParamOrderPlugin',
+	'UnreachableCodePlugin',
+	'UnsafeCodePlugin',
+	'UseReturnValuePlugin',
+] );
+
 return $cfg;
