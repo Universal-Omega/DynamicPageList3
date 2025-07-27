@@ -16,8 +16,8 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test singleton pattern
 	 */
 	public function testSingleton() {
-		$config1 = Config::newFromGlobals();
-		$config2 = Config::newFromGlobals();
+		$config1 = Config::newInstance();
+		$config2 = Config::newInstance();
 
 		$this->assertSame( $config1, $config2, 'Config should return the same instance' );
 	}
@@ -26,7 +26,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test that config extends MultiConfig correctly
 	 */
 	public function testIsMultiConfig() {
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 		$this->assertInstanceOf( \MediaWiki\Config\MultiConfig::class, $config );
 	}
 
@@ -37,7 +37,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 		// Set some test globals
 		$GLOBALS['wgDynamicPageList4TestValue'] = 'test123';
 
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		// Test that we can access MediaWiki config values
 		$this->assertTrue( $config->has( 'Sitename' ), 'Should have access to MediaWiki config' );
@@ -64,7 +64,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test config access patterns
 	 */
 	public function testConfigAccess() {
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		// Test common MediaWiki config access
 		$this->assertTrue( is_string( $config->get( 'Sitename' ) ) );
@@ -79,7 +79,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test config exception handling
 	 */
 	public function testConfigException() {
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		$this->expectException( \MediaWiki\Config\ConfigException::class );
 		$config->get( 'NonExistentConfigKey' . uniqid() );
@@ -90,13 +90,13 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testDPLSpecificConfig() {
 		// Test potential DPL4 specific configuration
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		// These would be the kinds of DPL-specific configs we might expect
 		$potentialDPLConfigs = [
-			'wgDLPmaxCategoryCount',
-			'wgDLPAllowUnlimitedResults',
-			'wgDLPMaxResultCount'
+			'maxCategoryCount',
+			'allowUnlimitedResults',
+			'maxResultCount'
 		];
 
 		foreach ( $potentialDPLConfigs as $configKey ) {
@@ -115,14 +115,14 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test reset functionality if implemented
 	 */
 	public function testConfigReset() {
-		$config1 = Config::newFromGlobals();
+		$config1 = Config::newInstance();
 
 		// If Config had a reset method, we'd test it here
 		// This is a placeholder for potential future functionality
 		$this->assertInstanceOf( Config::class, $config1 );
 
 		// Test that multiple calls still return singleton
-		$config2 = Config::newFromGlobals();
+		$config2 = Config::newInstance();
 		$this->assertSame( $config1, $config2 );
 	}
 
@@ -130,7 +130,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test configuration inheritance from MultiConfig
 	 */
 	public function testMultiConfigInheritance() {
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		// Test that it properly inherits MultiConfig methods
 		$this->assertTrue( method_exists( $config, 'get' ) );
@@ -148,7 +148,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 
 		// Multiple singleton calls should be fast
 		for ( $i = 0; $i < 1000; $i++ ) {
-			Config::newFromGlobals();
+			Config::newInstance();
 		}
 
 		$endTime = microtime( true );
@@ -162,7 +162,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	 * Test that config properly handles MediaWiki service integration
 	 */
 	public function testServiceIntegration() {
-		$config = Config::newFromGlobals();
+		$config = Config::newInstance();
 
 		// Test that it integrates with MediaWiki's service container
 		$this->assertInstanceOf( \MediaWiki\Config\Config::class, $config );
