@@ -476,7 +476,7 @@ class Query {
 				"rev.rev_timestamp = ($minTimestampSubquery)",
 			] );
 
-			$this->adduser( tableAlias: 'rev' );
+			$this->doAddUser( tableAlias: 'rev' );
 		}
 	}
 
