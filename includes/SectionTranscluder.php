@@ -78,7 +78,10 @@ class SectionTranscluder {
 		array $skipPattern
 	): string {
 		$text = str_replace( '</section>', '', $text );
-		$text = preg_replace( $skipPattern, '', $text );
+		foreach ( $skipPattern as $pattern ) {
+			$text = preg_replace( $pattern, '', $text );
+		}
+
 		if ( self::open( $parser, $part1 ) ) {
 			if ( !$recursionCheck ) {
 				$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
