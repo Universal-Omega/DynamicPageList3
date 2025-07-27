@@ -421,8 +421,8 @@ class Query {
 	/**
 	 * @return non-empty-array<string|LikeMatch>
 	 */
-	private function splitLikePattern( string $pattern ): array {
-		$segments = preg_split( '/(%)/', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+	private function splitLikePattern( string $subject ): array {
+		$segments = preg_split( '/(%)/', $subject, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 		$parts = array_map(
 			fn ( string $segment ): string|LikeMatch =>
 				$segment === '%' ? $this->dbr->anyString() : $segment,
