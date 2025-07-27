@@ -342,6 +342,7 @@ class SectionTranscluder {
 		bool $trim,
 		array $skipPattern
 	): array {
+		$continueSearch = true;
 		$output = [ '' ];
 		$n = 0;
 		$nr = 0;
@@ -361,26 +362,26 @@ class SectionTranscluder {
 			$isPlain = false;
 		}
 
-		while ( true ) {
+		do {
 			$headLine = '';
 			$beginOff = 0;
 
 			// Check if section is empty (match all headings)
 			if ( $sec === '' ) {
-				$headLength = 6;
+				$headLen = 6;
 			} else {
 				// Build match pattern depending on numeric/plain/regex match
 				$pat = match ( true ) {
-					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
-					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
-					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
+					$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
+					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
+					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
 				};
 
 				// Match against the section heading
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
 					$beginOff = end( $m )[1];
-					$headLength = strlen( $m[1][0] );
-					$headLine = trim( $m[0][0], " \t\n=" );
+					$headLen = strlen( $m[1][0] );
+					$headLine = trim( $m[0][0], " \n\t=" );
 				} elseif ( $nr === -2 ) {
 					// No heading found, fallback to full text
 					$m[1][1] = strlen( $text ) + 1;
@@ -402,10 +403,11 @@ class SectionTranscluder {
 
 			// Handle special case: transclude content before first heading
 			if ( $nr === -2 ) {
+				$piece = substr( $text, 0, $m[1][1] - 1 );
 				$output[0] = self::parse(
 					parser: $parser,
-					text: substr( $text, 0, $m[1][1] - 1 ),
-					part1: "heading:$page|$sec",
+					text: $piece,
+					part1: "#lsth:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -416,7 +418,7 @@ class SectionTranscluder {
 				return $output;
 			}
 
-			$endOff = null;
+			unset( $endOff );
 
 			// Try to match target end heading if provided
 			if ( $to !== '' ) {
@@ -430,11 +432,10 @@ class SectionTranscluder {
 			}
 
 			// If no end offset yet, find next heading of same or higher level
-			if ( $endOff === null ) {
-				$headLength ??= 6;
+			if ( !isset( $endOff ) ) {
 				$pat = $nr !== 0
 					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
-					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
+					: "^(={1,$headLen})(?!=)\s*.*?\1\s*$";
 
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
 					$endOff = $mm[0][1] - 1;
@@ -444,22 +445,32 @@ class SectionTranscluder {
 			}
 
 			// Extract the section content based on matched offsets
-			$piece = $endOff !== null
-				? substr( $text, $beginOff, $endOff - $beginOff )
-				: substr( $text, $beginOff );
+			if ( isset( $endOff ) ) {
+				if ( $endOff === -1 ) {
+					return $output;
+				}
 
-			$text = substr( $text, $endOff );
+				$piece = substr( $text, $beginOff, $endOff - $beginOff );
+				if ( $sec === '' ) {
+					$continueSearch = false;
+				} else {
+					if ( $endOff === 0 ) {
+						break;
+					}
+					$text = substr( $text, $endOff );
+				}
+			} else {
+				$piece = substr( $text, $beginOff );
+				$continueSearch = false;
+			}
 
-			// Store matched heading
 			$sectionHeading[$n] = $headLine;
 
-			// Output based on mode: single section, last section, or match by name
 			if ( $nr === 1 ) {
-				// Output n-th section and done
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "heading:$page|$sec",
+					part1: "#lsth:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -469,12 +480,11 @@ class SectionTranscluder {
 				break;
 			}
 
-			if ( $nr === -1 && $endOff === null ) {
-				// Output last section and done
+			if ( $nr === -1 && !isset( $endOff ) ) {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "heading:$page|$sec",
+					part1: "#lsth:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -485,27 +495,21 @@ class SectionTranscluder {
 			}
 
 			if ( $nr > 1 ) {
-				// Skip until we reach the n-th section
 				$nr--;
 				continue;
 			}
 
-			// Output section by name and continue search for another section with the same name
 			$output[$n++] = self::parse(
 				parser: $parser,
 				text: $piece,
-				part1: "heading:$page|$sec",
+				part1: "#lsth:$page|$sec",
 				recursionCheck: $recursionCheck,
 				maxLength: $maxLength,
 				link: $link,
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
-
-			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
-				break;
-			}
-		}
+		} while ( $continueSearch );
 
 		return $output;
 	}
