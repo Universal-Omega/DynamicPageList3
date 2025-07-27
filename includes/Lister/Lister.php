@@ -14,6 +14,20 @@ use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
+use function count;
+use function floor;
+use function htmlspecialchars;
+use function implode;
+use function log;
+use function sprintf;
+use function sqrt;
+use function str_contains;
+use function str_replace;
+use function strtr;
+use function strpos;
+use function strtolower;
+use function substr;
+use function wfMessage;
 
 class Lister {
 
