@@ -447,12 +447,6 @@ class SectionTranscluder {
 			$piece = $endOff !== null
 				? substr( $text, $beginOff, $endOff - $beginOff )
 				: substr( $text, $beginOff );
-			
-			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
-				break;
-			}
-
-			$text = substr( $text, $endOff );
 
 			// Store matched heading
 			$sectionHeading[$n] = $headLine;
@@ -505,6 +499,12 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+
+			if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
+				break;
+			}
+
+			$text = substr( $text, $endOff );
 		}
 
 		return $output;
