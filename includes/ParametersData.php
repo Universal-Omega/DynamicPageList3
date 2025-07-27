@@ -10,7 +10,7 @@ class ParametersData {
 	 * Parameter Richness
 	 * The level of parameters that is accesible for the user.
 	 */
-	private int $parameterRichness = 0;
+	private readonly int $parameterRichness;
 
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
