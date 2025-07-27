@@ -641,7 +641,7 @@ class SectionTranscluder {
 								$args
 							);
 
-							$argChain .= "|%DATE%=$date|%USER%=$user|%ARGS%=$encodedArgs}}";
+							$argChain .= "|%DATE%=$date|%USER%=$user|%ARGS%=$encodedArgs" . '}}';
 							$output[++$n] = self::callParserPreprocess(
 								$parser, $argChain, $parser->getPage(),
 								$parser->getOptions()
@@ -695,6 +695,7 @@ class SectionTranscluder {
 
 							if ( $limpos > 0 && str_ends_with( $exParm, ']' ) ) {
 								$maxlen = (int)substr( $exParm, $limpos + 1, -1 - $limpos );
+								var_dump($maxlen);
 								$exParm = substr( $exParm, 0, $limpos );
 							}
 
