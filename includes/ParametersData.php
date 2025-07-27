@@ -2,6 +2,10 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function array_key_exists;
+use function in_array;
+use function range;
+
 class ParametersData {
 
 	protected readonly Config $config;
