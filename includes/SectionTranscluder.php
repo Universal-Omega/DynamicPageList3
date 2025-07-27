@@ -497,7 +497,7 @@ class SectionTranscluder {
 			);
 
 			if ( $endOff === null || $endOff === 0 ) {
-				break;
+				continue;
 			}
 
 			$text = substr( $text, $endOff );
