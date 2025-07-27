@@ -329,7 +329,7 @@ class SectionTranscluder {
 	/**
 	 * Extract section(s) from wikitext based on a heading match
 	 */
-	public static function extractHeadingFromText(
+public static function extractHeadingFromText(
 	Parser $parser,
 	string $page,
 	string $text,
@@ -350,11 +350,9 @@ class SectionTranscluder {
 	if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
 		$nr = (int)substr( $sec, 1 );
 	} elseif ( preg_match( '/^%0$/', $sec ) ) {
-		// Special case: transclude text before the first heading
 		$nr = -2;
 	}
 
-	// Determine whether heading match is plain text or regex
 	$isPlain = true;
 	if ( $sec !== '' && ( str_starts_with( $sec, '#' ) || str_starts_with( $sec, '@' ) ) ) {
 		$sec = substr( $sec, 1 );
@@ -365,11 +363,9 @@ class SectionTranscluder {
 		$headLine = '';
 		$beginOff = 0;
 
-		// Check if section is empty (match all headings)
 		if ( $sec === '' ) {
 			$headLength = 6;
 		} else {
-			// Build match pattern depending on numeric/plain/regex match
 			$pat = match ( true ) {
 				$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
 				$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
@@ -377,15 +373,13 @@ class SectionTranscluder {
 			};
 
 			var_dump( 'DPL4', "Looking for heading match: /$pat/i" );
-
-			// Match against the section heading
 			if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
 				var_dump( 'DPL4', "Match succeeded: " . print_r( $m, true ) );
-				$beginOff = end( $m )[1];
+				$beginOff = $m[0][1] + strlen( $m[0][0] ); // Fixed offset calculation
 				$headLength = strlen( $m[1][0] );
 				$headLine = trim( $m[0][0], " \t\n=" );
+				var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
 			} elseif ( $nr === -2 ) {
-				// No heading found, fallback to full text
 				$m[1][1] = strlen( $text ) + 1;
 			} else {
 				var_dump( 'DPL4', "Match FAILED for pattern: /$pat/i" );
@@ -393,7 +387,6 @@ class SectionTranscluder {
 			}
 		}
 
-		// Construct link formatting
 		$link = match ( true ) {
 			$cLink === 'default' => " [[$page#$headLine|..→]]",
 			str_contains( $cLink, 'img=' ) => str_replace(
@@ -403,7 +396,6 @@ class SectionTranscluder {
 			default => str_replace( '%SECTION%', "$page#$headLine", $cLink ),
 		};
 
-		// Handle special case: transclude content before first heading
 		if ( $nr === -2 ) {
 			var_dump( 'DPL4', "Transcluding text before first heading" );
 			$output[0] = self::parse(
@@ -421,7 +413,6 @@ class SectionTranscluder {
 
 		$endOff = null;
 
-		// Try to match target end heading if provided
 		if ( $to !== '' ) {
 			$pat = $isPlain
 				? '^(={1,6})\s*' . preg_quote( $to, '/' ) . '\s*\1\s*$'
@@ -432,7 +423,6 @@ class SectionTranscluder {
 			}
 		}
 
-		// If no end offset yet, find next heading of same or higher level
 		if ( $endOff === null ) {
 			$headLength ??= 6;
 			$pat = $nr !== 0
@@ -446,20 +436,15 @@ class SectionTranscluder {
 			}
 		}
 
-		// Extract the section content based on matched offsets
 		$piece = $endOff !== null
 			? substr( $text, $beginOff, $endOff - $beginOff )
 			: substr( $text, $beginOff );
-
-		var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
 
 		if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
 			break;
 		}
 
 		$text = substr( $text, $endOff );
-
-		// Store matched heading
 		$sectionHeading[$n] = $headLine;
 
 		if ( $nr === 1 ) {
@@ -497,6 +482,7 @@ class SectionTranscluder {
 			continue;
 		}
 
+		var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
 		$output[$n++] = self::parse(
 			parser: $parser,
 			text: $piece,
