@@ -67,7 +67,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains( 'Test:Page', $article->mLink );
+		$this->assertStringContainsString( 'Test:Page', $article->mLink );
 	}
 
 	/**
@@ -85,8 +85,8 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains( 'Page', $article->mLink );
-		$this->assertStringNotContains( 'Test:', $article->mLink );
+		$this->assertStringContainsString( 'Page', $article->mLink );
+		$this->assertStringNotContainsString( 'Test:', $article->mLink );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertStringStartsWith( '[http://example.com/Page?curid=123', $article->mLink );
-		$this->assertStringContains( 'Page]', $article->mLink );
+		$this->assertStringContainsString( 'Page]', $article->mLink );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Test_Page_Name' );
 
-		$this->assertStringContains( 'Demo Page_Name', $article->mLink );
+		$this->assertStringContainsString( 'Demo Page_Name', $article->mLink );
 	}
 
 	/**
@@ -140,7 +140,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'This is a very long page title' );
 
-		$this->assertStringContains( 'This is a...', $article->mLink );
+		$this->assertStringContainsString( 'This is a...', $article->mLink );
 	}
 
 	/**
@@ -157,7 +157,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_CATEGORY, 'TestCategory' );
 
-		$this->assertStringContains( '[[:Category:TestCategory', $article->mLink );
+		$this->assertStringContainsString( '[[:Category:TestCategory', $article->mLink );
 	}
 
 	/**
@@ -342,8 +342,8 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertCount( 3, $article->mCategoryLinks );
 		$this->assertCount( 3, $article->mCategoryTexts );
-		$this->assertStringContains( 'Category1', $article->mCategoryLinks[0] );
-		$this->assertStringContains( 'Category 2', $article->mCategoryLinks[1] );
+		$this->assertStringContainsString( 'Category1', $article->mCategoryLinks[0] );
+		$this->assertStringContainsString( 'Category 2', $article->mCategoryLinks[1] );
 		$this->assertSame( 'Category1', $article->mCategoryTexts[0] );
 		$this->assertSame( 'Category 2', $article->mCategoryTexts[1] );
 	}
@@ -368,7 +368,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains( 'TestCategory', $article->mParentHLink );
+		$this->assertStringContainsString( 'TestCategory', $article->mParentHLink );
 
 		$headings = Article::getHeadings();
 		$this->assertArrayHasKey( 'TestCategory', $headings );
@@ -418,7 +418,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContains( 'Special:Uncategorizedpages', $article->mParentHLink );
+		$this->assertStringContainsString( 'Special:Uncategorizedpages', $article->mParentHLink );
 	}
 
 	/**
