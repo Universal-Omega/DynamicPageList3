@@ -21,6 +21,21 @@ use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\Subquery;
 use Wikimedia\Timestamp\TimestampException;
+use function array_merge;
+use function array_unique;
+use function floor;
+use function hash;
+use function is_array;
+use function is_numeric;
+use function is_string;
+use function iterator_to_array;
+use function mb_strtolower;
+use function method_exists;
+use function min;
+use function strtotime;
+use function str_replace;
+use function wfMessage;
+use const NS_CATEGORY;
 
 class Query {
 
