@@ -7,6 +7,24 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use StringUtils;
 use Wikimedia\Rdbms\IExpression;
+use function array_shift;
+use function explode;
+use function filter_var;
+use function html_entity_decode;
+use function is_array;
+use function is_numeric;
+use function method_exists;
+use function preg_match;
+use function preg_replace;
+use function rtrim;
+use function str_pad;
+use function str_replace;
+use function str_starts_with;
+use function strtolower;
+use function trim;
+use const ENT_QUOTES;
+use const FILTER_NULL_ON_FAILURE;
+use const FILTER_VALIDATE_BOOLEAN;
 
 class Parameters extends ParametersData {
 
