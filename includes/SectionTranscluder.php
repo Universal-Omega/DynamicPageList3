@@ -446,8 +446,6 @@ if ( $endOff === 0 || $endOff >= strlen( $text ) ) {
 	break;
 }
 
-$text = substr( $text, $endOff );
-
 		$text = substr( $text, $endOff );
 
 		if ( isset( $m[0][0] ) ) {
