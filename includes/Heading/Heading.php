@@ -14,6 +14,7 @@ use function min;
 use function range;
 use function sprintf;
 use function strtolower;
+use function wfMessage;
 
 class Heading {
 
