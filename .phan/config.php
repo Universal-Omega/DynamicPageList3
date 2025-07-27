@@ -41,7 +41,6 @@ $cfg['plugins'] = array_merge( $cfg['plugins'], [
 	'PHPUnitAssertionPlugin',
 	'PHPUnitNotDeadCodePlugin',
 	'PreferNamespaceUsePlugin',
-	'PrintfCheckerPlugin',
 	'RedundantAssignmentPlugin',
 	'SimplifyExpressionPlugin',
 	'SleepCheckerPlugin',
