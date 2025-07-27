@@ -4,9 +4,9 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use function array_shift;
 use function count;
+use function explode;
 use function is_array;
 use function is_string;
-use function explode;
 use function reset;
 
 class SubPageList extends UnorderedList {
