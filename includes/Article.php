@@ -84,7 +84,7 @@ class Article {
 		$titleMaxLen = $parameters->getParameter( 'titlemaxlen' );
 		if ( $titleMaxLen !== null && mb_strlen( $titleText ) > $titleMaxLen ) {
 			$titleText = mb_substr( $titleText, 0, $titleMaxLen ) .
-				wfMessage( 'ellipsis' )->escaped();
+				wfMessage( 'ellipsis' )->text();
 		}
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
