@@ -261,7 +261,7 @@ class ParametersData {
 		 * hiddencategories
 		 */
 		'hiddencategories' => [
-			'default' => 'include',
+			'default' => null,
 			'values' => [ 'include', 'exclude', 'only' ],
 		],
 
