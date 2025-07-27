@@ -375,10 +375,16 @@ class SectionTranscluder {
 					$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
 					default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
 				};
+				var_dump( 'DPL4', "Looking for heading match: /$pat/i" );
+if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
+	var_dump( 'DPL4', "Match succeeded: " . print_r( $m, true ) );
+} else {
+	var_dump( 'DPL4', "Match FAILED for pattern: /$pat/i" );
+}
 
 				// Match against the section heading
 				if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
-					$beginOff = $m[0][1];
+					$beginOff = end( $m )[1];
 					$headLength = strlen( $m[1][0] );
 					$headLine = trim( $m[0][0], " \t\n=" );
 				} elseif ( $nr === -2 ) {
