@@ -470,7 +470,11 @@ class SectionTranscluder {
 			}
 
 			// Store matched heading
-			$sectionHeading[$n] = $headLine;
+			if ( isset( $m[0][0] ) ) {
+				$sectionHeading[$n] = $headLine;
+			} else {
+				$sectionHeading[0] = $headLine;
+			}
 
 			if ( $nr > 1 ) {
 				// Skip until we reach the n-th section
