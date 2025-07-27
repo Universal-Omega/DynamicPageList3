@@ -2,6 +2,11 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
+use function array_shift;
+use function count;
+use function is_array;
+use function is_string;
+
 class SubPageList extends UnorderedList {
 
 	protected int $style = parent::LIST_UNORDERED;
