@@ -35,7 +35,21 @@ use function min;
 use function str_replace;
 use function strtotime;
 use function wfMessage;
+use function preg_split;
+use function array_map;
+use function in_array;
+use function str_contains;
+use function mb_strtoupper;
+use function array_slice;
+use function count;
+use function str_starts_with;
+use function substr;
+use function implode;
 use const NS_CATEGORY;
+use const NS_FILE;
+use const NS_MAIN;
+use const PREG_SPLIT_DELIM_CAPTURE;
+use const PREG_SPLIT_NO_EMPTY;
 
 class Query {
 
