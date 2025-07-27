@@ -346,17 +346,23 @@ public static function extractHeadingFromText(
 	$n = 0;
 	$nr = 0;
 
+	var_dump( 'DPL4', "Section requested: '$sec'" );
+
 	// Check if section selector is a numbered section
 	if ( preg_match( '/^%-?[1-9][0-9]*$/', $sec ) ) {
 		$nr = (int)substr( $sec, 1 );
+		var_dump( 'DPL4', "Detected numbered section: $nr" );
 	} elseif ( preg_match( '/^%0$/', $sec ) ) {
 		$nr = -2;
+		var_dump( 'DPL4', "Detected special %0 (before first heading)" );
 	}
 
+	// Determine whether heading match is plain text or regex
 	$isPlain = true;
 	if ( $sec !== '' && ( str_starts_with( $sec, '#' ) || str_starts_with( $sec, '@' ) ) ) {
 		$sec = substr( $sec, 1 );
 		$isPlain = false;
+		var_dump( 'DPL4', "Detected regex section: '$sec'" );
 	}
 
 	while ( true ) {
@@ -365,22 +371,25 @@ public static function extractHeadingFromText(
 
 		if ( $sec === '' ) {
 			$headLength = 6;
+			var_dump( 'DPL4', 'Matching all headings (sec is empty)' );
 		} else {
 			$pat = match ( true ) {
-				$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*($)',
-				$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*($)',
-				default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*($)',
+				$nr !== 0 => '^(={1,6})\s*[^=\s\n][^\n=]*\s*\1\s*$',
+				$isPlain => '^(={1,6})\s*' . preg_quote( $sec, '/' ) . '\s*\1\s*$',
+				default => '^(={1,6})\s*' . str_replace( '/', '\/', $sec ) . '\s*\1\s*$',
 			};
 
 			var_dump( 'DPL4', "Looking for heading match: /$pat/i" );
+
 			if ( preg_match( "/$pat/im", $text, $m, PREG_OFFSET_CAPTURE ) ) {
 				var_dump( 'DPL4', "Match succeeded: " . print_r( $m, true ) );
-				$beginOff = $m[0][1] + strlen( $m[0][0] ); // Fixed offset calculation
+				$beginOff = $m[0][1] + strlen( $m[0][0] );
 				$headLength = strlen( $m[1][0] );
 				$headLine = trim( $m[0][0], " \t\n=" );
 				var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
 			} elseif ( $nr === -2 ) {
 				$m[1][1] = strlen( $text ) + 1;
+				var_dump( 'DPL4', "No heading found, using full text" );
 			} else {
 				var_dump( 'DPL4', "Match FAILED for pattern: /$pat/i" );
 				return $output;
@@ -397,7 +406,6 @@ public static function extractHeadingFromText(
 		};
 
 		if ( $nr === -2 ) {
-			var_dump( 'DPL4', "Transcluding text before first heading" );
 			$output[0] = self::parse(
 				parser: $parser,
 				text: substr( $text, 0, $m[1][1] - 1 ),
@@ -408,6 +416,7 @@ public static function extractHeadingFromText(
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+			var_dump( 'DPL4', "Returning %0 section: length=" . strlen( $output[0] ) );
 			return $output;
 		}
 
@@ -420,6 +429,7 @@ public static function extractHeadingFromText(
 
 			if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
 				$endOff = $mm[0][1] - 1;
+				var_dump( 'DPL4', "Found end section at offset=$endOff" );
 			}
 		}
 
@@ -431,8 +441,10 @@ public static function extractHeadingFromText(
 
 			if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOff ) ) {
 				$endOff = $mm[0][1] - 1;
+				var_dump( 'DPL4', "Auto-detected end of section at offset=$endOff" );
 			} elseif ( $sec === '' ) {
 				$endOff = -1;
+				var_dump( 'DPL4', "No end found; using -1 (until EOF)" );
 			}
 		}
 
@@ -440,15 +452,19 @@ public static function extractHeadingFromText(
 			? substr( $text, $beginOff, $endOff - $beginOff )
 			: substr( $text, $beginOff );
 
+		var_dump( 'DPL4', "Section piece length=" . strlen( $piece ) );
+		var_dump( 'DPL4', "Section preview: " . substr( $piece, 0, 150 ) );
+
 		if ( $sec === '' || $endOff === null || ( $endOff === 0 && $sec !== '' ) ) {
+			var_dump( 'DPL4', "No more content to extract; breaking loop" );
 			break;
 		}
 
 		$text = substr( $text, $endOff );
+
 		$sectionHeading[$n] = $headLine;
 
 		if ( $nr === 1 ) {
-			var_dump( 'DPL4', "Transcluding exact section number 1" );
 			$output[0] = self::parse(
 				parser: $parser,
 				text: $piece,
@@ -459,11 +475,11 @@ public static function extractHeadingFromText(
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+			var_dump( 'DPL4', "Parsed output[0] for numbered section: " . substr( $output[0], 0, 100 ) );
 			break;
 		}
 
 		if ( $nr === -1 && $endOff === null ) {
-			var_dump( 'DPL4', "Transcluding last section" );
 			$output[0] = self::parse(
 				parser: $parser,
 				text: $piece,
@@ -474,15 +490,16 @@ public static function extractHeadingFromText(
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+			var_dump( 'DPL4', "Parsed last section (nr=-1): " . substr( $output[0], 0, 100 ) );
 			break;
 		}
 
 		if ( $nr > 1 ) {
 			$nr--;
+			var_dump( 'DPL4', "Skipping to next section (nr now $nr)" );
 			continue;
 		}
 
-		var_dump( 'DPL4', "Transcluding matched section: heading=$headLine offset=$beginOff" );
 		$output[$n++] = self::parse(
 			parser: $parser,
 			text: $piece,
@@ -493,8 +510,10 @@ public static function extractHeadingFromText(
 			trim: $trim,
 			skipPattern: $skipPattern
 		);
+		var_dump( 'DPL4', "Parsed output[$n-1]: " . substr( $output[$n - 1], 0, 100 ) );
 	}
 
+	var_dump( 'DPL4', "Returning output: " . print_r( $output, true ) );
 	return $output;
 }
 
