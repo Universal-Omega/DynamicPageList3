@@ -18,6 +18,8 @@ use function str_contains;
 use function str_starts_with;
 use function trim;
 use function uasort;
+use function str_natcmp;
+use function implode;
 
 class UserFormatList extends Lister {
 
