@@ -434,7 +434,7 @@ class SectionTranscluder {
 				$headLength ??= 6;
 				$pat = $nr !== 0
 					? '^(={1,6})\s*[^\s\n=][^\n=]*\s*\1\s*$'
-					: "^(={1,$headLength})(?!=)\s*.*?\1\s*$";
+					: '^(={1,' . $headLength . '})(?!=)\s*.*?\1\s*$';
 
 				if ( preg_match( "/$pat/im", $text, $mm, PREG_OFFSET_CAPTURE, $beginOffset ) ) {
 					$endOffset = $mm[0][1] - 1;
