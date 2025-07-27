@@ -495,12 +495,12 @@ class SectionTranscluder {
 				trim: $trim,
 				skipPattern: $skipPattern
 			);
+			
+			$text = substr( $text, $endOff );
 
 			if ( $endOff === null || $endOff === 0 ) {
-				continue;
+				break;
 			}
-
-			$text = substr( $text, $endOff );
 		}
 
 		return $output;
