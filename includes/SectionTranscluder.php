@@ -694,7 +694,7 @@ class SectionTranscluder {
 							$limpos = strpos( $exParm, '[' );
 
 							if ( $limpos > 0 && str_ends_with( $exParm, ']' ) ) {
-								$maxlen = (int)substr( $exParm, $limpos + 1, -1 - $limpos );
+								$maxlen = (int)substr( $exParm, $limpos + 1, strlen( $exParm ) - $limpos - 2 );
 								$exParm = substr( $exParm, 0, $limpos );
 							}
 
