@@ -485,6 +485,8 @@ class Query {
 		}
 	}
 
+	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+
 	/**
 	 * Set SQL for 'addauthor' parameter.
 	 *
@@ -2164,6 +2166,8 @@ class Query {
 
 		$this->queryBuilder->where( "page.page_id NOT IN ({$subquery->getSQL()})" );
 	}
+
+	// @phpcs:enable
 
 	private function isFormatUsed( string $search ): bool {
 		$listSeparators = $this->parameters->getParameter( 'listseparators' );
