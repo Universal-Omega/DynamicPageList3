@@ -486,6 +486,7 @@ class Query {
 	}
 
 	// @phpcs:disable MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
+	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
 
 	/**
 	 * Set SQL for 'addauthor' parameter.
