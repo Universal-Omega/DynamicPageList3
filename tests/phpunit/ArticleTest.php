@@ -10,6 +10,8 @@ use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use stdClass;
+use const NS_CATEGORY;
+use const NS_MAIN;
 
 /**
  * @group DynamicPageList4
