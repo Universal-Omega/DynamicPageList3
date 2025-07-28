@@ -160,7 +160,7 @@ class Parse {
 			foreach ( $options as $option ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( !$this->parameters->$parameter( $option ) ) {
+				if ( !$this->parameters->processParameter( $parameter, $option ) ) {
 					// Do not build this into the output just yet. It will be collected at the end.
 					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $option );
 				}

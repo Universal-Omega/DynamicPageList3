@@ -103,10 +103,10 @@ class Query {
 				continue;
 			}
 
-			$function = '_' . $parameter;
+			$method = '_' . $parameter;
 			// Some parameters do not modify the query so we check if the function to modify the query exists first.
-			if ( method_exists( $this, $function ) ) {
-				$this->$function( $option );
+			if ( method_exists( $this, $method ) ) {
+				$this->$method( $option );
 			}
 
 			$this->parametersProcessed[$parameter] = true;
