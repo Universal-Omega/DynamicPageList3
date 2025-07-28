@@ -180,7 +180,7 @@ class Parse {
 		// Construct internal keys for TableRow according to the structure of "include".
 		// This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' ) ?? [];
-		if ( $secLabels ) {
+		if ( $secLabels !== [] ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys(
 				$this->parameters->getParameter( 'tablerow' ),
 				$secLabels
@@ -235,7 +235,7 @@ class Parse {
 		$articles = $this->processQueryResults( $rows, $parser );
 
 		$sql = $query->getSqlQuery();
-		if ( $sql ) {
+		if ( $sql !== '' ) {
 			$this->addOutput( "$sql\n" );
 		}
 
@@ -383,7 +383,7 @@ class Parse {
 				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$imageContainer = $this->parameters->getParameter( 'imagecontainer' ) ?? [];
-				if ( $imageContainer ) {
+				if ( $imageContainer !== [] ) {
 					$pageNamespace = NS_FILE;
 					$pageTitle = $row->il_to;
 				} else {
