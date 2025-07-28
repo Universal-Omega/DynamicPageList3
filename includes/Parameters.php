@@ -354,6 +354,8 @@ class Parameters extends ParametersData {
 		return true;
 	}
 
+	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+
 	/**
 	 * Clean and test 'category' parameter.
 	 */
@@ -1192,4 +1194,6 @@ class Parameters extends ParametersData {
 
 		return true;
 	}
+
+	// @phpcs:enable
 }
