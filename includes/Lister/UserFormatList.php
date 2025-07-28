@@ -17,6 +17,7 @@ use function implode;
 use function natsort;
 use function str_contains;
 use function str_starts_with;
+use function strnatcmp;
 use function trim;
 use function uasort;
 
