@@ -33,7 +33,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'page_id' => 123,
 			'page_len' => 1000,
 			'page_counter' => 5,
-			'displaytitle' => 'Test Page Display Title'
+			'displaytitle' => 'Test Page Display Title',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -120,7 +120,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Test_Page_Name' );
 
 		$parameters = $this->createMockParameters( [
-			'replaceintitle' => [ '/Test_/', 'Demo ' ]
+			'replaceintitle' => [ '/Test_/', 'Demo ' ],
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Test_Page_Name' );
@@ -168,7 +168,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithExternalLink() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'el_to' => 'https://example.com'
+			'el_to' => 'https://example.com',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -189,7 +189,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'sel_title' => 'Selected Page',
-			'sel_ns' => NS_MAIN
+			'sel_ns' => NS_MAIN,
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -210,7 +210,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithImageUsed() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'image_sel_title' => 'Test.jpg'
+			'image_sel_title' => 'Test.jpg',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -234,7 +234,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'rev_actor' => 789,
 			'rev_timestamp' => '20230101120000',
 			'rev_comment_text' => 'Test edit summary',
-			'rev_deleted' => 0
+			'rev_deleted' => 0,
 		] );
 		unset( $row );
 
@@ -268,7 +268,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'page_id' => 123,
 			'page_touched' => '20230101120000',
 			'cl_timestamp' => '20230101130000',
-			'rev_timestamp' => '20230101140000'
+			'rev_timestamp' => '20230101140000',
 		] );
 		unset( $row );
 
@@ -291,7 +291,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'page_id' => 123,
 			'contribution' => 50,
 			'contributor' => 789,
-			'contrib_deleted' => 0
+			'contrib_deleted' => 0,
 		] );
 		unset( $row );
 
@@ -311,7 +311,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithUserLinks() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'rev_actor' => 789
+			'rev_actor' => 789,
 		] );
 		unset( $row );
 
@@ -331,7 +331,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithCategories() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'cats' => 'Category1 | Category_2 | Category3'
+			'cats' => 'Category1 | Category_2 | Category3',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -356,7 +356,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithHeadingModeCategory() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'cl_to' => 'TestCategory'
+			'cl_to' => 'TestCategory',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -365,7 +365,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => [ 'category' ]
+			'ordermethod' => [ 'category' ],
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
@@ -383,7 +383,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithHeadingModeUser() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'rev_actor' => 789
+			'rev_actor' => 789,
 		] );
 		unset( $row );
 
@@ -393,7 +393,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => [ 'user' ]
+			'ordermethod' => [ 'user' ],
 		] );
 		unset( $parameters );
 
@@ -406,7 +406,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithUncategorizedPage() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'cl_to' => ''
+			'cl_to' => '',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -415,7 +415,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => [ 'category' ]
+			'ordermethod' => [ 'category' ],
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
@@ -429,7 +429,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithGoalCategories() {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'rev_timestamp' => '20230101120000'
+			'rev_timestamp' => '20230101120000',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -455,7 +455,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		// Create article that adds to headings
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'cl_to' => 'Category1'
+			'cl_to' => 'Category1',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -464,7 +464,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 
 		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
-			'ordermethod' => [ 'category' ]
+			'ordermethod' => [ 'category' ],
 		] );
 
 		Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page1' );
@@ -477,7 +477,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		// Create another article in same category
 		$row2 = $this->createMockRow( [
 			'page_id' => 124,
-			'cl_to' => 'Category1'
+			'cl_to' => 'Category1',
 		] );
 
 		$title2 = $this->createMock( Title::class );
@@ -521,6 +521,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		foreach ( $data as $key => $value ) {
 			$row->$key = $value;
 		}
+
 		return $row;
 	}
 
@@ -530,10 +531,9 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	private function createMockParameters( array $params ): Parameters {
 		$parameters = $this->createMock( Parameters::class );
 		$parameters->method( 'getParameter' )->willReturnCallback(
-			static function ( $key ) use ( $params ) {
-				return $params[$key] ?? null;
-			}
+			static fn ( string $key ): mixed => $params[$key] ?? null
 		);
+
 		return $parameters;
 	}
 }
