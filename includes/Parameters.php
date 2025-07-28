@@ -60,6 +60,7 @@ class Parameters extends ParametersData {
 	}
 
 	public function processParameter( string $parameter, string $option ): bool {
+		$parameter = strtolower( $parameter );
 		$parameterData = $this->getData( $parameter );
 		if ( $parameterData === false ) {
 			return false;
@@ -71,14 +72,10 @@ class Parameters extends ParametersData {
 			return $this->$method( $option );
 		}
 
-		$option = $arguments[0];
-		$parameter = strtolower( $parameter );
-		$success = true;
-
 		// Validate allowed values
 		if ( isset( $parameterData['values'] ) ) {
 			if ( !in_array( strtolower( $option ), $parameterData['values'], true ) ) {
-				$success = false;
+				return false;
 			}
 		}
 
@@ -99,7 +96,9 @@ class Parameters extends ParametersData {
 		if ( $parameterData['integer'] ?? false ) {
 			if ( !is_numeric( $option ) ) {
 				$option = $parameterData['default'] ?? null;
-				$success = $option !== null;
+				if ( $option === null ) {
+					return false;
+				}
 			}
 
 			$option = (int)$option;
@@ -109,7 +108,7 @@ class Parameters extends ParametersData {
 		if ( $parameterData['boolean'] ?? false ) {
 			$option = $this->filterBoolean( $option );
 			if ( $option === null ) {
-				$success = false;
+				return false;
 			}
 		}
 
@@ -148,28 +147,28 @@ class Parameters extends ParametersData {
 		}
 
 		// Page name list
-		if ( $parameterData['page_name_list'] ?? false ) {
+		if ( ( $parameterData['page_name_list'] ?? false ) ) {
 			$pageGroups = $this->getParameter( $parameter ) ?? [];
 			$pages = $this->getPageNameList( $option,
 				(bool)( $parameterData['page_name_must_exist'] ?? false )
 			);
 
 			if ( $pages === false ) {
-				$success = false;
-			} else {
-				$pageGroups[] = $pages;
-				$option = $pageGroups;
+				return false;
 			}
+
+			$pageGroups[] = $pages;
+			$option = $pageGroups;
 		}
 
 		// Regex pattern
 		if ( isset( $parameterData['pattern'] ) ) {
-			if ( preg_match( $parameterData['pattern'], $option, $matches ) ) {
-				array_shift( $matches );
-				$option = $matches;
-			} else {
-				$success = false;
+			if ( !preg_match( $parameterData['pattern'], $option, $matches ) ) {
+				return false;
 			}
+
+			array_shift( $matches );
+			$option = $matches;
 		}
 
 		// DB format
@@ -177,18 +176,16 @@ class Parameters extends ParametersData {
 			$option = str_replace( ' ', '_', $option );
 		}
 
-		if ( $success ) {
-			$this->setParameter( $parameter, $option );
-			if ( $parameterData['set_criteria_found'] ?? false ) {
-				$this->setSelectionCriteriaFound( true );
-			}
-
-			if ( $parameterData['open_ref_conflict'] ?? false ) {
-				$this->setOpenReferencesConflict( true );
-			}
+		$this->setParameter( $parameter, $option );
+		if ( $parameterData['set_criteria_found'] ?? false ) {
+			$this->setSelectionCriteriaFound( true );
 		}
 
-		return $success;
+		if ( $parameterData['open_ref_conflict'] ?? false ) {
+			$this->setOpenReferencesConflict( true );
+		}
+
+		return true;
 	}
 
 	/**
