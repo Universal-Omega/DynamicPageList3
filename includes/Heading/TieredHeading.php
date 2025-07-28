@@ -4,6 +4,8 @@ namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use function sprintf;
+use function substr;
 
 class TieredHeading extends Heading {
 

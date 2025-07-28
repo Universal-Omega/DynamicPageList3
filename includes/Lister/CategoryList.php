@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Category\CategoryViewer;
 use MediaWiki\Extension\DynamicPageList4\Article;
+use function count;
 
 class CategoryList extends Lister {
 

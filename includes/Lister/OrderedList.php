@@ -2,6 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
+use function sprintf;
+
 class OrderedList extends UnorderedList {
 
 	protected int $style = parent::LIST_ORDERED;

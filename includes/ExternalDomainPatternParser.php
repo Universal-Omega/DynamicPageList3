@@ -2,6 +2,13 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function array_reverse;
+use function explode;
+use function implode;
+use function str_contains;
+use function str_ends_with;
+use function str_starts_with;
+
 trait ExternalDomainPatternParser {
 
 	/**
@@ -15,7 +22,7 @@ trait ExternalDomainPatternParser {
 	 * @see DPLExternalDomainPatternParserTest for example cases
 	 */
 	private function parseDomainPattern( string $pattern ): string {
-		$protocol = false;
+		$protocol = '';
 		// Protocol is specified. Strip it
 		if ( str_contains( $pattern, '://' ) ) {
 			[ $protocol, $pattern ] = explode( '://', $pattern );
@@ -37,7 +44,7 @@ trait ExternalDomainPatternParser {
 		}
 
 		$rawPattern = implode( '.', $reversed );
-		if ( $protocol ) {
+		if ( $protocol !== '' ) {
 			return "$protocol://$rawPattern.";
 		}
 		return "%://$rawPattern.";

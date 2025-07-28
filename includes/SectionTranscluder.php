@@ -13,6 +13,30 @@ use MediaWiki\Title\Title;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
+use function array_shift;
+use function count;
+use function end;
+use function filter_var;
+use function ltrim;
+use function max;
+use function preg_match;
+use function preg_match_all;
+use function preg_quote;
+use function preg_replace;
+use function preg_split;
+use function str_contains;
+use function str_ends_with;
+use function str_repeat;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function strpos;
+use function substr;
+use function trim;
+use const FILTER_VALIDATE_INT;
+use const NS_TEMPLATE;
+use const PREG_OFFSET_CAPTURE;
+use const PREG_PATTERN_ORDER;
 
 class SectionTranscluder {
 

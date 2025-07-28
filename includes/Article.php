@@ -9,6 +9,23 @@ use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use stdClass;
+use function count;
+use function explode;
+use function gmdate;
+use function htmlspecialchars;
+use function log;
+use function mb_strlen;
+use function mb_substr;
+use function preg_replace;
+use function round;
+use function str_replace;
+use function substr;
+use function trim;
+use function wfMessage;
+use function wfTimestamp;
+use const NS_CATEGORY;
+use const NS_FILE;
+use const TS_UNIX;
 
 class Article {
 
@@ -253,11 +270,11 @@ class Article {
 	 * Get the formatted date for this article if available.
 	 */
 	public function getDate(): string {
-		if ( $this->myDate ) {
+		if ( $this->myDate !== '' ) {
 			return $this->myDate;
 		}
 
-		if ( $this->mDate ) {
+		if ( $this->mDate !== '' ) {
 			$lang = RequestContext::getMain()->getLanguage();
 			return $lang->timeanddate( $this->mDate, true );
 		}

@@ -2,6 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function array_key_exists;
+use function array_merge;
+use function in_array;
+use function range;
+use function sort;
+
 class ParametersData {
 
 	protected readonly Config $config;
@@ -261,7 +267,7 @@ class ParametersData {
 		 * hiddencategories
 		 */
 		'hiddencategories' => [
-			'default' => 'include',
+			'default' => null,
 			'values' => [ 'include', 'exclude', 'only' ],
 		],
 

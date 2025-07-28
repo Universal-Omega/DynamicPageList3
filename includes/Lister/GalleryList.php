@@ -5,6 +5,11 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
+use function array_map;
+use function explode;
+use function str_contains;
+use function trim;
+use const NS_FILE;
 
 class GalleryList extends Lister {
 
