@@ -49,17 +49,15 @@ class Lister {
 
 	protected const LIST_GALLERY = 2;
 
-	protected const LIST_HEADING = 3;
+	protected const LIST_INLINE = 3;
 
-	protected const LIST_INLINE = 4;
+	protected const LIST_ORDERED = 4;
 
-	protected const LIST_ORDERED = 5;
+	protected const LIST_UNORDERED = 5;
 
-	protected const LIST_UNORDERED = 6;
+	protected const LIST_CATEGORY = 6;
 
-	protected const LIST_CATEGORY = 7;
-
-	protected const LIST_USERFORMAT = 8;
+	protected const LIST_USERFORMAT = 7;
 
 	protected readonly Config $config;
 
