@@ -22,7 +22,7 @@ trait ExternalDomainPatternParser {
 	 * @see DPLExternalDomainPatternParserTest for example cases
 	 */
 	private function parseDomainPattern( string $pattern ): string {
-		$protocol = false;
+		$protocol = '';
 		// Protocol is specified. Strip it
 		if ( str_contains( $pattern, '://' ) ) {
 			[ $protocol, $pattern ] = explode( '://', $pattern );
@@ -44,7 +44,7 @@ trait ExternalDomainPatternParser {
 		}
 
 		$rawPattern = implode( '.', $reversed );
-		if ( $protocol !== false && $protocol !== '' ) {
+		if ( $protocol !== '' ) {
 			return "$protocol://$rawPattern.";
 		}
 		return "%://$rawPattern.";
