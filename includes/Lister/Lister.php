@@ -225,7 +225,7 @@ class Lister {
 
 		$item = '';
 		$date = $article->getDate();
-		if ( $date ) {
+		if ( $date !== '' ) {
 			$item .= $date . ' ';
 			if ( $article->mRevision > 0 ) {
 				$titleText = $article->mTitle->getPrefixedText();
