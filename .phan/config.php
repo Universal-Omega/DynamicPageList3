@@ -52,4 +52,6 @@ $cfg['plugins'] = array_merge( $cfg['plugins'], [
 	'UseReturnValuePlugin',
 ] );
 
+$cfg['dead_code_detection'] = true;
+
 return $cfg;
