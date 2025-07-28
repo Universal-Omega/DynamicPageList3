@@ -270,11 +270,11 @@ class Article {
 	 * Get the formatted date for this article if available.
 	 */
 	public function getDate(): string {
-		if ( $this->myDate ) {
+		if ( $this->myDate !== '' ) {
 			return $this->myDate;
 		}
 
-		if ( $this->mDate ) {
+		if ( $this->mDate !== '' ) {
 			$lang = RequestContext::getMain()->getLanguage();
 			return $lang->timeanddate( $this->mDate, true );
 		}
