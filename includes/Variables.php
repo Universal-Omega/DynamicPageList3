@@ -2,6 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function count;
+
 class Variables {
 
 	/** Memory storage for variables. */

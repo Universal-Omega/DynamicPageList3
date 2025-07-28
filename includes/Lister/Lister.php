@@ -14,6 +14,34 @@ use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
+use function array_filter;
+use function array_slice;
+use function array_values;
+use function count;
+use function end;
+use function explode;
+use function floor;
+use function htmlspecialchars;
+use function implode;
+use function log;
+use function preg_match;
+use function preg_replace;
+use function sprintf;
+use function sqrt;
+use function str_contains;
+use function str_ends_with;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function strtr;
+use function substr;
+use function trim;
+use function wfMessage;
+use const NS_CATEGORY;
+use const NS_FILE;
+use const NS_MAIN;
 
 class Lister {
 
@@ -21,17 +49,15 @@ class Lister {
 
 	protected const LIST_GALLERY = 2;
 
-	protected const LIST_HEADING = 3;
+	protected const LIST_INLINE = 3;
 
-	protected const LIST_INLINE = 4;
+	protected const LIST_ORDERED = 4;
 
-	protected const LIST_ORDERED = 5;
+	protected const LIST_UNORDERED = 5;
 
-	protected const LIST_UNORDERED = 6;
+	protected const LIST_CATEGORY = 6;
 
-	protected const LIST_CATEGORY = 7;
-
-	protected const LIST_USERFORMAT = 8;
+	protected const LIST_USERFORMAT = 7;
 
 	protected readonly Config $config;
 
@@ -199,7 +225,7 @@ class Lister {
 
 		$item = '';
 		$date = $article->getDate();
-		if ( $date ) {
+		if ( $date !== '' ) {
 			$item .= $date . ' ';
 			if ( $article->mRevision > 0 ) {
 				$titleText = $article->mTitle->getPrefixedText();
@@ -733,13 +759,15 @@ class Lister {
 				$left = $this->sectionSeparators[$s * 2] ?? '';
 			}
 
-			$septag[$s * 2] = str_replace( '%SECTION%',
-				$sectionHeadingStr, $this->replaceTagCount( $left, $filteredCount )
+			$septag[$s * 2] = str_replace( search: '%SECTION%',
+				replace: $sectionHeadingStr,
+				subject: $this->replaceTagCount( $left, $filteredCount )
 			);
 
 			$right = $this->sectionSeparators[$s * 2 + 1] ?? '';
-			$septag[$s * 2 + 1] = str_replace( '%SECTION%',
-				$sectionHeadingStr, $this->replaceTagCount( $right, $filteredCount )
+			$septag[$s * 2 + 1] = str_replace( search: '%SECTION%',
+				replace: $sectionHeadingStr,
+				subject: $this->replaceTagCount( $right, $filteredCount )
 			);
 		}
 

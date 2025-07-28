@@ -2,6 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
+use function implode;
+
 class InlineList extends Lister {
 
 	protected int $style = parent::LIST_INLINE;

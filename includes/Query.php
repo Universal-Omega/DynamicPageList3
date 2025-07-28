@@ -21,6 +21,35 @@ use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\Subquery;
 use Wikimedia\Timestamp\TimestampException;
+use function array_map;
+use function array_merge;
+use function array_slice;
+use function array_unique;
+use function count;
+use function floor;
+use function hash;
+use function implode;
+use function in_array;
+use function is_array;
+use function is_numeric;
+use function is_string;
+use function iterator_to_array;
+use function mb_strtolower;
+use function mb_strtoupper;
+use function method_exists;
+use function min;
+use function preg_split;
+use function str_contains;
+use function str_replace;
+use function str_starts_with;
+use function strtotime;
+use function substr;
+use function wfMessage;
+use const NS_CATEGORY;
+use const NS_FILE;
+use const NS_MAIN;
+use const PREG_SPLIT_DELIM_CAPTURE;
+use const PREG_SPLIT_NO_EMPTY;
 
 class Query {
 
@@ -202,7 +231,7 @@ class Query {
 		}
 
 		$qname = __METHOD__;
-		if ( $profilingContext ) {
+		if ( $profilingContext !== '' ) {
 			$qname .= ' - ' . $profilingContext;
 		}
 
@@ -421,8 +450,8 @@ class Query {
 	/**
 	 * @return non-empty-array<string|LikeMatch>
 	 */
-	private function splitLikePattern( string $pattern ): array {
-		$segments = preg_split( '/(%)/', $pattern, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+	private function splitLikePattern( string $subject ): array {
+		$segments = preg_split( '/(%)/', $subject, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 		$parts = array_map(
 			fn ( string $segment ): string|LikeMatch =>
 				$segment === '%' ? $this->dbr->anyString() : $segment,
@@ -432,7 +461,7 @@ class Query {
 	}
 
 	private function adduser( string $tableAlias ): void {
-		if ( $tableAlias ) {
+		if ( $tableAlias !== '' ) {
 			$tableAlias .= '.';
 		}
 
@@ -887,8 +916,9 @@ class Query {
 	 *
 	 * @param mixed $option @phan-unused-param
 	 */
-	private function _hiddencategories( mixed $option ): void {
+	private function _hiddencategories( mixed $option ): never {
 		// @TODO: Unfinished functionality! Never implemented by original author.
+		throw new LogicException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
 	}
 
 	/**
@@ -1742,7 +1772,7 @@ class Query {
 
 					$category = $this->parameters->getParameter( 'category' ) ?? [];
 					$notCategory = $this->parameters->getParameter( 'notcategory' ) ?? [];
-					if ( $category || $notCategory ) {
+					if ( $category !== [] || $notCategory !== [] ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ), true ) ) {
 							$this->queryBuilder->select( [
 								'sortkey' => $this->applyCollation( "COALESCE(cl_head.cl_sortkey, $replaceConcat)" ),

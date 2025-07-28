@@ -7,6 +7,14 @@ use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Html\Html;
 use MediaWiki\Parser\Sanitizer;
+use function ceil;
+use function count;
+use function max;
+use function min;
+use function range;
+use function sprintf;
+use function strtolower;
+use function wfMessage;
 
 class Heading {
 
