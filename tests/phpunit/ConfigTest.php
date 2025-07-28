@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
 use MediaWikiIntegrationTestCase;
+use function microtime;
 
 /**
  * @group DynamicPageList4
