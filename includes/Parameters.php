@@ -354,7 +354,7 @@ class Parameters extends ParametersData {
 		return true;
 	}
 
-	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+	// @phpcs:disable MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
 
 	/**
 	 * Clean and test 'category' parameter.
