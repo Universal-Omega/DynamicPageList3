@@ -28,7 +28,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test basic article creation with minimal data
 	 */
-	public function testNewFromRowBasic() {
+	public function testNewFromRowBasic(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'page_len' => 1000,
@@ -43,7 +43,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
 		$parameters = $this->createMockParameters( [] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertSame( 123, $article->mID );
@@ -57,7 +56,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test article link generation with shownamespace parameter
 	 */
-	public function testNewFromRowWithShowNamespace() {
+	public function testNewFromRowWithShowNamespace(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -66,16 +65,15 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
 		$parameters = $this->createMockParameters( [ 'shownamespace' => true ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContainsString( 'Test:Page', $article->mLink );
+		$this->assertStringContainsString( '|Test:Page', $article->mLink );
 	}
 
 	/**
 	 * Test article link generation without shownamespace parameter
 	 */
-	public function testNewFromRowWithoutShowNamespace() {
+	public function testNewFromRowWithoutShowNamespace(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -84,17 +82,15 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Test:Page' );
 
 		$parameters = $this->createMockParameters( [ 'shownamespace' => false ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertStringContainsString( 'Page', $article->mLink );
-		$this->assertStringNotContainsString( 'Test:', $article->mLink );
+		$this->assertStringContainsString( 'Test:Page|Page', $article->mLink );
 	}
 
 	/**
 	 * Test showcurid parameter generates correct link format
 	 */
-	public function testNewFromRowWithShowCurId() {
+	public function testNewFromRowWithShowCurId(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -102,7 +98,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullURL' )->with( [ 'curid' => 123 ] )->willReturn( 'http://example.com/Page?curid=123' );
 
 		$parameters = $this->createMockParameters( [ 'showcurid' => true ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertStringStartsWith( '[http://example.com/Page?curid=123', $article->mLink );
@@ -112,7 +107,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test title replacement with replaceintitle parameter
 	 */
-	public function testNewFromRowWithReplaceInTitle() {
+	public function testNewFromRowWithReplaceInTitle(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -124,14 +119,13 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Test_Page_Name' );
-
 		$this->assertStringContainsString( 'Demo Page_Name', $article->mLink );
 	}
 
 	/**
 	 * Test title truncation with titlemaxlen parameter
 	 */
-	public function testNewFromRowWithTitleMaxLen() {
+	public function testNewFromRowWithTitleMaxLen(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -139,7 +133,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'This is a very long page title' );
 
 		$parameters = $this->createMockParameters( [ 'titlemaxlen' => 10 ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'This is a very long page title' );
 
 		$this->assertStringContainsString( 'This is a...', $article->mLink );
@@ -148,7 +141,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test escape links for category and file namespaces
 	 */
-	public function testNewFromRowWithEscapeLinks() {
+	public function testNewFromRowWithEscapeLinks(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
@@ -156,7 +149,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Category:TestCategory' );
 
 		$parameters = $this->createMockParameters( [ 'escapelinks' => true ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_CATEGORY, 'TestCategory' );
 
 		$this->assertStringContainsString( '[[:Category:TestCategory', $article->mLink );
@@ -165,7 +157,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test external link handling
 	 */
-	public function testNewFromRowWithExternalLink() {
+	public function testNewFromRowWithExternalLink(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'el_to' => 'https://example.com',
@@ -176,7 +168,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		$parameters = $this->createMockParameters( [] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertSame( 'https://example.com', $article->mExternalLink );
@@ -185,7 +176,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test linksto and linksfrom parameters
 	 */
-	public function testNewFromRowWithLinksParameters() {
+	public function testNewFromRowWithLinksParameters(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'sel_title' => 'Selected Page',
@@ -197,7 +188,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		$parameters = $this->createMockParameters( [ 'linksto' => 'Selected Page' ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertSame( 'Selected Page', $article->mSelTitle );
@@ -207,7 +197,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test imageused parameter
 	 */
-	public function testNewFromRowWithImageUsed() {
+	public function testNewFromRowWithImageUsed(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'image_sel_title' => 'Test.jpg',
@@ -218,7 +208,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		$parameters = $this->createMockParameters( [ 'imageused' => 'Test.jpg' ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertSame( 'Test.jpg', $article->mImageSelTitle );
@@ -227,7 +216,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test revision handling with lastrevisionbefore parameter
 	 */
-	public function testNewFromRowWithRevisionData() {
+	public function testNewFromRowWithRevisionData(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_id' => 456,
@@ -263,7 +252,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test date handling with different date parameters
 	 */
-	public function testNewFromRowWithDateParameters() {
+	public function testNewFromRowWithDateParameters(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'page_touched' => '20230101120000',
@@ -286,7 +275,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test contribution handling
 	 */
-	public function testNewFromRowWithContribution() {
+	public function testNewFromRowWithContribution(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'contribution' => 50,
@@ -308,7 +297,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test user/author link handling
 	 */
-	public function testNewFromRowWithUserLinks() {
+	public function testNewFromRowWithUserLinks(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 789,
@@ -328,7 +317,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test category links handling
 	 */
-	public function testNewFromRowWithCategories() {
+	public function testNewFromRowWithCategories(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cats' => 'Category1 | Category_2 | Category3',
@@ -339,7 +328,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		$parameters = $this->createMockParameters( [ 'addcategories' => true ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		$this->assertCount( 3, $article->mCategoryLinks );
@@ -353,7 +341,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test heading mode with category ordermethod
 	 */
-	public function testNewFromRowWithHeadingModeCategory() {
+	public function testNewFromRowWithHeadingModeCategory(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cl_to' => 'TestCategory',
@@ -369,7 +357,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
-
 		$this->assertStringContainsString( 'TestCategory', $article->mParentHLink );
 
 		$headings = Article::getHeadings();
@@ -380,7 +367,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test heading mode with user ordermethod
 	 */
-	public function testNewFromRowWithHeadingModeUser() {
+	public function testNewFromRowWithHeadingModeUser(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 789,
@@ -403,7 +390,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test uncategorized pages handling
 	 */
-	public function testNewFromRowWithUncategorizedPage() {
+	public function testNewFromRowWithUncategorizedPage(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'cl_to' => '',
@@ -419,14 +406,13 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
-
 		$this->assertStringContainsString( 'Special:Uncategorizedpages', $article->mParentHLink );
 	}
 
 	/**
 	 * Test goal=categories parameter
 	 */
-	public function testNewFromRowWithGoalCategories() {
+	public function testNewFromRowWithGoalCategories(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_timestamp' => '20230101120000',
@@ -437,7 +423,6 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 
 		$parameters = $this->createMockParameters( [ 'goal' => 'categories' ] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		// When goal=categories, revision processing should be skipped
@@ -448,7 +433,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test static headings functionality
 	 */
-	public function testHeadingsStatic() {
+	public function testHeadingsStatic(): void {
 		// Test initial state
 		$this->assertSame( [], Article::getHeadings() );
 
@@ -498,7 +483,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test getDate method with different date states
 	 */
-	public function testGetDate() {
+	public function testGetDate(): void {
 		// Test with empty dates
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 		$title = $this->createMock( Title::class );
