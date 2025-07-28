@@ -35,7 +35,6 @@ use function strtolower;
 use function trim;
 use function ucfirst;
 use function wfMessage;
-use const ENT_QUOTES;
 use const FILTER_NULL_ON_FAILURE;
 use const FILTER_VALIDATE_BOOLEAN;
 use const INF;
@@ -355,7 +354,7 @@ class Parameters extends ParametersData {
 	 * Clean and test 'category' parameter.
 	 */
 	private function _category( string $option ): bool {
-		$option = trim( html_entity_decode( $option, ENT_QUOTES ) );
+		$option = trim( html_entity_decode( $option ) );
 		if ( $option === '' ) {
 			return false;
 		}
