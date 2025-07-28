@@ -39,7 +39,6 @@ class ParametersData {
 			'showcurid',
 			'shownamespace',
 			'stablepages',
-			'suppresserrors',
 		],
 		1 => [
 			'allowcachedresults',
@@ -986,10 +985,6 @@ class ParametersData {
 		'maxrevisions' => [
 			'default' => null,
 			'integer' => true,
-		],
-		'suppresserrors' => [
-			'default' => false,
-			'boolean' => true,
 		],
 
 		/**
