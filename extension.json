@@ -2,9 +2,8 @@
 	"name": "DynamicPageList4",
 	"version": "4.0.0-alpha.4",
 	"author": [
-		"'''Universal Omega'''",
-		"Alexia E. Smith",
-		"Gero Scholz"
+		"Universal Omega",
+		"..."
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList4",
 	"descriptionmsg": "dpl-desc",
