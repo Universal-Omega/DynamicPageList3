@@ -15,7 +15,7 @@ class ConfigTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Test config performance characteristics
 	 */
-	public function testConfigPerformance() {
+	public function testConfigPerformance(): void {
 		$startTime = microtime( true );
 
 		// Multiple singleton calls should be fast
