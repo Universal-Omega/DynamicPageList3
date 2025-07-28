@@ -52,6 +52,12 @@ $cfg['plugins'] = array_merge( $cfg['plugins'], [
 	'UseReturnValuePlugin',
 ] );
 
-$cfg['dead_code_detection'] = true;
+$cfg['analyze_signature_compatibility'] = true;
+$cfg['enable_class_alias_support'] = false;
+$cfg['enable_extended_internal_return_type_plugins'] = true;
+$cfg['error_prone_truthy_condition_detection'] = true;
+$cfg['redundant_condition_detection'] = true;
+$cfg['unused_variable_detection'] = true;
+$cfg['warn_about_relative_include_statement'] = true;
 
 return $cfg;
