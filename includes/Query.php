@@ -231,7 +231,7 @@ class Query {
 		}
 
 		$qname = __METHOD__;
-		if ( $profilingContext ) {
+		if ( $profilingContext !== '' ) {
 			$qname .= ' - ' . $profilingContext;
 		}
 
@@ -461,7 +461,7 @@ class Query {
 	}
 
 	private function adduser( string $tableAlias ): void {
-		if ( $tableAlias ) {
+		if ( $tableAlias !== '' ) {
 			$tableAlias .= '.';
 		}
 
@@ -1772,7 +1772,7 @@ class Query {
 
 					$category = $this->parameters->getParameter( 'category' ) ?? [];
 					$notCategory = $this->parameters->getParameter( 'notcategory' ) ?? [];
-					if ( $category || $notCategory ) {
+					if ( $category !== [] || $notCategory !== [] ) {
 						if ( in_array( 'category', $this->parameters->getParameter( 'ordermethod' ), true ) ) {
 							$this->queryBuilder->select( [
 								'sortkey' => $this->applyCollation( "COALESCE(cl_head.cl_sortkey, $replaceConcat)" ),
