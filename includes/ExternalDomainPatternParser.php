@@ -44,7 +44,7 @@ trait ExternalDomainPatternParser {
 		}
 
 		$rawPattern = implode( '.', $reversed );
-		if ( $protocol ) {
+		if ( $protocol !== false && $protocol !== '' ) {
 			return "$protocol://$rawPattern.";
 		}
 		return "%://$rawPattern.";
