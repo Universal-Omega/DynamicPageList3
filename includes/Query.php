@@ -1249,42 +1249,68 @@ class Query {
 		$pathExprs = [];
 
 		foreach ( $linkGroup as $link ) {
-			// Normalize input
 			if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
-				// $link = "//$link";
+				$link = "//$link";
 			}
 
-			$indexes = LinkFilter::makeIndexes( $link, true );
-			if ( !$indexes || !isset( $indexes[0] ) || !is_array( $indexes[0] ) ) {
+			$hasWildcard = str_contains( $link, '%' ) || str_contains( $link, '*' );
+
+			if ( $hasWildcard ) {
+				// Try to parse manually
+				$parts = parse_url( $link );
+				if ( isset( $parts['host'] ) ) {
+					$domain = LinkFilter::indexifyHost( $parts['host'] );
+					if ( isset( $parts['scheme'] ) ) {
+						$domain = $parts['scheme'] . '://' . $domain;
+					}
+					if ( isset( $parts['port'] ) ) {
+						$domain .= ':' . $parts['port'];
+					}
+					$domainExprs[] = $this->dbr->expr(
+						'el.el_to_domain_index',
+						IExpression::LIKE,
+						new LikeValue( $domain )
+					);
+				}
+				if ( isset( $parts['path'] ) ) {
+					$path = $parts['path'];
+					if ( isset( $parts['query'] ) ) {
+						$path .= '?' . $parts['query'];
+					}
+					if ( isset( $parts['fragment'] ) ) {
+						$path .= '#' . $parts['fragment'];
+					}
+					$pathExprs[] = $this->dbr->expr(
+						'el.el_to_path',
+						IExpression::LIKE,
+						new LikeValue( $path )
+					);
+				}
 				continue;
 			}
 
-			[ $domain, $path ] = $indexes[0];
+			// Valid URL path
+			$indexes = LinkFilter::makeIndexes( $link );
+			if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
+				[ $domain, $path ] = $indexes[0];
 
-			if ( $domain !== null ) {
-				$domainExprs[] = str_contains( $domain, '%' )
-					? $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE, new LikeValue( $domain ) )
-					: $this->dbr->expr( 'el.el_to_domain_index', '=', $domain );
-			}
-
-			if ( $path !== null ) {
-				$pathExprs[] = str_contains( $path, '%' )
-					? $this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) )
-					: $this->dbr->expr( 'el.el_to_path', '=', $path );
+				if ( $domain !== null ) {
+					$domainExprs[] = $this->dbr->expr( 'el.el_to_domain_index', '=', $domain );
+				}
+				if ( $path !== null ) {
+					$pathExprs[] = $this->dbr->expr( 'el.el_to_path', '=', $path );
+				}
 			}
 		}
 
-		// Nothing to match? Skip group
 		if ( !$domainExprs && !$pathExprs ) {
 			continue;
 		}
 
 		$conditions = [ 'el.el_from = page.page_id' ];
-
 		if ( $domainExprs ) {
 			$conditions[] = $this->dbr->makeList( $domainExprs, IDatabase::LIST_OR );
 		}
-
 		if ( $pathExprs ) {
 			$conditions[] = $this->dbr->makeList( $pathExprs, IDatabase::LIST_OR );
 		}
