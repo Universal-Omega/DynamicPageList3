@@ -1246,7 +1246,8 @@ class Query {
 					$link = "//$link";
 				}
 
-				$indexes = LinkFilter::makeLikeArray( $link );
+				$indexes = LinkFilter::makeIndexes( $link, false );
+				var_dump( $indexes );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
