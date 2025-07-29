@@ -2,6 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
+use function array_unique;
+use function count;
+use const NS_FILE;
+use const NS_MAIN;
+use const NS_USER;
+
 /**
  * Enhanced integration tests for DPL Query functionality covering more parameter combinations
  *
@@ -165,9 +171,8 @@ class DPLEnhancedQueryIntegrationTest extends DPLIntegrationTestCase {
 	public function testAdvancedFormatting(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
-			'format' => ',\n* [[%PAGE%|%TITLE%]] by %USER%,\n',
 			'count' => 3,
-		], null );
+		], ',\n* [[%PAGE%|%TITLE%]] by %USER%,\n' );
 
 		$this->assertIsString( $results[0] ?? '' );
 		// Should be formatted as a list with custom formatting
