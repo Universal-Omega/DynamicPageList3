@@ -225,7 +225,7 @@ class DPLEnhancedQueryIntegrationTest extends DPLIntegrationTestCase {
 			'mode' => 'userformat',
 			'listseparators' => '{| class="wikitable"\n! Page\n! User\n|-,\n| [[%PAGE%]] || %USER%\n|-,\n|}',
 			'count' => 3,
-		], null );
+		], '%PAGE%' );
 
 		$this->assertIsString( $results[0] ?? '' );
 		// Should contain wikitable markup
