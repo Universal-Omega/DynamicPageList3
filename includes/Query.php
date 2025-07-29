@@ -1246,15 +1246,21 @@ class Query {
 					$link = "//$link";
 				}
 
-				$indexes = LinkFilter::makeLikeArray( $link );
+				$indexes = LinkFilter::makeIndexes( $link, false );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
-						$domains[] = $domain;
+						$domains[] = [
+							'value' => $domain,
+							'like' => str_contains( $domain, '*' ) || str_contains( $domain, '%' ),
+						];
 					}
 
 					if ( $path !== null ) {
-						$paths[] = $path;
+						$paths[] = [
+							'value' => $path,
+							'like' => str_contains( $path, '*' ) || str_contains( $path, '%' ),
+						];
 					}
 				}
 			}
@@ -1279,39 +1285,23 @@ class Query {
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
 		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
-
-		foreach ( $option as $index => $domains ) {
-			$patterns = array_map(
-				fn ( string $domain ): string => $this->parseDomainPattern( $domain ),
-				$domains
-			);
-
+		foreach ( $option as $index => $domainFilters ) {
 			$ors = [];
-			foreach ( $patterns as $pattern ) {
-				$ors[] = $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE,
-					new LikeValue( ...$this->splitLikePattern( $pattern ) )
-				);
+			foreach ( $domainFilters as $filter ) {
+				$pattern = $filter['value'];
+				if ( $filter['like'] ) {
+					$likePattern = $this->parseDomainPattern( $pattern );
+					$ors[] = $this->dbr->expr(
+						'el.el_to_domain_index',
+						IExpression::LIKE,
+						new LikeValue( ...$this->splitLikePattern( $likePattern ) )
+					);
+				} else {
+					$ors[] = $this->dbr->expr( 'el.el_to_domain_index', '=', $pattern );
+				}
 			}
 
-			if ( $index === 0 ) {
-				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] );
-				continue;
-			}
-
-			$subquery = $this->queryBuilder->newSubquery()
-				->select( 'el_from' )
-				->from( 'externallinks', 'el' )
-				->where( [
-					'el.el_from = page.page_id',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] )
-				->caller( __METHOD__ )
-				->getSQL();
-
-			$this->queryBuilder->where( "EXISTS($subquery)" );
+			$this->applyExternalWhere( $index, $ors );
 		}
 	}
 
@@ -1325,22 +1315,31 @@ class Query {
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
 		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
-
-		foreach ( $option as $index => $paths ) {
-			$ors = array_map(
-				fn ( string $path ): Expression =>
-					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) ),
-				$paths
-			);
-
-			if ( $index === 0 ) {
-				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] );
-				continue;
+		foreach ( $option as $index => $pathFilters ) {
+			$ors = [];
+			foreach ( $pathFilters as $filter ) {
+				if ( $filter['like'] ) {
+					$ors[] = $this->dbr->expr(
+						'el.el_to_path',
+						IExpression::LIKE,
+						new LikeValue( $filter['value'] )
+					);
+				} else {
+					$ors[] = $this->dbr->expr( 'el.el_to_path', '=', $filter['value'] );
+				}
 			}
 
+			$this->applyExternalWhere( $index, $ors );
+		}
+	}
+
+	private function applyExternalWhere( int $index, array $ors ): void {
+		if ( $index === 0 ) {
+			$this->queryBuilder->where( [
+				'page.page_id = el.el_from',
+				$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+			] );
+		} else {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'el_from' )
 				->from( 'externallinks', 'el' )
