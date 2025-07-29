@@ -1275,11 +1275,11 @@ class Query {
 		}
 
 		if ( $domains ) {
-			$this->addExternalLinkConditions( 'el_to_domain_index', $domains );
+			$this->addExternalLinkConditions( 'el_to_domain_index', [ $domains ] );
 		}
 
 		if ( $paths ) {
-			$this->addExternalLinkConditions( 'el_to_path', $paths );
+			$this->addExternalLinkConditions( 'el_to_path', [ $paths ] );
 		}
 	}
 
