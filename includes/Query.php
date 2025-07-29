@@ -1247,15 +1247,14 @@ class Query {
 				}
 
 				$indexes = LinkFilter::makeIndexes( $link, false );
-				var_dump( $indexes );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
-						$domains[] = $domain;
+						$domains[] = str_replace( '%25', '%', $domain );
 					}
 
 					if ( $path !== null ) {
-						$paths[] = $path;
+						$paths[] = str_replace( '%25', '%', $path );
 					}
 				}
 			}
@@ -1268,6 +1267,7 @@ class Query {
 		if ( $paths ) {
 			$this->_linkstoexternalpath( [ $paths ] );
 		}
+		var_dump( [ $domains, $paths ] );
 	}
 
 	/**
