@@ -14,6 +14,7 @@ use const NS_MAIN;
 
 /**
  * @group DynamicPageList4
+ * @group Database
  * @covers \MediaWiki\Extension\DynamicPageList4\Article
  */
 class ArticleTest extends MediaWikiIntegrationTestCase {
