@@ -1238,14 +1238,30 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		foreach ( $option as $index => $linkGroup ) {
+		$domains = [];
+		$paths = [];
+		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				var_dump( LinkFilter::makeIndexes( $link, false ) );
-				[ [ $domain, $path ] ] = LinkFilter::makeIndexes( $link, false );
-				var_dump( $domain );
-				$this->_linkstoexternaldomain( [ $domain ] );
-				$this->_linkstoexternalpath( [ $path ] );
+				$indexes = LinkFilter::makeIndexes( $link, false );
+				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
+					[ $domain, $path ] = $indexes[0];
+					if ( $domain !== null ) {
+						$domains[] = $domain;
+					}
+
+					if ( $path !== null ) {
+						$paths[] = $path;
+					}
+				}
 			}
+		}
+
+		if ( $domains ) {
+			$this->_linkstoexternaldomain( $domains );
+		}
+
+		if ( $paths ) {
+			$this->_linkstoexternalpath( $paths );
 		}
 	}
 
