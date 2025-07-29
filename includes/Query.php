@@ -1330,7 +1330,9 @@ class Query {
 		foreach ( $option as $index => $paths ) {
 			$ors = array_map(
 				fn ( string $path ): Expression =>
-					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) ),
+					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE,
+						new LikeValue( ...$this->splitLikePattern( $path ) )
+					),
 				$paths
 			);
 
