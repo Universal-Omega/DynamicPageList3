@@ -1276,6 +1276,7 @@ class Query {
 		if ( $paths ) {
 			$this->_linkstoexternalpath( [ $paths ] );
 		}
+		var_dump( [ $domains, $paths ] );
 	}
 
 	/**
