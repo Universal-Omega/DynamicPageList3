@@ -1250,7 +1250,7 @@ class Query {
 
 		foreach ( $linkGroup as $link ) {
 			if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
-				$link = "//$link";
+				// $link = "//$link";
 			}
 
 			$hasWildcard = str_contains( $link, '%' ) || str_contains( $link, '*' );
