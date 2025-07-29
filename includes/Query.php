@@ -1238,115 +1238,38 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		$domains = [];
-		$paths = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
 					$link = "//$link";
 				}
 
-				$indexes = LinkFilter::makeIndexes( $link, false );
-				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
-					[ $domain, $path ] = $indexes[0];
-					if ( $domain !== null ) {
-						$domains[] = [
-							'value' => $domain,
-							'like' => str_contains( $domain, '*' ) || str_contains( $domain, '%' ),
-						];
-					}
-
-					if ( $path !== null ) {
-						$paths[] = [
-							'value' => $path,
-							'like' => str_contains( $path, '*' ) || str_contains( $path, '%' ),
-						];
-					}
+				$conditions = LinkFilter::getQueryConditions( $link, [ 'db' => $this->dbr ] );
+				if ( !$conditions ) {
+					continue;
 				}
+
+				$this->applyExternalWhere( 0, $conditions );
 			}
-		}
-
-		if ( $domains ) {
-			$this->_linkstoexternaldomain( [ $domains ] );
-		}
-
-		if ( $paths ) {
-			$this->_linkstoexternalpath( [ $paths ] );
 		}
 	}
 
-	/**
-	 * Set SQL for 'linkstoexternaldomain' parameter.
-	 */
-	private function _linkstoexternaldomain( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
-		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
-		foreach ( $option as $index => $domainFilters ) {
-			$ors = [];
-			foreach ( $domainFilters as $filter ) {
-				$pattern = $filter['value'];
-				if ( $filter['like'] ) {
-					$likePattern = $this->parseDomainPattern( $pattern );
-					$ors[] = $this->dbr->expr(
-						'el.el_to_domain_index',
-						IExpression::LIKE,
-						new LikeValue( ...$this->splitLikePattern( $likePattern ) )
-					);
-				} else {
-					$ors[] = $this->dbr->expr( 'el.el_to_domain_index', '=', $pattern );
-				}
-			}
-
-			$this->applyExternalWhere( $index, $ors );
-		}
-	}
-
-	/**
-	 * Set SQL for 'linkstoexternalpath' parameter.
-	 */
-	private function _linkstoexternalpath( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
-		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
-		foreach ( $option as $index => $pathFilters ) {
-			$ors = [];
-			foreach ( $pathFilters as $filter ) {
-				if ( $filter['like'] ) {
-					$ors[] = $this->dbr->expr(
-						'el.el_to_path',
-						IExpression::LIKE,
-						new LikeValue( $filter['value'] )
-					);
-				} else {
-					$ors[] = $this->dbr->expr( 'el.el_to_path', '=', $filter['value'] );
-				}
-			}
-
-			$this->applyExternalWhere( $index, $ors );
-		}
-	}
-
-	private function applyExternalWhere( int $index, array $ors ): void {
+	private function applyExternalWhere( int $index, array $conditions ): void {
 		if ( $index === 0 ) {
+			$this->queryBuilder->table( 'externallinks', 'el' );
+			$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
 			$this->queryBuilder->where( [
 				'page.page_id = el.el_from',
-				$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+				...$conditions
 			] );
 		} else {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'el_from' )
 				->from( 'externallinks', 'el' )
-				->where( [
-					'el.el_from = page.page_id',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] )
+				->where( array_merge(
+					[ 'el.el_from = page.page_id' ],
+					$conditions
+				) )
 				->caller( __METHOD__ )
 				->getSQL();
 
