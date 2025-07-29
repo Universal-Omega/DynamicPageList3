@@ -1257,11 +1257,11 @@ class Query {
 		}
 
 		if ( $domains ) {
-			$this->_linkstoexternaldomain( $domains );
+			$this->_linkstoexternaldomain( [ $domains ] );
 		}
 
 		if ( $paths ) {
-			$this->_linkstoexternalpath( $paths );
+			$this->_linkstoexternalpath( [ $paths ] );
 		}
 	}
 
