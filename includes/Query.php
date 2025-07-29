@@ -1241,8 +1241,8 @@ class Query {
 		foreach ( $option as $index => $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				[ $domain, $path ] = LinkFilter::makeIndexes( $link );
-				$this->_linkstoexternaldomain( [ $domain ] );
-				$this->_linkstoexternalpath( [ $path ] );
+				$this->_linkstoexternaldomain( [ [ $domain ] ] );
+				$this->_linkstoexternalpath( [ [ $path ] ] );
 			}
 		}
 	}
