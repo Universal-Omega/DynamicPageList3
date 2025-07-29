@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use LogicException;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -1237,7 +1238,9 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		$this->_linkstoexternaldomain( $option );
+		[ $domain, $path ] = LinkFilter::makeIndexes( $option );
+		$this->_linkstoexternaldomain( $domain );
+		$this->_linkstoexternalpath( $path );
 	}
 
 	/**
