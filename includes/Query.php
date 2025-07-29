@@ -1240,6 +1240,11 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
+		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+			$this->queryBuilder->groupBy( 'page.page_title' );
+		}
+
+		$this->queryBuilder->table( 'externallinks', 'el' );
 		// We use random bytes to avoid any possible conflicts where
 		// a page actually uses this placeholder.
 		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
@@ -1270,25 +1275,16 @@ class Query {
 		}
 
 		if ( $domains ) {
-			$this->_linkstoexternaldomain( [ $domains ] );
+			$this->linkstoexternaldomain( [ $domains ] );
 		}
 
 		if ( $paths ) {
-			$this->_linkstoexternalpath( [ $paths ] );
+			$this->linkstoexternalpath( [ $paths ] );
 		}
 	}
 
-	/**
-	 * Set SQL for 'linkstoexternaldomain' parameter.
-	 */
-	private function _linkstoexternaldomain( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
-		$this->queryBuilder->table( 'externallinks', 'el' );
+	private function linkstoexternaldomain( array $option ): void {
 		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
-
 		foreach ( $option as $index => $domains ) {
 			$patterns = array_map(
 				fn ( string $domain ): string => $this->parseDomainPattern( $domain ),
@@ -1324,17 +1320,8 @@ class Query {
 		}
 	}
 
-	/**
-	 * Set SQL for 'linkstoexternalpath' parameter.
-	 */
-	private function _linkstoexternalpath( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
-		$this->queryBuilder->table( 'externallinks', 'el' );
+	private function linkstoexternalpath( array $option ): void {
 		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
-
 		foreach ( $option as $index => $paths ) {
 			$ors = array_map(
 				fn ( string $path ): Expression =>
