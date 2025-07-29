@@ -1242,6 +1242,7 @@ class Query {
 			foreach ( $linkGroup as $link ) {
 				var_dump( LinkFilter::makeIndexes( $link, false ) );
 				[ [ $domain, $path ] ] = LinkFilter::makeIndexes( $link, false );
+				var_dump( $domain );
 				$this->_linkstoexternaldomain( [ $domain ] );
 				$this->_linkstoexternalpath( [ $path ] );
 			}
