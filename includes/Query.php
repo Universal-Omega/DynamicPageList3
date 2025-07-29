@@ -1259,7 +1259,10 @@ class Query {
 				// Try to parse manually
 				$parts = parse_url( $link );
 				if ( isset( $parts['host'] ) ) {
-					$domain = LinkFilter::indexifyHost( $parts['host'] );
+					$ref = new \ReflectionClass( LinkFilter::class );
+$method = $ref->getMethod( 'indexifyHost' );
+$method->setAccessible( true );
+$domain = $method->invoke( $parts['host'] );
 					if ( isset( $parts['scheme'] ) ) {
 						$domain = $parts['scheme'] . '://' . $domain;
 					}
