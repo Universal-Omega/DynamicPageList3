@@ -1242,7 +1242,7 @@ class Query {
 	private function _linkstoexternal( array $option ): void {
 		// We use random bytes to avoid any possible conflicts where
 		// a page actually uses this placeholder.
-		$likePlaceholder = 'DPL4_LIKE_' . bin2hex( random_bytes( 4 ) ) . '_X';
+		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
 
 		$domains = [];
 		$paths = [];
