@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
@@ -221,34 +222,26 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_id' => 456,
-			'rev_actor' => 789,
+			'rev_actor' => 1,
 			'rev_timestamp' => '20230101120000',
 			'rev_comment_text' => 'Test edit summary',
 			'rev_deleted' => 0,
 		] );
-		unset( $row );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
-
-		// Mock user for revision
-		$user = $this->createMock( User::class );
-		$user->method( 'getName' )->willReturn( 'TestUser' );
-		$user->method( 'isHidden' )->willReturn( false );
-
-		$userFactory = $this->createMock( UserFactory::class );
-		$userFactory->method( 'newFromActorId' )->with( 789 )->willReturn( $user );
-
-		$services = $this->createMock( MediaWikiServices::class );
-		$services->method( 'getUserFactory' )->willReturn( $userFactory );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
 		$parameters = $this->createMockParameters( [ 'lastrevisionbefore' => '20230102000000' ] );
-		unset( $parameters );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		// We need to test this in integration context due to MediaWikiServices dependency
-		$this->markTestSkipped( 'Requires integration test setup for MediaWikiServices' );
-	}
+		$this->assertSame( 456, $article->mRevision );
+		$this->assertSame( '20230101120000', TestingAccessWrapper::newFromObject( $article )->mDate );
+		$this->assertNotEmpty( $article->mUser );
+		$this->assertStringContainsString( 'Test edit summary', $article->mComment );
+}
 
 	/**
 	 * Test date handling with different date parameters
@@ -260,17 +253,43 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'cl_timestamp' => '20230101130000',
 			'rev_timestamp' => '20230101140000',
 		] );
-		unset( $row );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
 		// Test addpagetoucheddate
 		$parameters = $this->createMockParameters( [ 'addpagetoucheddate' => true ] );
-		unset( $parameters );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->markTestSkipped( 'Requires integration test setup for language services' );
+		// The mDate should be set and adjusted for user timezone
+		$articleWrapper = TestingAccessWrapper::newFromObject( $article );
+		$this->assertNotEmpty( $articleWrapper->mDate );
+
+		// Test addfirstcategorydate
+		$parameters2 = $this->createMockParameters( [ 'addfirstcategorydate' => true ] );
+		$article2 = Article::newFromRow( $row, $parameters2, $title, NS_MAIN, 'Page' );
+
+		$article2Wrapper = TestingAccessWrapper::newFromObject( $article2 );
+		$this->assertNotEmpty( $article2Wrapper->mDate );
+
+		// Test addeditdate
+		$parameters3 = $this->createMockParameters( [ 'addeditdate' => true ] );
+		$article3 = Article::newFromRow( $row, $parameters3, $title, NS_MAIN, 'Page' );
+
+		$article3Wrapper = TestingAccessWrapper::newFromObject( $article3 );
+		$this->assertNotEmpty( $article3Wrapper->mDate );
+
+		// Test with userdateformat
+		$parameters4 = $this->createMockParameters( [ 
+			'addeditdate' => true,
+			'userdateformat' => 'Y-m-d H:i:s',
+		] );
+
+		$article4 = Article::newFromRow( $row, $parameters4, $title, NS_MAIN, 'Page' );
+		$this->assertNotEmpty( $article4->myDate );
 	}
 
 	/**
@@ -280,19 +299,22 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'contribution' => 50,
-			'contributor' => 789,
+			'contributor' => 1,
 			'contrib_deleted' => 0,
 		] );
-		unset( $row );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
 		$parameters = $this->createMockParameters( [ 'addcontribution' => true ] );
-		unset( $parameters );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
+		$this->assertSame( 50, $article->mContribution );
+		$this->assertNotEmpty( $article->mContributor );
+		$this->assertNotEmpty( $article->mContrib );
 	}
 
 	/**
@@ -301,18 +323,36 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithUserLinks(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'rev_actor' => 789,
+			'rev_actor' => 1,
 		] );
-		unset( $row );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
+		// Test adduser parameter
 		$parameters = $this->createMockParameters( [ 'adduser' => true ] );
-		unset( $parameters );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
+		$this->assertNotEmpty( $article->mUserLink );
+		$this->assertNotEmpty( $article->mUser );
+		$this->assertStringContainsString( '[[User:', $article->mUserLink );
+
+		// Test addauthor parameter
+		$parameters2 = $this->createMockParameters( [ 'addauthor' => true ] );
+		$article2 = Article::newFromRow( $row, $parameters2, $title, NS_MAIN, 'Page' );
+
+		$this->assertNotEmpty( $article2->mUserLink );
+		$this->assertStringContainsString( '[[User:', $article2->mUserLink );
+
+		// Test addlasteditor parameter
+		$parameters3 = $this->createMockParameters( [ 'addlasteditor' => true ] );
+		$article3 = Article::newFromRow( $row, $parameters3, $title, NS_MAIN, 'Page' );
+
+		$this->assertNotEmpty( $article3->mUserLink );
+		$this->assertStringContainsString( '[[User:', $article3->mUserLink );
 	}
 
 	/**
@@ -371,21 +411,29 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithHeadingModeUser(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'rev_actor' => 789,
+			'rev_actor' => 1,
 		] );
-		unset( $row );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
 		$parameters = $this->createMockParameters( [
 			'headingmode' => 'definition',
 			'ordermethod' => [ 'user' ],
 		] );
-		unset( $parameters );
 
-		$this->markTestSkipped( 'Requires integration test setup for UserFactory' );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
+	
+		// Check that user heading link is generated
+		$this->assertNotEmpty( $article->mParentHLink );
+		$this->assertStringContainsString( '[[User:', $article->mParentHLink );
+	
+		// Check that headings contain user information
+		$headings = Article::getHeadings();
+		$this->assertNotEmpty( $headings );
 	}
 
 	/**
@@ -482,7 +530,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Test getDate method with different date states
+	 * Test getDate method with different date states and language formatting
 	 */
 	public function testGetDate(): void {
 		// Test with empty dates
@@ -490,13 +538,94 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'Page' );
 		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
+	
 		$parameters = $this->createMockParameters( [] );
-
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 		$this->assertSame( '', $article->getDate() );
 
-		// Testing with actual dates would require integration test setup
-		$this->markTestSkipped( 'Full date testing requires integration test setup for language services' );
+		// Test with actual date and userdateformat
+		$row2 = $this->createMockRow( [
+			'page_id' => 124,
+			'rev_timestamp' => '20230101120000',
+		] );
+	
+		$parameters2 = $this->createMockParameters( [ 
+			'addeditdate' => true,
+			'userdateformat' => 'Y-m-d H:i:s',
+		] );
+
+		$article2 = Article::newFromRow( $row2, $parameters2, $title, NS_MAIN, 'Page' );
+	
+		// Should return the formatted date from myDate
+		$date = $article2->getDate();
+		$this->assertNotEmpty( $date );
+		$this->assertStringContainsString( '2023-01-01', $date );
+
+		// Test with date but no userdateformat (uses language formatting)
+		$parameters3 = $this->createMockParameters( [ 'addeditdate' => true ] );
+		$article3 = Article::newFromRow( $row2, $parameters3, $title, NS_MAIN, 'Page' );
+	
+		$date3 = $article3->getDate();
+		$this->assertNotEmpty( $date3 );
+	}
+
+	/**
+	 * Test revision comment handling with deleted comments
+	 */
+	public function testNewFromRowWithDeletedRevisionComment(): void {
+		$row = $this->createMockRow( [
+			'page_id' => 123,
+			'rev_id' => 456,
+			'rev_actor' => 1,
+			'rev_timestamp' => '20230101120000',
+			'rev_comment_text' => 'Original comment',
+			'rev_deleted' => RevisionRecord::DELETED_COMMENT,
+		] );
+
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
+
+		$parameters = $this->createMockParameters( [ 'lastrevisionbefore' => '20230102000000' ] );
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
+
+		// Should show deleted comment message instead of original comment
+		$this->assertStringContainsString( 'rev-deleted-comment', $article->mComment );
+	}
+
+	/**
+	 * Test handling of deleted/hidden users
+	 */
+	public function testNewFromRowWithDeletedUser(): void {
+		$row = $this->createMockRow( [
+			'page_id' => 123,
+			'rev_actor' => 1,
+			'rev_deleted' => RevisionRecord::DELETED_USER,
+			'contribution' => 25,
+			'contributor' => 1,
+			'contrib_deleted' => RevisionRecord::DELETED_USER,
+		] );
+
+		$title = $this->createMock( Title::class );
+		$title->method( 'getText' )->willReturn( 'Page' );
+		$title->method( 'getFullText' )->willReturn( 'Page' );
+		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
+		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
+
+		$parameters = $this->createMockParameters( [ 
+			'adduser' => true,
+			'addcontribution' => true,
+		] );
+
+		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
+
+		// Should show deleted user message
+		$this->assertStringContainsString( 'rev-deleted-user', $article->mUser );
+		$this->assertStringContainsString( 'rev-deleted-user', $article->mContributor );
 	}
 
 	/**
