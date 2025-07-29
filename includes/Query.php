@@ -1262,7 +1262,7 @@ class Query {
 					$ref = new \ReflectionClass( LinkFilter::class );
 $method = $ref->getMethod( 'indexifyHost' );
 $method->setAccessible( true );
-$domain = $method->invoke( $parts['host'] );
+$domain = $method->invoke( null, $parts['host'] );
 					if ( isset( $parts['scheme'] ) ) {
 						$domain = $parts['scheme'] . '://' . $domain;
 					}
