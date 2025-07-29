@@ -1238,44 +1238,75 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		foreach ( $option as $linkGroup ) {
-			foreach ( $linkGroup as $link ) {
-				$conditions = LinkFilter::getQueryConditions( $link, [ 'db' => $this->dbr ] );
-				var_dump( $conditions );
-				if ( !$conditions ) {
-					continue;
-				}
+	$this->queryBuilder->table( 'externallinks', 'el' );
+	$this->queryBuilder->select( [
+		'el_to_domain_index' => 'el.el_to_domain_index',
+		'el_to_path' => 'el.el_to_path'
+	] );
 
-				$this->applyExternalWhere( 0, $conditions );
+	foreach ( $option as $index => $linkGroup ) {
+		$domainExprs = [];
+		$pathExprs = [];
+
+		foreach ( $linkGroup as $link ) {
+			// Normalize input
+			if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
+				$link = "//$link";
+			}
+
+			$indexes = LinkFilter::makeIndexes( $link, true );
+			if ( !$indexes || !isset( $indexes[0] ) || !is_array( $indexes[0] ) ) {
+				continue;
+			}
+
+			[ $domain, $path ] = $indexes[0];
+
+			if ( $domain !== null ) {
+				$domainExprs[] = str_contains( $domain, '%' )
+					? $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE, new LikeValue( $domain ) )
+					: $this->dbr->expr( 'el.el_to_domain_index', '=', $domain );
+			}
+
+			if ( $path !== null ) {
+				$pathExprs[] = str_contains( $path, '%' )
+					? $this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) )
+					: $this->dbr->expr( 'el.el_to_path', '=', $path );
 			}
 		}
-	}
 
-	private function applyExternalWhere( int $index, array $conditions ): void {
+		// Nothing to match? Skip group
+		if ( !$domainExprs && !$pathExprs ) {
+			continue;
+		}
+
+		$conditions = [ 'el.el_from = page.page_id' ];
+
+		if ( $domainExprs ) {
+			$conditions[] = $this->dbr->makeList( $domainExprs, IDatabase::LIST_OR );
+		}
+
+		if ( $pathExprs ) {
+			$conditions[] = $this->dbr->makeList( $pathExprs, IDatabase::LIST_OR );
+		}
+
 		if ( $index === 0 ) {
-			$this->queryBuilder->table( 'externallinks', 'el' );
-			$this->queryBuilder->select( [
-				'el_to_domain_index' => 'el.el_to_domain_index',
-				'el_to_path' => 'el.el_to_path',
-			] );
-			$this->queryBuilder->where( [
-				'page.page_id = el.el_from',
-				...$conditions
-			] );
+			$this->queryBuilder->where( $conditions );
 		} else {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'el_from' )
 				->from( 'externallinks', 'el' )
-				->where( array_merge(
-					[ 'el.el_from = page.page_id' ],
-					$conditions
-				) )
+				->where( $conditions )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
 	}
+
+	if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+		$this->queryBuilder->groupBy( 'page.page_title' );
+	}
+}
 
 	/**
 	 * Set SQL for 'maxrevisions' parameter.
