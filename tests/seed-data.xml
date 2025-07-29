@@ -1,65 +1,65 @@
 <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.10/ http://www.mediawiki.org/xml/export-0.10.xsd" version="0.10" xml:lang="en">
-  <siteinfo>
-    <sitename>DPL Test Wiki</sitename>
-    <dbname>dpltest</dbname>
-    <base>http://example.com/wiki/Main_Page</base>
-    <generator>MediaWiki 1.40.0</generator>
-    <case>first-letter</case>
-    <namespaces>
-      <namespace key="-2" case="first-letter">Media</namespace>
-      <namespace key="-1" case="first-letter">Special</namespace>
-      <namespace key="0" case="first-letter" />
-      <namespace key="1" case="first-letter">Talk</namespace>
-      <namespace key="2" case="first-letter">User</namespace>
-      <namespace key="6" case="first-letter">File</namespace>
-      <namespace key="10" case="first-letter">Template</namespace>
-      <namespace key="14" case="first-letter">Category</namespace>
-    </namespaces>
-  </siteinfo>
+	<siteinfo>
+		<sitename>DPL Test Wiki</sitename>
+		<dbname>dpltest</dbname>
+		<base>http://example.com/wiki/Main_Page</base>
+		<generator>MediaWiki 1.40.0</generator>
+		<case>first-letter</case>
+		<namespaces>
+			<namespace key="-2" case="first-letter">Media</namespace>
+			<namespace key="-1" case="first-letter">Special</namespace>
+			<namespace key="0" case="first-letter" />
+			<namespace key="1" case="first-letter">Talk</namespace>
+			<namespace key="2" case="first-letter">User</namespace>
+			<namespace key="6" case="first-letter">File</namespace>
+			<namespace key="10" case="first-letter">Template</namespace>
+			<namespace key="14" case="first-letter">Category</namespace>
+		</namespaces>
+	</siteinfo>
 
-  <!-- Enhanced test articles with more complex relationships -->
-  
-  <!-- Main test article that others link to -->
-  <page>
-    <title>DPLTestArticle 1</title>
-    <ns>0</ns>
-    <id>1</id>
-    <revision>
-      <id>101</id>
-      <timestamp>2023-01-01T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Initial creation</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="150" xml:space="preserve">This is the first DPL test article. It serves as a target for links from other articles.
+	<!-- Enhanced test articles with more complex relationships -->
+	
+	<!-- Main test article that others link to -->
+	<page>
+		<title>DPLTestArticle 1</title>
+		<ns>0</ns>
+		<id>1</id>
+		<revision>
+			<id>101</id>
+			<timestamp>2023-01-01T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Initial creation</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="150" xml:space="preserve">This is the first DPL test article. It serves as a target for links from other articles.
 
 == Test Section ==
 Some content for testing section inclusion.
 
 [[Category:DPLTestCategory]]
 [[Category:DPLTestCategory2]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- Article with template and links -->
-  <page>
-    <title>DPLTestArticle 2</title>
-    <ns>0</ns>
-    <id>2</id>
-    <revision>
-      <id>102</id>
-      <timestamp>2023-01-02T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Added template and links</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="200" xml:space="preserve">This is the second test article. Links to [[DPLTestArticle 1]].
+	<!-- Article with template and links -->
+	<page>
+		<title>DPLTestArticle 2</title>
+		<ns>0</ns>
+		<id>2</id>
+		<revision>
+			<id>102</id>
+			<timestamp>2023-01-02T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Added template and links</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="200" xml:space="preserve">This is the second test article. Links to [[DPLTestArticle 1]].
 
 {{DPLInfobox
 |param1=value1
@@ -70,25 +70,25 @@ Some content for testing section inclusion.
 More content for testing.
 
 [[Category:DPLTestCategory]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- Article with different user and categories -->
-  <page>
-    <title>DPLTestArticle 3</title>
-    <ns>0</ns>
-    <id>3</id>
-    <revision>
-      <id>103</id>
-      <timestamp>2023-01-03T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser2</username>
-        <id>1002</id>
-      </contributor>
-      <comment>Created by different user</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="180" xml:space="preserve">Third test article by a different user. Also links to [[DPLTestArticle 1]].
+	<!-- Article with different user and categories -->
+	<page>
+		<title>DPLTestArticle 3</title>
+		<ns>0</ns>
+		<id>3</id>
+		<revision>
+			<id>103</id>
+			<timestamp>2023-01-03T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser2</username>
+				<id>1002</id>
+			</contributor>
+			<comment>Created by different user</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="180" xml:space="preserve">Third test article by a different user. Also links to [[DPLTestArticle 1]].
 
 {{DPLInfobox
 |param1=different_value
@@ -99,165 +99,165 @@ Content for inclusion testing.
 
 [[Category:DPLTestCategory]]
 [[Category:DPLTestCategory2]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- Article for exclusion testing -->
-  <page>
-    <title>DPLExcludedArticle</title>
-    <ns>0</ns>
-    <id>4</id>
-    <revision>
-      <id>104</id>
-      <timestamp>2023-01-04T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Article for exclusion tests</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="120" xml:space="preserve">This article should be excluded in certain tests.
+	<!-- Article for exclusion testing -->
+	<page>
+		<title>DPLExcludedArticle</title>
+		<ns>0</ns>
+		<id>4</id>
+		<revision>
+			<id>104</id>
+			<timestamp>2023-01-04T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Article for exclusion tests</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="120" xml:space="preserve">This article should be excluded in certain tests.
 
 [[Category:DPLTestExcludeCategory]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- User namespace article -->
-  <page>
-    <title>User:DPLTestUser</title>
-    <ns>2</ns>
-    <id>5</id>
-    <revision>
-      <id>105</id>
-      <timestamp>2023-01-05T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>User page</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="80" xml:space="preserve">This is a user page for testing namespace filtering.
+	<!-- User namespace article -->
+	<page>
+		<title>User:DPLTestUser</title>
+		<ns>2</ns>
+		<id>5</id>
+		<revision>
+			<id>105</id>
+			<timestamp>2023-01-05T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>User page</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="80" xml:space="preserve">This is a user page for testing namespace filtering.
 
 [[Category:DPLTestCategory]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- Template for testing -->
-  <page>
-    <title>Template:DPLInfobox</title>
-    <ns>10</ns>
-    <id>6</id>
-    <revision>
-      <id>106</id>
-      <timestamp>2023-01-01T10:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Template for testing</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="100" xml:space="preserve">&lt;div class="infobox"&gt;
+	<!-- Template for testing -->
+	<page>
+		<title>Template:DPLInfobox</title>
+		<ns>10</ns>
+		<id>6</id>
+		<revision>
+			<id>106</id>
+			<timestamp>2023-01-01T10:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Template for testing</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="100" xml:space="preserve">&lt;div class="infobox"&gt;
 Param1: {{{param1|default}}}
 Param2: {{{param2|default}}}
 &lt;/div&gt;</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- File page for image testing -->
-  <page>
-    <title>File:DPLTestImage.jpg</title>
-    <ns>6</ns>
-    <id>7</id>
-    <revision>
-      <id>107</id>
-      <timestamp>2023-01-06T12:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Test image file</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="60" xml:space="preserve">Test image file for DPL testing.
+	<!-- File page for image testing -->
+	<page>
+		<title>File:DPLTestImage.jpg</title>
+		<ns>6</ns>
+		<id>7</id>
+		<revision>
+			<id>107</id>
+			<timestamp>2023-01-06T12:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Test image file</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="60" xml:space="preserve">Test image file for DPL testing.
 
 [[Category:DPLTestImages]]</text>
-    </revision>
-  </page>
+		</revision>
+	</page>
 
-  <!-- Test categories -->
-  <page>
-    <title>Category:DPLTestCategory</title>
-    <ns>14</ns>
-    <id>8</id>
-    <revision>
-      <id>108</id>
-      <timestamp>2023-01-01T11:00:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Main test category</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="50" xml:space="preserve">Main category for DPL testing.</text>
-    </revision>
-  </page>
+	<!-- Test categories -->
+	<page>
+		<title>Category:DPLTestCategory</title>
+		<ns>14</ns>
+		<id>8</id>
+		<revision>
+			<id>108</id>
+			<timestamp>2023-01-01T11:00:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Main test category</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="50" xml:space="preserve">Main category for DPL testing.</text>
+		</revision>
+	</page>
 
-  <page>
-    <title>Category:DPLTestCategory2</title>
-    <ns>14</ns>
-    <id>9</id>
-    <revision>
-      <id>109</id>
-      <timestamp>2023-01-01T11:01:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Second test category</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="55" xml:space="preserve">Second category for DPL testing.</text>
-    </revision>
-  </page>
+	<page>
+		<title>Category:DPLTestCategory2</title>
+		<ns>14</ns>
+		<id>9</id>
+		<revision>
+			<id>109</id>
+			<timestamp>2023-01-01T11:01:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Second test category</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="55" xml:space="preserve">Second category for DPL testing.</text>
+		</revision>
+	</page>
 
-  <page>
-    <title>Category:DPLTestExcludeCategory</title>
-    <ns>14</ns>
-    <id>10</id>
-    <revision>
-      <id>110</id>
-      <timestamp>2023-01-01T11:02:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Category for exclusion testing</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="65" xml:space="preserve">Category for testing exclusion functionality.</text>
-    </revision>
-  </page>
+	<page>
+		<title>Category:DPLTestExcludeCategory</title>
+		<ns>14</ns>
+		<id>10</id>
+		<revision>
+			<id>110</id>
+			<timestamp>2023-01-01T11:02:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Category for exclusion testing</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="65" xml:space="preserve">Category for testing exclusion functionality.</text>
+		</revision>
+	</page>
 
-  <page>
-    <title>Category:DPLTestImages</title>
-    <ns>14</ns>
-    <id>11</id>
-    <revision>
-      <id>111</id>
-      <timestamp>2023-01-01T11:03:00Z</timestamp>
-      <contributor>
-        <username>DPLTestUser</username>
-        <id>1001</id>
-      </contributor>
-      <comment>Category for test images</comment>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-      <text bytes="60" xml:space="preserve">Category for DPL image testing.</text>
-    </revision>
-  </page>
+	<page>
+		<title>Category:DPLTestImages</title>
+		<ns>14</ns>
+		<id>11</id>
+		<revision>
+			<id>111</id>
+			<timestamp>2023-01-01T11:03:00Z</timestamp>
+			<contributor>
+				<username>DPLTestUser</username>
+				<id>1001</id>
+			</contributor>
+			<comment>Category for test images</comment>
+			<model>wikitext</model>
+			<format>text/x-wiki</format>
+			<text bytes="60" xml:space="preserve">Category for DPL image testing.</text>
+		</revision>
+	</page>
 
 </mediawiki>
