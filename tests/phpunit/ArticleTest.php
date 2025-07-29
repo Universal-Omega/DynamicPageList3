@@ -10,6 +10,7 @@ use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use stdClass;
+use Wikimedia\TestingAccessWrapper;
 use const NS_CATEGORY;
 use const NS_MAIN;
 
@@ -426,7 +427,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		// When goal=categories, revision processing should be skipped
-		$this->assertSame( '', $article->mDate );
+		$this->assertSame( '', TestingAccessWrapper::newFromObject( $article )->mDate );
 		$this->assertSame( 0, $article->mRevision );
 	}
 
