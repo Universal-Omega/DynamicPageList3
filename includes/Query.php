@@ -1251,7 +1251,7 @@ class Query {
 		foreach ( $linkGroup as $link ) {
 			// Normalize input
 			if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
-				$link = "//$link";
+				// $link = "//$link";
 			}
 
 			$indexes = LinkFilter::makeIndexes( $link, true );
