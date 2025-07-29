@@ -123,8 +123,10 @@ class Article {
 
 		$article->mID = (int)( $row->page_id ?? 0 );
 
-		// External link
-		$article->mExternalLink = $row->el_to ?? '';
+		if ( isset( $row->el_to_domain_index ) || isset( $row->el_to_path ) ) {
+			// External link
+			$article->mExternalLink = ( $row->el_to_domain_index ?? '' ) . ( $row->el_to_path ?? '' );
+		}
 
 		// SHOW PAGE_COUNTER
 		$article->mCounter = (int)( $row->page_counter ?? 0 );
