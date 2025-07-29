@@ -1238,9 +1238,13 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		[ $domain, $path ] = LinkFilter::makeIndexes( $option );
-		$this->_linkstoexternaldomain( $domain );
-		$this->_linkstoexternalpath( $path );
+		foreach ( $option as $index => $linkGroup ) {
+			foreach ( $linkGroup as $link ) {
+				[ $domain, $path ] = LinkFilter::makeIndexes( $link );
+				$this->_linkstoexternaldomain( [ $domain ] );
+				$this->_linkstoexternalpath( [ $path ] );
+			}
+		}
 	}
 
 	/**
