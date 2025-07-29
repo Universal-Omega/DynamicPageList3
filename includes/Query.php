@@ -1257,7 +1257,10 @@ class Query {
 	private function applyExternalWhere( int $index, array $conditions ): void {
 		if ( $index === 0 ) {
 			$this->queryBuilder->table( 'externallinks', 'el' );
-			$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
+			$this->queryBuilder->select( [
+				'el_to_domain_index' => 'el.el_to_domain_index',
+				'el_to_path' => 'el.el_to_path',
+			] );
 			$this->queryBuilder->where( [
 				'page.page_id = el.el_from',
 				...$conditions
