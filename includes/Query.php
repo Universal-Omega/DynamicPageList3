@@ -26,6 +26,7 @@ use function array_map;
 use function array_merge;
 use function array_slice;
 use function array_unique;
+use function bin2hex;
 use function count;
 use function floor;
 use function hash;
@@ -40,6 +41,7 @@ use function mb_strtoupper;
 use function method_exists;
 use function min;
 use function preg_split;
+use function random_bytes;
 use function str_contains;
 use function str_replace;
 use function str_starts_with;
@@ -1238,10 +1240,17 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
+		// We use random bytes to avoid any possible conflicts where
+		// a page actually uses this placeholder.
+		$likePlaceholder = 'DPL4_LIKE_' . bin2hex( random_bytes( 4 ) ) . '_X';
+
 		$domains = [];
 		$paths = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
+				// Encode real percent signs used for LIKE matches to avoid
+				// LinkFilter encoding it as %25.
+				$link = str_replace( '%', $likePlaceholder, $link );
 				if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
 					$link = "//$link";
 				}
@@ -1250,11 +1259,11 @@ class Query {
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
-						$domains[] = str_replace( '%25', '%', $domain );
+						$domains[] = str_replace( $likePlaceholder, '%', $domain );
 					}
 
 					if ( $path !== null ) {
-						$paths[] = str_replace( '%25', '%', $path );
+						$paths[] = str_replace( $likePlaceholder, '%', $path );
 					}
 				}
 			}
@@ -1267,7 +1276,6 @@ class Query {
 		if ( $paths ) {
 			$this->_linkstoexternalpath( [ $paths ] );
 		}
-		var_dump( [ $domains, $paths ] );
 	}
 
 	/**
