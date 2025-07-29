@@ -1242,6 +1242,10 @@ class Query {
 		$paths = [];
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
+				if ( !str_contains( $link '://' ) && !str_starts_with( $link, '//' ) ) {
+					$link = "//$link";
+				}
+
 				$indexes = LinkFilter::makeIndexes( $link, false );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
