@@ -4,11 +4,8 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
-use MediaWiki\User\User;
-use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
 use stdClass;
 use Wikimedia\TestingAccessWrapper;
@@ -241,7 +238,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( '20230101120000', TestingAccessWrapper::newFromObject( $article )->mDate );
 		$this->assertNotEmpty( $article->mUser );
 		$this->assertStringContainsString( 'Test edit summary', $article->mComment );
-}
+	}
 
 	/**
 	 * Test date handling with different date parameters
@@ -283,7 +280,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotEmpty( $article3Wrapper->mDate );
 
 		// Test with userdateformat
-		$parameters4 = $this->createMockParameters( [ 
+		$parameters4 = $this->createMockParameters( [
 			'addeditdate' => true,
 			'userdateformat' => 'Y-m-d H:i:s',
 		] );
@@ -426,11 +423,11 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
-	
+
 		// Check that user heading link is generated
 		$this->assertNotEmpty( $article->mParentHLink );
 		$this->assertStringContainsString( '[[User:', $article->mParentHLink );
-	
+
 		// Check that headings contain user information
 		$headings = Article::getHeadings();
 		$this->assertNotEmpty( $headings );
@@ -540,7 +537,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getFullText' )->willReturn( 'Page' );
 		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
 		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
-	
+
 		$parameters = $this->createMockParameters( [] );
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 		$this->assertSame( '', $article->getDate() );
@@ -550,14 +547,14 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 			'page_id' => 124,
 			'rev_timestamp' => '20230101120000',
 		] );
-	
-		$parameters2 = $this->createMockParameters( [ 
+
+		$parameters2 = $this->createMockParameters( [
 			'addeditdate' => true,
 			'userdateformat' => 'Y-m-d H:i:s',
 		] );
 
 		$article2 = Article::newFromRow( $row2, $parameters2, $title, NS_MAIN, 'Page' );
-	
+
 		// Should return the formatted date from myDate
 		$date = $article2->getDate();
 		$this->assertNotEmpty( $date );
@@ -566,7 +563,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		// Test with date but no userdateformat (uses language formatting)
 		$parameters3 = $this->createMockParameters( [ 'addeditdate' => true ] );
 		$article3 = Article::newFromRow( $row2, $parameters3, $title, NS_MAIN, 'Page' );
-	
+
 		$date3 = $article3->getDate();
 		$this->assertNotEmpty( $date3 );
 	}
@@ -616,7 +613,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$title->method( 'getPrefixedText' )->willReturn( 'Page' );
 		$title->method( 'getFullURL' )->willReturn( 'http://example.com/Page' );
 
-		$parameters = $this->createMockParameters( [ 
+		$parameters = $this->createMockParameters( [
 			'adduser' => true,
 			'addcontribution' => true,
 		] );
