@@ -1240,6 +1240,7 @@ class Query {
 	private function _linkstoexternal( array $option ): void {
 		foreach ( $option as $index => $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
+				var_dump( LinkFilter::makeIndexes( $link ) );
 				[ $domain, $path ] = LinkFilter::makeIndexes( $link );
 				$this->_linkstoexternaldomain( [ [ $domain ] ] );
 				$this->_linkstoexternalpath( [ [ $path ] ] );
