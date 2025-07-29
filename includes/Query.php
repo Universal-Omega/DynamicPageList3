@@ -709,7 +709,7 @@ class Query {
 			->join( 'categorylinks', 'clstc', 'clstc.cl_from = p2.page_id' )
 			->where( [
 				'clstc.cl_to' => $option,
-				'p2.page_namespace' => 0,
+				'p2.page_namespace' => NS_MAIN,
 			] )
 			->caller( __METHOD__ )
 			->getSQL();
