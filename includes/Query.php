@@ -1256,7 +1256,10 @@ class Query {
 				// Encode real percent signs used for LIKE matches to avoid
 				// LinkFilter encoding it as %25.
 				$link = str_replace( '%', $likePlaceholder, $link );
-				if ( !str_contains( $link, '://' ) && !str_starts_with( $link, '//' ) ) {
+				if ( !str_contains( $link, '://' ) &&
+					!str_starts_with( $link, 'mailto:' ) &&
+					!str_starts_with( $link, '//' )
+				) {
 					$link = "//$link";
 				}
 
