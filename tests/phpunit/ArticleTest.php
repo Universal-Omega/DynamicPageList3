@@ -322,6 +322,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 1,
+			'rev_deleted' => 0,
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -410,6 +411,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
 			'rev_actor' => 1,
+			'rev_deleted' => 0,
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -592,7 +594,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		// Should show deleted comment message instead of original comment
-		$this->assertStringContainsString( 'rev-deleted-comment', $article->mComment );
+		$this->assertStringContainsString( '(edit summary removed)', $article->mComment );
 	}
 
 	/**
@@ -622,8 +624,8 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
 		// Should show deleted user message
-		$this->assertStringContainsString( 'rev-deleted-user', $article->mUser );
-		$this->assertStringContainsString( 'rev-deleted-user', $article->mContributor );
+		$this->assertStringContainsString( '(username removed)', $article->mUser );
+		$this->assertStringContainsString( '(username removed)', $article->mContributor );
 	}
 
 	/**
