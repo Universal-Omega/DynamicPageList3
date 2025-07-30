@@ -8,6 +8,7 @@ use MediaWikiIntegrationTestCase;
 use function str_replace;
 
 /**
+ * @coversNothing
  * @group DynamicPageList4
  */
 class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
