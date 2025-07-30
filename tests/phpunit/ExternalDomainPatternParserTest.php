@@ -69,7 +69,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		yield 'duplicated wildcard' => [
 			// Duplicated wildcard doesn't matter
-			'//www.%%fandom.com', 'https://com.%%fandom%.www.',
+			'//www.%%fandom.com', 'https://com.%%fandom.www.',
 		];
 	}
 
@@ -99,7 +99,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		yield 'wildcard covering slash leads to garbage' => [
 			// When wildcard should cover `/` we would generate garbage
-			'//%fandom.%?test=%', 'https://%?test=%%.%fandom%.',
+			'//%fandom.%?test=%', 'https://%.%fandom.',
 		];
 	}
 }
