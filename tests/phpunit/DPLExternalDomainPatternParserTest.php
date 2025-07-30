@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use Generator;
 use MediaWiki\Extension\DynamicPageList4\ExternalDomainPatternParser;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWikiIntegrationTestCase;
 
 /**
@@ -19,7 +20,7 @@ class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideDomainPattern
 	 */
 	public function testParseDomainPattern( string $domain, string $expected ): void {
-		$actual = $this->parseDomainPattern( $domain );
+		$actual = LinkFilter::makeIndexes( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
@@ -79,7 +80,7 @@ class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideUnsupportedDomainPattern
 	 */
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {
-		$actual = $this->parseDomainPattern( $domain );
+		$actual = LinkFilter::makeIndexes( $domain );
 		$this->assertSame( $expected, $actual );
 	}
 
