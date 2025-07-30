@@ -1271,11 +1271,12 @@ class Query {
 						if (
 							str_ends_with( $decoded, '%' ) &&
 							!str_ends_with( $decoded, '.%' ) &&
-							!str_starts_with( $decoded, '%' )
+							!str_starts_with( $link, '%' )
 						) {
 							// Fix edge-case where we try to use % as the dot
 							$decoded = '%' . rtrim( $decoded, '%' );
 						}
+						var_dump( $decoded );
 
 						$conditions[] = [ 'el_to_domain_index', $decoded ];
 					}
