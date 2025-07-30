@@ -1251,6 +1251,15 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			$group = [];
 			foreach ( $linkGroup as $link ) {
+				if (
+					str_ends_with( $link, '%' ) &&
+					!str_ends_with( $link, '.%' ) &&
+					!str_starts_with( $link, '%' )
+				) {
+					// Fix edge-case where we try to use % as the dot
+					$link = '%' . rtrim( $link, '%' );
+				}
+
 				// Encode real percent signs used for LIKE matches to avoid
 				// LinkFilter encoding it as %25.
 				$link = str_replace( '%', $likePlaceholder, $link );
@@ -1260,15 +1269,6 @@ class Query {
 					!str_starts_with( $link, '//' )
 				) {
 					$link = "//$link";
-				}
-
-				if (
-					str_ends_with( $link, '%' ) &&
-					!str_ends_with( $link, '.%' ) &&
-					!str_starts_with( $link, '%' )
-				) {
-					// Fix edge-case where we try to use % as the dot
-					$link = '%' . rtrim( $link, '%' );
 				}
 
 				$indexes = LinkFilter::makeIndexes( $link );
