@@ -1262,9 +1262,13 @@ class Query {
 					$link = "//$link";
 				}
 
-				if ( preg_match( '/^[a-z0-9\-]+%$/i', $link ) ) {
-					// Rewrite example% → %.example
-					$link = '%.' . rtrim( $link, '%' );
+				if (
+					str_ends_with( $link, '%' ) &&
+					!str_ends_with( $link, '.%' ) &&
+					!str_starts_with( $link, '%' )
+				) {
+					// Fix edge-case where we try to use % as the dot
+					$link = '%' . rtrim( $link, '%' );
 				}
 
 				$indexes = LinkFilter::makeIndexes( $link );
