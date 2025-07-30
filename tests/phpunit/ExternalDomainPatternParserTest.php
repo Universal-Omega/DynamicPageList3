@@ -18,7 +18,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideDomainPattern
 	 */
 	public function testParseDomainPattern( string $domain, string $expected ): void {
-		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0] );
+		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0][0] );
 		$this->assertSame( $expected, $actual );
 	}
 
@@ -78,7 +78,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideUnsupportedDomainPattern
 	 */
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {
-		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0] );
+		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0][0] );
 		$this->assertSame( $expected, $actual );
 	}
 
