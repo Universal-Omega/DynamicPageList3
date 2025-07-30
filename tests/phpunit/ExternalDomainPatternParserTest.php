@@ -55,7 +55,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		// Domain with wildcard at the beginning without separation
 		yield 'wildcard at beginning no separator' => [
-			'//%example.com/test123/test?test=%',
+			'//%example%.com/test123/test?test=%',
 			'https://com.%example%.',
 		];
 
@@ -68,7 +68,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 		// Domain with wildcard at the beginning separated by `.` from one side
 		yield 'wildcard beginning separated by dot one side' => [
 			'//www.%example.com',
-			'https://com.%example%.www.',
+			'https://com.%example.www.',
 		];
 
 		// Domain with wildcard at the beginning separated by `.` from the other side
@@ -109,7 +109,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 		// Multiple wildcards in domain middle, no dot separation
 		yield 'multiple wildcards middle no dot' => [
 			'//%www%example.com',
-			'https://com.%www%example%.',
+			'https://com.%www%example.',
 		];
 
 		// When wildcard should cover `/` we would generate garbage
