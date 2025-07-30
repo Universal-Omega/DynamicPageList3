@@ -1251,15 +1251,6 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			$group = [];
 			foreach ( $linkGroup as $link ) {
-				if (
-					str_ends_with( $link, '%' ) &&
-					!str_ends_with( $link, '.%' ) &&
-					!str_starts_with( $link, '%' )
-				) {
-					// Fix edge-case where we try to use % as the dot
-					$link = '%' . rtrim( $link, '%' );
-				}
-
 				// Encode real percent signs used for LIKE matches to avoid
 				// LinkFilter encoding it as %25.
 				$link = str_replace( '%', $likePlaceholder, $link );
@@ -1276,7 +1267,17 @@ class Query {
 					[ $domain, $path ] = $indexes[0];
 					$conditions = [];
 					if ( $domain !== null ) {
-						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
+						$decoded = str_replace( $likePlaceholder, '%', $domain );
+						if (
+							str_ends_with( $decoded, '%' ) &&
+							!str_ends_with( $decoded, '.%' ) &&
+							!str_starts_with( $decoded, '%' )
+						) {
+							// Fix edge-case where we try to use % as the dot
+							$decoded = '%' . rtrim( $decoded, '%' );
+						}
+
+						$conditions[] = [ 'el_to_domain_index', $decoded ];
 					}
 
 					if ( $path !== null ) {
