@@ -1267,20 +1267,7 @@ class Query {
 					[ $domain, $path ] = $indexes[0];
 					$conditions = [];
 					if ( $domain !== null ) {
-						$decoded = str_replace( $likePlaceholder, '%', $domain );
-						if (
-							str_ends_with( $decoded, '%.' ) &&
-							!str_starts_with( $decoded, '//%' )
-						) {
-							// Fix edge-case where we try to use % as the dot
-							if ( $decoded[-2] === '%' && $decoded[-1] === '.' ) {
-								$decoded = substr_replace( $decoded, '', -2, 1 );
-								$decoded = substr_replace( $decoded, '%', strpos( $decoded, '//' ) + 2, 0 );
-							}
-						}
-						var_dump( $decoded );
-
-						$conditions[] = [ 'el_to_domain_index', $decoded ];
+						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
 					}
 
 					if ( $path !== null ) {
