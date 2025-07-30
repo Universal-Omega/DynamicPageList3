@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -124,7 +125,8 @@ class Article {
 		$article->mID = (int)( $row->page_id ?? 0 );
 
 		// External link
-		$article->mExternalLink = $row->el_to ?? '';
+		$article->mExternalLink = LinkFilter::reverseIndexes( $row->el_to_domain_index ?? '' ) .
+			( $row->el_to_path ?? '' );
 
 		// SHOW PAGE_COUNTER
 		$article->mCounter = (int)( $row->page_counter ?? 0 );

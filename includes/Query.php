@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use LogicException;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -25,6 +26,7 @@ use function array_map;
 use function array_merge;
 use function array_slice;
 use function array_unique;
+use function bin2hex;
 use function count;
 use function floor;
 use function hash;
@@ -39,6 +41,7 @@ use function mb_strtoupper;
 use function method_exists;
 use function min;
 use function preg_split;
+use function random_bytes;
 use function str_contains;
 use function str_replace;
 use function str_starts_with;
@@ -52,8 +55,6 @@ use const PREG_SPLIT_DELIM_CAPTURE;
 use const PREG_SPLIT_NO_EMPTY;
 
 class Query {
-
-	use ExternalDomainPatternParser;
 
 	private readonly Config $config;
 	private readonly IReadableDatabase $dbr;
@@ -1237,88 +1238,81 @@ class Query {
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
 	private function _linkstoexternal( array $option ): void {
-		$this->_linkstoexternaldomain( $option );
-	}
-
-	/**
-	 * Set SQL for 'linkstoexternaldomain' parameter.
-	 */
-	private function _linkstoexternaldomain( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
+		// We use random bytes to avoid any possible conflicts where
+		// a page actually uses this placeholder.
+		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
 
-		foreach ( $option as $index => $domains ) {
-			$patterns = array_map(
-				fn ( string $domain ): string => $this->parseDomainPattern( $domain ),
-				$domains
-			);
+		$groups = [];
+		foreach ( $option as $linkGroup ) {
+			$group = [];
+			foreach ( $linkGroup as $link ) {
+				// Encode real percent signs used for LIKE matches to avoid
+				// LinkFilter encoding it as %25.
+				$link = str_replace( '%', $likePlaceholder, $link );
+				if (
+					!str_contains( $link, '://' ) &&
+					!str_starts_with( $link, 'mailto:' ) &&
+					!str_starts_with( $link, '//' )
+				) {
+					$link = "//$link";
+				}
 
-			$ors = [];
-			foreach ( $patterns as $pattern ) {
-				$ors[] = $this->dbr->expr( 'el.el_to_domain_index', IExpression::LIKE,
-					new LikeValue( ...$this->splitLikePattern( $pattern ) )
-				);
+				$indexes = LinkFilter::makeIndexes( $link );
+				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
+					[ $domain, $path ] = $indexes[0];
+					$conditions = [];
+					if ( $domain !== null ) {
+						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
+					}
+
+					if ( $path !== null ) {
+						$conditions[] = [ 'el_to_path', str_replace( $likePlaceholder, '%', $path ) ];
+					}
+
+					if ( $conditions !== [] ) {
+						$group[] = $conditions;
+					}
+				}
 			}
 
+			if ( $group !== [] ) {
+				$groups[] = $group;
+			}
+		}
+
+		foreach ( $groups as $index => $group ) {
+			$orConditions = [];
+			foreach ( $group as $conditions ) {
+				$ands = [];
+				foreach ( $conditions as [ $field, $pattern ] ) {
+					$this->queryBuilder->select( [ $field => "el.$field" ] );
+					$ands[] = $this->dbr->expr( "el.$field", IExpression::LIKE,
+						new LikeValue( ...$this->splitLikePattern( $pattern ) )
+					);
+				}
+
+				$orConditions[] = $this->dbr->makeList( $ands, IDatabase::LIST_AND );
+			}
+
+			$where = [
+				'el.el_from = page.page_id',
+				$this->dbr->makeList( $orConditions, IDatabase::LIST_OR ),
+			];
+
 			if ( $index === 0 ) {
-				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] );
+				$this->queryBuilder->where( $where );
 				continue;
 			}
 
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'el_from' )
 				->from( 'externallinks', 'el' )
-				->where( [
-					'el.el_from = page.page_id',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] )
-				->caller( __METHOD__ )
-				->getSQL();
-
-			$this->queryBuilder->where( "EXISTS($subquery)" );
-		}
-	}
-
-	/**
-	 * Set SQL for 'linkstoexternalpath' parameter.
-	 */
-	private function _linkstoexternalpath( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
-		}
-
-		$this->queryBuilder->table( 'externallinks', 'el' );
-		$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
-
-		foreach ( $option as $index => $paths ) {
-			$ors = array_map(
-				fn ( string $path ): Expression =>
-					$this->dbr->expr( 'el.el_to_path', IExpression::LIKE, new LikeValue( $path ) ),
-				$paths
-			);
-
-			if ( $index === 0 ) {
-				$this->queryBuilder->where( [
-					'page.page_id = el.el_from',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] );
-				continue;
-			}
-
-			$subquery = $this->queryBuilder->newSubquery()
-				->select( 'el_from' )
-				->from( 'externallinks', 'el' )
-				->where( [
-					'el.el_from = page.page_id',
-					$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-				] )
+				->where( $where )
 				->caller( __METHOD__ )
 				->getSQL();
 
