@@ -486,38 +486,6 @@ class Query {
 		}
 	}
 
-	private function addExternalLinkConditions( string $field, array $values ): void {
-		$this->queryBuilder->select( [ $field => 'el.' . $field ] );
-		foreach ( $values as $index => $group ) {
-			$ors = array_map(
-				fn ( string $pattern ): Expression =>
-					$this->dbr->expr( 'el.' . $field, IExpression::LIKE,
-						new LikeValue( ...$this->splitLikePattern( $pattern ) )
-					),
-				$group
-			);
-
-			$where = [
-				'el.el_from = page.page_id',
-				$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-			];
-
-			if ( $index === 0 ) {
-				$this->queryBuilder->where( $where );
-				continue;
-			}
-
-			$subquery = $this->queryBuilder->newSubquery()
-				->select( 'el_from' )
-				->from( 'externallinks', 'el' )
-				->where( $where )
-				->caller( __METHOD__ )
-				->getSQL();
-
-			$this->queryBuilder->where( "EXISTS($subquery)" );
-		}
-	}
-
 	// @phpcs:disable MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
 	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
 
@@ -1278,15 +1246,16 @@ class Query {
 		// We use random bytes to avoid any possible conflicts where
 		// a page actually uses this placeholder.
 		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
+		foreach ( $option as $groupIndex => $linkGroup ) {
+			$groupOrConditions = [];
 
-		$domains = [];
-		$paths = [];
-		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				// Encode real percent signs used for LIKE matches to avoid
 				// LinkFilter encoding it as %25.
 				$link = str_replace( '%', $likePlaceholder, $link );
-				if ( !str_contains( $link, '://' ) &&
+
+				if (
+					!str_contains( $link, '://' ) &&
 					!str_starts_with( $link, 'mailto:' ) &&
 					!str_starts_with( $link, '//' )
 				) {
@@ -1296,25 +1265,57 @@ class Query {
 				$indexes = LinkFilter::makeIndexes( $link );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
-					if ( $domain !== null ) {
-						$domains[] = str_replace( $likePlaceholder, '%', $domain );
+					$conditions = [];
+					if ( $domain !== null && $domain !== '' ) {
+						$domain = str_replace( $likePlaceholder, '%', $domain );
+						$conditions[] = $this->dbr->expr(
+							'el.el_to_domain_index',
+							IExpression::LIKE,
+							new LikeValue( ...$this->splitLikePattern( $domain ) )
+						);
 					}
 
-					if ( $path !== null ) {
-						$paths[] = str_replace( $likePlaceholder, '%', $path );
+					if ( $path !== null && $path !== '' ) {
+						$path = str_replace( $likePlaceholder, '%', $path );
+						$conditions[] = $this->dbr->expr(
+							'el.el_to_path',
+							IExpression::LIKE,
+							new LikeValue( ...$this->splitLikePattern( $path ) )
+						);
+					}
+
+					// Only add the condition if there's at least one matchable part
+					if ( $conditions ) {
+						// Use AND between domain and path conditions
+						$groupOrConditions[] = $this->dbr->makeList( $conditions, IDatabase::LIST_AND );
 					}
 				}
 			}
-		}
 
-		if ( $domains ) {
-			$this->addExternalLinkConditions( 'el_to_domain_index', [ $domains ] );
-		}
+			// Skip group if no valid links
+			if ( $groupOrConditions === [] ) {
+				continue;
+			}
 
-		if ( $paths ) {
-			$this->addExternalLinkConditions( 'el_to_path', [ $paths ] );
+			$where = [
+				'el.el_from = page.page_id',
+				// OR the combined domain+path conditions for each link in the group
+				$this->dbr->makeList( $groupOrConditions, IDatabase::LIST_OR )
+			];
+
+			if ( $groupIndex === 0 ) {
+				$this->queryBuilder->where( $where );
+			} else {
+				$subquery = $this->queryBuilder->newSubquery()
+					->select( 'el_from' )
+					->from( 'externallinks', 'el' )
+					->where( $where )
+					->caller( __METHOD__ )
+					->getSQL();
+
+				$this->queryBuilder->where( "EXISTS($subquery)" );
+			}
 		}
-		var_dump( [ $domains, $paths ] );
 	}
 
 	/**
