@@ -1248,18 +1248,16 @@ class Query {
 		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
 
 		$groups = [];
-
 		foreach ( $option as $linkGroup ) {
 			$group = [];
-
 			foreach ( $linkGroup as $link ) {
 				// Encode real percent signs used for LIKE matches to avoid
 				// LinkFilter encoding it as %25.
 				$link = str_replace( '%', $likePlaceholder, $link );
 				if (
-				!str_contains( $link, '://' ) &&
-				!str_starts_with( $link, 'mailto:' ) &&
-				!str_starts_with( $link, '//' )
+					!str_contains( $link, '://' ) &&
+					!str_starts_with( $link, 'mailto:' ) &&
+					!str_starts_with( $link, '//' )
 				) {
 					$link = "//$link";
 				}
@@ -1267,9 +1265,7 @@ class Query {
 				$indexes = LinkFilter::makeIndexes( $link );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
-
 					$conditions = [];
-
 					if ( $domain !== null ) {
 						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
 					}
@@ -1291,18 +1287,12 @@ class Query {
 
 		foreach ( $groups as $index => $group ) {
 			$orConditions = [];
-
 			foreach ( $group as $conditions ) {
 				$ands = [];
-
 				foreach ( $conditions as [ $field, $pattern ] ) {
-					// Ensure field is selected
 					$this->queryBuilder->select( [ $field => "el.$field" ] );
-
-					$ands[] = $this->dbr->expr(
-					"el.$field",
-					IExpression::LIKE,
-					new LikeValue( ...$this->splitLikePattern( $pattern ) )
+					$ands[] = $this->dbr->expr( "el.$field", IExpression::LIKE,
+						new LikeValue( ...$this->splitLikePattern( $pattern ) )
 					);
 				}
 
@@ -1310,8 +1300,8 @@ class Query {
 			}
 
 			$where = [
-			'el.el_from = page.page_id',
-			$this->dbr->makeList( $orConditions, IDatabase::LIST_OR )
+				'el.el_from = page.page_id',
+				$this->dbr->makeList( $orConditions, IDatabase::LIST_OR ),
 			];
 
 			if ( $index === 0 ) {
@@ -1320,11 +1310,11 @@ class Query {
 			}
 
 			$subquery = $this->queryBuilder->newSubquery()
-			->select( 'el_from' )
-			->from( 'externallinks', 'el' )
-			->where( $where )
-			->caller( __METHOD__ )
-			->getSQL();
+				->select( 'el_from' )
+				->from( 'externallinks', 'el' )
+				->where( $where )
+				->caller( __METHOD__ )
+				->getSQL();
 
 			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
