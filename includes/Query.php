@@ -485,7 +485,7 @@ class Query {
 			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
 		}
 	}
-	
+
 	private function addExternalLinkConditions( string $field, array $values ): void {
 		$this->queryBuilder->select( [ $field => 'el.' . $field ] );
 		foreach ( $values as $index => $group ) {
