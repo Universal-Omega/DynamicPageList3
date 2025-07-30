@@ -485,6 +485,38 @@ class Query {
 			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
 		}
 	}
+	
+	private function addExternalLinkConditions( string $field, array $values ): void {
+		$this->queryBuilder->select( [ $field => 'el.' . $field ] );
+		foreach ( $values as $index => $group ) {
+			$ors = array_map(
+				fn ( string $pattern ): Expression =>
+					$this->dbr->expr( 'el.' . $field, IExpression::LIKE,
+						new LikeValue( ...$this->splitLikePattern( $pattern ) )
+					),
+				$group
+			);
+
+			$where = [
+				'el.el_from = page.page_id',
+				$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
+			];
+
+			if ( $index === 0 ) {
+				$this->queryBuilder->where( $where );
+				continue;
+			}
+
+			$subquery = $this->queryBuilder->newSubquery()
+				->select( 'el_from' )
+				->from( 'externallinks', 'el' )
+				->where( $where )
+				->caller( __METHOD__ )
+				->getSQL();
+
+			$this->queryBuilder->where( "EXISTS($subquery)" );
+		}
+	}
 
 	// @phpcs:disable MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
 	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
@@ -1262,6 +1294,7 @@ class Query {
 				}
 
 				$indexes = LinkFilter::makeIndexes( $link );
+				var_dump( $indexes );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
@@ -1281,38 +1314,6 @@ class Query {
 
 		if ( $paths ) {
 			$this->addExternalLinkConditions( 'el_to_path', [ $paths ] );
-		}
-	}
-
-	private function addExternalLinkConditions( string $field, array $values ): void {
-		$this->queryBuilder->select( [ $field => 'el.' . $field ] );
-		foreach ( $values as $index => $group ) {
-			$ors = array_map(
-				fn ( string $pattern ): Expression =>
-					$this->dbr->expr( 'el.' . $field, IExpression::LIKE,
-						new LikeValue( ...$this->splitLikePattern( $pattern ) )
-					),
-				$group
-			);
-
-			$where = [
-				'el.el_from = page.page_id',
-				$this->dbr->makeList( $ors, IDatabase::LIST_OR ),
-			];
-
-			if ( $index === 0 ) {
-				$this->queryBuilder->where( $where );
-				continue;
-			}
-
-			$subquery = $this->queryBuilder->newSubquery()
-				->select( 'el_from' )
-				->from( 'externallinks', 'el' )
-				->where( $where )
-				->caller( __METHOD__ )
-				->getSQL();
-
-			$this->queryBuilder->where( "EXISTS($subquery)" );
 		}
 	}
 
