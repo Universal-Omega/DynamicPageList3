@@ -64,7 +64,7 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		yield 'wildcard beginning separated by dot other side' => [
 			// Domain with wildcard at the beginning separated by `.` from the other side
-			'//www.fandom%.com', 'https://com.%fandom%.www.',
+			'//www.%fandom%.com', 'https://com.%fandom%.www.',
 		];
 
 		yield 'duplicated wildcard' => [
