@@ -2019,9 +2019,7 @@ class Query {
 								);
 							} else {
 								$this->addWhere(
-									'rev.rev_timestamp = (SELECT MAX(rev_aux.rev_timestamp) FROM ' .
-									$this->dbr->tableName( 'revision' ) .
-									' AS rev_aux WHERE rev_aux.rev_page = rev.rev_page)'
+									"rev.rev_id = {$this->dbr->tableName( 'page' )}.page_latest"
 								);
 							}
 						}
