@@ -44,32 +44,32 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		yield 'percent at beginning guessing protocol' => [
 			// Domain with `%` at the beginning. We have to guess the protocol
-			'%.fandom.com/test123/test?test=%', '%://com.fandom.%.',
+			'//%.fandom.com/test123/test?test=%', '//%://com.fandom.%.',
 		];
 
 		yield 'wildcard at beginning no separator' => [
 			// Domain with wildcard at the beginning without separation
-			'%fandom.com/test123/test?test=%', '%://com.%fandom%.',
+			'//%fandom.com/test123/test?test=%', '%://com.%fandom%.',
 		];
 
 		yield 'wildcard in middle separated by dot' => [
 			// Domain with wildcard in the middle, separated by `.`
-			'www.%.com/test123/test?test=%', '%://com.%.www.',
+			'//www.%.com/test123/test?test=%', '%://com.%.www.',
 		];
 
 		yield 'wildcard beginning separated by dot one side' => [
 			// Domain with wildcard at the beginning separated by `.` from one side
-			'www.%fandom.com', '%://com.%fandom%.www.',
+			'//www.%fandom.com', '%://com.%fandom%.www.',
 		];
 
 		yield 'wildcard beginning separated by dot other side' => [
 			// Domain with wildcard at the beginning separated by `.` from the other side
-			'www.fandom%.com', '%://com.%fandom%.www.',
+			'//www.fandom%.com', '%://com.%fandom%.www.',
 		];
 
 		yield 'duplicated wildcard' => [
 			// Duplicated wildcard doesn't matter
-			'www.%%fandom.com', '%://com.%%fandom%.www.',
+			'//www.%%fandom.com', '%://com.%%fandom%.www.',
 		];
 	}
 
@@ -90,16 +90,16 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 		yield 'wildcard middle no dot after' => [
 			// Domain with wildcard in the middle not followed by `.` is not processed
-			'ww%fandom.com', '%://com.ww%fandom.',
+			'//ww%fandom.com', '%://com.ww%fandom.',
 		];
 
 		yield 'multiple wildcards middle no dot' => [
-			'%www%fandom.com', '%://com.%www%fandom%.',
+			'//%www%fandom.com', '%://com.%www%fandom%.',
 		];
 
 		yield 'wildcard covering slash leads to garbage' => [
 			// When wildcard should cover `/` we would generate garbage
-			'%fandom.%?test=%', '%://%?test=%%.%fandom%.',
+			'//%fandom.%?test=%', '%://%?test=%%.%fandom%.',
 		];
 	}
 }
