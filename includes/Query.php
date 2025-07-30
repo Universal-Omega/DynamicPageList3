@@ -1262,23 +1262,17 @@ class Query {
 					$link = "//$link";
 				}
 
+				if ( preg_match( '/^[a-z0-9\-]+%$/i', $link ) ) {
+					// Rewrite example% → %.example
+					$link = '%.' . rtrim( $link, '%' );
+				}
+
 				$indexes = LinkFilter::makeIndexes( $link );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					$conditions = [];
 					if ( $domain !== null ) {
-						$decoded = str_replace( $likePlaceholder, '%', $domain );
-						if (
-							!str_starts_with( $decoded, '%' ) &&
-							!str_contains( $decoded, '.%' ) &&
-							!str_contains( $decoded, '%.' )
-						) {
-							$parts = explode( '.', $decoded );
-							$parts = array_filter( $parts, static fn ( $p ) => $p !== '' );
-							$decoded = implode( '.', array_reverse( $parts ) ) . '.';
-						}
-
-						$conditions[] = [ 'el_to_domain_index', $decoded ];
+						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
 					}
 
 					if ( $path !== null ) {
