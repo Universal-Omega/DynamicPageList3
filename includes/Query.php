@@ -1237,15 +1237,17 @@ class Query {
 	/**
 	 * Set SQL for 'linkstoexternal' parameter.
 	 */
-	private function _linkstoexternal( array $option ): void {
+	protected function linkstoexternal( array $option ): void {
 		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
 			$this->queryBuilder->groupBy( 'page.page_title' );
 		}
 
 		$this->queryBuilder->table( 'externallinks', 'el' );
+
 		// We use random bytes to avoid any possible conflicts where
 		// a page actually uses this placeholder.
 		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
+
 		foreach ( $option as $groupIndex => $linkGroup ) {
 			$groupOrConditions = [];
 
@@ -1265,9 +1267,14 @@ class Query {
 				$indexes = LinkFilter::makeIndexes( $link );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
+
 					$conditions = [];
+
 					if ( $domain !== null && $domain !== '' ) {
 						$domain = str_replace( $likePlaceholder, '%', $domain );
+
+						$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
+
 						$conditions[] = $this->dbr->expr(
 							'el.el_to_domain_index',
 							IExpression::LIKE,
@@ -1277,6 +1284,9 @@ class Query {
 
 					if ( $path !== null && $path !== '' ) {
 						$path = str_replace( $likePlaceholder, '%', $path );
+
+						$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
+
 						$conditions[] = $this->dbr->expr(
 							'el.el_to_path',
 							IExpression::LIKE,
@@ -1284,15 +1294,14 @@ class Query {
 						);
 					}
 
-					// Only add the condition if there's at least one matchable part
+					// Combine domain and path with AND
 					if ( $conditions ) {
-						// Use AND between domain and path conditions
 						$groupOrConditions[] = $this->dbr->makeList( $conditions, IDatabase::LIST_AND );
 					}
 				}
 			}
 
-			// Skip group if no valid links
+			// Skip this group if no valid links
 			if ( $groupOrConditions === [] ) {
 				continue;
 			}
