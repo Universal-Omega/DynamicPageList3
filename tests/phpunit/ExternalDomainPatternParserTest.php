@@ -3,24 +3,21 @@
 namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use Generator;
-use MediaWiki\Extension\DynamicPageList4\ExternalDomainPatternParser;
 use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWikiIntegrationTestCase;
+use function str_replace;
 
 /**
  * @group DynamicPageList4
- * @covers \MediaWiki\Extension\DynamicPageList4\ExternalDomainPatternParser
  */
 class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
-
-	use ExternalDomainPatternParser;
 
 	/**
 	 * This test documents cases which are correctly supported
 	 * @dataProvider provideDomainPattern
 	 */
 	public function testParseDomainPattern( string $domain, string $expected ): void {
-		$actual = LinkFilter::makeIndexes( $domain );
+		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0] );
 		$this->assertSame( $expected, $actual );
 	}
 
@@ -80,7 +77,7 @@ class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideUnsupportedDomainPattern
 	 */
 	public function testUnsupportedDomainPatterns( string $domain, string $expected ): void {
-		$actual = LinkFilter::makeIndexes( $domain );
+		$actual = str_replace( '%25', '%', LinkFilter::makeIndexes( $domain )[0] );
 		$this->assertSame( $expected, $actual );
 	}
 
