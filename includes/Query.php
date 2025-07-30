@@ -1294,7 +1294,6 @@ class Query {
 				}
 
 				$indexes = LinkFilter::makeIndexes( $link );
-				var_dump( $indexes );
 				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
 					[ $domain, $path ] = $indexes[0];
 					if ( $domain !== null ) {
@@ -1315,6 +1314,7 @@ class Query {
 		if ( $paths ) {
 			$this->addExternalLinkConditions( 'el_to_path', [ $paths ] );
 		}
+		var_dump( [ $domains, $paths ] );
 	}
 
 	/**
