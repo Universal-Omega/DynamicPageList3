@@ -10,7 +10,7 @@ use function str_replace;
 /**
  * @group DynamicPageList4
  */
-class DPLExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
+class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * This test documents cases which are correctly supported
