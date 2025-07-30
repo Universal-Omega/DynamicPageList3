@@ -1273,7 +1273,7 @@ class Query {
 							!str_starts_with( $decoded, '//%' )
 						) {
 							// Fix edge-case where we try to use % as the dot
-							$decoded = '%' . rtrim( $decoded, '%' );
+							$decoded = substr_replace( $decoded, '%', strpos( $decoded, '//' ) + 2, 0 );
 						}
 						var_dump( $decoded );
 
