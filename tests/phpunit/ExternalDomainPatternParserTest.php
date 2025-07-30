@@ -23,53 +23,64 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public static function provideDomainPattern(): Generator {
+		// Full domain with extra path and without any wildcards
 		yield 'full domain no wildcards' => [
-			// Full domain with extra path and without any wildcards
-			'http://www.fandom.com/test123/test?test=%', 'http://com.fandom.www.',
+			'http://www.example.com/test123/test?test=%',
+			'http://com.example.www.',
 		];
 
+		// Protocol is preserved if specified (only protocols separated by `://` are supported)
 		yield 'protocol preserved irc' => [
-			// Protocol is preserved if specified (only protocols separated by `://` are supported)
-			'irc://starwars.%/test123/test', 'irc://%.starwars.',
+			'irc://subdomain.example/%/test123/test',
+			'irc://example.subdomain.',
 		];
 
+		// Protocol is preserved (https)
 		yield 'protocol preserved https' => [
-			'https://starwars.%/test123/test', 'https://%.starwars.',
+			'https://subdomain.example/%/test123/test',
+			'https://example.subdomain.',
 		];
 
+		// Domain with `%` at the end
 		yield 'percent at end' => [
-			// Domain with `%` at the end
-			'http://starwars.%/test123/test?test=%', 'http://%.starwars.',
+			'http://subdomain.example/%/test123/test?test=%',
+			'http://example.subdomain.',
 		];
 
+		// Domain with `%` at the beginning. We have to guess the protocol
 		yield 'percent at beginning guessing protocol' => [
-			// Domain with `%` at the beginning. We have to guess the protocol
-			'//%.fandom.com/test123/test?test=%', 'https://com.fandom.%.',
+			'//%.example.com/test123/test?test=%',
+			'https://com.example.%.',
 		];
 
+		// Domain with wildcard at the beginning without separation
 		yield 'wildcard at beginning no separator' => [
-			// Domain with wildcard at the beginning without separation
-			'//%fandom.com/test123/test?test=%', 'https://com.%fandom%.',
+			'//%example.com/test123/test?test=%',
+			'https://com.%example%.',
 		];
 
+		// Domain with wildcard in the middle, separated by `.`
 		yield 'wildcard in middle separated by dot' => [
-			// Domain with wildcard in the middle, separated by `.`
-			'//www.%.com/test123/test?test=%', 'https://com.%.www.',
+			'//www.%.com/test123/test?test=%',
+			'https://com.%.www.',
 		];
 
+		// Domain with wildcard at the beginning separated by `.` from one side
 		yield 'wildcard beginning separated by dot one side' => [
-			// Domain with wildcard at the beginning separated by `.` from one side
-			'//www.%fandom.com', 'https://com.%fandom%.www.',
+			'//www.%example.com',
+			'https://com.%example%.www.',
 		];
 
+		// Domain with wildcard at the beginning separated by `.` from the other side
 		yield 'wildcard beginning separated by dot other side' => [
-			// Domain with wildcard at the beginning separated by `.` from the other side
-			'//www.%fandom%.com', 'https://com.%fandom%.www.',
+			'//www.%example%.com',
+			'https://com.%example%.www.',
 		];
 
+		// Duplicated wildcard doesn't matter
 		yield 'duplicated wildcard' => [
-			// Duplicated wildcard doesn't matter
-			'//www.%%fandom.com', 'https://com.%%fandom.www.',
+			'//www.%%example.com',
+			'https://com.%%example.www.',
 		];
 	}
 
@@ -83,23 +94,28 @@ class ExternalDomainPatternParserTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public static function provideUnsupportedDomainPattern(): Generator {
+		// We are not supporting `_` as a `.`
 		yield 'underscore not dot' => [
-			// We are not supporting `_` as a `.`
-			'http://www.fandom_com', 'http://fandom_com.www.',
+			'http://www.example_com',
+			'http://example_com.www.',
 		];
 
+		// Domain with wildcard in the middle not followed by `.` is not processed
 		yield 'wildcard middle no dot after' => [
-			// Domain with wildcard in the middle not followed by `.` is not processed
-			'//ww%fandom.com', 'https://com.ww%fandom.',
+			'//ww%example.com',
+			'https://com.ww%example.',
 		];
 
+		// Multiple wildcards in domain middle, no dot separation
 		yield 'multiple wildcards middle no dot' => [
-			'//%www%fandom.com', 'https://com.%www%fandom%.',
+			'//%www%example.com',
+			'https://com.%www%example%.',
 		];
 
+		// When wildcard should cover `/` we would generate garbage
 		yield 'wildcard covering slash leads to garbage' => [
-			// When wildcard should cover `/` we would generate garbage
-			'//%fandom.%?test=%', 'https://%.%fandom.',
+			'//%example.%?test=%',
+			'https://%.%example.',
 		];
 	}
 }
