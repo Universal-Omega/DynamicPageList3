@@ -1235,97 +1235,100 @@ class Query {
 	}
 
 	/**
-	 * Set SQL for 'linkstoexternal' parameter.
-	 */
-	protected function linkstoexternal( array $option ): void {
-		if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
-			$this->queryBuilder->groupBy( 'page.page_title' );
+ * Set SQL for 'linkstoexternal' parameter.
+ */
+private function _linkstoexternal( array $option ): void {
+	if ( $this->parameters->getParameter( 'distinct' ) === 'strict' ) {
+		$this->queryBuilder->groupBy( 'page.page_title' );
+	}
+
+	$this->queryBuilder->table( 'externallinks', 'el' );
+	// We use random bytes to avoid any possible conflicts where
+	// a page actually uses this placeholder.
+	$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
+
+	$groups = [];
+
+	foreach ( $option as $linkGroup ) {
+		$group = [];
+
+		foreach ( $linkGroup as $link ) {
+			// Encode real percent signs used for LIKE matches to avoid
+			// LinkFilter encoding it as %25.
+			$link = str_replace( '%', $likePlaceholder, $link );
+			if (
+				!str_contains( $link, '://' ) &&
+				!str_starts_with( $link, 'mailto:' ) &&
+				!str_starts_with( $link, '//' )
+			) {
+				$link = "//$link";
+			}
+
+			$indexes = LinkFilter::makeIndexes( $link );
+			if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
+				[ $domain, $path ] = $indexes[0];
+
+				$conditions = [];
+
+				if ( $domain !== null ) {
+					$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
+				}
+
+				if ( $path !== null ) {
+					$conditions[] = [ 'el_to_path', str_replace( $likePlaceholder, '%', $path ) ];
+				}
+
+				if ( $conditions !== [] ) {
+					$group[] = $conditions;
+				}
+			}
 		}
 
-		$this->queryBuilder->table( 'externallinks', 'el' );
-
-		// We use random bytes to avoid any possible conflicts where
-		// a page actually uses this placeholder.
-		$likePlaceholder = 'dpl4_like_' . bin2hex( random_bytes( 4 ) ) . '_x';
-
-		foreach ( $option as $groupIndex => $linkGroup ) {
-			$groupOrConditions = [];
-
-			foreach ( $linkGroup as $link ) {
-				// Encode real percent signs used for LIKE matches to avoid
-				// LinkFilter encoding it as %25.
-				$link = str_replace( '%', $likePlaceholder, $link );
-
-				if (
-					!str_contains( $link, '://' ) &&
-					!str_starts_with( $link, 'mailto:' ) &&
-					!str_starts_with( $link, '//' )
-				) {
-					$link = "//$link";
-				}
-
-				$indexes = LinkFilter::makeIndexes( $link );
-				if ( isset( $indexes[0] ) && is_array( $indexes[0] ) ) {
-					[ $domain, $path ] = $indexes[0];
-
-					$conditions = [];
-
-					if ( $domain !== null && $domain !== '' ) {
-						$domain = str_replace( $likePlaceholder, '%', $domain );
-
-						$this->queryBuilder->select( [ 'el_to_domain_index' => 'el.el_to_domain_index' ] );
-
-						$conditions[] = $this->dbr->expr(
-							'el.el_to_domain_index',
-							IExpression::LIKE,
-							new LikeValue( ...$this->splitLikePattern( $domain ) )
-						);
-					}
-
-					if ( $path !== null && $path !== '' ) {
-						$path = str_replace( $likePlaceholder, '%', $path );
-
-						$this->queryBuilder->select( [ 'el_to_path' => 'el.el_to_path' ] );
-
-						$conditions[] = $this->dbr->expr(
-							'el.el_to_path',
-							IExpression::LIKE,
-							new LikeValue( ...$this->splitLikePattern( $path ) )
-						);
-					}
-
-					// Combine domain and path with AND
-					if ( $conditions ) {
-						$groupOrConditions[] = $this->dbr->makeList( $conditions, IDatabase::LIST_AND );
-					}
-				}
-			}
-
-			// Skip this group if no valid links
-			if ( $groupOrConditions === [] ) {
-				continue;
-			}
-
-			$where = [
-				'el.el_from = page.page_id',
-				// OR the combined domain+path conditions for each link in the group
-				$this->dbr->makeList( $groupOrConditions, IDatabase::LIST_OR )
-			];
-
-			if ( $groupIndex === 0 ) {
-				$this->queryBuilder->where( $where );
-			} else {
-				$subquery = $this->queryBuilder->newSubquery()
-					->select( 'el_from' )
-					->from( 'externallinks', 'el' )
-					->where( $where )
-					->caller( __METHOD__ )
-					->getSQL();
-
-				$this->queryBuilder->where( "EXISTS($subquery)" );
-			}
+		if ( $group !== [] ) {
+			$groups[] = $group;
 		}
 	}
+
+	foreach ( $groups as $index => $group ) {
+		$orConditions = [];
+
+		foreach ( $group as $conditions ) {
+			$ands = [];
+
+			foreach ( $conditions as [ $field, $pattern ] ) {
+				// Ensure field is selected
+				$this->queryBuilder->select( [ $field => "el.$field" ] );
+
+				$ands[] = $this->dbr->expr(
+					"el.$field",
+					IExpression::LIKE,
+					new LikeValue( ...$this->splitLikePattern( $pattern ) )
+				);
+			}
+
+			$orConditions[] = $this->dbr->makeList( $ands, IDatabase::LIST_AND );
+		}
+
+		$where = [
+			'el.el_from = page.page_id',
+			$this->dbr->makeList( $orConditions, IDatabase::LIST_OR )
+		];
+
+		if ( $index === 0 ) {
+			$this->queryBuilder->where( $where );
+			continue;
+		}
+
+		$subquery = $this->queryBuilder->newSubquery()
+			->select( 'el_from' )
+			->from( 'externallinks', 'el' )
+			->where( $where )
+			->caller( __METHOD__ )
+			->getSQL();
+
+		$this->queryBuilder->where( "EXISTS($subquery)" );
+	}
+}
 
 	/**
 	 * Set SQL for 'maxrevisions' parameter.
