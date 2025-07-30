@@ -1269,9 +1269,8 @@ class Query {
 					if ( $domain !== null ) {
 						$decoded = str_replace( $likePlaceholder, '%', $domain );
 						if (
-							str_ends_with( $decoded, '%' ) &&
-							!str_ends_with( $decoded, '.%' ) &&
-							!str_starts_with( $link, '%' )
+							str_ends_with( $decoded, '%.' ) &&
+							!str_starts_with( $decoded, '//%' )
 						) {
 							// Fix edge-case where we try to use % as the dot
 							$decoded = '%' . rtrim( $decoded, '%' );
