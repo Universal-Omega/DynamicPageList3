@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
@@ -158,9 +159,12 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	 * Test external link handling
 	 */
 	public function testNewFromRowWithExternalLink(): void {
+		$url = 'https://example.com/example';
+		[ [ $domain, $path ] ] = LinkFilter::makeIndexes( $url );
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'el_to' => 'https://example.com',
+			'el_to_domain_index' => $domain,
+			'el_to_path' => $path,
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -170,7 +174,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		$parameters = $this->createMockParameters( [] );
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
 
-		$this->assertSame( 'https://example.com', $article->mExternalLink );
+		$this->assertSame( $url, $article->mExternalLink );
 	}
 
 	/**
