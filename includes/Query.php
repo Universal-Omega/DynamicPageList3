@@ -1267,7 +1267,18 @@ class Query {
 					[ $domain, $path ] = $indexes[0];
 					$conditions = [];
 					if ( $domain !== null ) {
-						$conditions[] = [ 'el_to_domain_index', str_replace( $likePlaceholder, '%', $domain ) ];
+						$decoded = str_replace( $likePlaceholder, '%', $domain );
+						if (
+							!str_starts_with( $decoded, '%' ) &&
+							!str_contains( $decoded, '.%' ) &&
+							!str_contains( $decoded, '%.' )
+						) {
+							$parts = explode( '.', $decoded );
+							$parts = array_filter( $parts, static fn ( $p ) => $p !== '' );
+							$decoded = implode( '.', array_reverse( $parts ) ) . '.';
+						}
+
+						$conditions[] = [ 'el_to_domain_index', $decoded ];
 					}
 
 					if ( $path !== null ) {
