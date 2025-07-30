@@ -8,6 +8,9 @@ use MediaWikiIntegrationTestCase;
 use function str_replace;
 
 /**
+ * These tests are just to ensure that LinkFilter::makeIndexes
+ * returns the correct results for linkstoexternal.
+ *
  * @coversNothing
  * @group DynamicPageList4
  */
