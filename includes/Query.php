@@ -56,8 +56,6 @@ use const PREG_SPLIT_NO_EMPTY;
 
 class Query {
 
-	use ExternalDomainPatternParser;
-
 	private readonly Config $config;
 	private readonly IReadableDatabase $dbr;
 	private readonly SelectQueryBuilder $queryBuilder;
