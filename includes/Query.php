@@ -1435,7 +1435,7 @@ class Query {
 			->select( '1' )
 			->from( 'revision' )
 			->where( [
-				'rev_page = page.page_id',
+				'rev_page = p.page_id',
 				"rev_actor = $actorID",
 				'rev_deleted = 0',
 			] )
