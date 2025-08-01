@@ -357,7 +357,7 @@ class Query {
 		$isNewSchema = false;
 		if ( version_compare( MW_VERSION, '1.45', '>=' ) ) {
 			$config = Config::getInstance();
-			$schemaStage = $config->get( MainConfigNames::CategoryLinksSchemaMigrationStage );
+			$schemaStage = $config->get( 'CategoryLinksSchemaMigrationStage' );
 			$isNewSchema = $schemaStage & SCHEMA_COMPAT_READ_NEW;
 		}
 
@@ -731,12 +731,10 @@ class Query {
 	 */
 	private function _articlecategory( string $option ): void {
 		$dbKey = str_replace( ' ', '_', $option );
-		$newSchema = false;
-		$categoryJoin = '';
-
+		$isNewSchema = false;
 		if ( version_compare( MW_VERSION, '1.45', '>=' ) ) {
-			$schemaStage = $this->config->get( MainConfigNames::CategoryLinksSchemaMigrationStage );
-			$newSchema = $schemaStage & SCHEMA_COMPAT_READ_NEW;
+			$schemaStage = $this->config->get( 'CategoryLinksSchemaMigrationStage' );
+			$isNewSchema = $schemaStage & SCHEMA_COMPAT_READ_NEW;
 		}
 
 		$builder = $this->queryBuilder->newSubquery()
@@ -746,7 +744,7 @@ class Query {
 			->where( [ 'p2.page_namespace' => NS_MAIN ] )
 			->caller( __METHOD__ );
 
-		if ( $newSchema ) {
+		if ( $isNewSchema ) {
 			$builder->join( 'linktarget', 'lt', 'lt.lt_id = clstc.cl_target_id' );
 			$builder->andWhere( [
 				'lt.lt_namespace' => NS_CATEGORY,
