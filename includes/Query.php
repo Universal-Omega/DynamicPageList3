@@ -19,6 +19,7 @@ use Wikimedia\Rdbms\IExpression;
 use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
+use Wikimedia\Rdbms\RawSQLValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\Subquery;
 use Wikimedia\Timestamp\TimestampException;
@@ -477,7 +478,7 @@ class Query {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'comment_text' )
 				->from( 'comment' )
-				->where( "comment.comment_id = {$tableAlias}rev_comment_id" )
+				->where( [ 'comment_id' => new RawSQLValue( "{$tableAlias}rev_comment_id" ) ] )
 				->limit( 1 )
 				->caller( __METHOD__ )
 				->getSQL();
@@ -501,13 +502,15 @@ class Query {
 			$minTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MIN(rev_aux_min.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_min' )
-				->where( 'rev_aux_min.rev_page = page.page_id' )
+				->where( [ 'rev_aux_min.rev_page' => new RawSQLValue( 'page.page_id' ) ] )
 				->caller( __METHOD__ )
-				->getSQL();
+				->getSQL() );
 
 			$this->queryBuilder->where( [
-				'page.page_id = rev.rev_page',
-				"rev.rev_timestamp = ($minTimestampSubquery)",
+				'page.page_id' => new RawSQLValue( 'rev.rev_page' ),
+				'rev.rev_timestamp' => new RawSQLValue(
+					new Subquery( $minTimestampSubquery )
+				),
 			] );
 
 			$this->adduser( tableAlias: 'rev' );
@@ -520,9 +523,11 @@ class Query {
 	 * @param bool $option @phan-unused-param
 	 */
 	private function _addcategories( bool $option ): void {
-		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
-		$this->queryBuilder->leftJoin( 'categorylinks', 'cl_gc', 'page_id = cl_gc.cl_from' );
 		$this->queryBuilder->groupBy( 'page.page_id' );
+		$this->queryBuilder->table( 'categorylinks', 'cl_gc' );
+		$this->queryBuilder->leftJoin( 'categorylinks', 'cl_gc',
+			[ 'page_id' => new RawSQLValue( 'cl_gc.cl_from' ) ]
+		);
 
 		$dbType = $this->dbr->getType();
 		if ( $dbType === 'mysql' ) {
@@ -543,7 +548,7 @@ class Query {
 			$subquery = $this->queryBuilder->newSubquery()
 				->select( 'cl_to' )
 				->from( 'categorylinks' )
-				->where( 'cl_from = page.page_id' )
+				->where( [ 'cl_from' => new RawSQLValue( 'page.page_id' ) ] )
 				->distinct()
 				->orderBy( 'cl_to', SelectQueryBuilder::SORT_ASC )
 				->caller( __METHOD__ )
@@ -571,7 +576,7 @@ class Query {
 			'contrib_deleted' => 'rc.rc_deleted',
 		] );
 
-		$this->queryBuilder->where( 'page.page_id = rc.rc_cur_id' );
+		$this->queryBuilder->where( [ 'page.page_id' => new RawSQLValue( 'rc.rc_cur_id' ) ] );
 		$this->queryBuilder->groupBy( 'rc.rc_cur_id' );
 	}
 
@@ -583,7 +588,7 @@ class Query {
 	private function _addeditdate( bool $option ): void {
 		$this->queryBuilder->table( 'revision', 'rev' );
 		$this->queryBuilder->select( 'rev.rev_timestamp' );
-		$this->queryBuilder->where( 'page.page_id = rev.rev_page' );
+		$this->queryBuilder->where( [ 'page.page_id' => new RawSQLValue( 'rev.rev_page' ) ] );
 	}
 
 	/**
@@ -609,13 +614,15 @@ class Query {
 			$maxTimestampSubquery = $this->queryBuilder->newSubquery()
 				->select( 'MAX(rev_aux_max.rev_timestamp)' )
 				->from( 'revision', 'rev_aux_max' )
-				->where( 'rev_aux_max.rev_page = page.page_id' )
+				->where( [ 'rev_aux_max.rev_page' => new RawSQLValue( 'page.page_id' ) ] )
 				->caller( __METHOD__ )
 				->getSQL();
 
 			$this->queryBuilder->where( [
-				'page.page_id = rev.rev_page',
-				"rev.rev_timestamp = ($maxTimestampSubquery)",
+				'page.page_id' => new RawSQLValue( 'rev.rev_page' ),
+				'rev.rev_timestamp' => new RawSQLValue(
+					new Subquery( $maxTimestampSubquery )
+				),
 			] );
 
 			$this->adduser( tableAlias: 'rev' );
@@ -635,8 +642,8 @@ class Query {
 		$this->queryBuilder->table( 'hit_counter' );
 		$this->queryBuilder->select( [ 'page_counter' => 'hit_counter.page_counter' ] );
 		if ( !isset( $this->queryBuilder->getQueryInfo()['join_conds']['hit_counter'] ) ) {
-			$this->queryBuilder->leftJoin( 'hit_counter', null,
-				'hit_counter.page_id = page.page_id'
+			$this->queryBuilder->leftJoin( 'hit_counter', 'hc',
+				[ 'hc.page_id' => new RawSQLValue( 'page.page_id' ) ]
 			);
 		}
 	}
@@ -679,7 +686,7 @@ class Query {
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
-			'page.page_id = rev.rev_page',
+			'page.page_id' => new RawSQLValue( 'rev.rev_page' ),
 			$this->dbr->expr( 'rev.rev_timestamp', '<', $this->convertTimestamp( $option ) ),
 		] );
 	}
@@ -695,7 +702,7 @@ class Query {
 		$this->setOrderDir( SelectQueryBuilder::SORT_DESC );
 
 		$this->queryBuilder->where( [
-			'page.page_id = rev.rev_page',
+			'page.page_id' => new RawSQLValue( 'rev.rev_page' ),
 			$this->dbr->expr( 'rev.rev_timestamp', '>=', $this->convertTimestamp( $option ) ),
 		] );
 	}
@@ -737,11 +744,19 @@ class Query {
 			->getSQL();
 
 		if ( is_numeric( $option[0] ) ) {
-			$this->queryBuilder->where( (int)$option[0] . " <= ($countSubquery)" );
+			$this->queryBuilder->where(
+				$this->dbr->expr( $option[0], '<=', new RawSQLValue(
+					new Subquery( $countSubquery )
+				) )
+			);
 		}
 
 		if ( isset( $option[1] ) && is_numeric( $option[1] ) ) {
-			$this->queryBuilder->where( (int)$option[1] . " >= ($countSubquery)" );
+			$this->queryBuilder->where(
+				$this->dbr->expr( $option[1], '>=', new RawSQLValue(
+					new Subquery( $countSubquery )
+				) )
+			);
 		}
 	}
 
@@ -856,10 +871,10 @@ class Query {
 		$this->adduser( tableAlias: 'creation_rev' );
 
 		$this->queryBuilder->where( [
-			$this->dbr->expr( 'creation_rev.rev_actor', '=', $user->getActorId() ),
-			'creation_rev.rev_page = page.page_id',
-			'creation_rev.rev_deleted = 0',
-			'creation_rev.rev_parent_id = 0',
+			'creation_rev.rev_actor' => $user->getActorId(),
+			'creation_rev.rev_page' => new RawSQLValue( 'page.page_id' ),
+			'creation_rev.rev_deleted' => 0,
+			'creation_rev.rev_parent_id' => 0,
 		] );
 	}
 
@@ -997,17 +1012,17 @@ class Query {
 			->select( 'rev_actor' )
 			->from( 'revision' )
 			->where( [
-				'rev_page = page.page_id',
-				'rev_deleted = 0',
+				'rev_page' = new RawSQLValue( 'page.page_id' ),
+				'rev_deleted' => 0,
 			] )
 			->orderBy( 'rev_timestamp', SelectQueryBuilder::SORT_DESC )
 			->limit( 1 )
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where(
-			$this->dbr->addQuotes( $user->getActorId() ) . " = ($subquery)"
-		);
+		$this->queryBuilder->where( [ $user->getActorId() => new RawSQLValue(
+			new Subquery( $subquery )
+		) ] );
 	}
 
 	/**
@@ -1035,7 +1050,9 @@ class Query {
 			->caller( __METHOD__ )
 			->getSQL();
 
-		$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
+		$this->queryBuilder->where( [ 'rev.rev_timestamp' => new RawSQLValue(
+			new Subquery( $subquery )
+		) ] );
 	}
 
 	/**
