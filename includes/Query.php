@@ -47,12 +47,15 @@ use function str_replace;
 use function str_starts_with;
 use function strtotime;
 use function substr;
+use function version_compare;
 use function wfMessage;
+use const MW_VERSION;
 use const NS_CATEGORY;
 use const NS_FILE;
 use const NS_MAIN;
 use const PREG_SPLIT_DELIM_CAPTURE;
 use const PREG_SPLIT_NO_EMPTY;
+use const SCHEMA_COMPAT_READ_NEW;
 
 class Query {
 
@@ -345,25 +348,48 @@ class Query {
 			->getReplicaDatabase( group: 'dpl4' );
 
 		if ( $depth > 2 ) {
-			// Hard constrain depth because lots of recursion is bad.
+			// Recursive limit to prevent full-blown explosion
 			$depth = 2;
 		}
 
-		$categories = $dbr->newSelectQueryBuilder()
-			->select( 'page_title' )
-			->from( 'page' )
-			->join( 'categorylinks', 'cl', 'p.page_id = cl.cl_from' )
-			->where( [
-				'p.page_namespace' => NS_CATEGORY,
-				'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
-			] )
-			->caller( __METHOD__ )
+		$dbKey = str_replace( ' ', '_', $categoryName );
+
+		$isNewSchema = false;
+		if ( version_compare( MW_VERSION, '1.45', '>=' ) ) {
+			$config = Config::getInstance();
+			$schemaStage = $config->get( MainConfigNames::CategoryLinksSchemaMigrationStage );
+			$isNewSchema = $schemaStage & SCHEMA_COMPAT_READ_NEW;
+		}
+
+		$queryBuilder = $dbr->newSelectQueryBuilder()
+			->select( 'p.page_title' )
+			->from( 'page', 'p' )
+			->where( [ 'p.page_namespace' => NS_CATEGORY ] )
 			->distinct()
-			->fetchFieldValues();
+			->caller( __METHOD__ );
+
+		if ( $isNewSchema ) {
+			$queryBuilder
+				->join( 'categorylinks', 'cl', 'p.page_id = cl.cl_from' )
+				->join( 'linktarget', 'lt', 'cl.cl_target_id = lt.lt_id' )
+				->andWhere( [
+					'lt.lt_namespace' => NS_CATEGORY,
+					'lt.lt_title' => $dbKey,
+				] );
+		} else {
+			$queryBuilder
+				->join( 'categorylinks', 'cl', 'p.page_id = cl.cl_from' )
+				->andWhere( [ 'cl.cl_to' => $dbKey ] );
+		}
+
+		$categories = $queryBuilder->fetchFieldValues();
 
 		foreach ( $categories as $category ) {
 			if ( $depth > 1 ) {
-				$categories = array_merge( $categories, self::getSubcategories( $category, $depth - 1 ) );
+				$categories = array_merge(
+					$categories,
+					self::getSubcategories( $category, $depth - 1 )
+				);
 			}
 		}
 
@@ -704,18 +730,33 @@ class Query {
 	 * Set SQL for 'articlecategory' parameter.
 	 */
 	private function _articlecategory( string $option ): void {
-		$subquery = $this->queryBuilder->newSubquery()
+		$dbKey = str_replace( ' ', '_', $option );
+		$newSchema = false;
+		$categoryJoin = '';
+
+		if ( version_compare( MW_VERSION, '1.45', '>=' ) ) {
+			$schemaStage = $this->config->get( MainConfigNames::CategoryLinksSchemaMigrationStage );
+			$newSchema = $schemaStage & SCHEMA_COMPAT_READ_NEW;
+		}
+
+		$builder = $this->queryBuilder->newSubquery()
 			->select( 'p2.page_title' )
 			->from( 'page', 'p2' )
 			->join( 'categorylinks', 'clstc', 'clstc.cl_from = p2.page_id' )
-			->where( [
-				'clstc.cl_to' => $option,
-				'p2.page_namespace' => NS_MAIN,
-			] )
-			->caller( __METHOD__ )
-			->getSQL();
+			->where( [ 'p2.page_namespace' => NS_MAIN ] )
+			->caller( __METHOD__ );
 
-		$this->queryBuilder->where( "p.page_title IN ($subquery)" );
+		if ( $newSchema ) {
+			$builder->join( 'linktarget', 'lt', 'lt.lt_id = clstc.cl_target_id' );
+			$builder->andWhere( [
+				'lt.lt_namespace' => NS_CATEGORY,
+				'lt.lt_title' => $dbKey,
+			] );
+		} else {
+			$builder->andWhere( [ 'clstc.cl_to' => $dbKey ] );
+		}
+
+		$this->queryBuilder->where( 'p.page_title IN (' . $builder->getSQL() . ')' );
 	}
 
 	/**
