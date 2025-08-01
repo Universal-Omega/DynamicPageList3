@@ -2134,9 +2134,9 @@ class Query {
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
 		$subquery = $this->queryBuilder->newSubquery()
-			->select( 'tl_notuses.tl_from' )
-			->from( 'templatelinks', 'tl_notuses' )
-			->join( 'linktarget', 'lt_notuses', 'lt_notuses.lt_id = tl_notuses.tl_target_id' );
+			->select( 'tln.tl_from' )
+			->from( 'templatelinks', 'tln' )
+			->join( 'linktarget', 'ltn', 'ltn.lt_id = tln.tl_target_id' );
 
 		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
@@ -2144,7 +2144,7 @@ class Query {
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
 				$dbkey = $link->getDBkey();
-				$fieldExpr = "lt_notuses.$titleField";
+				$fieldExpr = "ltn.$titleField";
 
 				if ( $ignoreCase ) {
 					$comparison = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
@@ -2153,7 +2153,7 @@ class Query {
 				}
 
 				$ors[] = $this->dbr->makeList( [
-					$this->dbr->expr( "lt_notuses.$nsField", '=', $link->getNamespace() ),
+					$this->dbr->expr( "ltn.$nsField", '=', $link->getNamespace() ),
 					$comparison,
 				], IDatabase::LIST_AND );
 			}
