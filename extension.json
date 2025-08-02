@@ -1,28 +1,17 @@
 {
 	"name": "DynamicPageList4",
-	"version": "4.0.0-alpha.4",
+	"version": "4.0.0-alpha.5",
 	"author": [
-		"'''Universal Omega'''",
-		"Alexia E. Smith",
-		"Gero Scholz"
+		"Universal Omega",
+		"..."
 	],
-	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
+	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList4",
 	"descriptionmsg": "dpl-desc",
 	"license-name": "GPL-3.0-or-later",
 	"type": "parserhook",
 	"requires": {
 		"MediaWiki": ">= 1.43.0"
 	},
-	"GroupPermissions": {
-		"sysop": {
-			"dpl_param_update_rules": true,
-			"dpl_param_delete_rules": true
-		}
-	},
-	"AvailableRights": [
-		"dpl_param_update_rules",
-		"dpl_param_delete_rules"
-	],
 	"MessagesDirs": {
 		"DynamicPageList4": [
 			"i18n"
@@ -57,21 +46,21 @@
 	"config": {
 		"DplSettings": {
 			"value": {
-				"allowedNamespaces": null,
+				"allowedNamespaces": [],
 				"allowUnlimitedCategories": false,
 				"allowUnlimitedResults": false,
+				"alwaysCacheResults": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
 				"maxCategoryCount": 4,
-				"minCategoryCount": 0,
-				"maxResultCount": 500,
-				"recursiveTagParse": false,
-				"recursivePreprocess": false,
-				"runFromProtectedPagesOnly": false,
-				"handleSectionTag": false,
-				"alwaysCacheResults": false,
 				"maxQueryTime": 10000,
-				"queryCacheTime": 0
+				"maxResultCount": 500,
+				"minCategoryCount": 0,
+				"overrideParameterDefaults": [],
+				"queryCacheTime": 0,
+				"recursivePreprocess": true,
+				"recursiveTagParse": false,
+				"runFromProtectedPagesOnly": false
 			}
 		}
 	},

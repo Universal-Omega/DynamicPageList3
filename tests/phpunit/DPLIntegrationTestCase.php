@@ -11,6 +11,10 @@ use MediaWiki\Status\Status;
 use MediaWiki\User\User;
 use MediaWiki\User\UserFactory;
 use MediaWikiIntegrationTestCase;
+use function dirname;
+use function explode;
+use function rtrim;
+use const NS_MAIN;
 
 abstract class DPLIntegrationTestCase extends MediaWikiIntegrationTestCase {
 

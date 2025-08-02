@@ -9,12 +9,49 @@ use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
+use function array_filter;
+use function array_intersect;
+use function array_key_last;
+use function array_keys;
+use function array_merge;
+use function array_reverse;
+use function array_slice;
+use function array_sum;
+use function array_values;
+use function asort;
+use function count;
+use function date;
+use function explode;
+use function implode;
+use function in_array;
+use function is_array;
+use function is_string;
+use function mb_strtoupper;
+use function microtime;
+use function min;
+use function preg_replace;
+use function preg_split;
+use function random_int;
+use function range;
+use function shuffle;
+use function sprintf;
+use function str_contains;
+use function str_replace;
+use function str_starts_with;
+use function strtolower;
+use function substr;
+use function substr_count;
+use function trim;
+use function ucfirst;
+use const NS_CATEGORY;
+use const NS_FILE;
 
 class Parse {
 
@@ -123,7 +160,7 @@ class Parse {
 			foreach ( $options as $option ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( !$this->parameters->$parameter( $option ) ) {
+				if ( !$this->parameters->processParameter( $parameter, $option ) ) {
 					// Do not build this into the output just yet. It will be collected at the end.
 					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $option );
 				}
@@ -143,7 +180,7 @@ class Parse {
 		// Construct internal keys for TableRow according to the structure of "include".
 		// This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' ) ?? [];
-		if ( $secLabels ) {
+		if ( $secLabels !== [] ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys(
 				$this->parameters->getParameter( 'tablerow' ),
 				$secLabels
@@ -198,7 +235,7 @@ class Parse {
 		$articles = $this->processQueryResults( $rows, $parser );
 
 		$sql = $query->getSqlQuery();
-		if ( $sql ) {
+		if ( $sql !== '' ) {
 			$this->addOutput( "$sql\n" );
 		}
 
@@ -255,7 +292,7 @@ class Parse {
 
 		// This could be different than TOTALPAGES. PAGES represents the total
 		// results within the constraints of SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() );
+		$this->setVariable( 'PAGES', (string)$lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$dplTime = sprintf( '%.3f sec. (%s)', microtime( true ) - $dplStartTime, date( 'Y/m/d H:i:s' ) );
@@ -350,7 +387,7 @@ class Parse {
 				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$imageContainer = $this->parameters->getParameter( 'imagecontainer' ) ?? [];
-				if ( $imageContainer ) {
+				if ( $imageContainer !== [] ) {
 					$pageNamespace = NS_FILE;
 					$pageTitle = $row->il_to;
 				} else {
@@ -473,7 +510,7 @@ class Parse {
 		}
 
 		$messages = $this->logger->getMessages( clearBuffer: false );
-		return ( $messages ? implode( "<br/>\n", $messages ) : '' )
+		return ( $messages ? implode( Html::element( 'br' ), $messages ) : '' )
 			. $this->getHeader()
 			. $this->getOutput()
 			. $this->getFooter();
@@ -481,7 +518,8 @@ class Parse {
 
 	private function setHeader( string $header ): void {
 		if ( $this->logger->getDebugLevel() === 5 ) {
-			$header = '<pre><nowiki>' . $header;
+			$header = Html::openElement( 'pre' ) .
+				Html::openElement( 'nowiki' ) . $header;
 		}
 
 		$this->header = $this->replaceVariables( $header );
@@ -493,7 +531,8 @@ class Parse {
 
 	private function setFooter( string $footer ): void {
 		if ( $this->logger->getDebugLevel() === 5 ) {
-			$footer .= '</nowiki></pre>';
+			$footer .= Html::closeElement( 'nowiki' ) .
+				Html::closeElement( 'pre' );
 		}
 
 		$this->footer = $this->replaceVariables( $footer );
@@ -644,10 +683,8 @@ class Parse {
 			$this->parameters->getParameter( 'mode' ) === 'category' &&
 			!array_intersect( $orderMethods, [ 'sortkey', 'title', 'titlewithoutnamespace' ] )
 		) {
-			$this->logger->addMessage(
-				Constants::FATAL_WRONGORDERMETHOD,
-				'mode=category',
-				'sortkey | title | titlewithoutnamespace'
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
+				'mode=category', 'sortkey | title | titlewithoutnamespace'
 			);
 			return false;
 		}
@@ -657,10 +694,8 @@ class Parse {
 			$this->parameters->getParameter( 'addpagetoucheddate' ) &&
 			!array_intersect( $orderMethods, [ 'pagetouched', 'title' ] )
 		) {
-			$this->logger->addMessage(
-				Constants::FATAL_WRONGORDERMETHOD,
-				'addpagetoucheddate=true',
-				'pagetouched | title'
+			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
+				'addpagetoucheddate=true', 'pagetouched | title'
 			);
 			return false;
 		}
@@ -754,22 +789,20 @@ class Parse {
 		$originalRow = $tableRow;
 		$tableRow = [];
 		$groupNr = -1;
-		$t = -1;
+		$t = 0;
 
 		foreach ( $sectionLabels as $label ) {
-			$t++;
 			$groupNr++;
-
 			if ( !str_contains( $label, '}:' ) ) {
 				if ( isset( $originalRow[$t] ) ) {
 					$tableRow[$groupNr] = $originalRow[$t];
 				}
+				$t++;
 				continue;
 			}
 
 			[ , $colsPart ] = explode( '}:', $label, 2 );
 			$n = substr_count( $colsPart, ':' ) + 1;
-			$t--;
 
 			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
 				if ( isset( $originalRow[$t] ) ) {

@@ -3,6 +3,8 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Html\Html;
+use function floor;
+use function wfMessage;
 
 class Logger {
 

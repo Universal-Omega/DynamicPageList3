@@ -7,6 +7,14 @@ use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Html\Html;
 use MediaWiki\Parser\Sanitizer;
+use function ceil;
+use function count;
+use function max;
+use function min;
+use function range;
+use function sprintf;
+use function strtolower;
+use function wfMessage;
 
 class Heading {
 
@@ -33,9 +41,9 @@ class Heading {
 	protected string $itemAttributes = '';
 
 	/** If the article count per heading should be shown. */
-	protected bool $showHeadingCount = false;
+	protected readonly bool $showHeadingCount;
 
-	public function __construct(
+	protected function __construct(
 		private readonly Parameters $parameters
 	) {
 		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
@@ -300,9 +308,9 @@ class Heading {
 	protected function articleCountMessage( int $count ): string {
 		$orderMethods = $this->parameters->getParameter( 'ordermethod' );
 		$message = ( $orderMethods[0] ?? null ) === 'category'
-			? 'categoryarticlecount'
+			? 'category-article-count-limited'
 			: 'dpl_articlecount';
 
-		return Html::element( 'p', [], wfMessage( $message, $count )->text() );
+		return Html::rawElement( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
 	}
 }
