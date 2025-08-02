@@ -108,16 +108,6 @@ class Article {
 				wfMessage( 'ellipsis' )->text();
 		}
 
-		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
-			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' .
-				htmlspecialchars( $titleText ) . ']';
-		} else {
-			$articleLink = '[[' . (
-				$parameters->getParameter( 'escapelinks' ) &&
-				( $pageNamespace === NS_CATEGORY || $pageNamespace === NS_FILE ) ? ':' : ''
-			) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
-		}
-
 		$isVideoExtensionEnabled = ExtensionRegistry::getInstance()->isLoaded( 'Video' );
 		$shouldEscape = $parameters->getParameter( 'escapelinks' ) &&
 			(
