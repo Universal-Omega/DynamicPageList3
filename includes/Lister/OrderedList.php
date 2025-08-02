@@ -2,60 +2,28 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
+use function sprintf;
+
 class OrderedList extends UnorderedList {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_ORDERED;
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<ol%s>';
+	protected int $style = parent::LIST_ORDERED;
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</ol>';
+	protected string $listStart = '<ol%s>';
+	protected string $listEnd = '</ol>';
 
-	/**
-	 * Offset Count
-	 *
-	 * @var int
-	 */
-	private $offsetCount = 0;
+	private int $offsetCount = 0;
 
-	/**
-	 * Format the list of articles.
-	 *
-	 * @param array $articles
-	 * @param int $start
-	 * @param int $count
-	 * @return string
-	 */
-	public function formatList( $articles, $start, $count ) {
+	public function formatList( array $articles, int $start, int $count ): string {
 		$this->offsetCount = $count;
-
 		return parent::formatList( $articles, $start, $count );
 	}
 
-	/**
-	 * Return $this->listStart with attributes replaced.
-	 *
-	 * @return string
-	 */
-	public function getListStart() {
+	protected function getListStart(): string {
 		// increase start value of ordered lists at multi-column output
 		// The offset that comes from the URL parameter is zero based, but has to be +1'ed for display.
-		$offset = $this->getParameters()->getParameter( 'offset' ) + 1;
+		$offset = $this->parameters->getParameter( 'offset' ) + 1;
 
-		if ( $offset != 0 ) {
+		if ( $offset !== 0 ) {
 			// @TODO: So this adds the total count of articles to the offset.
 			// I have not found a case where this does not mess up the displayed count.
 			// I am commenting this out for now.

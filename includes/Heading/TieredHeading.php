@@ -4,10 +4,12 @@ namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
 use MediaWiki\Extension\DynamicPageList4\Parameters;
+use function sprintf;
+use function substr;
 
 class TieredHeading extends Heading {
 
-	private string $tierLevel = 'eader';
+	private readonly string $tierLevel;
 
 	protected string $listStart = '<div%s>';
 	protected string $listEnd = '</div>';

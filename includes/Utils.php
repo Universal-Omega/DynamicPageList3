@@ -3,6 +3,9 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Registration\ExtensionRegistry;
+use function ctype_alnum;
+use function preg_replace;
+use function strlen;
 
 class Utils {
 

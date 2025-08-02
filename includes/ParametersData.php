@@ -2,6 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use function array_key_exists;
+use function array_merge;
+use function in_array;
+use function range;
+use function sort;
+
 class ParametersData {
 
 	protected readonly Config $config;
@@ -10,12 +16,12 @@ class ParametersData {
 	 * Parameter Richness
 	 * The level of parameters that is accesible for the user.
 	 */
-	private int $parameterRichness = 0;
+	private readonly int $parameterRichness;
 
 	/**
 	 * List of all the valid parameters that can be used per level of functional richness.
 	 */
-	private array $parametersForRichnessLevel = [
+	private const PARAMETERS_BY_RICHNESS = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
@@ -33,7 +39,6 @@ class ParametersData {
 			'showcurid',
 			'shownamespace',
 			'stablepages',
-			'suppresserrors',
 		],
 		1 => [
 			'allowcachedresults',
@@ -133,8 +138,6 @@ class ParametersData {
 			'firstrevisionsince',
 			'lastrevisionbefore',
 			'linkstoexternal',
-			'linkstoexternaldomain',
-			'linkstoexternalpath',
 			'maxrevisions',
 			'minrevisions',
 			'notcategorymatch',
@@ -144,11 +147,7 @@ class ParametersData {
 			'openreferences',
 			'titleregexp',
 		],
-		4 => [
-			'deleterules',
-			'goal',
-			'updaterules',
-		],
+		4 => [ 'goal' ],
 	];
 
 	/**
@@ -265,7 +264,7 @@ class ParametersData {
 		 * hiddencategories
 		 */
 		'hiddencategories' => [
-			'default' => 'include',
+			'default' => null,
 			'values' => [ 'include', 'exclude', 'only' ],
 		],
 
@@ -368,12 +367,6 @@ class ParametersData {
 		'headingmode' => [
 			'default' => 'none',
 			'values' => [
-				'H1',
-				'H2',
-				'H3',
-				'H4',
-				'H5',
-				'H6',
 				'h1',
 				'h2',
 				'h3',
@@ -586,38 +579,12 @@ class ParametersData {
 		],
 
 		/**
-		 * Alias for `linkstoexternaldomain`.
-		 * To mimic old behaviour use `linkstoexternaldomain` together with `linkstoexternalpath`
+		 * This parameter restricts the output to articles which contain an external
+		 * reference that contains a certain pattern.
+		 *
+		 * Example: linkstoexternal=www.xyz.com|www.xyz2.%|%/abc/%|/xyz/%
 		 */
 		'linkstoexternal' => [
-			'default' => null,
-			'open_ref_conflict' => true,
-			'page_name_list' => true,
-			'page_name_must_exist' => false,
-			'set_criteria_found' => true,
-		],
-
-		/**
-		 * This parameter restricts the output to articles which contain an external
-		 * domain reference that contains a certain pattern.
-		 *
-		 * Example: linkstoexternaldomain=www.xyz.com|www.xyz2.%
-		 */
-		'linkstoexternaldomain' => [
-			'default' => null,
-			'open_ref_conflict' => true,
-			'page_name_list' => true,
-			'page_name_must_exist' => false,
-			'set_criteria_found' => true,
-		],
-
-		/**
-		 * This parameter restricts the output to articles which contain an external
-		 * path reference that contains a certain pattern.
-		 *
-		 * Example: linkstoexternalpath=/xyz/%|%/abc/%
-		 */
-		'linkstoexternalpath' => [
 			'default' => null,
 			'open_ref_conflict' => true,
 			'page_name_list' => true,
@@ -862,11 +829,13 @@ class ParametersData {
 			'default' => null,
 			'db_format' => true,
 			'set_criteria_found' => true,
+			'preserve_case' => true,
 		],
 		'titlegt' => [
 			'default' => null,
 			'db_format' => true,
 			'set_criteria_found' => true,
+			'preserve_case' => true,
 		],
 		'scroll' => [
 			'default' => false,
@@ -881,14 +850,6 @@ class ParametersData {
 		'userdateformat' => [
 			'default' => 'Y-m-d H:i:s',
 			'strip_html' => true,
-		],
-		'updaterules' => [
-			'default' => null,
-			'permission' => 'dpl_param_update_rules',
-		],
-		'deleterules' => [
-			'default' => null,
-			'permission' => 'dpl_param_delete_rules',
 		],
 
 		/**
@@ -996,10 +957,6 @@ class ParametersData {
 		'maxrevisions' => [
 			'default' => null,
 			'integer' => true,
-		],
-		'suppresserrors' => [
-			'default' => false,
-			'boolean' => true,
 		],
 
 		/**
@@ -1224,11 +1181,11 @@ class ParametersData {
 		/**
 		 * The sorting algorithm for table columns when 'tablesortcol'
 		 * is used.
-		 * - standard: Use PHP asort() and arsort()
+		 * - standard: Use PHP asort() and arsort() (default)
 		 * - natural: Use PHP natsort()
 		 */
 		'tablesortmethod' => [
-			'default' => null,
+			'default' => 'standard',
 			'values' => [ 'standard', 'natural' ],
 		],
 
@@ -1314,7 +1271,7 @@ class ParametersData {
 	 */
 	public function testRichness( string $function ): bool {
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			if ( in_array( $function, $this->parametersForRichnessLevel[$i], true ) ) {
+			if ( in_array( $function, self::PARAMETERS_BY_RICHNESS[$i], true ) ) {
 				return true;
 			}
 		}
@@ -1328,7 +1285,7 @@ class ParametersData {
 	public function getParametersForRichness(): array {
 		$parameters = [];
 		foreach ( range( 0, $this->parameterRichness ) as $i ) {
-			$parameters = array_merge( $parameters, $this->parametersForRichnessLevel[$i] );
+			$parameters = array_merge( $parameters, self::PARAMETERS_BY_RICHNESS[$i] );
 		}
 
 		sort( $parameters );

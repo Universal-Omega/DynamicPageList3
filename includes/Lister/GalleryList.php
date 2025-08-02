@@ -5,45 +5,23 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
+use function array_map;
+use function explode;
+use function str_contains;
+use function trim;
+use const NS_FILE;
 
 class GalleryList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_GALLERY;
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<gallery%s>';
+	protected int $style = parent::LIST_GALLERY;
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</gallery>';
+	protected string $listStart = '<gallery%s>';
+	protected string $listEnd = '</gallery>';
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = "\n";
+	protected string $itemStart = "\n";
+	protected string $itemEnd = '|';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '|';
-
-	/** @inheritDoc */
-	public function formatItem( Article $article, $pageText = null ) {
+	protected function formatItem( Article $article, ?string $pageText ): string {
 		$item = $article->mTitle->getPrefixedText();
 		$this->listAttributes = '';
 

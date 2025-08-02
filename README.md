@@ -1,14 +1,14 @@
 # DynamicPageList4
 
-The **DynamicPageList4** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://dpl3.wikitide.org).
+The **DynamicPageList4** extension is a reporting tool for MediaWiki, listing category members and intersections with various formats and details. For full documentation, see the [manual](https://dpl4.wikitide.org).
 
 When invoked with a basic set of selection parameters DPL4 displays a list of pages in one or more categories. Selections may also be based on factors such as author, namespace, date, name pattern, usage of templates, or references to other articles. Output takes a variety of forms, some of which incorporate elements of selected articles.
 
 This extension is invoked with the parser function `{{#dpl: .... }}` or parser tag `<DPL>`. A [Wikimedia](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:DynamicPageList_(Wikimedia))-compatible implementation of certain features can be invoked with `<DynamicPageList>`.
 
-Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [Other Parameters](https://dpl3.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
+Complex look ups can result in computationally expensive database queries. However, by default all output is cached for a period of one hour to reduce the need to rerun the query every page load. The [Other Parameters](https://dpl4.wikitide.org/wiki/Other_parameters#cacheperiod) manual page contains information on parameters that can be used to disable the cache and allow instant updates.
 
-* Manual and Complete Documentation: [Documentation](https://dpl3.wikitide.org)
+* Manual and Complete Documentation: [Documentation](https://dpl4.wikitide.org)
 * Source Code: [Source code at GitHub](https://github.com/Universal-Omega/DynamicPageList3)
 * Bugs and Feature Requests: [Issues at GitHub](https://github.com/Universal-Omega/DynamicPageList3/issues)
 * Licensing: DynamicPageList4 is released under [GNU General Public License, version 3](https://opensource.org/licenses/GPL-3.0).
@@ -27,8 +27,7 @@ These are DPL4's configuration settings and along with their default values. To 
 | $wgDplSettings['allowUnlimitedResults']     | false   | Set this to true to ignore `maxResultCount` and allow unlimited results. Please note that large result sets may result in slow or failed page loads.                                                                         |
 | $wgDplSettings['alwaysCacheResults']        | false   | Set this to true to ignore `allowcachedresults` and always enable the parser cache.                                                                                                                                               |
 | $wgDplSettings['categoryStyleListCutoff']   | 6       | Maximum number of items in a category list before being cut off.                                                                                                                                                                   |
-| $wgDplSettings['functionalRichness']        | 3       | Set the level of parameters available to end users.                                                                                                                                                                                   |
-| $wgDplSettings['handleSectionTag']          | false   | Set this to true to have DPL4 handle `<section>` tags outside of the parser tags provided by DPL4.                                                                                                                                   |
+| $wgDplSettings['functionalRichness']        | 3       | Set the level of parameters available to end users.                                                                                                                                    |
 | $wgDplSettings['maxCategoryCount']          | 4       | Maximum number of categories to allow in queries.                                                                                                                                                                                     |
 | $wgDplSettings['maxQueryTime']              | 10000   | Maximum allowed time for database queries in milliseconds.                                                                                                                                                                            |
 | $wgDplSettings['maxResultCount']            | 500     | Maximum number of results to return from a query.                                                                                                                                                                                     |
@@ -51,17 +50,17 @@ DynamicPageList4 has many features which are unlocked based on the maximum funct
 * `$wgDplSettings['functionalRichness'] = 1` adds additional formatting parameters
 * `$wgDplSettings['functionalRichness'] = 2` adds performance equivalent features for templates and pagelinks
 * `$wgDplSettings['functionalRichness'] = 3` allows more-expensive page inclusion features and regular expression queries.
-* `$wgDplSettings['functionalRichness'] = 4` permits exotic and potentially dangerous batch update and delete operations; not recommended for public websites. Includes debugging parameters for testing and development.
+* `$wgDplSettings['functionalRichness'] = 4` not recommended for public websites. Includes debugging parameters for testing and development.
 
 
 ## Usage
 ### Extended DPL4 Functionality
 Extended DPL4 is invoked by using the parser function `{{#dpl: .... }}`, or the parser extension tag `<DPL> .... </DPL>`.
 
-*See [Manual - **General Usage and Invocation Syntax**](https://dpl3.wikitide.org/wiki/General_usage_and_invocation_syntax) and [**Criteria for Page Selection**](https://dpl3.wikitide.org/wiki/Criteria_for_page_selection)*
+*See [Manual - **General Usage and Invocation Syntax**](https://dpl4.wikitide.org/wiki/General_usage_and_invocation_syntax) and [**Criteria for Page Selection**](https://dpl4.wikitide.org/wiki/Criteria_for_page_selection)*
 
 ### Backwards Compatibility
-Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with `<DynamicPageList> .... </DynamicPageList>`. Further information can be found on the [Compatibility manual page](https://dpl3.wikitide.org/wiki/Compatibility).
+Functionality compatible with Wikimedia's DPL extension (Intersection) can be invoked with `<DynamicPageList> .... </DynamicPageList>`. Further information can be found on the [Compatibility manual page](https://dpl4.wikitide.org/wiki/Compatibility).
 
 ## Usage Philosophy and Overview
 With the assumption there are some articles writtne about *countries* those articles will typically have three things in common:
@@ -137,4 +136,4 @@ DPL4's code execution and database access is typically fast for typical category
 
 ## See Also
 ### Further Reading
-DPL4 can do much more than we can explain here. A complete **[manual](https://dpl3.wikitide.org)** is available with full parameter documentation.
+DPL4 can do much more than we can explain here. A complete **[manual](https://dpl4.wikitide.org)** is available with full parameter documentation.

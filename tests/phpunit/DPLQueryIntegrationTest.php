@@ -2,6 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
+use const NS_MAIN;
+
 /**
  * @group DynamicPageList4
  * @group Database

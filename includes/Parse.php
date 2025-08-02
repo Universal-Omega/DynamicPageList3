@@ -16,6 +16,42 @@ use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
+use function array_filter;
+use function array_intersect;
+use function array_key_last;
+use function array_keys;
+use function array_merge;
+use function array_reverse;
+use function array_slice;
+use function array_sum;
+use function array_values;
+use function asort;
+use function count;
+use function date;
+use function explode;
+use function implode;
+use function in_array;
+use function is_array;
+use function is_string;
+use function mb_strtoupper;
+use function microtime;
+use function min;
+use function preg_replace;
+use function preg_split;
+use function random_int;
+use function range;
+use function shuffle;
+use function sprintf;
+use function str_contains;
+use function str_replace;
+use function str_starts_with;
+use function strtolower;
+use function substr;
+use function substr_count;
+use function trim;
+use function ucfirst;
+use const NS_CATEGORY;
+use const NS_FILE;
 
 class Parse {
 
@@ -124,7 +160,7 @@ class Parse {
 			foreach ( $options as $option ) {
 				// Parameter functions return true or false. The full parameter data will be
 				// passed into the Query object later.
-				if ( !$this->parameters->$parameter( $option ) ) {
+				if ( !$this->parameters->processParameter( $parameter, $option ) ) {
 					// Do not build this into the output just yet. It will be collected at the end.
 					$this->logger->addMessage( Constants::WARN_WRONGPARAM, $parameter, $option );
 				}
@@ -144,7 +180,7 @@ class Parse {
 		// Construct internal keys for TableRow according to the structure of "include".
 		// This will be needed in the output phase.
 		$secLabels = $this->parameters->getParameter( 'seclabels' ) ?? [];
-		if ( $secLabels ) {
+		if ( $secLabels !== [] ) {
 			$this->parameters->setParameter( 'tablerow', $this->updateTableRowKeys(
 				$this->parameters->getParameter( 'tablerow' ),
 				$secLabels
@@ -199,7 +235,7 @@ class Parse {
 		$articles = $this->processQueryResults( $rows, $parser );
 
 		$sql = $query->getSqlQuery();
-		if ( $sql ) {
+		if ( $sql !== '' ) {
 			$this->addOutput( "$sql\n" );
 		}
 
@@ -256,7 +292,7 @@ class Parse {
 
 		// This could be different than TOTALPAGES. PAGES represents the total
 		// results within the constraints of SQL LIMIT.
-		$this->setVariable( 'PAGES', $lister->getRowCount() );
+		$this->setVariable( 'PAGES', (string)$lister->getRowCount() );
 
 		// Replace %DPLTIME% by execution time and timestamp in header and footer
 		$dplTime = sprintf( '%.3f sec. (%s)', microtime( true ) - $dplStartTime, date( 'Y/m/d H:i:s' ) );
@@ -347,7 +383,7 @@ class Parse {
 				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$imageContainer = $this->parameters->getParameter( 'imagecontainer' ) ?? [];
-				if ( $imageContainer ) {
+				if ( $imageContainer !== [] ) {
 					$pageNamespace = NS_FILE;
 					$pageTitle = $row->il_to;
 				} else {

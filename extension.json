@@ -1,10 +1,9 @@
 {
 	"name": "DynamicPageList4",
-	"version": "4.0.0-alpha.4",
+	"version": "4.0.0-alpha.5",
 	"author": [
-		"'''Universal Omega'''",
-		"Alexia E. Smith",
-		"Gero Scholz"
+		"Universal Omega",
+		"..."
 	],
 	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList4",
 	"descriptionmsg": "dpl-desc",
@@ -13,16 +12,6 @@
 	"requires": {
 		"MediaWiki": ">= 1.43.0"
 	},
-	"GroupPermissions": {
-		"sysop": {
-			"dpl_param_update_rules": true,
-			"dpl_param_delete_rules": true
-		}
-	},
-	"AvailableRights": [
-		"dpl_param_update_rules",
-		"dpl_param_delete_rules"
-	],
 	"MessagesDirs": {
 		"DynamicPageList4": [
 			"i18n"
@@ -63,7 +52,6 @@
 				"alwaysCacheResults": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
-				"handleSectionTag": false,
 				"maxCategoryCount": 4,
 				"maxQueryTime": 10000,
 				"maxResultCount": 500,
