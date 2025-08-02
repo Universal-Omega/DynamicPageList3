@@ -12,15 +12,10 @@ class ParametersData {
 
 	protected readonly Config $config;
 
-	/**
-	 * Parameter Richness
-	 * The level of parameters that is accesible for the user.
-	 */
+	/** The level of parameters that is accesible for the user. */
 	private readonly int $parameterRichness;
 
-	/**
-	 * List of all the valid parameters that can be used per level of functional richness.
-	 */
+	/** Parameters that can be used per richness level. */
 	private const PARAMETERS_BY_RICHNESS = [
 		0 => [
 			'addfirstcategorydate',
