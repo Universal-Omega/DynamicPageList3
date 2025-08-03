@@ -732,7 +732,7 @@ class Parse {
 				'addauthor',
 				'addcontribution',
 				'addlasteditor',
-			], fn ( string $param ): ?bool => $this->parameters->getParameter( $param ) )
+			], fn ( string $param ): bool => $this->parameters->getParameter( $param ) ?? false )
 		) {
 			$this->logger->addMessage( Constants::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
