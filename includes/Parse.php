@@ -60,19 +60,11 @@ class Parse {
 	private readonly Parameters $parameters;
 	private readonly WebRequest $request;
 
-	/** Header Output */
 	private string $header = '';
-
-	/** Footer Output */
 	private string $footer = '';
-
-	/** Body Output */
 	private string $output = '';
 
-	/** Replacement Variables */
 	private array $replacementVariables = [];
-
-	/** Array of possible URL arguments. */
 	private array $urlArguments = [
 		'DPL_offset',
 		'DPL_count',
@@ -342,10 +334,7 @@ class Parse {
 		return $finalOutput;
 	}
 
-	/**
-	 * Process Query Results
-	 * @return Article[]
-	 */
+	/** @return Article[] */
 	private function processQueryResults( array $rows, Parser $parser ): array {
 		/*******************************/
 		/* Random Count Pick Generator */
@@ -473,16 +462,10 @@ class Parse {
 		return $parameters;
 	}
 
-	/**
-	 * Concatenate output
-	 */
 	private function addOutput( string $output ): void {
 		$this->output .= $output;
 	}
 
-	/**
-	 * Set the output text.
-	 */
 	private function getOutput(): string {
 		return $this->output;
 	}
@@ -653,7 +636,7 @@ class Parse {
 		}
 
 		// No more than one type of date at a time!
-		// @TODO: Can this be fixed to allow all three later after fixing the article class?
+		// @TODO: Can this be fixed to allow all three later after fixing the Article class?
 		if (
 			(int)$this->parameters->getParameter( 'addpagetoucheddate' ) +
 			(int)$this->parameters->getParameter( 'addfirstcategorydate' ) +
@@ -679,6 +662,7 @@ class Parse {
 			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
 				'mode=category', 'sortkey | title | titlewithoutnamespace'
 			);
+
 			return false;
 		}
 
@@ -690,6 +674,7 @@ class Parse {
 			$this->logger->addMessage( Constants::FATAL_WRONGORDERMETHOD,
 				'addpagetoucheddate=true', 'pagetouched | title'
 			);
+
 			return false;
 		}
 
