@@ -2,8 +2,8 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use Exception;
 use ExtVariables;
+use LogicException;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
@@ -215,7 +215,7 @@ class Parse {
 				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 			}
-		} catch ( Exception $e ) {
+		} catch ( LogicException $e ) {
 			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
