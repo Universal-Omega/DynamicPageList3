@@ -109,7 +109,7 @@ class Parse {
 			$this->config->get( 'runFromProtectedPagesOnly' ) &&
 			$title && !$restrictionStore->isProtected( $title, 'edit' )
 		) {
-			// Ideally we would like to allow using a DPL query if the query istelf is coded on a
+			// Ideally we would like to allow using a DPL query if the query itself is coded on a
 			// template page which is protected. Then there would be no need for the article to
 			// be protected. However, how can one find out from which wiki source an extension
 			// has been invoked???
@@ -121,8 +121,8 @@ class Parse {
 		/* Check for URL Arguments in Input */
 		/************************************/
 		if ( str_contains( $input, '{%DPL_' ) ) {
-			foreach ( range( 1, 5 ) as $i ) {
-				$this->urlArguments[] = 'DPL_arg' . $i;
+			foreach ( range( 1, 5 ) as $index ) {
+				$this->urlArguments[] = "DPL_arg$index";
 			}
 		}
 
@@ -437,10 +437,10 @@ class Parse {
 			}
 
 			if ( !$this->parameters->exists( $parameter ) ) {
-				$this->logger->addMessage(
-					Constants::WARN_UNKNOWNPARAM, $parameter,
+				$this->logger->addMessage( Constants::WARN_UNKNOWNPARAM, $parameter,
 					implode( ', ', $this->parameters->getParametersForRichness() )
 				);
+
 				continue;
 			}
 
@@ -579,7 +579,6 @@ class Parse {
 		/**************************/
 		/* Parameter Error Checks */
 		/**************************/
-
 		$totalCategories = 0;
 		foreach ( [ 'category', 'notcategory' ] as $param ) {
 			foreach ( $this->parameters->getParameter( $param ) ?? [] as $operatorTypes ) {
@@ -733,7 +732,7 @@ class Parse {
 				'addauthor',
 				'addcontribution',
 				'addlasteditor',
-			], fn ( string $param ): mixed => $this->parameters->getParameter( $param ) )
+			], fn ( string $param ): ?bool => $this->parameters->getParameter( $param ) )
 		) {
 			$this->logger->addMessage( Constants::WARN_CATOUTPUTBUTWRONGPARAMS );
 		}
@@ -762,32 +761,32 @@ class Parse {
 	/**
 	 * Create keys for TableRow which represent the structure of the "include=" arguments.
 	 */
-	private static function updateTableRowKeys( array $tableRow, array $sectionLabels ): array {
+	private function updateTableRowKeys( array $tableRow, array $sectionLabels ): array {
 		$originalRow = $tableRow;
-		$tableRow = [];
-		$groupNr = -1;
-		$t = 0;
+		$updatedRow = [];
+		$sectionIndex = -1;
+		$cellIndex = 0;
 
 		foreach ( $sectionLabels as $label ) {
-			$groupNr++;
+			$sectionIndex++;
 			if ( !str_contains( $label, '}:' ) ) {
-				if ( isset( $originalRow[$t] ) ) {
-					$tableRow[$groupNr] = $originalRow[$t];
+				if ( isset( $originalRow[$cellIndex] ) ) {
+					$updatedRow[$sectionIndex] = $originalRow[$cellIndex];
 				}
-				$t++;
+				$cellIndex++;
 				continue;
 			}
 
-			[ , $colsPart ] = explode( '}:', $label, 2 );
-			$n = substr_count( $colsPart, ':' ) + 1;
-			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
-				if ( isset( $originalRow[$t] ) ) {
-					$tableRow["$groupNr.$colNr"] = $originalRow[$t];
+			[ , $columnPart ] = explode( '}:', $label, 2 );
+			$columnCount = substr_count( $columnPart, ':' ) + 1;
+			for ( $columnIndex = 0; $columnIndex < $columnCount; $columnIndex++, $cellIndex++ ) {
+				if ( isset( $originalRow[$cellIndex] ) ) {
+					$updatedRow["$sectionIndex.$columnIndex"] = $originalRow[$cellIndex];
 				}
 			}
 		}
 
-		return $tableRow;
+		return $updatedRow;
 	}
 
 	/**
