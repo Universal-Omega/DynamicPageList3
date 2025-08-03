@@ -484,8 +484,6 @@ class Parse {
 	 * Set the output text.
 	 */
 	private function getOutput(): string {
-		// @TODO: 2015-08-28 Consider calling $this->replaceVariables() here.
-		// Might cause issues with text returned in the results.
 		return $this->output;
 	}
 
@@ -577,12 +575,11 @@ class Parse {
 	 * Return text with variables replaced.
 	 */
 	private function replaceVariables( string $text ): string {
-		$text = self::replaceNewLines( $text );
-		foreach ( $this->replacementVariables as $variable => $replacement ) {
-			$text = str_replace( $variable, $replacement, $text );
-		}
-
-		return $text;
+		return str_replace(
+			array_keys( $this->replacementVariables ),
+			array_values( $this->replacementVariables ),
+			self::replaceNewLines( $text )
+		);
 	}
 
 	/**
@@ -758,11 +755,10 @@ class Parse {
 
 		// headingmode has effects with ordermethod on multiple components only.
 		if ( $this->parameters->getParameter( 'headingmode' ) !== 'none' && count( $orderMethods ) < 2 ) {
-			$this->logger->addMessage(
-				Constants::WARN_HEADINGBUTSIMPLEORDERMETHOD,
-				$this->parameters->getParameter( 'headingmode' ),
-				'none'
+			$this->logger->addMessage( Constants::WARN_HEADINGBUTSIMPLEORDERMETHOD,
+				$this->parameters->getParameter( 'headingmode' ), 'none'
 			);
+
 			$this->parameters->setParameter( 'headingmode', 'none' );
 		}
 
@@ -799,7 +795,6 @@ class Parse {
 
 			[ , $colsPart ] = explode( '}:', $label, 2 );
 			$n = substr_count( $colsPart, ':' ) + 1;
-
 			for ( $colNr = 0; $colNr < $n; $colNr++, $t++ ) {
 				if ( isset( $originalRow[$t] ) ) {
 					$tableRow["$groupNr.$colNr"] = $originalRow[$t];
