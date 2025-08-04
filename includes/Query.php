@@ -215,7 +215,7 @@ class Query {
 		} catch ( DBQueryError $e ) {
 			$errorMessage = $this->dbr->lastError();
 			if ( $errorMessage === '' ) {
-				$errorMessage = (string)$e;
+				$errorMessage = $e->getMessage();
 			}
 
 			throw new LogicException( __METHOD__ . ': ' . wfMessage(
@@ -349,17 +349,23 @@ class Query {
 			$depth = 2;
 		}
 
-		$categories = $dbr->newSelectQueryBuilder()
-			->select( 'page_title' )
-			->from( 'page' )
-			->join( 'categorylinks', 'cl', 'p.page_id = cl.cl_from' )
-			->where( [
-				'p.page_namespace' => NS_CATEGORY,
-				'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
-			] )
-			->caller( __METHOD__ )
-			->distinct()
-			->fetchFieldValues();
+		try {
+			$categories = $dbr->newSelectQueryBuilder()
+				->select( 'page_title' )
+				->from( 'page' )
+				->join( 'categorylinks', 'cl', 'page_id = cl.cl_from' )
+				->where( [
+					'page_namespace' => NS_CATEGORY,
+					'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
+				] )
+				->caller( __METHOD__ )
+				->distinct()
+				->fetchFieldValues();
+		} catch ( DBQueryError $e ) {
+			throw new LogicException( __METHOD__ . ': ' . wfMessage(
+				'dpl_query_error', Utils::getVersion(), $e->getMessage()
+			)->text() );
+		}
 
 		foreach ( $categories as $category ) {
 			if ( $depth > 1 ) {
