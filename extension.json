@@ -1,6 +1,6 @@
 {
 	"name": "DynamicPageList4",
-	"version": "4.0.0-alpha.4",
+	"version": "4.0.0-alpha.5",
 	"author": [
 		"Universal Omega",
 		"..."
@@ -52,7 +52,6 @@
 				"alwaysCacheResults": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
-				"handleSectionTag": false,
 				"maxCategoryCount": 4,
 				"maxQueryTime": 10000,
 				"maxResultCount": 500,

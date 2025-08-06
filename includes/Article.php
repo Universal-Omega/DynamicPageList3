@@ -3,13 +3,16 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
+use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use stdClass;
 use function count;
+use function defined;
 use function explode;
 use function gmdate;
 use function htmlspecialchars;
@@ -25,6 +28,7 @@ use function wfMessage;
 use function wfTimestamp;
 use const NS_CATEGORY;
 use const NS_FILE;
+use const NS_VIDEO;
 use const TS_UNIX;
 
 class Article {
@@ -104,14 +108,20 @@ class Article {
 				wfMessage( 'ellipsis' )->text();
 		}
 
+		$isVideoExtensionEnabled = ExtensionRegistry::getInstance()->isLoaded( 'Video' );
+		$shouldEscape = $parameters->getParameter( 'escapelinks' ) &&
+			(
+				$pageNamespace === NS_CATEGORY ||
+				$pageNamespace === NS_FILE ||
+				( $isVideoExtensionEnabled && defined( 'NS_VIDEO' ) && $pageNamespace === NS_VIDEO )
+			);
+
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
 			$articleLink = '[' . $title->getFullURL( [ 'curid' => $row->page_id ] ) . ' ' .
 				htmlspecialchars( $titleText ) . ']';
 		} else {
-			$articleLink = '[[' . (
-				$parameters->getParameter( 'escapelinks' ) &&
-				( $pageNamespace === NS_CATEGORY || $pageNamespace === NS_FILE ) ? ':' : ''
-			) . $title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
+			$articleLink = '[[' . ( $shouldEscape ? ':' : '' ) .
+				$title->getFullText() . '|' . htmlspecialchars( $titleText ) . ']]';
 		}
 
 		$article->mLink = $articleLink;
@@ -124,7 +134,8 @@ class Article {
 		$article->mID = (int)( $row->page_id ?? 0 );
 
 		// External link
-		$article->mExternalLink = $row->el_to ?? '';
+		$article->mExternalLink = LinkFilter::reverseIndexes( $row->el_to_domain_index ?? '' ) .
+			( $row->el_to_path ?? '' );
 
 		// SHOW PAGE_COUNTER
 		$article->mCounter = (int)( $row->page_counter ?? 0 );

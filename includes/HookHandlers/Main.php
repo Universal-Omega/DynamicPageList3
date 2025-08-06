@@ -34,16 +34,9 @@ class Main implements ParserFirstCallInitHook {
 
 	/** @inheritDoc */
 	public function onParserFirstCallInit( $parser ) {
-		// We register the <section> tag in case
-		// LabeledSection Extension is not installed so that the
-		// section markers are removed.
-		if ( $this->config->get( 'handleSectionTag' ) ) {
-			$parser->setHook( 'section', [ $this, 'dplTag' ] );
-		}
-
 		$parser->setHook( 'DPL', [ $this, 'dplTag' ] );
 
-		// DPL offers the same functionality as Intersection.
+		// DPL4 offers the same functionality as Intersection.
 		$parser->setHook( 'DynamicPageList', [ $this, 'intersectionTag' ] );
 
 		$parser->setFunctionHook( 'dpl', [ $this, 'dplParserFunction' ] );

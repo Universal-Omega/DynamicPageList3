@@ -12,15 +12,10 @@ class ParametersData {
 
 	protected readonly Config $config;
 
-	/**
-	 * Parameter Richness
-	 * The level of parameters that is accesible for the user.
-	 */
+	/** The level of parameters that is accesible for the user. */
 	private readonly int $parameterRichness;
 
-	/**
-	 * List of all the valid parameters that can be used per level of functional richness.
-	 */
+	/** Parameters that can be used per richness level. */
 	private const PARAMETERS_BY_RICHNESS = [
 		0 => [
 			'addfirstcategorydate',
@@ -146,8 +141,6 @@ class ParametersData {
 			'firstrevisionsince',
 			'lastrevisionbefore',
 			'linkstoexternal',
-			'linkstoexternaldomain',
-			'linkstoexternalpath',
 			'maxrevisions',
 			'minrevisions',
 			'notcategorymatch',
@@ -597,38 +590,12 @@ class ParametersData {
 		],
 
 		/**
-		 * Alias for `linkstoexternaldomain`.
-		 * To mimic old behaviour use `linkstoexternaldomain` together with `linkstoexternalpath`
+		 * This parameter restricts the output to articles which contain an external
+		 * reference that contains a certain pattern.
+		 *
+		 * Example: linkstoexternal=www.xyz.com|www.xyz2.%|%/abc/%|/xyz/%
 		 */
 		'linkstoexternal' => [
-			'default' => null,
-			'open_ref_conflict' => true,
-			'page_name_list' => true,
-			'page_name_must_exist' => false,
-			'set_criteria_found' => true,
-		],
-
-		/**
-		 * This parameter restricts the output to articles which contain an external
-		 * domain reference that contains a certain pattern.
-		 *
-		 * Example: linkstoexternaldomain=www.xyz.com|www.xyz2.%
-		 */
-		'linkstoexternaldomain' => [
-			'default' => null,
-			'open_ref_conflict' => true,
-			'page_name_list' => true,
-			'page_name_must_exist' => false,
-			'set_criteria_found' => true,
-		],
-
-		/**
-		 * This parameter restricts the output to articles which contain an external
-		 * path reference that contains a certain pattern.
-		 *
-		 * Example: linkstoexternalpath=/xyz/%|%/abc/%
-		 */
-		'linkstoexternalpath' => [
 			'default' => null,
 			'open_ref_conflict' => true,
 			'page_name_list' => true,
@@ -788,12 +755,18 @@ class ParametersData {
 		],
 
 		/**
-		 * Controls the size of images when the result output mode is a gallery.
-		 * Accepts either a single value (e.g. "80px") to use as both width and height,
-		 * or a comma-separated pair (e.g. "100px,150px") to set width and height separately.
-		 * The values are passed directly as `widths` and `heights` attributes in the gallery tag.
+		 * Controls the width of images when the result output mode is a gallery.
+		 * Value should be something like "100px". Passed directly as `widths` in the gallery tag.
 		 */
-		'gallerysize' => [
+		'imagewidth' => [
+			'default' => null,
+		],
+
+		/**
+		 * Controls the height of images when the result output mode is a gallery.
+		 * Value should be something like "150px". Passed directly as `heights` in the gallery tag.
+		 */
+		'imageheight' => [
 			'default' => null,
 		],
 
