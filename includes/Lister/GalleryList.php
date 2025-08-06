@@ -22,18 +22,18 @@ class GalleryList extends Lister {
 		$item = $article->mTitle->getPrefixedText();
 		$this->listAttributes = '';
 
-		$imageWidth = trim( $this->parameters->getParameter( 'imagewidth' ) );
-		if ( $imageWidth ) {
+		$imageWidth = trim( $this->parameters->getParameter( 'imagewidth' ) ?? '' );
+		if ( $imageWidth !== '' ) {
 			$this->listAttributes .= " widths=$imageWidth";
 		}
 
-		$imageHeight = trim( $this->parameters->getParameter( 'imageheight' ) );
-		if ( $imageHeight ) {
+		$imageHeight = trim( $this->parameters->getParameter( 'imageheight' ) ?? '' );
+		if ( $imageHeight !== '' ) {
 			$this->listAttributes .= " heights=$imageHeight";
 		}
 
-		$galleryMode = trim( $this->parameters->getParameter( 'gallerymode' ) );
-		if ( $galleryMode ) {
+		$galleryMode = trim( $this->parameters->getParameter( 'gallerymode' ) ?? '' );
+		if ( $galleryMode !== '' ) {
 			$this->listAttributes .= " mode=$galleryMode";
 		}
 
