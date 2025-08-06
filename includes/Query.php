@@ -1721,14 +1721,14 @@ class Query {
 								->from( 'revision', 'rev_aux' )
 								->where( [
 									'rev_aux.rev_page = p.page_id',
-									'rev_aux.rev_minor_edit' => 0
+									'rev_aux.rev_minor_edit = 0',
 								] )
 								->caller( __METHOD__ )
 								->getSQL();
 
 							$this->queryBuilder->where( [
 								'p.page_id = rev.rev_page',
-								"rev.rev_timestamp = ($subquery)"
+								"rev.rev_timestamp = ($subquery)",
 							] );
 						} else {
 							// page_latest points to the top revision already
