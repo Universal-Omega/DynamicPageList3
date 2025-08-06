@@ -1715,22 +1715,25 @@ class Query {
 					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 					if ( !$this->revisionAuxWhereAdded ) {
-						$this->queryBuilder->where( 'p.page_id = rev.rev_page' );
-
-						$subqueryBuilder = $this->queryBuilder->newSubquery()
-							->select( 'MAX(rev_aux.rev_timestamp)' )
-							->from( 'revision', 'rev_aux' )
-							->where( 'rev_aux.rev_page = p.page_id' );
-
 						if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
-							$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
+							$subquery = $this->queryBuilder->newSubquery()
+								->select( 'MAX(rev_aux.rev_timestamp)' )
+								->from( 'revision', 'rev_aux' )
+								->where( [
+									'rev_aux.rev_page = p.page_id',
+									'rev_aux.rev_minor_edit = 0',
+								] )
+								->caller( __METHOD__ )
+								->getSQL();
+
+							$this->queryBuilder->where( [
+								'p.page_id = rev.rev_page',
+								"rev.rev_timestamp = ($subquery)",
+							] );
+						} else {
+							// page_latest points to the top revision already
+							$this->queryBuilder->where( 'rev.rev_id = p.page_latest' );
 						}
-
-						$subquery = $subqueryBuilder
-							->caller( __METHOD__ )
-							->getSQL();
-
-						$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
 					}
 
 					$this->revisionAuxWhereAdded = true;
