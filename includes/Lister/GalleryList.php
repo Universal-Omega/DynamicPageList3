@@ -5,9 +5,6 @@ namespace MediaWiki\Extension\DynamicPageList4\Lister;
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
-use function array_map;
-use function explode;
-use function str_contains;
 use function trim;
 use const NS_FILE;
 
@@ -25,18 +22,17 @@ class GalleryList extends Lister {
 		$item = $article->mTitle->getPrefixedText();
 		$this->listAttributes = '';
 
-		$gallerySize = $this->parameters->getParameter( 'gallerysize' );
-		if ( $gallerySize ) {
-			if ( str_contains( $gallerySize, ',' ) ) {
-				[ $width, $height ] = array_map( 'trim', explode( ',', $gallerySize, 2 ) );
-			} else {
-				$width = $height = trim( $gallerySize );
-			}
-
-			$this->listAttributes .= " widths=$width heights=$height";
+		$imageWidth = trim( $this->parameters->getParameter( 'imagewidth' ) );
+		if ( $imageWidth ) {
+			$this->listAttributes .= " widths=$imageWidth";
 		}
 
-		$galleryMode = $this->parameters->getParameter( 'gallerymode' );
+		$imageHeight = trim( $this->parameters->getParameter( 'imageheight' ) );
+		if ( $imageHeight ) {
+			$this->listAttributes .= " heights=$imageHeight";
+		}
+
+		$galleryMode = trim( $this->parameters->getParameter( 'gallerymode' ) );
 		if ( $galleryMode ) {
 			$this->listAttributes .= " mode=$galleryMode";
 		}
