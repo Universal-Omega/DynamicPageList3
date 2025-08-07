@@ -263,8 +263,8 @@ class Article {
 							break;
 						}
 
-						$categoryTitle = Title::castFromPageIdentity( $category->getPage() );
-						$article->mParentHLink = "[[:{$categoryTitle->getPrefixedDBkey()}|{$categoryTitle->getText()}]]";
+						$title = Title::castFromPageIdentity( $category->getPage() );
+						$article->mParentHLink = "[[:{$title->getPrefixedDBkey()}|{$title->getText()}]]";
 						break;
 					case 'user':
 						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
