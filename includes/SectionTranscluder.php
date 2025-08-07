@@ -3,14 +3,12 @@
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
-use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\PageReference;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\StripState;
 use MediaWiki\Title\Title;
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
 use function array_shift;
@@ -42,7 +40,7 @@ class SectionTranscluder {
 
 	/**
 	 * To do transclusion from an extension, we need to interact with the parser
-	 * at a low level. This is the general transclusion functionality
+	 * at a low level. This is the general transclusion functionality.
 	 */
 
 	/**
@@ -52,7 +50,7 @@ class SectionTranscluder {
 		// Infinite loop test
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			self::getLogger()->debug( 'Template loop broken at {part1}',
+			Utils::getLogger()->debug( 'Template loop broken at {part1}',
 				[ 'part1' => $part1 ]
 			);
 			return false;
@@ -73,7 +71,7 @@ class SectionTranscluder {
 		// Infinite loop test
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		if ( !isset( $parser->mTemplatePath[$part1] ) ) {
-			self::getLogger()->debug( 'Closed an unopened template loop at {part1}',
+			Utils::getLogger()->debug( 'Closed an unopened template loop at {part1}',
 				[ 'part1' => $part1 ]
 			);
 			return;
@@ -81,10 +79,6 @@ class SectionTranscluder {
 
 		/** @phan-suppress-next-line PhanDeprecatedProperty */
 		unset( $parser->mTemplatePath[$part1] );
-	}
-
-	private static function getLogger(): LoggerInterface {
-		return LoggerFactory::getInstance( 'DynamicPageList4' );
 	}
 
 	/**
@@ -868,7 +862,7 @@ class SectionTranscluder {
 					$reflectionCache[$property] = ( new ReflectionClass( Parser::class ) )->getProperty( $property );
 				} catch ( ReflectionException ) {
 					$reflectionCache[$property] = null;
-					self::getLogger()->warning( 'Failed to access parser property: {property}',
+					Utils::getLogger()->warning( 'Failed to access parser property: {property}',
 						[ 'property' => $property ]
 					);
 				}
