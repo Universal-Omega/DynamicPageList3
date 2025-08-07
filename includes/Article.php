@@ -250,19 +250,21 @@ class Article {
 						$clTo = $row->cl_to ?? '';
 						self::$headings[$clTo] = ( self::$headings[$clTo] ?? 0 ) + 1;
 
+						$specialPage = SpecialPage::getTitleFor( 'Uncategorizedpages' )->getPrefixedDBkey();
+						$message = wfMessage( 'uncategorizedpages' )->escaped();
+						if ( $clTo === '' ) {
+							// Uncategorized page (used if ordermethod=category,...)
+							$article->mParentHLink = "[[$specialPage|$message]]";
+							break;
+						}
+
 						$category = Category::newFromName( $clTo );
 						if ( $category === false ) {
 							break;
 						}
 
 						$categoryPage = $category->getPage();
-						$specialPage = SpecialPage::getTitleFor( 'Uncategorizedpages' )->getPrefixedDBkey();
-						$message = wfMessage( 'uncategorizedpages' )->escaped();
-
-						$article->mParentHLink = $clTo === '' ?
-							// Uncategorized page (used if ordermethod=category,...)
-							"[[$specialPage|$message]]" :
-							"[[:{$categoryPage->getPrefixedDBkey()}|{$categoryPage->getText()}]]";
+						$article->mParentHLink = "[[:{$categoryPage->getPrefixedDBkey()}|{$categoryPage->getText()}]]";
 						break;
 					case 'user':
 						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
