@@ -233,11 +233,11 @@ class Article {
 						continue;
 					}
 
-					$page = $category->getPage();
-					$link = "[[:{$page->getPrefixedDBkey()}|{$page->getText()}]]";
+					$title = Title::castFromPageIdentity( $category->getPage() );
+					$link = "[[:{$title->getPrefixedDBkey()}|{$title->getText()}]]";
 
 					$article->mCategoryLinks[] = $link;
-					$article->mCategoryTexts[] = $page->getText();
+					$article->mCategoryTexts[] = $title->getText();
 				}
 			}
 
@@ -263,8 +263,8 @@ class Article {
 							break;
 						}
 
-						$categoryPage = $category->getPage();
-						$article->mParentHLink = "[[:{$categoryPage->getPrefixedDBkey()}|{$categoryPage->getText()}]]";
+						$categoryTitle = Title::castFromPageIdentity( $category->getPage() );
+						$article->mParentHLink = "[[:{$categoryTitle->getPrefixedDBkey()}|{$categoryTitle->getText()}]]";
 						break;
 					case 'user':
 						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
