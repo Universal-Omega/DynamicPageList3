@@ -459,7 +459,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'Page' );
-		$this->assertStringContainsString( 'Special:Uncategorizedpages', $article->mParentHLink );
+		$this->assertStringContainsString( 'Special:UncategorizedPages', $article->mParentHLink );
 	}
 
 	/**
