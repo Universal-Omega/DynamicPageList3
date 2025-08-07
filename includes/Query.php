@@ -237,20 +237,29 @@ class Query {
 		}
 
 		$this->queryBuilder->caller( $qname );
+		$doQuery = function () use ( $calcRows, $qname ): array {
+			try {
+				$res = $this->queryBuilder->fetchResultSet();
+				$res = iterator_to_array( $res );
+				if ( $calcRows ) {
+					$res['count'] = $this->dbr->newSelectQueryBuilder()
+						->tables( $this->queryBuilder->getQueryInfo()['tables'] )
+						->select( 'FOUND_ROWS()' )
+						->caller( $qname )
+						->fetchField();
+				}
 
-		$doQuery = function () use ( $calcRows ): array {
-			$res = $this->queryBuilder->fetchResultSet();
-			$res = iterator_to_array( $res );
+				return $res;
+			} catch ( DBQueryError $e ) {
+				$errorMessage = $this->dbr->lastError();
+				if ( $errorMessage === '' ) {
+					$errorMessage = $e->getMessage();
+				}
 
-			if ( $calcRows ) {
-				$res['count'] = $this->dbr->newSelectQueryBuilder()
-					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
-					->select( 'FOUND_ROWS()' )
-					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
-					->fetchField();
+				throw new LogicException( "$qname: " . wfMessage(
+					'dpl_query_error', Utils::getVersion(), $errorMessage
+				)->text() );
 			}
-
-			return $res;
 		};
 
 		$poolCounterKey = 'nowait:dpl4-query:' . WikiMap::getCurrentWikiId();
