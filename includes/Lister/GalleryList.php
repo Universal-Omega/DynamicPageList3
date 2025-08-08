@@ -21,8 +21,9 @@ class GalleryList extends Lister {
 
 	protected function formatItem( Article $article, ?string $pageText ): string {
 		$item = $article->mTitle->getPrefixedText();
+		$itemPageLink = $item;
 		if ( $article->mNamespace === NS_CATEGORY ) {
-			$item = ":$item";
+			$itemPageLink = ":$item";
 		}
 
 		$this->listAttributes = '';
@@ -47,10 +48,10 @@ class GalleryList extends Lister {
 			if ( $pageImage && $pageImage->exists() ) {
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
-					"[[$item]]{$this->itemEnd}link=$item";
+					"[[$itemPageLink|$item]]{$this->itemEnd}link=$item";
 			} else {
 				// Failed to get a page image.
-				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$item]]";
+				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$itemPageLink|$item]]";
 			}
 
 			return $this->replaceTagParameters( $item, $article );
