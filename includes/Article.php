@@ -28,6 +28,7 @@ use function wfMessage;
 use function wfTimestamp;
 use const NS_CATEGORY;
 use const NS_FILE;
+use const NS_MAIN;
 use const NS_USER;
 use const NS_VIDEO;
 use const TS_UNIX;
@@ -147,7 +148,7 @@ class Article {
 		// STORE initially selected PAGE
 		if ( $parameters->getParameter( 'linksto' ) || $parameters->getParameter( 'linksfrom' ) ) {
 			$article->mSelTitle = $row->sel_title ?? 'Unknown page';
-			$article->mSelNamespace = $row->sel_ns ?? 0;
+			$article->mSelNamespace = $row->sel_ns ?? NS_MAIN;
 		}
 
 		// STORE selected image
