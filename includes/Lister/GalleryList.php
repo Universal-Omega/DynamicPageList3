@@ -6,6 +6,7 @@ use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
 use function trim;
+use const NS_CATEGORY;
 use const NS_FILE;
 
 class GalleryList extends Lister {
@@ -20,8 +21,11 @@ class GalleryList extends Lister {
 
 	protected function formatItem( Article $article, ?string $pageText ): string {
 		$item = $article->mTitle->getPrefixedText();
-		$this->listAttributes = '';
+		if ( $article->mNamespace === NS_CATEGORY ) {
+			$item = ":$item";
+		}
 
+		$this->listAttributes = '';
 		$imageWidth = trim( $this->parameters->getParameter( 'imagewidth' ) ?? '' );
 		if ( $imageWidth !== '' ) {
 			$this->listAttributes .= " widths=$imageWidth";
