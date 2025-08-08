@@ -237,20 +237,29 @@ class Query {
 		}
 
 		$this->queryBuilder->caller( $qname );
+		$doQuery = function () use ( $calcRows, $qname ): array {
+			try {
+				$res = $this->queryBuilder->fetchResultSet();
+				$res = iterator_to_array( $res );
+				if ( $calcRows ) {
+					$res['count'] = $this->dbr->newSelectQueryBuilder()
+						->tables( $this->queryBuilder->getQueryInfo()['tables'] )
+						->select( 'FOUND_ROWS()' )
+						->caller( $qname )
+						->fetchField();
+				}
 
-		$doQuery = function () use ( $calcRows ): array {
-			$res = $this->queryBuilder->fetchResultSet();
-			$res = iterator_to_array( $res );
+				return $res;
+			} catch ( DBQueryError $e ) {
+				$errorMessage = $this->dbr->lastError();
+				if ( $errorMessage === '' ) {
+					$errorMessage = $e->getMessage();
+				}
 
-			if ( $calcRows ) {
-				$res['count'] = $this->dbr->newSelectQueryBuilder()
-					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
-					->select( 'FOUND_ROWS()' )
-					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
-					->fetchField();
+				throw new LogicException( "$qname: " . wfMessage(
+					'dpl_query_error', Utils::getVersion(), $errorMessage
+				)->text() );
 			}
-
-			return $res;
 		};
 
 		$poolCounterKey = 'nowait:dpl4-query:' . WikiMap::getCurrentWikiId();
@@ -1715,22 +1724,25 @@ class Query {
 					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 					if ( !$this->revisionAuxWhereAdded ) {
-						$this->queryBuilder->where( 'p.page_id = rev.rev_page' );
-
-						$subqueryBuilder = $this->queryBuilder->newSubquery()
-							->select( 'MAX(rev_aux.rev_timestamp)' )
-							->from( 'revision', 'rev_aux' )
-							->where( 'rev_aux.rev_page = p.page_id' );
-
 						if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
-							$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
+							$subquery = $this->queryBuilder->newSubquery()
+								->select( 'MAX(rev_aux.rev_timestamp)' )
+								->from( 'revision', 'rev_aux' )
+								->where( [
+									'rev_aux.rev_page = p.page_id',
+									'rev_aux.rev_minor_edit = 0',
+								] )
+								->caller( __METHOD__ )
+								->getSQL();
+
+							$this->queryBuilder->where( [
+								'p.page_id = rev.rev_page',
+								"rev.rev_timestamp = ($subquery)",
+							] );
+						} else {
+							// page_latest points to the top revision already
+							$this->queryBuilder->where( 'rev.rev_id = p.page_latest' );
 						}
-
-						$subquery = $subqueryBuilder
-							->caller( __METHOD__ )
-							->getSQL();
-
-						$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
 					}
 
 					$this->revisionAuxWhereAdded = true;

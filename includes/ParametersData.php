@@ -22,8 +22,9 @@ class ParametersData {
 			'category',
 			'count',
 			'gallerymode',
-			'gallerysize',
 			'hiddencategories',
+			'imageheight',
+			'imagewidth',
 			'mode',
 			'namespace',
 			'notcategory',
@@ -739,12 +740,18 @@ class ParametersData {
 		],
 
 		/**
-		 * Controls the size of images when the result output mode is a gallery.
-		 * Accepts either a single value (e.g. "80px") to use as both width and height,
-		 * or a comma-separated pair (e.g. "100px,150px") to set width and height separately.
-		 * The values are passed directly as `widths` and `heights` attributes in the gallery tag.
+		 * Controls the width of images when the result output mode is a gallery.
+		 * Value should be something like "100px". Passed directly as `widths` in the gallery tag.
 		 */
-		'gallerysize' => [
+		'imagewidth' => [
+			'default' => null,
+		],
+
+		/**
+		 * Controls the height of images when the result output mode is a gallery.
+		 * Value should be something like "150px". Passed directly as `heights` in the gallery tag.
+		 */
+		'imageheight' => [
 			'default' => null,
 		],
 
