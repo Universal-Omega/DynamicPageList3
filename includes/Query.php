@@ -298,12 +298,10 @@ class Query {
 			$errorMessage = $e->getMessage();
 		}
 
-		Utils::getLogger()->error(
-			'Query error at {qname}: {error-message}', [
-				'error-message' => $errorMessage,
-				'qname' => $qname,
-			]
-		);
+		Utils::getLogger()->debug( 'Query error at {qname}: {error-message}', [
+			'error-message' => $errorMessage,
+			'qname' => $qname,
+		] );
 
 		throw new LogicException( "$qname: " . wfMessage(
 			'dpl_query_error', Utils::getVersion(), $errorMessage
