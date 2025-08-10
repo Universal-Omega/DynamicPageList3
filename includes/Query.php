@@ -244,8 +244,6 @@ class Query {
 				return $res;
 			} catch ( DBQueryError $e ) {
 				$this->handleQueryError( $qname, $e );
-				// This is unreachable but phan doesn't know that.
-				return [];
 			}
 		};
 
