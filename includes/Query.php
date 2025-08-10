@@ -83,7 +83,7 @@ class Query {
 		private readonly Parameters $parameters
 	) {
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl4' );
+			->getReplicaDatabase( group: 'vslow' );
 
 		$this->config = Config::getInstance();
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
@@ -351,7 +351,7 @@ class Query {
 	 */
 	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( group: 'dpl4' );
+			->getReplicaDatabase( group: 'vslow' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
