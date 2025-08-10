@@ -2,10 +2,12 @@
 
 namespace MediaWiki\Extension\DynamicPageList4\Maintenance;
 
-use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\Maintenance\LoggedUpdateMaintenance;
 use MediaWiki\User\User;
+use function wfMessage;
+use const NS_TEMPLATE;
 
-class DeleteTemplate extends Maintenance {
+class DeleteTemplate extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
@@ -13,7 +15,15 @@ class DeleteTemplate extends Maintenance {
 		$this->requireExtension( 'DynamicPageList4' );
 	}
 
-	public function execute(): void {
+	protected function getUpdateKey(): string {
+		return 'dynamic-page-list-4-delete-template';
+	}
+
+	protected function updateSkippedMessage(): string {
+		return 'Template already deleted.';
+	}
+
+	protected function doDBUpdates(): bool {
 		$services = $this->getServiceContainer();
 
 		$titleFactory = $services->getTitleFactory();
@@ -23,22 +33,27 @@ class DeleteTemplate extends Maintenance {
 		$title = $titleFactory->newFromText( 'Extension DPL', NS_TEMPLATE );
 		if ( $title === null || !$title->exists() ) {
 			$this->output( "Template:Extension DPL does not exist; nothing to delete.\n" );
-			return;
+			return true;
 		}
 
 		$page = $wikiPageFactory->newFromTitle( $title );
-		$user = User::newSystemUser( 'DynamicPageList4 extension', [ 'steal' => true ] );
+		$user = User::newSystemUser( User::MAINTENANCE_SCRIPT_USER, [ 'steal' => true ] );
 
 		$deletePage = $deletePageFactory->newDeletePage( $page, $user );
-		$status = $deletePage->deleteUnsafe(
-			'Removing obsolete content-inclusion template (no longer required).'
-		);
+		$status = $deletePage
+			->forceImmediate( true )
+			->deleteUnsafe( wfMessage( 'dynamicpageList4-template-deleted' )
+					->inContentLanguage()->text()
+			);
 
 		if ( !$status->isOK() ) {
-			$this->fatalError( 'Deletion failed.' );
+			$this->error( 'Deletion failed:' );
+			$this->error( $status );
+			return false;
 		}
 
 		$this->output( "Deletion completed.\n" );
+		return true;
 	}
 }
 
