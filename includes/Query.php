@@ -26,6 +26,7 @@ use function array_map;
 use function array_merge;
 use function array_slice;
 use function array_unique;
+use function assert;
 use function bin2hex;
 use function count;
 use function floor;
@@ -244,6 +245,8 @@ class Query {
 				return $res;
 			} catch ( DBQueryError $e ) {
 				$this->handleQueryError( $qname, $e );
+				// We can never reach this but we need to tell phan that.
+				assert( false );
 			}
 		};
 
