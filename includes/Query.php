@@ -187,9 +187,14 @@ class Query {
 			$categoriesGoal = false;
 		}
 
+		$qname = __METHOD__;
+		if ( $profilingContext !== '' ) {
+			$qname .= ' - ' . $profilingContext;
+		}
+
 		try {
 			if ( $categoriesGoal ) {
-				$this->queryBuilder->caller( __METHOD__ );
+				$this->queryBuilder->caller( $qname );
 				$res = $this->queryBuilder->fetchResultSet();
 
 				$pageIds = [];
@@ -201,11 +206,11 @@ class Query {
 					->table( 'categorylinks', 'clgoal' )
 					->select( 'clgoal.cl_to' )
 					->where( [ 'clgoal.cl_from' => $pageIds ] )
-					->caller( __METHOD__ )
+					->caller( $qname )
 					->orderBy( 'clgoal.cl_to', $this->direction )
 					->getSQL();
 			} else {
-				$this->queryBuilder->caller( __METHOD__ );
+				$this->queryBuilder->caller( $qname );
 				$query = $this->queryBuilder->getSQL();
 			}
 
@@ -213,14 +218,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
-			$errorMessage = $this->dbr->lastError();
-			if ( $errorMessage === '' ) {
-				$errorMessage = $e->getMessage();
-			}
-
-			throw new LogicException( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Utils::getVersion(), $errorMessage
-			)->text() );
+			$this->handleQueryError( $qname, $e );
 		}
 
 		// Partially taken from intersection
@@ -231,12 +229,6 @@ class Query {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );
 		}
 
-		$qname = __METHOD__;
-		if ( $profilingContext !== '' ) {
-			$qname .= ' - ' . $profilingContext;
-		}
-
-		$this->queryBuilder->caller( $qname );
 		$doQuery = function () use ( $calcRows, $qname ): array {
 			try {
 				$res = $this->queryBuilder->fetchResultSet();
@@ -251,14 +243,7 @@ class Query {
 
 				return $res;
 			} catch ( DBQueryError $e ) {
-				$errorMessage = $this->dbr->lastError();
-				if ( $errorMessage === '' ) {
-					$errorMessage = $e->getMessage();
-				}
-
-				throw new LogicException( "$qname: " . wfMessage(
-					'dpl_query_error', Utils::getVersion(), $errorMessage
-				)->text() );
+				$this->handleQueryError( $qname, $e );
 			}
 		};
 
@@ -301,6 +286,28 @@ class Query {
 	 */
 	public function getSqlQuery(): string {
 		return $this->sqlQuery;
+	}
+
+	/** @throws LogicException */
+	private function handleQueryError(
+		string $qname,
+		DBQueryError $e
+	): never {
+		$errorMessage = $this->dbr->lastError();
+		if ( $errorMessage === '' ) {
+			$errorMessage = $e->getMessage();
+		}
+
+		Utils::getLogger()->error(
+			'Query error at {qname}: {error-message}', [
+				'error-message' => $errorMessage,
+				'qname' => $qname,
+			]
+		);
+
+		throw new LogicException( "$qname: " . wfMessage(
+			'dpl_query_error', Utils::getVersion(), $errorMessage
+		)->text() );
 	}
 
 	/**
