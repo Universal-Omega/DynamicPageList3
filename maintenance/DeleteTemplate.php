@@ -32,7 +32,7 @@ class DeleteTemplate extends LoggedUpdateMaintenance {
 
 		$title = $titleFactory->newFromText( 'Extension DPL', NS_TEMPLATE );
 		if ( $title === null || !$title->exists() ) {
-			$this->output( "Template:Extension DPL does not exist; nothing to delete.\n" );
+			$this->output( "{$title->getPrefixedText()} does not exist; nothing to delete.\n" );
 			return true;
 		}
 
