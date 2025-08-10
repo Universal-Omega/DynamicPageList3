@@ -42,7 +42,7 @@ class DeleteTemplate extends LoggedUpdateMaintenance {
 		$deletePage = $deletePageFactory->newDeletePage( $page, $user );
 		$status = $deletePage
 			->forceImmediate( true )
-			->deleteUnsafe( wfMessage( 'dynamicpageList4-template-deleted' )
+			->deleteUnsafe( wfMessage( 'dpl-template-deleted' )
 					->inContentLanguage()->text()
 			);
 
