@@ -11,6 +11,7 @@ use function sort;
 class ParametersData {
 
 	protected readonly Config $config;
+	protected readonly Logger $logger;
 
 	/** The level of parameters that is accesible for the user. */
 	private readonly int $parameterRichness;
@@ -1204,6 +1205,7 @@ class ParametersData {
 
 	public function __construct() {
 		$this->config = Config::getInstance();
+		$this->logger = Logger::getInstance();
 		$this->parameterRichness = $this->config->get( 'functionalRichness' );
 
 		if ( Utils::isLikeIntersection() ) {
