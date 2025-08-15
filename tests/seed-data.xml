@@ -132,7 +132,7 @@
 			<origin>20</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text bytes="72" sha1="gykofop7mtvar8ajsyppok80uy6fiti" xml:space="preserve">Sed dapibus enim ac quam pharetra suscipit.
+			<text bytes="72" sha1="gykofop7mtvar8ajsyppok80uy6fiti" xml:space="preserve">Sed dapibus enim ac [[DPLTestArticle 1]] quam pharetra suscipit. {{DPLInfobox}}
 [[Category:DPLTestCategory]]</text>
 			<sha1>gykofop7mtvar8ajsyppok80uy6fiti</sha1>
 		</revision>
@@ -168,7 +168,7 @@
 			<origin>22</origin>
 			<model>wikitext</model>
 			<format>text/x-wiki</format>
-			<text bytes="73" sha1="9caafrpllg2n9zyk52h0ov4bajyxjpj" xml:space="preserve"> Duis vel dapibus tellus, eu vehicula metus.
+			<text bytes="73" sha1="9caafrpllg2n9zyk52h0ov4bajyxjpj" xml:space="preserve"> Duis vel dapibus tellus, [[DPLTestArticle 1]] eu vehicula metus.
 [[Category:DPLTestCategory]]</text>
 			<sha1>9caafrpllg2n9zyk52h0ov4bajyxjpj</sha1>
 		</revision>
