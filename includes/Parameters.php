@@ -65,6 +65,11 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
+		// DB format
+		if ( $parameterData['db_format'] ?? false ) {
+			$option = str_replace( ' ', '_', $option );
+		}
+
 		$method = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
 		if ( method_exists( $this, $method ) ) {
@@ -168,11 +173,6 @@ class Parameters extends ParametersData {
 
 			array_shift( $matches );
 			$option = $matches;
-		}
-
-		// DB format
-		if ( $parameterData['db_format'] ?? false ) {
-			$option = str_replace( ' ', '_', $option );
 		}
 
 		$this->setParameter( $parameter, $option );
