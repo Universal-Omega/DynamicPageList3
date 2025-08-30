@@ -39,6 +39,7 @@
 	"dpl_log_25": "Error: $1",
 	"dpl_articlecount": "There {{PLURAL:$1|is one article|are $1 articles}} in this heading.",
 	"dpl_query_error": "The DynamicPageList4 extension (version $1) produced a SQL statement which led to a Database error.<br/>The reason may be an internal error of DynamicPageList4 or an error that you made; especially when using parameters like 'categoryregexp' or 'titleregexp'. Usage of non-greedy <code>*?</code> matching patterns are not supported.<br/>The error message was:<br/><code>$2</code>",
+	"dpl-template-deleted": "Removing obsolete content-inclusion template (no longer used starting with DynamicPageList4).",
 	"dpl-tracking-category": "Pages using DynamicPageList4",
 	"dpl-tag-tracking-category": "Pages using DynamicPageList4 parser tag",
 	"dpl-intersection-tracking-category": "Pages using DynamicPageList4 Intersection parser tag",
