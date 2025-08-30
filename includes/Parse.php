@@ -75,7 +75,7 @@ class Parse {
 
 	public function __construct() {
 		$this->config = Config::getInstance();
-		$this->logger = new Logger();
+		$this->logger = Logger::getInstance();
 		$this->parameters = new Parameters();
 		$this->request = RequestContext::getMain()->getRequest();
 	}
@@ -331,6 +331,10 @@ class Parse {
 		);
 
 		$this->triggerEndResets( $finalOutput, $reset, $eliminate, $isParserTag, $parser );
+		if ( $this->logger->getMessages( clearBuffer: false ) ) {
+			$parser->addTrackingCategory( 'dpl-errors-tracking-category' );
+		}
+
 		return $finalOutput;
 	}
 
@@ -494,7 +498,7 @@ class Parse {
 	}
 
 	private function setHeader( string $header ): void {
-		if ( Utils::getDebugLevel() === 5 ) {
+		if ( $this->logger->getDebugLevel() === 5 ) {
 			$header = Html::openElement( 'pre' ) .
 				Html::openElement( 'nowiki' ) . $header;
 		}
@@ -507,7 +511,7 @@ class Parse {
 	}
 
 	private function setFooter( string $footer ): void {
-		if ( Utils::getDebugLevel() === 5 ) {
+		if ( $this->logger->getDebugLevel() === 5 ) {
 			$footer .= Html::closeElement( 'nowiki' ) .
 				Html::closeElement( 'pre' );
 		}

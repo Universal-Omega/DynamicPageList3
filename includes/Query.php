@@ -57,6 +57,8 @@ use const PREG_SPLIT_NO_EMPTY;
 class Query {
 
 	private readonly Config $config;
+	private readonly Logger $logger;
+
 	private readonly IReadableDatabase $dbr;
 	private readonly SelectQueryBuilder $queryBuilder;
 	private readonly UserFactory $userFactory;
@@ -86,6 +88,7 @@ class Query {
 			->getReplicaDatabase( group: 'vslow' );
 
 		$this->config = Config::getInstance();
+		$this->logger = Logger::getInstance();
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
 	}
@@ -209,7 +212,7 @@ class Query {
 				$query = $this->queryBuilder->getSQL();
 			}
 
-			if ( Utils::getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
+			if ( $this->logger->getDebugLevel() >= 4 && $this->config->get( MainConfigNames::DebugDumpSql ) ) {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
