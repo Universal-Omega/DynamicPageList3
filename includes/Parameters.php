@@ -65,6 +65,11 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
+		// DB format
+		if ( $parameterData['db_format'] ?? false ) {
+			$option = str_replace( ' ', '_', $option );
+		}
+
 		$method = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
 		if ( method_exists( $this, $method ) ) {
@@ -168,11 +173,6 @@ class Parameters extends ParametersData {
 
 			array_shift( $matches );
 			$option = $matches;
-		}
-
-		// DB format
-		if ( $parameterData['db_format'] ?? false ) {
-			$option = str_replace( ' ', '_', $option );
 		}
 
 		$this->setParameter( $parameter, $option );
@@ -743,7 +743,7 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
-		$titleText = str_replace( ' ', '_', $title->getText() );
+		$titleText = $title->getDbKey();
 		$titleData = $this->getParameter( 'title' ) ?? [];
 		$titleData['='][] = $titleText;
 		$this->setParameter( 'title', $titleData );
@@ -774,7 +774,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'title' ) ?? [];
 		$data['REGEXP'] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
@@ -794,7 +794,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'title' ) ?? [];
 		$data[IExpression::LIKE] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'title', $data );
@@ -810,7 +810,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'nottitle' ) ?? [];
 		$data['REGEXP'] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
@@ -830,7 +830,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'nottitle' ) ?? [];
 		$data[IExpression::LIKE] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
@@ -1031,9 +1031,9 @@ class Parameters extends ParametersData {
 				}
 
 				$tab = $tab !== '' ? $tab : wfMessage( 'article' )->text();
-				$listSeparators[0] .= "\n!{$tab}";
+				$listSeparators[0] .= "\n!$tab";
 			} else {
-				$listSeparators[0] .= "\n!{$tab}";
+				$listSeparators[0] .= "\n!$tab";
 			}
 		}
 
@@ -1054,9 +1054,9 @@ class Parameters extends ParametersData {
 
 		foreach ( array_keys( $sectionLabels ) as $i ) {
 			if ( $i === 0 ) {
-				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
+				$sectionSeparators[0] = "\n|-\n|$withHLink";
 				$sectionSeparators[1] = '';
-				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
+				$multiSectionSeparators[0] = "\n|-\n|$withHLink";
 				continue;
 			}
 
@@ -1139,7 +1139,7 @@ class Parameters extends ParametersData {
 			}
 
 			if ( $argument === 'all' || $argument === 'none' ) {
-				$boolean = ( $argument === 'all' );
+				$boolean = $argument === 'all';
 				$subValues = array_diff( $values, [ 'all', 'none' ] );
 				$reset = array_fill_keys( $subValues, $boolean );
 				// No need to process further after 'all' or 'none'
