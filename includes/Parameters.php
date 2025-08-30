@@ -685,6 +685,7 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
+		$this->setParameter( 'distinct', $option );
 		$this->setParameter( 'distinctresultset', $option );
 		return true;
 	}
