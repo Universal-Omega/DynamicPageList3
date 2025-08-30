@@ -68,6 +68,8 @@ class Query {
 	private string $sqlQuery = '';
 	private array $orderBy = [];
 
+	private bool $distinct = false;
+
 	private ?int $limit = null;
 	private ?int $offset = null;
 
@@ -182,6 +184,10 @@ class Query {
 		} else {
 			if ( $calcRows ) {
 				$this->queryBuilder->calcFoundRows();
+			}
+
+			if ( $this->distinct ) {
+				$this->queryBuilder->distinct();
 			}
 
 			$categoriesGoal = false;
@@ -883,8 +889,11 @@ class Query {
 	 */
 	private function _distinct( string|bool $option ): void {
 		if ( $option === 'strict' || $option === true ) {
-			$this->queryBuilder->distinct();
+			$this->distinct = true;
+			return;
 		}
+
+		$this->distinct = false;
 	}
 
 	/**
