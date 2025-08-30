@@ -187,7 +187,7 @@ class Query {
 			}
 
 			if ( $this->distinct ) {
-				$this->queryBuilder->distinct();
+				// $this->queryBuilder->distinct();
 			}
 
 			$categoriesGoal = false;
