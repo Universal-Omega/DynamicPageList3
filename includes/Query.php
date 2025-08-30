@@ -218,7 +218,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
-			$this->handleQueryError( $qname, $e );
+			throw $this->getQueryError( $qname, $e );
 		}
 
 		// Partially taken from intersection
@@ -243,7 +243,7 @@ class Query {
 
 				return $res;
 			} catch ( DBQueryError $e ) {
-				$this->handleQueryError( $qname, $e );
+				throw $this->getQueryError( $qname, $e );
 			}
 		};
 
@@ -288,11 +288,7 @@ class Query {
 		return $this->sqlQuery;
 	}
 
-	/** @throws LogicException */
-	private function handleQueryError(
-		string $qname,
-		DBQueryError $e
-	): never {
+	private function getQueryError( string $qname, DBQueryError $e ): LogicException {
 		$errorMessage = $this->dbr->lastError();
 		if ( $errorMessage === '' ) {
 			$errorMessage = $e->getMessage();
@@ -303,7 +299,7 @@ class Query {
 			'qname' => $qname,
 		] );
 
-		throw new LogicException( "$qname: " . wfMessage(
+		return new LogicException( "$qname: " . wfMessage(
 			'dpl_query_error', Utils::getVersion(), $errorMessage
 		)->text() );
 	}
