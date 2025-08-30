@@ -849,6 +849,7 @@ class ParametersData {
 		],
 		'titleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'userdateformat' => [
 			'default' => 'Y-m-d H:i:s',
@@ -861,9 +862,11 @@ class ParametersData {
 		 */
 		'nottitlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'nottitleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'order' => [
 			'default' => 'ascending',
