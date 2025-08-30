@@ -301,7 +301,6 @@ class ParametersData {
 		 */
 		'distinct' => [
 			'default' => true,
-			'values' => [ true, false, 'strict' ],
 		],
 		'cacheperiod' => [
 			'default' => 3600,
