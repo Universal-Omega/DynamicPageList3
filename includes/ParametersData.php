@@ -845,6 +845,7 @@ class ParametersData {
 		],
 		'titlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'titleregexp' => [
 			'default' => null,
