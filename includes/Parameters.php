@@ -677,18 +677,16 @@ class Parameters extends ParametersData {
 	 * Clean and test 'distinct' parameter.
 	 */
 	private function _distinct( string $option ): bool {
-		if ( $option === 'strict' ) {
-			$this->setParameter( 'distinctresultset', 'strict' );
-			return true;
+		if ( $option !== 'strict' ) {
+			$option = $this->filterBoolean( $option );
 		}
 
-		$option = $this->filterBoolean( $option );
-		if ( $option !== null ) {
-			$this->setParameter( 'distinctresultset', $option );
-			return true;
+		if ( $option === null ) {
+			return false;
 		}
-
-		return false;
+		
+		$this->setParameter( 'distinctresultset', $option );
+		return true;
 	}
 
 	/**
