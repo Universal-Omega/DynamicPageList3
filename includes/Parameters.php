@@ -684,7 +684,7 @@ class Parameters extends ParametersData {
 		if ( $option === null ) {
 			return false;
 		}
-		
+
 		$this->setParameter( 'distinctresultset', $option );
 		return true;
 	}
