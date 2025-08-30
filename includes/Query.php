@@ -218,7 +218,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
-			throw $this->getQueryError( $qname, $e );
+			throw self::getQueryError( $qname, $e->getMessage() );
 		}
 
 		// Partially taken from intersection
@@ -243,7 +243,7 @@ class Query {
 
 				return $res;
 			} catch ( DBQueryError $e ) {
-				throw $this->getQueryError( $qname, $e );
+				throw self::getQueryError( $qname, $e->getMessage() );
 			}
 		};
 
@@ -288,19 +288,14 @@ class Query {
 		return $this->sqlQuery;
 	}
 
-	private function getQueryError( string $qname, DBQueryError $e ): LogicException {
-		$errorMessage = $this->dbr->lastError();
-		if ( $errorMessage === '' ) {
-			$errorMessage = $e->getMessage();
-		}
-
+	private static function getQueryError( string $qname, string $message ): LogicException {
 		Utils::getLogger()->debug( 'Query error at {qname}: {error-message}', [
-			'error-message' => $errorMessage,
+			'error-message' => $message,
 			'qname' => $qname,
 		] );
 
 		return new LogicException( "$qname: " . wfMessage(
-			'dpl_query_error', Utils::getVersion(), $errorMessage
+			'dpl_query_error', Utils::getVersion(), $message
 		)->text() );
 	}
 
@@ -372,9 +367,7 @@ class Query {
 				->distinct()
 				->fetchFieldValues();
 		} catch ( DBQueryError $e ) {
-			throw new LogicException( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Utils::getVersion(), $e->getMessage()
-			)->text() );
+			throw self::getQueryError( __METHOD__, $e->getMessage() );
 		}
 
 		foreach ( $categories as $category ) {
