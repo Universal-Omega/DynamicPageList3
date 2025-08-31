@@ -206,7 +206,7 @@ class Article {
 			// CONTRIBUTION, CONTRIBUTOR
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
 				$article->mContribution = (int)( $row->contribution ?? 0 );
-				$contribUser = $userFactory->newFromActorId( (int)( $row->contributor ?? 0 )11 );
+				$contribUser = $userFactory->newFromActorId( (int)( $row->contributor ?? 0 ) );
 				$contribUserDeleted = $row->contrib_deleted & RevisionRecord::DELETED_USER;
 				$article->mContributor = $contribUser->isHidden() || $contribUserDeleted ?
 					wfMessage( 'rev-deleted-user' )->escaped() :
