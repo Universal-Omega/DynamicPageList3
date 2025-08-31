@@ -1,8 +1,10 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
-class Constants {
+final class Constants {
 
 	public const FATAL_WRONGNS = 1001;
 

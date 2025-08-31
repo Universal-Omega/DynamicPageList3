@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use ExtVariables;
@@ -326,7 +328,7 @@ class Parse {
 		$parser->getOutput()->updateCacheExpiry( $expiry );
 
 		$finalOutput = $this->getFullOutput(
-			totalResults: $foundRows,
+			totalResults: (int)$foundRows,
 			skipHeaderFooter: false
 		);
 
@@ -377,12 +379,12 @@ class Parse {
 					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row->lt_namespace;
+					$pageNamespace = (int)$row->lt_namespace;
 					$pageTitle = $row->lt_title;
 				}
 			} else {
 				// Existing PAGE TITLE
-				$pageNamespace = $row->page_namespace;
+				$pageNamespace = (int)$row->page_namespace;
 				$pageTitle = $row->page_title;
 			}
 

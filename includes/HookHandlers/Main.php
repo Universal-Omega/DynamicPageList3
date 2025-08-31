@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
