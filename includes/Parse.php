@@ -328,7 +328,7 @@ class Parse {
 		$parser->getOutput()->updateCacheExpiry( $expiry );
 
 		$finalOutput = $this->getFullOutput(
-			totalResults: $foundRows,
+			totalResults: (int)$foundRows,
 			skipHeaderFooter: false
 		);
 
