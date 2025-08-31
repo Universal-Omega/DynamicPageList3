@@ -544,6 +544,24 @@ class Lister {
 		$matchFailed = false;
 		$septag = [];
 
+		$text = null;
+		// Check if we need to fetch the page text to perform a page text match test.
+		$needsPageMatch = !empty($this->pageTextMatchRegex[0]) || !empty($this->pageTextMatchNotRegex[0]);
+		if ( $needsPageMatch ) {
+			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
+			$match = (
+				( $this->pageTextMatchRegex === [] ||
+					$this->pageTextMatchRegex[0] === '' ||
+					preg_match( $this->pageTextMatchRegex[0], $text ) ) &&
+				( $this->pageTextMatchNotRegex === [] ||
+					$this->pageTextMatchNotRegex[0] === '' ||
+					!preg_match( $this->pageTextMatchNotRegex[0], $text ) )
+			);
+			if ( !$match ) {
+				return '';
+			}
+		}
+
 		// Include whole article
 		if ( $this->pageTextMatch === [] || $this->pageTextMatch[0] === '*' ) {
 			$title = $article->mTitle->getPrefixedText();
@@ -551,17 +569,8 @@ class Lister {
 				? ''
 				: Html::element( 'br' );
 
-			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
-
-			$match = (
-				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
-				  preg_match( $this->pageTextMatchRegex[0], $text ) ) &&
-				( $this->pageTextMatchNotRegex === [] || $this->pageTextMatchNotRegex[0] === '' ||
-				  !preg_match( $this->pageTextMatchNotRegex[0], $text ) )
-			);
-
-			if ( !$match ) {
-				return '';
+			if ($text === null) {
+				$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
 			}
 
 			if ( $this->includePageMaxLength > 0 && strlen( $text ) > $this->includePageMaxLength ) {
