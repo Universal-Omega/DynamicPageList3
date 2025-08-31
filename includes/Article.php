@@ -30,6 +30,7 @@ use function wfMessage;
 use function wfTimestamp;
 use const NS_CATEGORY;
 use const NS_FILE;
+use const NS_MAIN;
 use const NS_VIDEO;
 use const TS_UNIX;
 
@@ -86,7 +87,7 @@ class Article {
 
 		$revActorName = ActorStore::UNKNOWN_USER_NAME;
 		if ( (int)( $row->rev_actor ?? 0 ) !== 0 ) {
-			$revUser = $userFactory->newFromActorId( $row->rev_actor );
+			$revUser = $userFactory->newFromActorId( (int)$row->rev_actor );
 			$revUserDeleted = $row->rev_deleted & RevisionRecord::DELETED_USER;
 			$revActorName = $revUser->isHidden() || $revUserDeleted ?
 				wfMessage( 'rev-deleted-user' )->escaped() :
@@ -148,7 +149,7 @@ class Article {
 		// STORE initially selected PAGE
 		if ( $parameters->getParameter( 'linksto' ) || $parameters->getParameter( 'linksfrom' ) ) {
 			$article->mSelTitle = $row->sel_title ?? 'unknown page';
-			$article->mSelNamespace = $row->sel_ns ?? 0;
+			$article->mSelNamespace = (int)( $row->sel_ns ?? NS_MAIN );
 		}
 
 		// STORE selected image
@@ -164,7 +165,7 @@ class Article {
 				$parameters->getParameter( 'firstrevisionsince' ) ||
 				$parameters->getParameter( 'allrevisionssince' )
 			) {
-				$article->mRevision = $row->rev_id ?? 0;
+				$article->mRevision = (int)( $row->rev_id ?? 0 );
 				$article->mUser = $revActorName;
 				$article->mDate = $row->rev_timestamp ?? '';
 				if ( $row->rev_comment_text ?? '' ) {
@@ -204,8 +205,8 @@ class Article {
 
 			// CONTRIBUTION, CONTRIBUTOR
 			if ( $parameters->getParameter( 'addcontribution' ) ) {
-				$article->mContribution = $row->contribution ?? 0;
-				$contribUser = $userFactory->newFromActorId( $row->contributor ?? 0 );
+				$article->mContribution = (int)( $row->contribution ?? 0 );
+				$contribUser = $userFactory->newFromActorId( (int)( $row->contributor ?? 0 )11 );
 				$contribUserDeleted = $row->contrib_deleted & RevisionRecord::DELETED_USER;
 				$article->mContributor = $contribUser->isHidden() || $contribUserDeleted ?
 					wfMessage( 'rev-deleted-user' )->escaped() :
