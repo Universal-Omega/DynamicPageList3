@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use LogicException;
+use MediaWiki\Extension\DynamicPageList4\Exceptions\QueryException;
 use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -288,13 +288,13 @@ class Query {
 		return $this->sqlQuery;
 	}
 
-	private static function getQueryError( string $qname, string $message ): LogicException {
+	private static function getQueryError( string $qname, string $message ): QueryException {
 		Utils::getLogger()->debug( 'Query error at {qname}: {error-message}', [
 			'error-message' => $message,
 			'qname' => $qname,
 		] );
 
-		return new LogicException( "$qname: " . wfMessage(
+		return new QueryException( "$qname: " . wfMessage(
 			'dpl_query_error', Utils::getVersion(), $message
 		)->text() );
 	}
@@ -397,7 +397,7 @@ class Query {
 			// Handle the failure below
 		}
 
-		throw new LogicException( "Invalid timestamp: $inputDate" );
+		throw new QueryException( "Invalid timestamp: $inputDate" );
 	}
 
 	private function caseInsensitiveComparison(
@@ -440,7 +440,7 @@ class Query {
 			return "$fieldExpr $operator $value";
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
+		throw new QueryException( 'You are using an unsupported database type for ignorecase.' );
 	}
 
 	private function buildRegexpExpression( string $field, string $value ): string {
@@ -454,7 +454,7 @@ class Query {
 			return "$field ~ $value";
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
+		throw new QueryException( 'You are using an unsupported database type for REGEXP.' );
 	}
 
 	/**
@@ -564,7 +564,7 @@ class Query {
 			return;
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for addcategories.' );
+		throw new QueryException( 'You are using an unsupported database type for addcategories.' );
 	}
 
 	/**
@@ -931,7 +931,7 @@ class Query {
 	 */
 	private function _hiddencategories( mixed $option ): never {
 		// @TODO: Unfinished functionality! Never implemented by original author.
-		throw new LogicException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
+		throw new QueryException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
 	}
 
 	/**
@@ -1525,7 +1525,7 @@ class Query {
 				}
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'postgres' ) {
@@ -1542,7 +1542,7 @@ class Query {
 				return;
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'sqlite' ) {
@@ -1553,11 +1553,11 @@ class Query {
 				return;
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		// Not supported on SQLite or mystery engines
-		throw new LogicException( 'Order collation is not supported on the database type you are using.' );
+		throw new QueryException( 'Order collation is not supported on the database type you are using.' );
 	}
 
 	/**
@@ -1748,7 +1748,7 @@ class Query {
 						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
 						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
 						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
-						default => throw new LogicException(
+						default => throw new QueryException(
 							'The ordermethod \'pagesel\' is only supported when using at least one of the ' .
 							'following parameters: linksfrom, linksto, usedby, or uses.'
 						),
