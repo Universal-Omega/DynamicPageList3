@@ -124,9 +124,9 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Test title truncation with titlemaxlen parameter
+	 * Test title truncation with titlemaxlength parameter
 	 */
-	public function testNewFromRowWithTitleMaxLen(): void {
+	public function testNewFromRowWithTitleMaxLength(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
