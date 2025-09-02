@@ -541,7 +541,6 @@ class Lister {
 	 * Transclude a page contents.
 	 */
 	protected function transcludePage( Article $article, int &$filteredCount ): string {
-		$matchFailed = false;
 		$septag = [];
 
 		// Include whole article
@@ -660,9 +659,8 @@ class Lister {
 				$this->replaceTagTableRow( $secPieces, $s, $article );
 				if ( !isset( $secPieces[0] ) ) {
 					if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
-						$matchFailed = true;
+						return '';
 					}
-					break;
 				}
 
 				$secPiece[$s] = $secPieces[0];
@@ -670,7 +668,7 @@ class Lister {
 				for ( $sp = 1, $len = count( $secPieces ); $sp < $len; $sp++ ) {
 					if ( $multiSep !== null ) {
 						$secPiece[$s] .= str_replace( '%SECTION%',
-							// @phan-suppress-next-line PhanCoalescingAlwaysNullInLoop
+							/** @phan-suppress-next-line PhanCoalescingAlwaysNullInLoop */
 							$sectionHeading[$sp] ?? '',
 							$this->replaceTagCount( $multiSep, $filteredCount )
 						);
@@ -718,8 +716,7 @@ class Lister {
 					( $mustMatch !== '' || $mustNotMatch !== '' ) &&
 					count( $secPieces ) <= 1 && ( $secPieces[0] ?? '' ) === ''
 				) {
-					$matchFailed = true;
-					break;
+					return '';
 				}
 			} else {
 				$secPieces = SectionTranscluder::includeSection(
@@ -744,8 +741,7 @@ class Lister {
 					( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
 					( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
 				) {
-					$matchFailed = true;
-					break;
+					return '';
 				}
 			}
 
@@ -767,10 +763,6 @@ class Lister {
 				replace: $sectionHeadingStr,
 				subject: $this->replaceTagCount( $right, $filteredCount )
 			);
-		}
-
-		if ( $matchFailed ) {
-			return '';
 		}
 
 		$filteredCount++;
