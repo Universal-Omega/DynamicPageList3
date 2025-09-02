@@ -553,14 +553,11 @@ class Lister {
 
 			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
 
-			$match = (
-				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
-				  preg_match( $this->pageTextMatchRegex[0], $text ) ) &&
-				( $this->pageTextMatchNotRegex === [] || $this->pageTextMatchNotRegex[0] === '' ||
-				  !preg_match( $this->pageTextMatchNotRegex[0], $text ) )
-			);
-
-			if ( !$match ) {
+			$matchesRegex = empty( $this->pageTextMatchRegex[0] ) ||
+				preg_match( $this->pageTextMatchRegex[0], $text );
+			$matchesNotRegex = empty( $this->pageTextMatchNotRegex[0] ) ||
+				!preg_match( $this->pageTextMatchNotRegex[0], $text );
+			if ( !$matchesRegex || !$matchesNotRegex ) {
 				return '';
 			}
 
@@ -649,6 +646,7 @@ class Lister {
 				);
 
 				if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
+					// Something is wrong here
 					$secPieces = array_values( array_filter( $secPieces, static fn ( string $piece ): bool =>
 						( $mustMatch === '' || preg_match( $mustMatch, $piece ) ) &&
 						( $mustNotMatch === '' || !preg_match( $mustNotMatch, $piece ) )
