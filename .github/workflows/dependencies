@@ -1,3 +1,6 @@
+PageImages:
+  branch: auto
+  repo: auto
 Variables:
   branch: auto
   repo: auto
