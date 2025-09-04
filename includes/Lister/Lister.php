@@ -661,6 +661,7 @@ class Lister {
 					if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
 						return '';
 					}
+					break;
 				}
 
 				$secPiece[$s] = $secPieces[0];
