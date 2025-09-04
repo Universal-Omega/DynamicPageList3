@@ -14,9 +14,8 @@ use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
-use function array_filter;
 use function array_slice;
-use function array_values;
+use function array_splice;
 use function count;
 use function end;
 use function explode;
@@ -541,7 +540,6 @@ class Lister {
 	 * Transclude a page contents.
 	 */
 	protected function transcludePage( Article $article, int &$filteredCount ): string {
-		$matchFailed = false;
 		$septag = [];
 
 		// Include whole article
@@ -553,14 +551,11 @@ class Lister {
 
 			$text = $this->parser->fetchTemplateAndTitle( $article->mTitle )[0];
 
-			$match = (
-				( $this->pageTextMatchRegex === [] || $this->pageTextMatchRegex[0] === '' ||
-				  preg_match( $this->pageTextMatchRegex[0], $text ) ) &&
-				( $this->pageTextMatchNotRegex === [] || $this->pageTextMatchNotRegex[0] === '' ||
-				  !preg_match( $this->pageTextMatchNotRegex[0], $text ) )
-			);
-
-			if ( !$match ) {
+			$matchesRegex = empty( $this->pageTextMatchRegex[0] ) ||
+				preg_match( $this->pageTextMatchRegex[0], $text );
+			$matchesNotRegex = empty( $this->pageTextMatchNotRegex[0] ) ||
+				!preg_match( $this->pageTextMatchNotRegex[0], $text );
+			if ( !$matchesRegex || !$matchesNotRegex ) {
 				return '';
 			}
 
@@ -649,10 +644,16 @@ class Lister {
 				);
 
 				if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
-					$secPieces = array_values( array_filter( $secPieces, static fn ( string $piece ): bool =>
-						( $mustMatch === '' || preg_match( $mustMatch, $piece ) ) &&
-						( $mustNotMatch === '' || !preg_match( $mustNotMatch, $piece ) )
-					) );
+					$secPiecesTmp = $secPieces;
+					$offset = 0;
+					foreach ( $secPiecesTmp as $nr => $onePiece ) {
+						if ( ( $mustMatch !== '' && !preg_match( $mustMatch, $onePiece ) ) ||
+							( $mustNotMatch !== '' && preg_match( $mustNotMatch, $onePiece ) )
+						) {
+							array_splice( $secPieces, $nr - $offset, 1 );
+							$offset++;
+						}
+					}
 				}
 
 				if ( $maxLength === 0 ) {
@@ -662,7 +663,7 @@ class Lister {
 				$this->replaceTagTableRow( $secPieces, $s, $article );
 				if ( !isset( $secPieces[0] ) ) {
 					if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
-						$matchFailed = true;
+						return '';
 					}
 					break;
 				}
@@ -672,7 +673,7 @@ class Lister {
 				for ( $sp = 1, $len = count( $secPieces ); $sp < $len; $sp++ ) {
 					if ( $multiSep !== null ) {
 						$secPiece[$s] .= str_replace( '%SECTION%',
-							// @phan-suppress-next-line PhanCoalescingAlwaysNullInLoop
+							/** @phan-suppress-next-line PhanCoalescingAlwaysNullInLoop */
 							$sectionHeading[$sp] ?? '',
 							$this->replaceTagCount( $multiSep, $filteredCount )
 						);
@@ -720,8 +721,7 @@ class Lister {
 					( $mustMatch !== '' || $mustNotMatch !== '' ) &&
 					count( $secPieces ) <= 1 && ( $secPieces[0] ?? '' ) === ''
 				) {
-					$matchFailed = true;
-					break;
+					return '';
 				}
 			} else {
 				$secPieces = SectionTranscluder::includeSection(
@@ -746,8 +746,7 @@ class Lister {
 					( $mustMatch !== '' && !preg_match( $mustMatch, $secPiece[$s] ) ) ||
 					( $mustNotMatch !== '' && preg_match( $mustNotMatch, $secPiece[$s] ) )
 				) {
-					$matchFailed = true;
-					break;
+					return '';
 				}
 			}
 
@@ -769,10 +768,6 @@ class Lister {
 				replace: $sectionHeadingStr,
 				subject: $this->replaceTagCount( $right, $filteredCount )
 			);
-		}
-
-		if ( $matchFailed ) {
-			return '';
 		}
 
 		$filteredCount++;
