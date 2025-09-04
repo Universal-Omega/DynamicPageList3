@@ -14,9 +14,8 @@ use MediaWiki\Parser\Sanitizer;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use PageImages\PageImages;
-use function array_filter;
 use function array_slice;
-use function array_values;
+use function array_splice;
 use function count;
 use function end;
 use function explode;
@@ -645,11 +644,16 @@ class Lister {
 				);
 
 				if ( $mustMatch !== '' || $mustNotMatch !== '' ) {
-					// Something is wrong here
-					$secPieces = array_values( array_filter( $secPieces, static fn ( string $piece ): bool =>
-						( $mustMatch === '' || preg_match( $mustMatch, $piece ) ) &&
-						( $mustNotMatch === '' || !preg_match( $mustNotMatch, $piece ) )
-					) );
+					$secPiecesTmp = $secPieces;
+					$offset = 0;
+					foreach ( $secPiecesTmp as $nr => $onePiece ) {
+						if ( ( $mustMatch !== '' && !preg_match( $mustMatch, $onePiece ) ) ||
+							( $mustNotMatch !== '' && preg_match( $mustNotMatch, $onePiece ) )
+						) {
+							array_splice( $secPieces, $nr - $offset, 1 );
+							$offset++;
+						}
+					}
 				}
 
 				if ( $maxLength === 0 ) {
