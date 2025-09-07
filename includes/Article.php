@@ -101,10 +101,10 @@ class Article {
 			$titleText = preg_replace( $replaceInTitle[0], $replaceInTitle[1], $titleText );
 		}
 
-		// Chop off title if longer than the 'titlemaxlen' parameter.
-		$titleMaxLen = $parameters->getParameter( 'titlemaxlen' );
-		if ( $titleMaxLen !== null && mb_strlen( $titleText ) > $titleMaxLen ) {
-			$titleText = trim( mb_substr( $titleText, 0, $titleMaxLen ) ) .
+		// Chop off title if longer than the 'titlemaxlength' parameter.
+		$titleMaxLength = $parameters->getParameter( 'titlemaxlength' );
+		if ( $titleMaxLength !== null && mb_strlen( $titleText ) > $titleMaxLength ) {
+			$titleText = trim( mb_substr( $titleText, 0, $titleMaxLength ) ) .
 				wfMessage( 'ellipsis' )->text();
 		}
 

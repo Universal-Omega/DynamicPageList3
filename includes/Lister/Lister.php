@@ -136,7 +136,7 @@ class Lister {
 
 		$this->dominantSectionCount = $parameters->getParameter( 'dominantsection' );
 		$this->escapeLinks = $parameters->getParameter( 'escapelinks' );
-		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlen' ) ?? 0;
+		$this->includePageMaxLength = $parameters->getParameter( 'includemaxlength' ) ?? 0;
 		$this->includePageParsed = $parameters->getParameter( 'incparsed' ) ?? false;
 		$this->includePageText = $parameters->getParameter( 'incpage' ) ?? false;
 		$this->multiSectionSeparators = $parameters->getParameter( 'multisecseparators' ) ?? [];
@@ -147,7 +147,7 @@ class Lister {
 		$this->tableSortColumn = $parameters->getParameter( 'tablesortcol' ) ?? 0;
 		$this->tableSortMethod = $parameters->getParameter( 'tablesortmethod' );
 		$this->templateSuffix = $parameters->getParameter( 'defaulttemplatesuffix' );
-		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlen' ) ?? 0;
+		$this->titleMaxLength = $parameters->getParameter( 'titlemaxlength' ) ?? 0;
 		$this->trimIncluded = $parameters->getParameter( 'includetrim' ) ?? false;
 		$this->config = Config::getInstance();
 	}

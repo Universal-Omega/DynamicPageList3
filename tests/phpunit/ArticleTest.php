@@ -124,16 +124,16 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Test title truncation with titlemaxlen parameter
+	 * Test title truncation with titlemaxlength parameter
 	 */
-	public function testNewFromRowWithTitleMaxLen(): void {
+	public function testNewFromRowWithTitleMaxLength(): void {
 		$row = $this->createMockRow( [ 'page_id' => 123 ] );
 
 		$title = $this->createMock( Title::class );
 		$title->method( 'getText' )->willReturn( 'This is a very long page title' );
 		$title->method( 'getFullText' )->willReturn( 'This is a very long page title' );
 
-		$parameters = $this->createMockParameters( [ 'titlemaxlen' => 10 ] );
+		$parameters = $this->createMockParameters( [ 'titlemaxlength' => 10 ] );
 		$article = Article::newFromRow( $row, $parameters, $title, NS_MAIN, 'This is a very long page title' );
 
 		$this->assertStringContainsString( 'This is a...', $article->mLink );
