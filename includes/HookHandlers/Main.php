@@ -246,7 +246,7 @@ class Main implements ParserFirstCallInitHook {
 		Parser $parser,
 		string $text,
 		string $pat,
-		string $repl
+		string $repl = ''
 	): string {
 		$parser->addTrackingCategory( 'dplreplace-parserfunc-tracking-category' );
 		if ( $text === '' || $pat === '' ) {
