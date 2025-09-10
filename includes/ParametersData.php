@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use function array_key_exists;
@@ -13,23 +15,19 @@ class ParametersData {
 	protected readonly Config $config;
 	protected readonly Logger $logger;
 
-	/**
-	 * Parameter Richness
-	 * The level of parameters that is accesible for the user.
-	 */
+	/** The level of parameters that is accesible for the user. */
 	private readonly int $parameterRichness;
 
-	/**
-	 * List of all the valid parameters that can be used per level of functional richness.
-	 */
+	/** Parameters that can be used per richness level. */
 	private const PARAMETERS_BY_RICHNESS = [
 		0 => [
 			'addfirstcategorydate',
 			'category',
 			'count',
 			'gallerymode',
-			'gallerysize',
 			'hiddencategories',
+			'imageheight',
+			'imagewidth',
 			'mode',
 			'namespace',
 			'notcategory',
@@ -745,12 +743,18 @@ class ParametersData {
 		],
 
 		/**
-		 * Controls the size of images when the result output mode is a gallery.
-		 * Accepts either a single value (e.g. "80px") to use as both width and height,
-		 * or a comma-separated pair (e.g. "100px,150px") to set width and height separately.
-		 * The values are passed directly as `widths` and `heights` attributes in the gallery tag.
+		 * Controls the width of images when the result output mode is a gallery.
+		 * Value should be something like "100px". Passed directly as `widths` in the gallery tag.
 		 */
-		'gallerysize' => [
+		'imagewidth' => [
+			'default' => null,
+		],
+
+		/**
+		 * Controls the height of images when the result output mode is a gallery.
+		 * Value should be something like "150px". Passed directly as `heights` in the gallery tag.
+		 */
+		'imageheight' => [
 			'default' => null,
 		],
 
@@ -844,9 +848,11 @@ class ParametersData {
 		],
 		'titlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'titleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'userdateformat' => [
 			'default' => 'Y-m-d H:i:s',
@@ -859,9 +865,11 @@ class ParametersData {
 		 */
 		'nottitlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'nottitleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'order' => [
 			'default' => 'ascending',

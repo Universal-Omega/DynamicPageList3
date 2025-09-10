@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
 class UnorderedHeading extends Heading {

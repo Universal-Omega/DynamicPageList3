@@ -1,14 +1,14 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
-use function array_map;
-use function explode;
-use function str_contains;
 use function trim;
+use const NS_CATEGORY;
 use const NS_FILE;
 
 class GalleryList extends Lister {
@@ -25,32 +25,36 @@ class GalleryList extends Lister {
 		$item = $article->mTitle->getPrefixedText();
 		$this->listAttributes = '';
 
-		$gallerySize = $this->parameters->getParameter( 'gallerysize' );
-		if ( $gallerySize ) {
-			if ( str_contains( $gallerySize, ',' ) ) {
-				[ $width, $height ] = array_map( 'trim', explode( ',', $gallerySize, 2 ) );
-			} else {
-				$width = $height = trim( $gallerySize );
-			}
-
-			$this->listAttributes .= " widths=$width heights=$height";
+		$imageWidth = trim( $this->parameters->getParameter( 'imagewidth' ) ?? '' );
+		if ( $imageWidth !== '' ) {
+			$this->listAttributes .= " widths=$imageWidth";
 		}
 
-		$galleryMode = $this->parameters->getParameter( 'gallerymode' );
-		if ( $galleryMode ) {
+		$imageHeight = trim( $this->parameters->getParameter( 'imageheight' ) ?? '' );
+		if ( $imageHeight !== '' ) {
+			$this->listAttributes .= " heights=$imageHeight";
+		}
+
+		$galleryMode = trim( $this->parameters->getParameter( 'gallerymode' ) ?? '' );
+		if ( $galleryMode !== '' ) {
 			$this->listAttributes .= " mode=$galleryMode";
 		}
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+			$itemPageLink = "[[$item]]";
+			if ( $article->mNamespace === NS_CATEGORY ) {
+				$itemPageLink = "[[:$item|$item]]";
+			}
+
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
-					"[[$item]]{$this->itemEnd}link=$item";
+					"$itemPageLink{$this->itemEnd}link=$item";
 			} else {
 				// Failed to get a page image.
-				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$item]]";
+				$item = $this->getItemStart() . $item . $this->itemEnd . $itemPageLink;
 			}
 
 			return $this->replaceTagParameters( $item, $article );

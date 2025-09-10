@@ -1,8 +1,10 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
-use LogicException;
+use MediaWiki\Extension\DynamicPageList4\Exceptions\QueryException;
 use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -85,7 +87,7 @@ class Query {
 		private readonly Parameters $parameters
 	) {
 		$this->dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( false, 'dpl4' );
+			->getReplicaDatabase( group: 'vslow' );
 
 		$this->config = Config::getInstance();
 		$this->logger = Logger::getInstance();
@@ -190,9 +192,14 @@ class Query {
 			$categoriesGoal = false;
 		}
 
+		$qname = __METHOD__;
+		if ( $profilingContext !== '' ) {
+			$qname .= ' - ' . $profilingContext;
+		}
+
 		try {
 			if ( $categoriesGoal ) {
-				$this->queryBuilder->caller( __METHOD__ );
+				$this->queryBuilder->caller( $qname );
 				$res = $this->queryBuilder->fetchResultSet();
 
 				$pageIds = [];
@@ -204,11 +211,11 @@ class Query {
 					->table( 'categorylinks', 'clgoal' )
 					->select( 'clgoal.cl_to' )
 					->where( [ 'clgoal.cl_from' => $pageIds ] )
-					->caller( __METHOD__ )
+					->caller( $qname )
 					->orderBy( 'clgoal.cl_to', $this->direction )
 					->getSQL();
 			} else {
-				$this->queryBuilder->caller( __METHOD__ );
+				$this->queryBuilder->caller( $qname );
 				$query = $this->queryBuilder->getSQL();
 			}
 
@@ -216,14 +223,7 @@ class Query {
 				$this->sqlQuery = $query;
 			}
 		} catch ( DBQueryError $e ) {
-			$errorMessage = $this->dbr->lastError();
-			if ( $errorMessage === '' ) {
-				$errorMessage = (string)$e;
-			}
-
-			throw new LogicException( __METHOD__ . ': ' . wfMessage(
-				'dpl_query_error', Utils::getVersion(), $errorMessage
-			)->text() );
+			throw self::getQueryError( $qname, $e->getMessage() );
 		}
 
 		// Partially taken from intersection
@@ -234,26 +234,21 @@ class Query {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );
 		}
 
-		$qname = __METHOD__;
-		if ( $profilingContext !== '' ) {
-			$qname .= ' - ' . $profilingContext;
-		}
+		$doQuery = function () use ( $calcRows, $qname ): array {
+			try {
+				$res = $this->queryBuilder->fetchResultSet();
+				$res = iterator_to_array( $res );
+				if ( $calcRows ) {
+					$res['count'] = $this->dbr->newSelectQueryBuilder()
+						->select( 'FOUND_ROWS()' )
+						->caller( $qname )
+						->fetchField();
+				}
 
-		$this->queryBuilder->caller( $qname );
-
-		$doQuery = function () use ( $calcRows ): array {
-			$res = $this->queryBuilder->fetchResultSet();
-			$res = iterator_to_array( $res );
-
-			if ( $calcRows ) {
-				$res['count'] = $this->dbr->newSelectQueryBuilder()
-					->tables( $this->queryBuilder->getQueryInfo()['tables'] )
-					->select( 'FOUND_ROWS()' )
-					->caller( $this->queryBuilder->getQueryInfo()['caller'] )
-					->fetchField();
+				return $res;
+			} catch ( DBQueryError $e ) {
+				throw self::getQueryError( $qname, $e->getMessage() );
 			}
-
-			return $res;
 		};
 
 		$poolCounterKey = 'nowait:dpl4-query:' . WikiMap::getCurrentWikiId();
@@ -295,6 +290,17 @@ class Query {
 	 */
 	public function getSqlQuery(): string {
 		return $this->sqlQuery;
+	}
+
+	private static function getQueryError( string $qname, string $message ): QueryException {
+		Utils::getLogger()->debug( 'Query error at {qname}: {error-message}', [
+			'error-message' => $message,
+			'qname' => $qname,
+		] );
+
+		return new QueryException( "$qname: " . wfMessage(
+			'dpl_query_error', Utils::getVersion(), $message
+		)->text() );
 	}
 
 	/**
@@ -345,24 +351,28 @@ class Query {
 	 */
 	public static function getSubcategories( string $categoryName, int $depth ): array {
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()
-			->getReplicaDatabase( group: 'dpl4' );
+			->getReplicaDatabase( group: 'vslow' );
 
 		if ( $depth > 2 ) {
 			// Hard constrain depth because lots of recursion is bad.
 			$depth = 2;
 		}
 
-		$categories = $dbr->newSelectQueryBuilder()
-			->select( 'page_title' )
-			->from( 'page' )
-			->join( 'categorylinks', 'cl', 'p.page_id = cl.cl_from' )
-			->where( [
-				'p.page_namespace' => NS_CATEGORY,
-				'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
-			] )
-			->caller( __METHOD__ )
-			->distinct()
-			->fetchFieldValues();
+		try {
+			$categories = $dbr->newSelectQueryBuilder()
+				->select( 'page_title' )
+				->from( 'page' )
+				->join( 'categorylinks', 'cl', 'page_id = cl.cl_from' )
+				->where( [
+					'page_namespace' => NS_CATEGORY,
+					'cl.cl_to' => str_replace( ' ', '_', $categoryName ),
+				] )
+				->caller( __METHOD__ )
+				->distinct()
+				->fetchFieldValues();
+		} catch ( DBQueryError $e ) {
+			throw self::getQueryError( __METHOD__, $e->getMessage() );
+		}
 
 		foreach ( $categories as $category ) {
 			if ( $depth > 1 ) {
@@ -391,7 +401,7 @@ class Query {
 			// Handle the failure below
 		}
 
-		throw new LogicException( "Invalid timestamp: $inputDate" );
+		throw new QueryException( "Invalid timestamp: $inputDate" );
 	}
 
 	private function caseInsensitiveComparison(
@@ -434,7 +444,7 @@ class Query {
 			return "$fieldExpr $operator $value";
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for ignorecase.' );
+		throw new QueryException( 'You are using an unsupported database type for ignorecase.' );
 	}
 
 	private function buildRegexpExpression( string $field, string $value ): string {
@@ -448,7 +458,7 @@ class Query {
 			return "$field ~ $value";
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for REGEXP.' );
+		throw new QueryException( 'You are using an unsupported database type for REGEXP.' );
 	}
 
 	/**
@@ -558,7 +568,7 @@ class Query {
 			return;
 		}
 
-		throw new LogicException( 'You are using an unsupported database type for addcategories.' );
+		throw new QueryException( 'You are using an unsupported database type for addcategories.' );
 	}
 
 	/**
@@ -925,7 +935,7 @@ class Query {
 	 */
 	private function _hiddencategories( mixed $option ): never {
 		// @TODO: Unfinished functionality! Never implemented by original author.
-		throw new LogicException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
+		throw new QueryException( 'hiddencategories has not been added to DynamicPageList4 yet.' );
 	}
 
 	/**
@@ -1519,7 +1529,7 @@ class Query {
 				}
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'postgres' ) {
@@ -1536,7 +1546,7 @@ class Query {
 				return;
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		if ( $dbType === 'sqlite' ) {
@@ -1547,11 +1557,11 @@ class Query {
 				return;
 			}
 
-			throw new LogicException( "No default order collation found matching $option." );
+			throw new QueryException( "No default order collation found matching $option." );
 		}
 
 		// Not supported on SQLite or mystery engines
-		throw new LogicException( 'Order collation is not supported on the database type you are using.' );
+		throw new QueryException( 'Order collation is not supported on the database type you are using.' );
 	}
 
 	/**
@@ -1712,22 +1722,25 @@ class Query {
 					$this->queryBuilder->select( 'rev.rev_timestamp' );
 
 					if ( !$this->revisionAuxWhereAdded ) {
-						$this->queryBuilder->where( 'p.page_id = rev.rev_page' );
-
-						$subqueryBuilder = $this->queryBuilder->newSubquery()
-							->select( 'MAX(rev_aux.rev_timestamp)' )
-							->from( 'revision', 'rev_aux' )
-							->where( 'rev_aux.rev_page = p.page_id' );
-
 						if ( $this->parameters->getParameter( 'minoredits' ) === 'exclude' ) {
-							$subqueryBuilder->where( [ 'rev_aux.rev_minor_edit' => 0 ] );
+							$subquery = $this->queryBuilder->newSubquery()
+								->select( 'MAX(rev_aux.rev_timestamp)' )
+								->from( 'revision', 'rev_aux' )
+								->where( [
+									'rev_aux.rev_page = p.page_id',
+									'rev_aux.rev_minor_edit = 0',
+								] )
+								->caller( __METHOD__ )
+								->getSQL();
+
+							$this->queryBuilder->where( [
+								'p.page_id = rev.rev_page',
+								"rev.rev_timestamp = ($subquery)",
+							] );
+						} else {
+							// page_latest points to the top revision already
+							$this->queryBuilder->where( 'rev.rev_id = p.page_latest' );
 						}
-
-						$subquery = $subqueryBuilder
-							->caller( __METHOD__ )
-							->getSQL();
-
-						$this->queryBuilder->where( "rev.rev_timestamp = ($subquery)" );
 					}
 
 					$this->revisionAuxWhereAdded = true;
@@ -1739,7 +1752,7 @@ class Query {
 						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
 						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
 						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
-						default => throw new LogicException(
+						default => throw new QueryException(
 							'The ordermethod \'pagesel\' is only supported when using at least one of the ' .
 							'following parameters: linksfrom, linksto, usedby, or uses.'
 						),

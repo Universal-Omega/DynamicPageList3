@@ -1,8 +1,11 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use StringUtils;
@@ -64,6 +67,11 @@ class Parameters extends ParametersData {
 		if ( $parameterData === false ) {
 			$this->logger->addMessage( Constants::WARN_UNKNOWNPARAM, $parameter );
 			return false;
+		}
+
+		// DB format
+		if ( $parameterData['db_format'] ?? false ) {
+			$option = str_replace( ' ', '_', $option );
 		}
 
 		$method = '_' . $parameter;
@@ -169,11 +177,6 @@ class Parameters extends ParametersData {
 
 			array_shift( $matches );
 			$option = $matches;
-		}
-
-		// DB format
-		if ( $parameterData['db_format'] ?? false ) {
-			$option = str_replace( ' ', '_', $option );
 		}
 
 		$this->setParameter( $parameter, $option );
@@ -661,7 +664,7 @@ class Parameters extends ParametersData {
 		switch ( $option ) {
 			case 'none':
 				$this->setParameter( 'mode', 'inline' );
-				$this->setParameter( 'inlinetext', '<br />' );
+				$this->setParameter( 'inlinetext', Html::element( 'br' ) );
 				break;
 			case 'userformat':
 				$this->setParameter( 'inlinetext', '' );
@@ -744,7 +747,7 @@ class Parameters extends ParametersData {
 			return false;
 		}
 
-		$titleText = str_replace( ' ', '_', $title->getText() );
+		$titleText = $title->getDbKey();
 		$titleData = $this->getParameter( 'title' ) ?? [];
 		$titleData['='][] = $titleText;
 		$this->setParameter( 'title', $titleData );
@@ -761,21 +764,13 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'titlemaxlength' parameter.
-	 */
-	private function _titlemaxlength( string $option ): bool {
-		$this->setParameter( 'titlemaxlen', (int)$option );
-		return true;
-	}
-
-	/**
 	 * Clean and test 'titleregexp' parameter.
 	 */
 	private function _titleregexp( string $option ): bool {
 		$data = $this->getParameter( 'title' ) ?? [];
 		$data['REGEXP'] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
@@ -795,7 +790,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'title' ) ?? [];
 		$data[IExpression::LIKE] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'title', $data );
@@ -811,7 +806,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'nottitle' ) ?? [];
 		$data['REGEXP'] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
@@ -831,7 +826,7 @@ class Parameters extends ParametersData {
 		$data = $this->getParameter( 'nottitle' ) ?? [];
 		$data[IExpression::LIKE] ??= [];
 
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
+		$newMatches = explode( '|', $option );
 		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
@@ -941,18 +936,6 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'includemaxlength' parameter.
-	 */
-	private function _includemaxlength( string $option ): bool {
-		if ( !is_numeric( $option ) ) {
-			return false;
-		}
-
-		$this->setParameter( 'includemaxlen', (int)$option );
-		return true;
-	}
-
-	/**
 	 * Clean and test 'includematchparsed' parameter.
 	 */
 	private function _includematchparsed( string $option ): bool {
@@ -1024,7 +1007,7 @@ class Parameters extends ParametersData {
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
 			if ( $tabnr === 0 ) {
 				$tab = $tab !== '' ? $tab : 'class=wikitable';
-				$listSeparators[0] = '{|' . $tab;
+				$listSeparators[0] = "{|$tab";
 			} elseif ( $tabnr === 1 ) {
 				if ( $tab === '-' ) {
 					$withHLink = '';
@@ -1032,9 +1015,9 @@ class Parameters extends ParametersData {
 				}
 
 				$tab = $tab !== '' ? $tab : wfMessage( 'article' )->text();
-				$listSeparators[0] .= "\n!{$tab}";
+				$listSeparators[0] .= "\n!$tab";
 			} else {
-				$listSeparators[0] .= "\n!{$tab}";
+				$listSeparators[0] .= "\n!$tab";
 			}
 		}
 
@@ -1055,9 +1038,9 @@ class Parameters extends ParametersData {
 
 		foreach ( array_keys( $sectionLabels ) as $i ) {
 			if ( $i === 0 ) {
-				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
+				$sectionSeparators[0] = "\n|-\n|$withHLink";
 				$sectionSeparators[1] = '';
-				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
+				$multiSectionSeparators[0] = "\n|-\n|$withHLink";
 				continue;
 			}
 
@@ -1140,7 +1123,7 @@ class Parameters extends ParametersData {
 			}
 
 			if ( $argument === 'all' || $argument === 'none' ) {
-				$boolean = ( $argument === 'all' );
+				$boolean = $argument === 'all';
 				$subValues = array_diff( $values, [ 'all', 'none' ] );
 				$reset = array_fill_keys( $subValues, $boolean );
 				// No need to process further after 'all' or 'none'

@@ -1,13 +1,17 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Registration\ExtensionRegistry;
+use Psr\Log\LoggerInterface;
 use function ctype_alnum;
 use function preg_replace;
 use function strlen;
 
-class Utils {
+final class Utils {
 
 	private static bool $likeIntersection = false;
 
@@ -27,6 +31,10 @@ class Utils {
 		if ( $cat !== '' ) {
 			self::$fixedCategories[$cat] = 1;
 		}
+	}
+
+	public static function getLogger(): LoggerInterface {
+		return LoggerFactory::getInstance( 'DynamicPageList4' );
 	}
 
 	public static function getVersion(): string {

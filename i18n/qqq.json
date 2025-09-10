@@ -38,6 +38,7 @@
 	"dpl_log_25": "Used as debug message",
 	"dpl_articlecount": "Used to show count of article inside this heading",
 	"dpl_query_error": "Used as query error message",
+	"dpl-template-deleted": "Used as the reason for deleting the template that was formerly used for content inclusion but is no longer used.",
 	"dpl-tracking-category": "'Pages using DynamicPageList4' tracking category",
 	"dpl-tag-tracking-category": "'Pages using DynamicPageList4 parser tag' tracking category",
 	"dpl-intersection-tracking-category": "'Pages using DynamicPageList4 Intersection parser tag' tracking category",
