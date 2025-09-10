@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Purodha",
 			"Universal Omega"
 		]
@@ -10,6 +11,7 @@
 	"intersection_toofewcats": "Used as error message",
 	"intersection_noresults": "Used as error message",
 	"intersection_noincludecats": "Used as error message",
+	"intersection_pcerror": "Error message given if the servers are overloaded because too many DPL queries are being executed at the same time. Similar to {{msg-mw|view-pool-error}}",
 	"dpl-desc": "{{desc|name=DynamicPageList4|url=https://www.mediawiki.org/wiki/Extension:DynamicPageList4}}",
 	"dpl_log_1": "Used as error message",
 	"dpl_log_2": "Used as error message",
