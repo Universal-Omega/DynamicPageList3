@@ -1,10 +1,12 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use ExtVariables;
-use LogicException;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Extension\DynamicPageList4\Exceptions\QueryException;
 use MediaWiki\Extension\DynamicPageList4\Heading\Heading;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Eliminate;
 use MediaWiki\Extension\DynamicPageList4\HookHandlers\Reset;
@@ -215,7 +217,7 @@ class Parse {
 				$this->logger->addMessage( Constants::FATAL_POOLCOUNTER );
 				return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 			}
-		} catch ( LogicException $e ) {
+		} catch ( QueryException $e ) {
 			$this->logger->addMessage( Constants::FATAL_SQLBUILDERROR, $e->getMessage() );
 			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
@@ -326,7 +328,7 @@ class Parse {
 		$parser->getOutput()->updateCacheExpiry( $expiry );
 
 		$finalOutput = $this->getFullOutput(
-			totalResults: $foundRows,
+			totalResults: (int)$foundRows,
 			skipHeaderFooter: false
 		);
 
@@ -377,12 +379,12 @@ class Parse {
 					$pageTitle = $row->il_to;
 				} else {
 					// Maybe non-existing title
-					$pageNamespace = $row->lt_namespace;
+					$pageNamespace = (int)$row->lt_namespace;
 					$pageTitle = $row->lt_title;
 				}
 			} else {
 				// Existing PAGE TITLE
-				$pageNamespace = $row->page_namespace;
+				$pageNamespace = (int)$row->page_namespace;
 				$pageTitle = $row->page_title;
 			}
 

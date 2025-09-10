@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use function array_key_exists;
@@ -860,9 +862,11 @@ class ParametersData {
 		],
 		'titlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'titleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'userdateformat' => [
 			'default' => 'Y-m-d H:i:s',
@@ -875,9 +879,11 @@ class ParametersData {
 		 */
 		'nottitlematch' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'nottitleregexp' => [
 			'default' => null,
+			'db_format' => true,
 		],
 		'order' => [
 			'default' => 'ascending',

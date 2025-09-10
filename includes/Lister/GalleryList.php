@@ -1,11 +1,14 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 use MediaWiki\Extension\DynamicPageList4\Article;
 use MediaWiki\Registration\ExtensionRegistry;
 use PageImages\PageImages;
 use function trim;
+use const NS_CATEGORY;
 use const NS_FILE;
 
 class GalleryList extends Lister {
@@ -39,14 +42,19 @@ class GalleryList extends Lister {
 
 		// If PageImages is loaded and this is not a file, attempt to assemble a gallery of PageImages
 		if ( $article->mNamespace !== NS_FILE && ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ) ) {
+			$itemPageLink = "[[$item]]";
+			if ( $article->mNamespace === NS_CATEGORY ) {
+				$itemPageLink = "[[:$item|$item]]";
+			}
+
 			$pageImage = PageImages::getPageImage( $article->mTitle );
 			if ( $pageImage && $pageImage->exists() ) {
 				// Successfully got a page image, wrapping it.
 				$item = $this->getItemStart() . $pageImage->getName() . $this->itemEnd .
-					"[[$item]]{$this->itemEnd}link=$item";
+					"$itemPageLink{$this->itemEnd}link=$item";
 			} else {
 				// Failed to get a page image.
-				$item = $this->getItemStart() . $item . $this->itemEnd . "[[$item]]";
+				$item = $this->getItemStart() . $item . $this->itemEnd . $itemPageLink;
 			}
 
 			return $this->replaceTagParameters( $item, $article );
