@@ -235,7 +235,6 @@ class Query {
 				$res = iterator_to_array( $res );
 				if ( $calcRows ) {
 					$res['count'] = $this->dbr->newSelectQueryBuilder()
-						->tables( $this->queryBuilder->getQueryInfo()['tables'] )
 						->select( 'FOUND_ROWS()' )
 						->caller( $qname )
 						->fetchField();
