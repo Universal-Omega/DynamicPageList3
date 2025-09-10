@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Extension\DynamicPageList4\Exceptions\QueryException;
@@ -235,7 +237,6 @@ class Query {
 				$res = iterator_to_array( $res );
 				if ( $calcRows ) {
 					$res['count'] = $this->dbr->newSelectQueryBuilder()
-						->tables( $this->queryBuilder->getQueryInfo()['tables'] )
 						->select( 'FOUND_ROWS()' )
 						->caller( $qname )
 						->fetchField();

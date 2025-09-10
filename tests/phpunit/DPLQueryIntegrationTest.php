@@ -1,5 +1,7 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4\Tests;
 
 use const NS_MAIN;
@@ -347,7 +349,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'ordermethod' => 'title',
 		], '%PAGE% %USER%' );
 
-		$this->assertEquals( [
+		$this->assertArrayEquals( [
 			'DPLTestArticle 1 DPLTestAdmin',
 			'DPLTestArticle 2 DPLTestAdmin',
 			'DPLTestArticle 3 DPLTestAdmin',
@@ -361,7 +363,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'addlasteditor' => true,
 		], '%PAGE% %USER%' );
 
-		$this->assertEquals( [
+		$this->assertArrayEquals( [
 			'DPLTestArticle 1 DPLTestUser',
 			'DPLTestArticle 2 DPLTestAdmin',
 			'DPLTestArticle 3 DPLTestAdmin',

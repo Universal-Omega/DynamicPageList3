@@ -1,8 +1,11 @@
 <?php
 
+declare( strict_types = 1 );
+
 namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use StringUtils;
@@ -660,7 +663,7 @@ class Parameters extends ParametersData {
 		switch ( $option ) {
 			case 'none':
 				$this->setParameter( 'mode', 'inline' );
-				$this->setParameter( 'inlinetext', '<br />' );
+				$this->setParameter( 'inlinetext', Html::element( 'br' ) );
 				break;
 			case 'userformat':
 				$this->setParameter( 'inlinetext', '' );
@@ -756,14 +759,6 @@ class Parameters extends ParametersData {
 		$this->setSelectionCriteriaFound( true );
 		$this->setOpenReferencesConflict( true );
 
-		return true;
-	}
-
-	/**
-	 * Clean and test 'titlemaxlength' parameter.
-	 */
-	private function _titlemaxlength( string $option ): bool {
-		$this->setParameter( 'titlemaxlen', (int)$option );
 		return true;
 	}
 
@@ -940,18 +935,6 @@ class Parameters extends ParametersData {
 	}
 
 	/**
-	 * Clean and test 'includemaxlength' parameter.
-	 */
-	private function _includemaxlength( string $option ): bool {
-		if ( !is_numeric( $option ) ) {
-			return false;
-		}
-
-		$this->setParameter( 'includemaxlen', (int)$option );
-		return true;
-	}
-
-	/**
 	 * Clean and test 'includematchparsed' parameter.
 	 */
 	private function _includematchparsed( string $option ): bool {
@@ -1023,7 +1006,7 @@ class Parameters extends ParametersData {
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
 			if ( $tabnr === 0 ) {
 				$tab = $tab !== '' ? $tab : 'class=wikitable';
-				$listSeparators[0] = '{|' . $tab;
+				$listSeparators[0] = "{|$tab";
 			} elseif ( $tabnr === 1 ) {
 				if ( $tab === '-' ) {
 					$withHLink = '';
