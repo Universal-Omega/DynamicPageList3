@@ -606,13 +606,13 @@ class Parse {
 			$totalCategories > $this->config->get( 'maxCategoryCount' ) &&
 			!$this->config->get( 'allowUnlimitedCategories' )
 		) {
-			$this->logger->addMessage( Constants::FATAL_TOOMANYCATS, $this->config->get( 'maxCategoryCount' ) );
+			$this->logger->addMessage( Constants::FATAL_TOOMANYCATS, (string)$this->config->get( 'maxCategoryCount' ) );
 			return false;
 		}
 
 		// Not enough categories.
 		if ( $totalCategories < $this->config->get( 'minCategoryCount' ) ) {
-			$this->logger->addMessage( Constants::FATAL_TOOFEWCATS, $this->config->get( 'minCategoryCount' ) );
+			$this->logger->addMessage( Constants::FATAL_TOOFEWCATS, (string)$this->config->get( 'minCategoryCount' ) );
 			return false;
 		}
 
