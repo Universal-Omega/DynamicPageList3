@@ -12,12 +12,14 @@ class Logger {
 
 	/** Buffer of debug messages. */
 	private array $buffer = [];
+	private int $debugLevel = 0;
+	private static ?self $instance = null;
 
 	public function addMessage( int $errorId, string ...$args ): void {
 		$errorLevel = (int)floor( $errorId / 1000 );
 		$errorMessageId = $errorId % 1000;
 
-		if ( Utils::getDebugLevel() < $errorLevel ) {
+		if ( $this->getDebugLevel() < $errorLevel ) {
 			return;
 		}
 
@@ -36,7 +38,7 @@ class Logger {
 		$text ??= wfMessage( "dpl_log_$errorMessageId", $args )->text();
 
 		$version = Utils::getVersion();
-		$this->buffer[] = Html::element( 'p', [],
+		$this->buffer[$errorId] = Html::element( 'p', [],
 			"Extension:DynamicPageList4 (DPL4), version $version: $text"
 		);
 	}
@@ -48,5 +50,18 @@ class Logger {
 		}
 
 		return $buffer;
+	}
+
+	public function getDebugLevel(): int {
+		return $this->debugLevel;
+	}
+
+	public function setDebugLevel( int $level ): void {
+		$this->debugLevel = $level;
+	}
+
+	public static function getInstance(): self {
+		self::$instance ??= new self();
+		return self::$instance;
 	}
 }

@@ -14,7 +14,6 @@ use function strlen;
 final class Utils {
 
 	private static bool $likeIntersection = false;
-	private static int $debugLevel = 0;
 
 	/** @phan-var array<mixed,mixed> */
 	public static array $createdLinks = [
@@ -42,14 +41,6 @@ final class Utils {
 		static $version;
 		$version ??= ExtensionRegistry::getInstance()->getAllThings()['DynamicPageList4']['version'];
 		return $version;
-	}
-
-	public static function getDebugLevel(): int {
-		return self::$debugLevel;
-	}
-
-	public static function setDebugLevel( int $level ): void {
-		self::$debugLevel = $level;
 	}
 
 	public static function isLikeIntersection(): bool {
