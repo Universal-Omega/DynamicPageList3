@@ -23,18 +23,23 @@ class ParametersData {
 			'addfirstcategorydate',
 			'category',
 			'count',
-			'gallerymode',
-			'hiddencategories',
+			'gallerycaption',
+			'galleryshowfilename',
+			'galleryshowfilesize',
+			'googlehack',
 			'imageheight',
+			'imagesperrow',
 			'imagewidth',
+			'ignoresubpages',
 			'mode',
 			'namespace',
+			'nofollow',
 			'notcategory',
+			'offset',
 			'order',
 			'ordermethod',
 			'qualitypages',
 			'redirects',
-			'showcurid',
 			'shownamespace',
 			'stablepages',
 		],
@@ -46,10 +51,11 @@ class ParametersData {
 			'distinct',
 			'escapelinks',
 			'format',
+			'gallerymode',
+			'hiddencategories',
 			'inlinetext',
 			'listseparators',
 			'notnamespace',
-			'offset',
 			'oneresultfooter',
 			'oneresultheader',
 			'ordercollation',
@@ -63,6 +69,7 @@ class ParametersData {
 			'rows',
 			'rowsize',
 			'scroll',
+			'showcurid',
 			'title',
 			'titlelt',
 			'titlegt',
@@ -440,6 +447,14 @@ class ParametersData {
 		 * make comparisons (linksto, linksfrom ) case insensitive
 		 */
 		'ignorecase' => [
+			'default' => false,
+			'boolean' => true,
+		],
+
+		/**
+		 * ignoresubpages
+		 */
+		'ignoresubpages' => [
 			'default' => false,
 			'boolean' => true,
 		],
@@ -1217,8 +1232,12 @@ class ParametersData {
 				'default' => [ 'categoryadd' ],
 				'values' => [
 					'categoryadd',
+					'categorysortkey',
+					'created',
 					'lastedit',
-					'none',
+					'length',
+					'popularity',
+					'sortkey',
 				],
 			];
 
@@ -1233,8 +1252,9 @@ class ParametersData {
 			$this->data['mode'] = [
 				'default' => 'unordered',
 				'values' => [
-					'none',
 					'gallery',
+					'none',
+					'inline',
 					'ordered',
 					'unordered',
 				],
