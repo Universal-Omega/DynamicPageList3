@@ -4,3 +4,6 @@ PageImages:
 Variables:
   branch: auto
   repo: auto
+Video:
+  branch: auto
+  repo: auto
