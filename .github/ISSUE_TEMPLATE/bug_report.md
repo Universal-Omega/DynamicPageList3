@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**DynamicPageList3 version**:
+**DynamicPageList4 version**:
 **MediaWiki version**:
 **PHP version**:
 **Database version**:

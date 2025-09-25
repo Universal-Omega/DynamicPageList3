@@ -1,84 +1,23 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+declare( strict_types = 1 );
 
-use MediaWiki\Extension\DynamicPageList3\Parameters;
-use MediaWiki\Parser\Parser;
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
+
+use function implode;
 
 class InlineList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_INLINE;
 
-	/**
-	 * Heading Start
-	 *
-	 * @var string
-	 */
-	public $headingStart = '';
+	protected int $style = parent::LIST_INLINE;
 
-	/**
-	 * Heading End
-	 *
-	 * @var string
-	 */
-	public $headingEnd = '';
+	protected string $listStart = '<div%s>';
+	protected string $listEnd = '</div>';
 
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<div%s>';
+	protected string $itemStart = '<span%s>';
+	protected string $itemEnd = '</span>';
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</div>';
-
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<span%s>';
-
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</span>';
-
-	/**
-	 * Inline item text separator.
-	 *
-	 * @var string
-	 */
-	protected $textSeparator = '';
-
-	/**
-	 * @param Parameters $parameters
-	 * @param Parser $parser
-	 */
-	public function __construct( Parameters $parameters, Parser $parser ) {
-		parent::__construct( $parameters, $parser );
-
-		$this->textSeparator = $parameters->getParameter( 'inlinetext' );
-	}
-
-	/**
-	 * Join together items after being processed by formatItem().
-	 *
-	 * @param array $items
-	 * @return string
-	 */
-	protected function implodeItems( $items ) {
-		return implode( $this->textSeparator, $items );
+	protected function implodeItems( array $items ): string {
+		$textSeparator = $this->parameters->getParameter( 'inlinetext' );
+		return implode( $textSeparator, $items );
 	}
 }

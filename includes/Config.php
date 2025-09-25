@@ -1,66 +1,30 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+declare( strict_types = 1 );
 
-use MediaWiki\Config\ConfigException;
+namespace MediaWiki\Extension\DynamicPageList4;
 
-class Config {
-	/**
-	 * Configuration Settings
-	 *
-	 * @var array
-	 */
-	private static $settings = [];
+use MediaWiki\Config\GlobalVarConfig;
+use MediaWiki\Config\HashConfig;
+use MediaWiki\Config\MultiConfig;
 
-	/**
-	 * Initialize the static object with settings.
-	 *
-	 * @param array|false $settings
-	 */
-	public static function init( $settings = false ) {
-		if ( $settings === false ) {
-			global $wgDplSettings;
+class Config extends MultiConfig {
 
-			$settings = $wgDplSettings ?? false;
-		}
+	private static ?self $instance = null;
 
-		if ( !is_array( $settings ) ) {
-			throw new ConfigException( __METHOD__ . ': Invalid settings passed.' );
-		}
+	private function __construct() {
+		$globalConfig = new GlobalVarConfig();
+		$dplSettings = $globalConfig->has( 'DplSettings' ) ?
+			$globalConfig->get( 'DplSettings' ) : [];
 
-		self::$settings = array_merge( self::$settings, $settings );
+		parent::__construct( [
+			new HashConfig( $dplSettings ),
+			$globalConfig,
+		] );
 	}
 
-	/**
-	 * Return a single setting.
-	 *
-	 * @param string $setting
-	 * @return mixed|null
-	 */
-	public static function getSetting( $setting ) {
-		return ( self::$settings[$setting] ?? null );
-	}
-
-	/**
-	 * Return a all settings.
-	 *
-	 * @return array
-	 */
-	public static function getAllSettings() {
-		return self::$settings;
-	}
-
-	/**
-	 * Set a single setting.
-	 *
-	 * @param string $setting
-	 * @param mixed|null $value
-	 */
-	public static function setSetting( $setting, $value = null ) {
-		if ( !is_string( $setting ) || $setting === '' ) {
-			throw new ConfigException( __METHOD__ . ': Setting keys can not be blank.' );
-		}
-
-		self::$settings[$setting] = $value;
+	public static function getInstance(): self {
+		self::$instance ??= new self();
+		return self::$instance;
 	}
 }

@@ -1,70 +1,16 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+declare( strict_types = 1 );
+
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
 
 class DefinitionList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_DEFINITION;
 
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement.  Example: <div%s>
-	 *
-	 * @var string
-	 */
-	public $headListStart = '<dt%s>';
+	protected int $style = parent::LIST_DEFINITION;
 
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headListEnd = '</dt>';
+	protected string $listStart = '<dl%s>';
+	protected string $listEnd = '</dl>';
 
-	/**
-	 * Heading List Start
-	 * Use %s for attribute placement.  Example: <div%s>
-	 *
-	 * @var string
-	 */
-	public $headItemStart = '';
-
-	/**
-	 * Heading List End
-	 *
-	 * @var string
-	 */
-	public $headItemEnd = '';
-
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<dl%s>';
-
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</dl>';
-
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<dd%s>';
-
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</dd>';
+	protected string $itemStart = '<dd%s>';
+	protected string $itemEnd = '</dd>';
 }

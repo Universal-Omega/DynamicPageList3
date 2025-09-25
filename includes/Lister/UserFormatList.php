@@ -1,132 +1,107 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Lister;
+declare( strict_types = 1 );
 
-use MediaWiki\Extension\DynamicPageList3\Article;
-use MediaWiki\Extension\DynamicPageList3\Parameters;
+namespace MediaWiki\Extension\DynamicPageList4\Lister;
+
+use MediaWiki\Extension\DynamicPageList4\Article;
+use MediaWiki\Extension\DynamicPageList4\Parameters;
 use MediaWiki\Parser\Parser;
+use function abs;
+use function array_keys;
+use function array_map;
+use function array_replace;
+use function array_shift;
+use function arsort;
+use function asort;
+use function explode;
+use function implode;
+use function natsort;
+use function str_contains;
+use function str_starts_with;
+use function strnatcmp;
+use function trim;
+use function uasort;
 
 class UserFormatList extends Lister {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int
-	 */
-	public $style = parent::LIST_USERFORMAT;
 
-	/**
-	 * Inline item text separator.
-	 *
-	 * @var string
-	 */
-	protected $textSeparator = '';
+	protected int $style = parent::LIST_USERFORMAT;
+	private readonly string $textSeparator;
 
-	/**
-	 * @param Parameters $parameters
-	 * @param Parser $parser
-	 */
 	public function __construct( Parameters $parameters, Parser $parser ) {
 		parent::__construct( $parameters, $parser );
 
 		$this->textSeparator = $parameters->getParameter( 'inlinetext' );
-		$listSeparators = $parameters->getParameter( 'listseparators' );
+		$separators = $parameters->getParameter( 'listseparators' );
 
-		if ( isset( $listSeparators[0] ) ) {
-			$this->listStart = $listSeparators[0];
-		}
-
-		if ( isset( $listSeparators[1] ) ) {
-			$this->itemStart = $listSeparators[1];
-		}
-
-		if ( isset( $listSeparators[2] ) ) {
-			$this->itemEnd = $listSeparators[2];
-		}
-
-		if ( isset( $listSeparators[3] ) ) {
-			$this->listEnd = $listSeparators[3];
-		}
+		[
+			$this->listStart,
+			$this->itemStart,
+			$this->itemEnd,
+			$this->listEnd,
+		] = array_replace( [ '', '', '', '' ], $separators );
 	}
 
-	/**
-	 * Format the list of articles.
-	 *
-	 * @param array $articles
-	 * @param int $start
-	 * @param int $count
-	 * @return string
-	 */
-	public function formatList( $articles, $start, $count ) {
-		$filteredCount = 0;
+	public function formatList( array $articles, int $start, int $count ): string {
 		$items = [];
+		$filteredCount = 0;
 
-		for ( $i = $start; $i < $start + $count; $i++ ) {
-			$article = $articles[$i];
-
-			if ( !$article || empty( $article->mTitle ) ) {
+		$limit = $start + $count;
+		for ( $i = $start; $i < $limit; $i++ ) {
+			$article = $articles[$i] ?? null;
+			if ( !$article?->mTitle ) {
 				continue;
 			}
 
-			$pageText = null;
-			if ( $this->includePageText ) {
-				$pageText = $this->transcludePage( $article, $filteredCount );
-			} else {
+			$pageText = $this->includePageText
+				? $this->transcludePage( $article, $filteredCount )
+				: null;
+
+			if ( !$this->includePageText ) {
 				$filteredCount++;
 			}
 
 			$this->rowCount = $filteredCount;
-
 			$items[] = $this->formatItem( $article, $pageText );
 		}
 
 		$this->rowCount = $filteredCount;
 
-		// if requested we sort the table by the contents of a given column
-		$sortColumn = $this->getTableSortColumn();
-		if ( $sortColumn != 0 ) {
+		$sortColumn = $this->tableSortColumn;
+		if ( $sortColumn !== 0 ) {
 			$rowsKey = [];
-
 			foreach ( $items as $index => $item ) {
-				$item = trim( $item );
-
-				if ( strpos( $item, '|-' ) === 0 ) {
-					$item = explode( '|-', $item, 2 );
-
-					if ( count( $item ) == 2 ) {
-						$item = $item[1];
-					} else {
-						$rowsKey[$index] = $item;
-						continue;
-					}
+				$trimmed = trim( $item );
+				if ( str_starts_with( $trimmed, '|-' ) ) {
+					$parts = explode( '|-', $trimmed, 2 );
+					$trimmed = $parts[1] ?? $parts[0];
 				}
 
-				if ( strlen( $item ) > 0 ) {
-					$word = explode( "\n|", $item );
+				if ( $trimmed === '' ) {
+					continue;
+				}
 
-					if ( isset( $word[0] ) && empty( $word[0] ) ) {
-						array_shift( $word );
+				$cells = explode( "\n|", $trimmed );
+				if ( isset( $cells[0] ) && $cells[0] === '' ) {
+					array_shift( $cells );
+				}
+
+				$cell = $cells[abs( $sortColumn ) - 1] ?? null;
+				if ( $cell !== null ) {
+					$value = trim( $cell );
+					if ( str_contains( $value, '|' ) ) {
+						$value = trim( explode( '|', $value, 2 )[1] ?? $value );
 					}
 
-					if ( isset( $word[abs( $sortColumn ) - 1] ) ) {
-						$test = trim( $word[abs( $sortColumn ) - 1] );
-
-						if ( strpos( $test, '|' ) > 0 ) {
-							$test = trim( explode( '|', $test )[1] );
-						}
-
-						$rowsKey[$index] = $test;
-					}
+					$rowsKey[$index] = $value;
 				}
 			}
 
 			$this->sort( $rowsKey, $sortColumn );
-			$newItems = [];
-
-			foreach ( $rowsKey as $index => $_ ) {
-				$newItems[] = $items[$index];
-			}
-
-			$items = $newItems;
+			$items = array_map(
+				static fn ( int $index ): string => $items[$index],
+				array_keys( $rowsKey )
+			);
 		}
 
 		return $this->listStart . $this->implodeItems( $items ) . $this->listEnd;
@@ -134,86 +109,43 @@ class UserFormatList extends Lister {
 
 	/**
 	 * Sort the data of a table column in place. Preserves array keys.
-	 *
-	 * @param array	&$rowsKey
-	 * @param int $sortColumn
 	 */
-	protected function sort( &$rowsKey, $sortColumn ) {
-		$sortMethod = $this->getTableSortMethod();
+	private function sort( array &$rowsKey, int $sortColumn ): void {
+		$reverse = $sortColumn < 0;
+		$method = $this->tableSortMethod;
 
-		if ( $sortColumn < 0 ) {
-			switch ( $sortMethod ) {
-				case 'natural':
-					// Reverse natsort()
-					uasort( $rowsKey, static function ( $first, $second ) {
-						return strnatcmp( $second, $first );
-					} );
-					break;
-				case 'standard':
-				default:
-					arsort( $rowsKey );
-					break;
-			}
-		} else {
-			switch ( $sortMethod ) {
-				case 'natural':
-					natsort( $rowsKey );
-					break;
-				case 'standard':
-				default:
-					asort( $rowsKey );
-					break;
-			}
-		}
-	}
-
-	/**
-	 * Format a single item.
-	 *
-	 * @param Article $article
-	 * @param string|null $pageText
-	 * @return string
-	 */
-	public function formatItem( Article $article, $pageText = null ) {
-		$item = '';
-
-		if ( $pageText !== null ) {
-			// Include parsed/processed wiki markup content after each item before the closing tag.
-			$item .= $pageText;
+		if ( $reverse ) {
+			match ( $method ) {
+				'natural' => uasort( $rowsKey,
+					static fn ( string $a, string $b ): int => strnatcmp( $b, $a )
+				),
+				'standard' => arsort( $rowsKey ),
+			};
+			return;
 		}
 
-		$item = $this->getItemStart() . $item . $this->getItemEnd();
-
-		$item = $this->replaceTagParameters( $item, $article );
-
-		return $item;
+		match ( $method ) {
+			'natural' => natsort( $rowsKey ),
+			'standard' => asort( $rowsKey ),
+		};
 	}
 
-	/**
-	 * Return $this->itemStart with attributes replaced.
-	 *
-	 * @return string
-	 */
-	public function getItemStart() {
+	protected function formatItem( Article $article, ?string $pageText ): string {
+		// Include parsed/processed wiki markup content after each item before the closing tag.
+		$content = $pageText ?? '';
+		$item = $this->getItemStart() . $content . $this->getItemEnd();
+		return $this->replaceTagParameters( $item, $article );
+	}
+
+	protected function getItemStart(): string {
 		return $this->replaceTagCount( $this->itemStart, $this->getRowCount() );
 	}
 
-	/**
-	 * Return $this->itemEnd with attributes replaced.
-	 *
-	 * @return string
-	 */
-	public function getItemEnd() {
+	protected function getItemEnd(): string {
 		return $this->replaceTagCount( $this->itemEnd, $this->getRowCount() );
 	}
 
-	/**
-	 * Join together items after being processed by formatItem().
-	 *
-	 * @param array $items
-	 * @return string
-	 */
-	protected function implodeItems( $items ) {
+	protected function implodeItems( array $items ): string {
 		return implode( $this->textSeparator, $items );
 	}
 }

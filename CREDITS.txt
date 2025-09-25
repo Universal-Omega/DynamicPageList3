@@ -1,0 +1,17 @@
+DynamicPageList4 AUTHORS
+========================
+
+Original Authors (DynamicPageList3)
+-----------------------------------
+- Alexia E. Smith
+- Gero Scholz
+
+Rewrite and Modernization (DynamicPageList4)
+--------------------------------------------
+- Universal Omega
+
+--------------------------------------------
+
+DynamicPageList4 was originally based on DynamicPageList3,
+created by Alexia E. Smith and Gero Scholz. It was later
+rewritten and modernized into DynamicPageList4 by Universal Omega.
