@@ -774,8 +774,6 @@ class Lister {
 			return $tag;
 		}
 
-		$imageUrl = $this->parseImageUrlWithPath( $article );
-
 		$pagename = $article->mTitle->getPrefixedText();
 		if ( $this->getEscapeLinks() && ( $article->mNamespace == NS_CATEGORY || $article->mNamespace == NS_FILE ) ) {
 			// links to categories or images need an additional ":"
@@ -785,7 +783,9 @@ class Lister {
 		$tag = str_replace( '%PAGE%', $pagename, $tag );
 		$tag = str_replace( '%PAGEID%', (string)$article->mID, $tag );
 		$tag = str_replace( '%NAMESPACE%', $namespaces[$article->mNamespace], $tag );
-		$tag = str_replace( '%IMAGE%', $imageUrl, $tag );
+		if ( str_contains( $tag, '%IMAGE%' ) ) {
+			$tag = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $article ), $tag );
+		}
 		$tag = str_replace( '%EXTERNALLINK%', $article->mExternalLink, $tag );
 		$tag = str_replace( '%EDITSUMMARY%', $article->mComment, $tag );
 
@@ -894,7 +894,9 @@ class Lister {
 					}
 				}
 
-				$pieces[$key] = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $val ), $pieces[$key] );
+				if ( str_contains( $pieces[$key], '%IMAGE%' ) ) {
+					$pieces[$key] = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $val ), $pieces[$key] );
+				}
 				$pieces[$key] = str_replace( '%PAGE%', $article->mTitle->getPrefixedText(), $pieces[$key] );
 
 				$pieces[$key] = $this->replaceTagCategory( $pieces[$key], $article );
@@ -942,7 +944,9 @@ class Lister {
 			$result = str_replace( '%PAGE%', $article->mTitle->getPrefixedText(), $result );
 
 			// @TODO: This just blindly passes the argument through hoping it is an image.
-			$result = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $arg ), $result );
+			if ( str_contains( $result, '%IMAGE%' ) ) {
+				$result = str_replace( '%IMAGE%', $this->parseImageUrlWithPath( $arg ), $result );
+			}
 			$result = $this->cutAt( $maxLength, $result );
 
 			if ( strlen( $result ) > 0 && $result[0] == '-' ) {
