@@ -1,0 +1,79 @@
+!! options
+version=2
+!! end
+
+!! article
+Apple
+!! text
+Apple
+!! endarticle
+
+!! article
+Apricot
+!! text
+Apricot
+!! endarticle
+
+!! article
+Banana
+!! text
+Banana
+!! endarticle
+
+!! article
+Grape
+!! text
+Grape
+!! endarticle
+
+!! article
+Mango
+!! text
+Mango
+!! endarticle
+
+!! article
+Orange
+!! text
+Orange
+!! endarticle
+
+!! article
+Pear
+!! text
+Pear
+!! endarticle
+
+!! article
+Plum
+!! text
+Plum
+!! endarticle
+
+!! test
+nottitlematch: exclude specific pages
+!! wikitext
+<dpl>
+namespace = 0
+ordermethod=title
+nottitlematch=Apple|Apricot¦Banana
+format=,%TITLE%,;,
+</dpl>
+!! html
+<p>Grape;Mango;Orange;Pear;Plum;
+</p>
+!! end
+
+!! test
+nottitlematch: exclude using SQL wildcard patterns
+!! wikitext
+<dpl>
+namespace = 0
+ordermethod=title
+nottitlematch = A%|P%
+format=,%TITLE%,;,
+</dpl>
+!! html
+<p>Banana;Grape;Mango;Orange;
+</p>
+!! end

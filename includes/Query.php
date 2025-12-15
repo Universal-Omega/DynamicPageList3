@@ -2006,7 +2006,7 @@ class Query {
 			}
 		}
 
-		$this->queryBuilder->where( 'NOT ' . $this->dbr->makeList( $ors, IDatabase::LIST_OR ) );
+		$this->queryBuilder->where( 'NOT ( ' . $this->dbr->makeList( $ors, IDatabase::LIST_OR ) . ' ) ' );
 	}
 
 	/**
