@@ -4,17 +4,18 @@ declare( strict_types = 1 );
 
 namespace MediaWiki\Extension\DynamicPageList4;
 
+use MediaWiki\Category\Category;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\ExternalLinks\LinkFilter;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use stdClass;
 use function count;
-use function defined;
 use function explode;
 use function gmdate;
 use function htmlspecialchars;
@@ -23,7 +24,6 @@ use function mb_strlen;
 use function mb_substr;
 use function preg_replace;
 use function round;
-use function str_replace;
 use function substr;
 use function trim;
 use function wfMessage;
@@ -31,6 +31,7 @@ use function wfTimestamp;
 use const NS_CATEGORY;
 use const NS_FILE;
 use const NS_MAIN;
+use const NS_USER;
 use const NS_VIDEO;
 use const TS_UNIX;
 
@@ -80,7 +81,7 @@ class Article {
 		string $pageTitle
 	): self {
 		$services = MediaWikiServices::getInstance();
-		$contentLanguage = $services->getContentLanguage();
+		$contLang = $services->getContentLanguage();
 		$userFactory = $services->getUserFactory();
 
 		$article = new self( $title, $pageNamespace );
@@ -120,7 +121,7 @@ class Article {
 			(
 				$pageNamespace === NS_CATEGORY ||
 				$pageNamespace === NS_FILE ||
-				( $isVideoExtensionEnabled && defined( 'NS_VIDEO' ) && $pageNamespace === NS_VIDEO )
+				( $isVideoExtensionEnabled && $pageNamespace === NS_VIDEO )
 			);
 
 		if ( $parameters->getParameter( 'showcurid' ) === true && isset( $row->page_id ) ) {
@@ -136,7 +137,7 @@ class Article {
 		// Get the first character used for category-style output.
 		$languageConverter = $services->getLanguageConverterFactory()->getLanguageConverter();
 		$sortKey = $row->sortkey ?? $pageTitle;
-		$article->mStartChar = $languageConverter->convert( $contentLanguage->firstChar( $sortKey ) );
+		$article->mStartChar = $languageConverter->convert( $contLang->firstChar( $sortKey ) );
 
 		$article->mID = (int)( $row->page_id ?? 0 );
 
@@ -152,13 +153,13 @@ class Article {
 
 		// STORE initially selected PAGE
 		if ( $parameters->getParameter( 'linksto' ) || $parameters->getParameter( 'linksfrom' ) ) {
-			$article->mSelTitle = $row->sel_title ?? 'unknown page';
+			$article->mSelTitle = $row->sel_title ?? 'Unknown page';
 			$article->mSelNamespace = (int)( $row->sel_ns ?? NS_MAIN );
 		}
 
 		// STORE selected image
 		if ( $parameters->getParameter( 'imageused' ) ) {
-			$article->mImageSelTitle = $row->image_sel_title ?? 'unknown image';
+			$article->mImageSelTitle = $row->image_sel_title ?? 'Unknown image';
 		}
 
 		if ( $parameters->getParameter( 'goal' ) !== 'categories' ) {
@@ -226,17 +227,24 @@ class Article {
 				$parameters->getParameter( 'addauthor' ) ||
 				$parameters->getParameter( 'addlasteditor' )
 			) {
-				$article->mUserLink = "[[User:$revActorName|$revActorName]]";
+				$userNsText = $contLang->getNsText( NS_USER );
+				$article->mUserLink = "[[$userNsText:$revActorName|$revActorName]]";
 				$article->mUser = $revActorName;
 			}
 
 			// CATEGORY LINKS FROM CURRENT PAGE
 			if ( $parameters->getParameter( 'addcategories' ) && !empty( $row->cats ) ) {
 				foreach ( explode( ' | ', $row->cats ) as $artCatName ) {
-					$text = str_replace( '_', ' ', $artCatName );
-					$link = "[[:Category:$artCatName|$text]]";
+					$category = Category::newFromName( $artCatName );
+					if ( $category === false ) {
+						continue;
+					}
+
+					$title = Title::castFromPageIdentity( $category->getPage() );
+					$link = "[[:{$title->getPrefixedDBkey()}|{$title->getText()}]]";
+
 					$article->mCategoryLinks[] = $link;
-					$article->mCategoryTexts[] = $text;
+					$article->mCategoryTexts[] = $title->getText();
 				}
 			}
 
@@ -249,18 +257,27 @@ class Article {
 						$clTo = $row->cl_to ?? '';
 						self::$headings[$clTo] = ( self::$headings[$clTo] ?? 0 ) + 1;
 
-						$text = str_replace( '_', ' ', $clTo );
+						$specialPage = SpecialPage::getTitleFor( 'Uncategorizedpages' )->getPrefixedDBkey();
 						$message = wfMessage( 'uncategorizedpages' )->escaped();
-
-						$article->mParentHLink = $clTo === '' ?
+						if ( $clTo === '' ) {
 							// Uncategorized page (used if ordermethod=category,...)
-							"[[:Special:Uncategorizedpages|$message]]" :
-							"[[:Category:$clTo|$text]]";
+							$article->mParentHLink = "[[$specialPage|$message]]";
+							break;
+						}
+
+						$category = Category::newFromName( $clTo );
+						if ( $category === false ) {
+							break;
+						}
+
+						$title = Title::castFromPageIdentity( $category->getPage() );
+						$article->mParentHLink = "[[:{$title->getPrefixedDBkey()}|{$title->getText()}]]";
 						break;
 					case 'user':
 						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {
+							$userNsText = $contLang->getNsText( NS_USER );
 							self::$headings[$revActorName] = ( self::$headings[$revActorName] ?? 0 ) + 1;
-							$article->mParentHLink = "[[User:$revActorName|$revActorName]]";
+							$article->mParentHLink = "[[$userNsText:$revActorName|$revActorName]]";
 						}
 				}
 			}
@@ -269,17 +286,10 @@ class Article {
 		return $article;
 	}
 
-	/**
-	 * Returns all heading information processed from all newly instantiated article objects.
-	 */
 	public static function getHeadings(): array {
 		return self::$headings;
 	}
 
-	/**
-	 * Reset the headings to their initial state.
-	 * Ideally this Article class should not exist and be handled by the built in MediaWiki class.
-	 */
 	public static function resetHeadings(): void {
 		self::$headings = [];
 	}
