@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Sabelöga"
+			"Sabelöga",
+			"Stefan2255"
 		]
 	},
 	"intersection-desc": "Matar ut en punktlista över de senaste objekten i en kategori eller en genomskärning över flera kategorier",
@@ -16,7 +17,7 @@
 	"dpl_log_3": "Fel: För många kategorier! Högst antal: $1. Hjälp: öka <code>$wgDplSettings['maxCategoryCount']</code> för att ange fler kategorier eller ställ in <code>$wgDplSettings['allowUnlimitedCategories'] = true;</code> för att inte ha någon begränsning. (Ställ in variabeln i wikins <code>LocalSettings.php</code> konfigurationsfil.)",
 	"dpl_log_4": "Fel: För få kategorier! Lägst antal: $1. Hjälp: sänk <code>$wgDplSettings['minCategoryCount']</code> för att ange färre kategorier. (Ställ in variabeln i wikins <code>LocalSettings.php</code> konfigurationsfil.)",
 	"dpl_log_5": "Fel: Inget urvalskriterium hittades! Du måste använda minst en av följande parametrar: kategori, namnrymd, titelmatchning, länkartill, använder, skapadav, ändradav, senastredigeradav eller dess \"inte\"-varianter.",
-	"dpl_log_6": "Fel: Minst en kategori måste ha valts för att använda \"addfirstcategorydate=true\" eller \"ordermethod=categoryadd\".",
+	"dpl_log_6": "Fel: Minst en kategori måste väljas för att användas 'addfirstcategorydate=true' eller 'ordermethod=categoryadd'.",
 	"dpl_log_7": "Fel: Om du inkluderar fler än en kategori kan du inte använda \"addfirstcategorydate=true\" eller \"ordermethod=categoryadd\".",
 	"dpl_log_8": "Fel: Endast en datumtyp kan läggas till åt gången.",
 	"dpl_log_9": "Fel: Parametern \"$1\" måste användas med \"ordermethod=[ $2 ]\"",
@@ -39,7 +40,7 @@
 	"dpl_articlecount": "Det finns {{PLURAL:$1|en artikel|$1 artiklar}} i den här rubriken.",
 	"action-dpl_param_update_rules": "använda parametern \"updaterules\"",
 	"action-dpl_param_delete_rules": "använda parametern \"deleterules\"",
-	"dpl_query_error": "Tillägget DynamicPageList3 (version $1) producerade ett SQL-uttalande som ledde till ett databasfel.<br/>Orsaken kan vara ett internt fel hos DynamicPageList3 eller ett fel som du gjort; särskilt när du använder parametrar som \"categoryregexp\" eller \"titleregexp\". Användningen av icke-giriga *?-matchande mönster stöds inte.<br/>Felmeddelandet var:<br/><code>$2</code>",
+	"dpl_query_error": "Tillägget DynamicPageList3 (version $1) producerade ett SQL-uttalande som ledde till ett databasfel.<br/>Orsaken kan vara ett internt fel i DynamicPageList3 eller ett fel som du gjort; särskilt när du använder parametrar som \"categoryregexp\" eller \"titleregexp\". Användningen av icke-giriga <code>*?</code>-matchande mönster stöds inte.<br/>Felmeddelandet var:<br/><code>$2</code>",
 	"dpl-tag-tracking-category": "Sidor som använder DynamicPageList3-parser-tagg",
 	"dpl-intersection-tracking-category": "Sidor som använder DynamicPageList3-insection-parser-tagg",
 	"dpl-parserfunc-tracking-category": "Sidor som använder DynamicPageList3-parser-funktion",
