@@ -263,7 +263,7 @@ jobs:
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
               -v "$(pwd)"/cover:/workspace/cover \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:${QUIBBLE_DOCKER_LATEST_TAG}" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
               --skip-zuul \
               --packages-source composer \
               -c "/bin/bash -c 'curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/refs/heads/master/dockerfiles/quibble-bullseye-php81-coverage/mwext-phpunit-coverage.sh -o mwext-phpunit-coverage && \
