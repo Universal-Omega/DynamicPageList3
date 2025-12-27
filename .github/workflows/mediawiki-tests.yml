@@ -89,7 +89,6 @@ jobs:
       DOCKER_REGISTRY: docker-registry.wikimedia.org
       DOCKER_ORG: releng
       QUIBBLE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}
-      COVERAGE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}-coverage
       MEDIAWIKI_VERSION: ${{ matrix.mw }}
 
     steps:
@@ -108,11 +107,7 @@ jobs:
       # $GITHUB_WORKSPACE/.github/workflows/globals.php   Add global configuration options for MediaWiki
       - name: Set up
         run: |
-          if [ "${{ matrix.stage }}" == coverage ]; then
-            export DOCKER_IMAGE="${COVERAGE_DOCKER_IMAGE}"
-          else
-            export DOCKER_IMAGE="${QUIBBLE_DOCKER_IMAGE}"
-          fi
+          export DOCKER_IMAGE="${QUIBBLE_DOCKER_IMAGE}"
           echo "DOCKER_IMAGE=${DOCKER_IMAGE}" >> $GITHUB_ENV
 
           # Get the latest docker tag (Ref: https://github.com/thcipriani/dockerregistry)
@@ -268,10 +263,17 @@ jobs:
               -v "$(pwd)"/cache:/cache \
               -v "$(pwd)"/src:/workspace/src \
               -v "$(pwd)"/cover:/workspace/cover \
-              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
+              "${DOCKER_REGISTRY}/${DOCKER_ORG}/${QUIBBLE_DOCKER_IMAGE}:${QUIBBLE_DOCKER_LATEST_TAG}" \
               --skip-zuul \
-              --skip-deps \
-              -c mwext-phpunit-coverage
+              --packages-source composer \
+              -c "/bin/bash -c 'curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/refs/heads/master/dockerfiles/quibble-bullseye-php81-coverage/mwext-phpunit-coverage.sh -o mwext-phpunit-coverage && \
+                curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/refs/heads/master/dockerfiles/quibble-bullseye-php81-coverage/phpunit-suite-edit.py -o phpunit-suite-edit && \
+                curl -sL https://raw.githubusercontent.com/wikimedia/integration-config/refs/heads/master/dockerfiles/quibble-bullseye-php81-coverage/phpunit-junit-edit.py -o phpunit-junit-edit && \
+                rm -rf /workspace/src/extensions/*/vendor/squizlabs/php_codesniffer /workspace/src/extensions/*/vendor/composer/pcre && \
+                chmod +x mwext-phpunit-coverage phpunit-suite-edit phpunit-junit-edit && \
+                sed -i \"s|phpunit-suite-edit|./phpunit-suite-edit|g\" mwext-phpunit-coverage && \
+                sed -i \"s|phpunit-junit-edit|./phpunit-junit-edit|g\" mwext-phpunit-coverage && \
+                ./mwext-phpunit-coverage'"
           elif [ "${{ matrix.stage }}" != 'coverage' ]; then
             docker run \
               --entrypoint quibble-with-supervisord \
