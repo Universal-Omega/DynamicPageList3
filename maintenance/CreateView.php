@@ -1,88 +1,83 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Maintenance;
+declare( strict_types = 1 );
 
-$IP ??= getenv( 'MW_INSTALL_PATH' ) ?: dirname( __DIR__, 3 );
-require_once "$IP/maintenance/Maintenance.php";
+namespace MediaWiki\Extension\DynamicPageList4\Maintenance;
 
-use Exception;
 use MediaWiki\Maintenance\LoggedUpdateMaintenance;
+use Wikimedia\Rdbms\DBQueryError;
+use Wikimedia\Rdbms\IMaintainableDatabase;
+use const DB_PRIMARY;
 
 class CreateView extends LoggedUpdateMaintenance {
 
 	public function __construct() {
 		parent::__construct();
 
-		$this->addDescription( 'Handle creating DPL3\'s dpl_clview VIEW.' );
-		$this->addOption( 'recreate', 'Drop and recreate the view if it already exists', false, false );
+		$this->addDescription( 'Create or recreate the necessary VIEW for DPL4.' );
+		$this->addOption( 'recreate', 'Drop and recreate the VIEW if it already exists.' );
 
-		$this->requireExtension( 'DynamicPageList3' );
+		$this->requireExtension( 'DynamicPageList4' );
 	}
 
-	/**
-	 * Get the unique update key for this logged update.
-	 *
-	 * @return string
-	 */
 	protected function getUpdateKey(): string {
-		return 'dynamic-page-list-3-create-view';
+		return 'dynamic-page-list-4-create-view';
 	}
 
-	/**
-	 * Message to show that the update was done already and was just skipped
-	 *
-	 * @return string
-	 */
-	protected function updateSkippedMessage(): string {
+	public function updateSkippedMessage(): string {
 		return 'VIEW already created.';
 	}
 
-	/**
-	 * Handle creating DPL3's dpl_clview VIEW.
-	 *
-	 * @return bool
-	 */
 	protected function doDBUpdates(): bool {
 		$dbw = $this->getDB( DB_PRIMARY );
 		$recreate = $this->hasOption( 'recreate' );
 
 		if ( $recreate || !$dbw->tableExists( 'dpl_clview', __METHOD__ ) ) {
-			// Drop the view if --recreate option is set
 			if ( $recreate ) {
-				try {
-					$dbw->query( "DROP VIEW IF EXISTS {$dbw->tablePrefix()}dpl_clview", __METHOD__ );
-					$this->output( "Dropped existing view dpl_clview.\n" );
-				} catch ( Exception $e ) {
-					$this->output( "Failed to drop existing view: " . $e->getMessage() . "\n" );
-					return false;
-				}
+				$this->dropView( $dbw );
 			}
 
-			// PostgreSQL doesn't have IFNULL, so use COALESCE instead
-			$sqlNullMethod = ( $dbw->getType() === 'postgres' ? 'COALESCE' : 'IFNULL' );
-
-			$query = "CREATE VIEW {$dbw->tablePrefix()}dpl_clview AS SELECT " .
-				"$sqlNullMethod(cl_from, page_id) AS cl_from, " .
-				"$sqlNullMethod(cl_to, '') AS cl_to, cl_sortkey " .
-				"FROM {$dbw->tablePrefix()}page " .
-				"LEFT OUTER JOIN {$dbw->tablePrefix()}categorylinks " .
-				"ON {$dbw->tablePrefix()}page.page_id = cl_from;";
-
-			// Create the view
-			try {
-				$dbw->query( $query, __METHOD__ );
-				$this->output( "Created view dpl_clview.\n" );
-			} catch ( Exception $e ) {
-				$this->output( "Failed to create view: " . $e->getMessage() . "\n" );
-				return false;
-			}
-		} else {
-			$this->output( "VIEW already exists. Use --recreate to drop and recreate it.\n" );
+			return $this->createView( $dbw );
 		}
 
+		$this->output( "VIEW already exists. Use --recreate to force recreation.\n" );
 		return true;
+	}
+
+	private function dropView( IMaintainableDatabase $dbw ): void {
+		try {
+			$viewName = $dbw->tableName( 'dpl_clview' );
+			$dbw->query( "DROP VIEW IF EXISTS $viewName;", __METHOD__ );
+			$this->output( "Dropped existing VIEW $viewName.\n" );
+		} catch ( DBQueryError $e ) {
+			$this->output( "Failed to drop existing VIEW: {$e->getMessage()}\n" );
+		}
+	}
+
+	private function createView( IMaintainableDatabase $dbw ): bool {
+		$selectSQL = $dbw->newSelectQueryBuilder()
+			->select( [
+				'cl_to' => "COALESCE(cl.cl_to, '')",
+				'cl_from' => 'COALESCE(cl.cl_from, page.page_id)',
+				'cl_sortkey' => 'cl.cl_sortkey',
+			] )
+			->from( 'page', 'page' )
+			->leftJoin( 'categorylinks', 'cl', 'page.page_id = cl.cl_from' )
+			->caller( __METHOD__ )
+			->getSQL();
+
+		try {
+			$viewName = $dbw->tableName( 'dpl_clview' );
+			$dbw->query( "CREATE VIEW $viewName AS $selectSQL;", __METHOD__ );
+			$this->output( "Created VIEW $viewName.\n" );
+			return true;
+		} catch ( DBQueryError $e ) {
+			$this->output( "Failed to create VIEW: {$e->getMessage()}\n" );
+			return false;
+		}
 	}
 }
 
-$maintClass = CreateView::class;
-require_once RUN_MAINTENANCE_IF_MAIN;
+// @codeCoverageIgnoreStart
+return CreateView::class;
+// @codeCoverageIgnoreEnd

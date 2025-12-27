@@ -1,42 +1,47 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Tests;
+declare( strict_types = 1 );
+
+namespace MediaWiki\Extension\DynamicPageList4\Tests;
+
+use const NS_MAIN;
 
 /**
- * @group DynamicPageList3
+ * @group DynamicPageList4
  * @group Database
- * @covers \MediaWiki\Extension\DynamicPageList3\Query
+ * @covers \MediaWiki\Extension\DynamicPageList4\Query
  */
 class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesInCategory(): void {
 		$this->assertArrayEquals(
 			[ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticle 3', 'DPLTestArticleMultipleCategories' ],
-			$this->getDPLQueryResults( [ 'category' => 'DPLTestCategory' ] ),
+			$this->getDPLQueryResults( [
+				'category' => 'DPLTestCategory',
+			], '%PAGE%' ),
 			true
 		);
 	}
 
 	public function testFindPagesInCategoryWithOrderAndLimit(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticleMultipleCategories', 'DPLTestArticle 3', ],
+			[ 'DPLTestArticleMultipleCategories', 'DPLTestArticle 3' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'ordermethod' => 'sortkey',
 				'order' => 'descending',
-				'count' => '2'
-			] ),
+				'count' => 2,
+			], '%PAGE%' ),
 			true
 		);
 	}
 
 	public function testFindPagesNotInCategory(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'notcategory' => 'DPLTestCategory',
-			'nottitle' => 'DPLTestOpenReferences'
-		] );
+			'nottitle' => 'DPLTestOpenReferences',
+		], '%PAGE%' );
 
 		$this->assertContains( 'DPLTestArticleNoCategory', $results );
 		foreach ( [ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticle 3' ] as $pageInCat ) {
@@ -46,28 +51,25 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testFindPagesNotInCategoryByPrefix(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'titlematch' => 'DPLTest%',
-			'notcategory' => 'DPLTestCategory'
-		] );
+			'notcategory' => 'DPLTestCategory',
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[ 'DPLTestArticleNoCategory', 'DPLTestArticleOtherCategoryWithInfobox', 'DPLTestOpenReferences' ],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticleNoCategory',
+			'DPLTestArticleOtherCategoryWithInfobox',
+			'DPLTestOpenReferences',
+		], $results, true );
 	}
 
 	public function testFindPagesByPrefix(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'titlematch' => 'DPLTest%',
-		] );
+		], '%PAGE%' );
 
 		$this->assertNotEmpty( $results );
-
 		foreach ( $results as $result ) {
 			$this->assertStringStartsWith( 'DPLTest', $result );
 		}
@@ -77,18 +79,18 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertArrayEquals(
 			[ 'DPLTestArticleMultipleCategories' ],
 			$this->getDPLQueryResults( [
-				'category' => [ 'DPLTestCategory', 'DPLTestOtherCategory' ]
-			] ),
+				'category' => [ 'DPLTestCategory', 'DPLTestOtherCategory' ],
+			], '%PAGE%' ),
 			true
 		);
 	}
 
 	public function testFindPagesUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1', 'DPLTestArticleOtherCategoryWithInfobox' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2', 'DPLTestArticleOtherCategoryWithInfobox' ],
 			$this->getDPLQueryResults( [
-				'uses' => 'Template:DPLInfobox'
-			] ),
+				'uses' => 'Template:DPLInfobox',
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -98,8 +100,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticleOtherCategoryWithInfobox' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
-				'uses' => 'Template:DPLInfobox'
-			] ),
+				'uses' => 'Template:DPLInfobox',
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -109,19 +111,19 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticleMultipleCategories' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
-				'notuses' => 'Template:DPLInfobox'
-			] ),
+				'notuses' => 'Template:DPLInfobox',
+			], '%PAGE%' ),
 			true
 		);
 	}
 
 	public function testFindPagesNotInCategoryUsingTemplate(): void {
 		$this->assertArrayEquals(
-			[ 'DPLTestArticle 1' ],
+			[ 'DPLTestArticle 1', 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
 				'notcategory' => 'DPLTestOtherCategory',
-				'uses' => 'Template:DPLInfobox'
-			] ),
+				'uses' => 'Template:DPLInfobox',
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -130,8 +132,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertArrayEquals(
 			[ 'Template:DPLInfobox' ],
 			$this->getDPLQueryResults( [
-				'usedby' => 'DPLTestArticleOtherCategoryWithInfobox'
-			] ),
+				'usedby' => 'DPLTestArticleOtherCategoryWithInfobox',
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -140,10 +142,10 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 		$this->assertArrayEquals(
 			[ 'DPLTestArticle 1', 'DPLTestArticle 2' ],
 			$this->getDPLQueryResults( [
-				// NS_MAIN
-				'namespace' => '',
-				'titleregexp' => 'DPLTestArticle [12]'
-			] )
+				'namespace' => NS_MAIN,
+				'titleregexp' => 'DPLTestArticle [12]',
+			], '%PAGE%' ),
+			true
 		);
 	}
 
@@ -153,8 +155,9 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'titlelt' => 'DPLTestArticle 3',
-				'count' => '2'
-			] )
+				'count' => 2,
+			], '%PAGE%' ),
+			true
 		);
 	}
 
@@ -163,8 +166,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticle 2', 'DPLTestArticleMultipleCategories' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
-				'maxrevisions' => '1',
-			] ),
+				'maxrevisions' => 1,
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -174,8 +177,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticle 1', 'DPLTestArticle 3' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
-				'minrevisions' => '2',
-			] ),
+				'minrevisions' => 2,
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -185,8 +188,8 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			[ 'DPLTestArticleMultipleCategories' ],
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
-				'categoriesminmax' => '2',
-			] ),
+				'categoriesminmax' => 2,
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -197,7 +200,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'categoriesminmax' => '1,1',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -208,7 +211,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'notmodifiedby' => 'DPLTestUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -219,7 +222,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
 				'createdby' => 'DPLTestSystemUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -230,7 +233,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'lastmodifiedby' => 'DPLTestUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -241,7 +244,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'notlastmodifiedby' => 'DPLTestUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -252,7 +255,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestCategory',
 				'modifiedby' => 'DPLTestAdmin',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -263,7 +266,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			$this->getDPLQueryResults( [
 				'category' => 'DPLTestOtherCategory',
 				'notcreatedby' => 'DPLTestSystemUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -275,7 +278,7 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 				'modifiedby' => 'DPLTestUser',
 				'notcreatedby' => 'DPLTestAdmin',
 				'notlastmodifiedby' => 'DPLTestUser',
-			] ),
+			], '%PAGE%' ),
 			true
 		);
 	}
@@ -285,18 +288,14 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'category' => 'DPLTestCategory',
 			'ordermethod' => 'lastedit',
 			'order' => 'descending',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 3',
-				'DPLTestArticle 2',
-				'DPLTestArticleMultipleCategories',
-				'DPLTestArticle 1',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 3',
+			'DPLTestArticle 2',
+			'DPLTestArticleMultipleCategories',
+			'DPLTestArticle 1',
+		], $results, true );
 	}
 
 	public function testFindPagesInCategoryOrderedByFirstEdit(): void {
@@ -304,91 +303,79 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 			'category' => 'DPLTestCategory',
 			'ordermethod' => 'firstedit',
 			'order' => 'descending',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 2',
-				'DPLTestArticleMultipleCategories',
-				'DPLTestArticle 1',
-				'DPLTestArticle 3',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 2',
+			'DPLTestArticleMultipleCategories',
+			'DPLTestArticle 1',
+			'DPLTestArticle 3',
+		], $results, true );
 	}
 
 	public function testFindPagesInCategoryOrderedByTitleWithoutNamespace(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
 			'ordermethod' => 'titlewithoutnamespace',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticleMultipleCategories',
-				'DPLTestArticle 1',
-				'DPLTestArticle 2',
-				'DPLTestArticle 3',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticleMultipleCategories',
+			'DPLTestArticle 1',
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+		], $results, true );
 	}
 
 	public function testFindPagesInCategoryOrderedByFullTitle(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
 			'ordermethod' => 'title',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 1',
-				'DPLTestArticle 2',
-				'DPLTestArticle 3',
-				'DPLTestArticleMultipleCategories',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 1',
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+			'DPLTestArticleMultipleCategories',
+		], $results, true );
 	}
 
 	public function testGetPageAuthors(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
-			'addauthor' => 'true',
+			'addauthor' => true,
 			'order' => 'ascending',
-			'ordermethod' => 'title'
+			'ordermethod' => 'title',
 		], '%PAGE% %USER%' );
 
-		$this->assertEquals( [
+		$this->assertArrayEquals( [
 			'DPLTestArticle 1 DPLTestAdmin',
 			'DPLTestArticle 2 DPLTestAdmin',
 			'DPLTestArticle 3 DPLTestAdmin',
 			'DPLTestArticleMultipleCategories DPLTestAdmin',
-		], $results );
+		], $results, true );
 	}
 
 	public function testGetLastEditorsByPage(): void {
 		$results = $this->getDPLQueryResults( [
 			'category' => 'DPLTestCategory',
-			'addlasteditor' => 'true'
+			'addlasteditor' => true,
 		], '%PAGE% %USER%' );
 
-		$this->assertEquals( [
+		$this->assertArrayEquals( [
 			'DPLTestArticle 1 DPLTestUser',
 			'DPLTestArticle 2 DPLTestAdmin',
 			'DPLTestArticle 3 DPLTestAdmin',
 			'DPLTestArticleMultipleCategories DPLTestAdmin',
-		], $results );
+		], $results, true );
 	}
 
 	public function testTotalPagesInHeader(): void {
 		$results = $this->runDPLQuery( [
 			'category' => 'DPLTestCategory',
 			'resultsheader' => 'TOTALPAGES: %TOTALPAGES%',
-			'count' => 2
+			'count' => 2,
 		] );
 
 		$this->assertStringContainsString( 'TOTALPAGES: 4', $results );
@@ -409,150 +396,162 @@ class DPLQueryIntegrationTest extends DPLIntegrationTestCase {
 
 	public function testOpenReferencesMissing(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'openreferences' => 'missing',
-			'count' => 1
-		] );
+			'count' => 1,
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'RedLink',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [ 'RedLink' ], $results, true );
 	}
 
 	public function testFindPagesLinkingToPage(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'linksto' => 'DPLTestArticle 2',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 1',
-				'DPLTestOpenReferences',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 1',
+			'DPLTestOpenReferences',
+		], $results, true );
 	}
 
 	public function testFindPagesNotLinkingToPage(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'notlinksto' => 'DPLTestArticle 2',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 2',
-				'DPLTestArticle 3',
-				'DPLTestArticleNoCategory',
-				'DPLTestArticleMultipleCategories',
-				'DPLTestArticleOtherCategoryWithInfobox',
-				'DPLUncategorizedPage',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+			'DPLTestArticleNoCategory',
+			'DPLTestArticleMultipleCategories',
+			'DPLTestArticleOtherCategoryWithInfobox',
+			'DPLUncategorizedPage',
+		], $results, true );
 	}
 
 	public function testFindPagesLinkedFromPage(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'linksfrom' => 'DPLTestArticle 1',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 2',
-				'DPLTestArticleNoCategory',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 2',
+			'DPLTestArticleNoCategory',
+		], $results, true );
 	}
 
 	public function testFindPagesLinkedFromPageWithPagesel(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'linksfrom' => 'DPLTestArticle 1',
 		], '%PAGESEL% to %PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 1 to DPLTestArticle 2',
-				'DPLTestArticle 1 to DPLTestArticleNoCategory',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 1 to DPLTestArticle 2',
+			'DPLTestArticle 1 to DPLTestArticleNoCategory',
+		], $results, true );
 	}
 
 	public function testFindPagesLinkedFromPageOrderedByPagesel(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'linksfrom' => 'DPLTestOpenReferences|DPLTestArticle 1',
 			'ordermethod' => 'pagesel',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticleNoCategory',
-				'DPLTestArticle 1',
-				'DPLTestArticle 2',
-				'DPLTestArticle 3',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticleNoCategory',
+			'DPLTestArticle 1',
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+		], $results, true );
+	}
+
+	public function testFindPagesLinkedToPageOrderedByPagesel(): void {
+		$results = $this->getDPLQueryResults( [
+			'namespace' => NS_MAIN,
+			'linksto' => 'DPLTestArticle 1',
+			'ordermethod' => 'pagesel',
+		], '%PAGE%' );
+
+		$this->assertArrayEquals( [
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+			'DPLTestOpenReferences',
+		], $results, true );
 	}
 
 	public function testFindPagesNotLinkedFromPage(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'notlinksfrom' => 'DPLTestArticle 1',
-		] );
+		], '%PAGE%' );
 
-		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 1',
-				'DPLTestArticle 3',
-				'DPLTestArticleMultipleCategories',
-				'DPLTestArticleOtherCategoryWithInfobox',
-				'DPLUncategorizedPage',
-				'DPLTestOpenReferences',
-			],
-			$results,
-			true
-		);
+		$this->assertArrayEquals( [
+			'DPLTestArticle 1',
+			'DPLTestArticle 3',
+			'DPLTestArticleMultipleCategories',
+			'DPLTestArticleOtherCategoryWithInfobox',
+			'DPLUncategorizedPage',
+			'DPLTestOpenReferences',
+		], $results, true );
 	}
 
 	public function testFindPagesWithOpenReferencesLinkedFromPage(): void {
 		$results = $this->getDPLQueryResults( [
-			// NS_MAIN
-			'namespace' => '',
+			'namespace' => NS_MAIN,
 			'linksfrom' => 'DPLTestOpenReferences',
-			'openreferences' => 'yes',
-		] );
+			'openreferences' => true,
+		], '%PAGE%' );
 
+		$this->assertArrayEquals( [
+			'DPLTestArticle 1',
+			'DPLTestArticle 2',
+			'DPLTestArticle 3',
+			'RedLink',
+		], $results, true );
+	}
+
+	public function testFindPagesLinkingToAndFromPage(): void {
 		$this->assertArrayEquals(
-			[
-				'DPLTestArticle 1',
-				'DPLTestArticle 2',
-				'DPLTestArticle 3',
-				'RedLink',
-			],
-			$results
+			[ 'DPLTestArticle 2', 'DPLTestArticle 3' ],
+			$this->getDPLQueryResults( [
+				'linksfrom' => 'DPLTestOpenReferences',
+				'linksto' => 'DPLTestArticle 1',
+			], '%PAGE%' ),
+			true
 		);
+	}
+
+	public function testFindPagesLinkingToAndFromPageWithUses(): void {
+		$this->assertArrayEquals(
+			// Only this page links both from DPLTestOpenReferences and to DPLTestArticle 1
+			// while also using Template:DPLInfobox.
+			[ 'DPLTestArticle 2' ],
+			$this->getDPLQueryResults( [
+				'linksfrom' => 'DPLTestOpenReferences',
+				'linksto' => 'DPLTestArticle 1',
+				'uses' => 'Template:DPLInfobox',
+			], '%PAGE%' ),
+			true
+		);
+	}
+
+	public function testGetEditSummary(): void {
+		$results = $this->getDPLQueryResults( [
+			'category' => 'DPLTestCategory',
+			'firstrevisionsince' => '200812041300',
+			'ordermethod' => 'firstedit',
+			'adduser' => true,
+			'count' => 1,
+		], '%PAGE%: %EDITSUMMARY%' );
+
+		$this->assertArrayEquals( [
+			'DPLTestArticle 3: Initial page version',
+		], $results, true );
 	}
 }

@@ -1,33 +1,14 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+declare( strict_types = 1 );
+
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
 
 class UnorderedHeading extends Heading {
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<ul%s>';
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</ul>';
+	protected string $listStart = '<ul%s>';
+	protected string $listEnd = '</ul>';
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<li%s>';
-
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</li>';
+	protected string $itemStart = '<li%s>';
+	protected string $itemEnd = '</li>';
 }

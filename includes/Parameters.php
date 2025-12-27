@@ -1,214 +1,193 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3;
+declare( strict_types = 1 );
 
-use InvalidArgumentException;
+namespace MediaWiki\Extension\DynamicPageList4;
+
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PermissionsError;
 use StringUtils;
+use Wikimedia\Rdbms\IExpression;
+use function array_diff;
+use function array_fill_keys;
+use function array_keys;
+use function array_map;
+use function array_merge;
+use function array_shift;
+use function array_unique;
+use function explode;
+use function filter_var;
+use function html_entity_decode;
+use function in_array;
+use function is_array;
+use function is_numeric;
+use function ltrim;
+use function method_exists;
+use function min;
+use function preg_match;
+use function preg_replace;
+use function rtrim;
+use function str_contains;
+use function str_pad;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function strtolower;
+use function trim;
+use function ucfirst;
+use function wfMessage;
+use const FILTER_NULL_ON_FAILURE;
+use const FILTER_VALIDATE_BOOLEAN;
+use const INF;
 
 class Parameters extends ParametersData {
-	/**
-	 * Set parameter options.
-	 *
-	 * @var array
-	 */
-	private $parameterOptions = [];
 
-	/**
-	 * Selection Criteria Found
-	 *
-	 * @var bool
-	 */
-	private $selectionCriteriaFound = false;
+	/** Set parameter options. */
+	private array $parameterOptions = [];
 
-	/**
-	 * Open References Conflict
-	 *
-	 * @var bool
-	 */
-	private $openReferencesConflict = false;
+	/** Selection Criteria Found */
+	private bool $selectionCriteriaFound = false;
 
-	/**
-	 * Parameters that have already been processed.
-	 *
-	 * @var array
-	 */
-	private $parametersProcessed = [];
+	/** Open References Conflict */
+	private bool $openReferencesConflict = false;
+
+	/** Parameters that have already been processed. */
+	private array $parametersProcessed = [];
 
 	public function __construct() {
 		parent::__construct();
-
 		$this->setDefaults();
 	}
 
-	/**
-	 * Handle simple parameter functions.
-	 *
-	 * @param string $parameter
-	 * @param mixed $arguments
-	 * @return bool
-	 */
-	public function __call( $parameter, $arguments ) {
+	public function processParameter( string $parameter, string $option ): bool {
+		$parameter = strtolower( $parameter );
 		$parameterData = $this->getData( $parameter );
-
 		if ( $parameterData === false ) {
 			return false;
 		}
 
-		// Check permission to use this parameter.
-		if ( array_key_exists( 'permission', $parameterData ) ) {
-			$user = RequestContext::getMain()->getUser();
-
-			if ( !$user->isAllowed( $parameterData['permission'] ) ) {
-				throw new PermissionsError( $parameterData['permission'] );
-			}
+		// DB format
+		if ( $parameterData['db_format'] ?? false ) {
+			$option = str_replace( ' ', '_', $option );
 		}
 
-		// Subvert to the real function if it exists. This keeps code elsewhere
-		// clean from needed to check if it exists first.
-		$function = '_' . $parameter;
+		$method = '_' . $parameter;
 		$this->parametersProcessed[$parameter] = true;
-
-		if ( method_exists( $this, $function ) ) {
-			return call_user_func_array( [ $this, $function ], $arguments );
+		if ( method_exists( $this, $method ) ) {
+			return $this->$method( $option );
 		}
 
-		$option = $arguments[0];
-		$parameter = strtolower( $parameter );
-
-		// Assume by default that these simple parameter options should not failed,
-		// but if they do we will set $success to false below.
-		$success = true;
-		if ( $parameterData !== false ) {
-			// If a parameter specifies options then enforce them.
-			if (
-				array_key_exists( 'values', $parameterData ) &&
-				is_array( $parameterData['values'] ) &&
-				!in_array( strtolower( $option ), $parameterData['values'] )
-			) {
-				$success = false;
-			} else {
-				if ( (
-					array_key_exists( 'preserve_case', $parameterData ) &&
-					!$parameterData['preserve_case']
-				) && (
-					array_key_exists( 'page_name_list', $parameterData ) &&
-					$parameterData['page_name_list'] !== true )
-				) {
-					$option = strtolower( $option );
-				}
+		// Validate allowed values
+		if ( isset( $parameterData['values'] ) ) {
+			if ( !in_array( strtolower( $option ), $parameterData['values'], true ) ) {
+				return false;
 			}
+		}
 
-			// Strip <html> tag.
-			if ( array_key_exists( 'strip_html', $parameterData ) && $parameterData['strip_html'] === true ) {
-				$option = $this->stripHtmlTags( $option );
-			}
+		// Case normalization
+		if (
+			( $parameterData['preserve_case'] ?? false ) === false &&
+			( $parameterData['page_name_list'] ?? false ) !== true
+		) {
+			$option = strtolower( $option );
+		}
 
-			// Integers
-			if ( array_key_exists( 'integer', $parameterData ) && $parameterData['integer'] === true ) {
-				if ( !is_numeric( $option ) ) {
-					if ( $parameterData['default'] !== null ) {
-						$option = (int)$parameterData['default'];
-					} else {
-						$success = false;
-					}
-				} else {
-					$option = (int)$option;
-				}
-			}
+		// Strip HTML
+		if ( $parameterData['strip_html'] ?? false ) {
+			$option = $this->stripHtmlTags( $option );
+		}
 
-			// Booleans
-			if ( array_key_exists( 'boolean', $parameterData ) && $parameterData['boolean'] === true ) {
-				$option = $this->filterBoolean( $option );
-
+		// Integer conversion
+		if ( $parameterData['integer'] ?? false ) {
+			if ( !is_numeric( $option ) ) {
+				$option = $parameterData['default'] ?? null;
 				if ( $option === null ) {
-					$success = false;
+					return false;
 				}
 			}
 
-			// Timestamps
-			if ( array_key_exists( 'timestamp', $parameterData ) && $parameterData['timestamp'] === true ) {
-				$option = strtolower( $option );
+			$option = (int)$option;
+		}
 
-				switch ( $option ) {
-					case 'today':
-					case 'last hour':
-					case 'last day':
-					case 'last week':
-					case 'last month':
-					case 'last year':
-						break;
-					default:
-						$option = str_pad( preg_replace( '#[^0-9]#', '', $option ), 14, '0' );
-						$option = wfTimestamp( TS_MW, $option );
-
-						if ( $option === false ) {
-							$success = false;
-						}
-						break;
-				}
-			}
-
-			// List of Pages
-			if ( array_key_exists( 'page_name_list', $parameterData ) && $parameterData['page_name_list'] === true ) {
-				$pageGroups = $this->getParameter( $parameter );
-
-				if ( !is_array( $pageGroups ) ) {
-					$pageGroups = [];
-				}
-
-				$pages = $this->getPageNameList( $option, (bool)$parameterData['page_name_must_exist'] );
-
-				if ( $pages === false ) {
-					$success = false;
-				} else {
-					$pageGroups[] = $pages;
-					$option = $pageGroups;
-				}
-			}
-
-			// Regex Pattern Matching
-			if ( array_key_exists( 'pattern', $parameterData ) ) {
-				if ( preg_match( $parameterData['pattern'], $option, $matches ) ) {
-					// Nuke the total pattern match off the beginning of the array.
-					array_shift( $matches );
-					$option = $matches;
-				} else {
-					$success = false;
-				}
-			}
-
-			// Database Key Formatting
-			if ( array_key_exists( 'db_format', $parameterData ) && $parameterData['db_format'] === true ) {
-				$option = str_replace( ' ', '_', $option );
-			}
-
-			// If none of the above checks marked this as a failure then set it.
-			if ( $success ) {
-				$this->setParameter( $parameter, $option );
-
-				// Set that criteria was found for a selection.
-				if (
-					array_key_exists( 'set_criteria_found', $parameterData ) &&
-					$parameterData['set_criteria_found'] === true
-				) {
-					$this->setSelectionCriteriaFound( true );
-				}
-
-				// Set open references conflict possibility.
-				if (
-					array_key_exists( 'open_ref_conflict', $parameterData ) &&
-					$parameterData['open_ref_conflict'] === true
-				) {
-					$this->setOpenReferencesConflict( true );
-				}
+		// Boolean conversion
+		if ( $parameterData['boolean'] ?? false ) {
+			$option = $this->filterBoolean( $option );
+			if ( $option === null ) {
+				return false;
 			}
 		}
 
-		return $success;
+		// Timestamp handling
+		if ( $parameterData['timestamp'] ?? false ) {
+			$option = strtolower( $option );
+			if ( is_numeric( $option ) ) {
+				/**
+				 * Ensure the input is compatible with MediaWiki timestamps.
+				 * If we pad directly with 0s, incomplete dates like '2025' would become
+				 * '20250000000000', which contains invalid month ('00') and day ('00').
+				 *
+				 * PHP's DateTime parser normalizes these zero components instead of throwing
+				 * an error. A month value of '00' is interpreted as "one month before January,"
+				 * which is December of the previous year. Then, a day value of '00' is treated
+				 * as "one day before the 1st of the month," resulting in the last day of the
+				 * previous month.
+				 *
+				 * As a result, '20250000000000' is interpreted by DateTime as:
+				 *  - Year: 2025
+				 *  - Month: 00 → rolls back to December of 2024
+				 *  - Day: 00 → rolls back to November 30, 2024
+				 *
+				 * This is why padding with zeros can lead to unexpected results like
+				 * '20241130000000' instead of the intended start of 2025.
+				 *
+				 * To prevent this, we pad the month and day with '01' to ensure they are valid
+				 * (January 1st), and pad the hour, minute, and second with '0' to complete the
+				 * 14-digit timestamp expected by ConvertibleTimestamp with support for both
+				 * TS_MW (used by MySQL/MariaDB and SQLite) and TS_POSTGRES (used by PostgreSQL).
+				 */
+				$option = preg_replace( '#[^0-9]#', '', $option );
+				$option = str_pad( $option, 8, '01' );
+				$option = str_pad( $option, 14, '0' );
+			}
+		}
+
+		// Page name list
+		if ( $parameterData['page_name_list'] ?? false ) {
+			$pageGroups = $this->getParameter( $parameter ) ?? [];
+			$pages = $this->getPageNameList( $option,
+				(bool)( $parameterData['page_name_must_exist'] ?? false )
+			);
+
+			if ( $pages === false ) {
+				return false;
+			}
+
+			$pageGroups[] = $pages;
+			$option = $pageGroups;
+		}
+
+		// Regex pattern
+		if ( isset( $parameterData['pattern'] ) ) {
+			if ( !preg_match( $parameterData['pattern'], $option, $matches ) ) {
+				return false;
+			}
+
+			array_shift( $matches );
+			$option = $matches;
+		}
+
+		$this->setParameter( $parameter, $option );
+		if ( $parameterData['set_criteria_found'] ?? false ) {
+			$this->setSelectionCriteriaFound( true );
+		}
+
+		if ( $parameterData['open_ref_conflict'] ?? false ) {
+			$this->setOpenReferencesConflict( true );
+		}
+
+		return true;
 	}
 
 	/**
@@ -217,207 +196,145 @@ class Parameters extends ParametersData {
 	 * Users can not be told to put the parameters into a specific order each time.
 	 * Some parameters are dependent on each other coming in a certain order due to some
 	 * procedural legacy issues.
-	 *
-	 * @param array	$parameters
-	 * @return array
 	 */
-	public static function sortByPriority( $parameters ) {
-		if ( !is_array( $parameters ) ) {
-			throw new InvalidArgumentException( __METHOD__ . ': A non-array was passed.' );
-		}
-
+	public static function sortByPriority( array $parameters ): array {
 		// 'category' to get category headings first for ordermethod.
 		// 'include'/'includepage' to make sure section labels are ready for 'table'.
+		// The order of this array is very important!
 		$priority = [
-			'distinct' => 1,
-			'openreferences' => 2,
-			'ignorecase' => 3,
-			'category' => 4,
-			'title' => 5,
-			'goal' => 6,
-			'ordercollation' => 7,
-			'ordermethod' => 8,
-			'includepage' => 9,
-			'include' => 10
+			'distinct',
+			'openreferences',
+			'ignorecase',
+			'category',
+			'title',
+			'goal',
+			'ordercollation',
+			'ordermethod',
+			'includepage',
+			'include',
 		];
 
-		$_first = [];
-		foreach ( $priority as $parameter => $_ ) {
-			if ( isset( $parameters[$parameter] ) ) {
-				$_first[$parameter] = $parameters[$parameter];
-				unset( $parameters[$parameter] );
+		$first = [];
+		foreach ( $priority as $parameter ) {
+			if ( !isset( $parameters[$parameter] ) ) {
+				continue;
 			}
+
+			$first[$parameter] = $parameters[$parameter];
+			unset( $parameters[$parameter] );
 		}
 
-		$parameters = $_first + $parameters;
-
-		return $parameters;
+		return $first + $parameters;
 	}
 
 	/**
 	 * Set Selection Criteria Found
-	 *
-	 * @param bool $found
-	 * @return void
 	 */
-	private function setSelectionCriteriaFound( $found = true ) {
-		if ( !is_bool( $found ) ) {
-			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
-		}
-
+	private function setSelectionCriteriaFound( bool $found ): void {
 		$this->selectionCriteriaFound = $found;
 	}
 
 	/**
 	 * Get Selection Criteria Found
-	 *
-	 * @return bool
 	 */
-	public function isSelectionCriteriaFound() {
+	public function isSelectionCriteriaFound(): bool {
 		return $this->selectionCriteriaFound;
 	}
 
 	/**
 	 * Set Open References Conflict - See 'openreferences' parameter.
-	 *
-	 * @param bool $conflict
-	 * @return void
 	 */
-	private function setOpenReferencesConflict( $conflict = true ) {
-		if ( !is_bool( $conflict ) ) {
-			throw new InvalidArgumentException( __METHOD__ . ': A non-boolean was passed.' );
-		}
-
+	private function setOpenReferencesConflict( bool $conflict ): void {
 		$this->openReferencesConflict = $conflict;
 	}
 
 	/**
 	 * Get Open References Conflict - See 'openreferences' parameter.
-	 *
-	 * @return bool
 	 */
-	public function isOpenReferencesConflict() {
+	public function isOpenReferencesConflict(): bool {
 		return $this->openReferencesConflict;
 	}
 
 	/**
 	 * Set default parameters based on ParametersData.
 	 */
-	private function setDefaults() {
+	private function setDefaults(): void {
 		$this->setParameter( 'defaulttemplatesuffix', '.default' );
+		foreach ( $this->getParametersForRichness() as $parameter ) {
+			$data = $this->getData( $parameter );
+			$default = $data['default'] ?? null;
+			$isBoolean = $data['boolean'] ?? false;
 
-		$parameters = $this->getParametersForRichness();
-		foreach ( $parameters as $parameter ) {
-			if ( $this->getData( $parameter )['default'] !== null && !(
-				$this->getData( $parameter )['default'] === false && (
-					$this->getData( $parameter )['boolean'] ?? false
-				) === true )
-			   ) {
-				if ( $parameter == 'debug' ) {
-					Hooks::setDebugLevel( $this->getData( $parameter )['default'] );
+			if ( $default !== null && !( $default === false && $isBoolean === true ) ) {
+				if ( $parameter === 'debug' ) {
+					Utils::setDebugLevel( $default );
 				}
 
-				$this->setParameter( $parameter, $this->getData( $parameter )['default'] );
+				$this->setParameter( $parameter, $default );
 			}
 		}
 	}
 
-	/**
-	 * Set a parameter's option.
-	 *
-	 * @param string $parameter
-	 * @param mixed	$option
-	 */
-	public function setParameter( $parameter, $option ) {
+	public function setParameter( string $parameter, mixed $option ): void {
 		$this->parameterOptions[$parameter] = $option;
 	}
 
-	/**
-	 * Get a parameter's option.
-	 *
-	 * @param string $parameter
-	 * @return mixed Option for specified parameter.
-	 */
-	public function getParameter( $parameter ) {
-		return array_key_exists( $parameter, $this->parameterOptions ) ? $this->parameterOptions[$parameter] : null;
+	public function getParameter( string $parameter ): mixed {
+		return $this->parameterOptions[$parameter] ?? null;
 	}
 
-	/**
-	 * Get all parameters.
-	 *
-	 * @return array
-	 */
-	public function getAllParameters() {
+	public function getAllParameters(): array {
 		return self::sortByPriority( $this->parameterOptions );
 	}
 
 	/**
 	 * Filter a standard boolean like value into an actual boolean.
-	 *
-	 * @param int|string|bool $boolean
-	 * @return bool
 	 */
-	public function filterBoolean( $boolean ) {
+	private function filterBoolean( string $boolean ): ?bool {
 		return filter_var( $boolean, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 	}
 
 	/**
 	 * Strip <html> tags.
-	 *
-	 * @param string $text
-	 * @return string
 	 */
-	private function stripHtmlTags( $text ) {
-		$text = preg_replace( "#<.*?html.*?>#is", "", $text );
-
-		return $text;
+	private function stripHtmlTags( string $text ): string {
+		return preg_replace( '#<.*?html.*?>#is', '', $text ) ?? '';
 	}
 
 	/**
 	 * Get a list of valid page names.
-	 *
-	 * @param string $text
-	 * @param bool $mustExist
-	 * @return array|bool
 	 */
-	private function getPageNameList( $text, $mustExist = true ) {
+	private function getPageNameList( string $text, bool $mustExist ): array|false {
 		$list = [];
-		$pages = explode( '|', trim( $text ) );
-
-		foreach ( $pages as $page ) {
-			$page = trim( $page );
-			$page = rtrim( $page, '\\' );
-
-			if ( !$page ) {
+		foreach ( explode( '|', trim( $text ) ) as $page ) {
+			$page = rtrim( trim( $page ), '\\' );
+			if ( $page === '' ) {
 				continue;
 			}
 
-			if ( $mustExist === true ) {
+			if ( $mustExist ) {
 				$title = Title::newFromText( $page );
-
 				if ( !$title ) {
 					return false;
 				}
 
 				$list[] = $title;
-			} else {
-				$list[] = $page;
+				continue;
 			}
+
+			$list[] = $page;
 		}
 
 		return $list;
 	}
 
 	/**
-	 * Check if a regular expression is valid.
-	 *
-	 * @param array|string $regexes
-	 * @param bool $forDb
-	 * @return bool
+	 * Check if all regular expressions in an array are valid.
 	 */
-	private function isRegexValid( $regexes, $forDb = false ) {
-		foreach ( (array)$regexes as $regex ) {
-			if ( !trim( $regex ) ) {
+	private function isRegexValid( array $regexes, bool $forDb ): bool {
+		foreach ( $regexes as $regex ) {
+			$regex = trim( $regex );
+			if ( $regex === '' ) {
 				continue;
 			}
 
@@ -433,136 +350,97 @@ class Parameters extends ParametersData {
 		return true;
 	}
 
+	// @phpcs:disable MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
+	// @phpcs:disable PSR2.Methods.MethodDeclaration.Underscore
+
 	/**
 	 * Clean and test 'category' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _category( $option ) {
-		$option = trim( $option );
-
-		if ( !$option ) {
+	private function _category( string $option ): bool {
+		$option = trim( html_entity_decode( $option ) );
+		if ( $option === '' ) {
 			return false;
 		}
 
-		// Init array of categories to include
 		$categories = [];
-		$heading = false;
-		$notHeading = false;
+		$heading = str_starts_with( $option, '+' );
+		$notHeading = !$heading && str_starts_with( $option, '-' );
 
-		if ( substr( $option, 0, 1 ) == '+' ) {
-			// categories are headings
-			$heading = true;
-
-			$option = ltrim( $option, '+' );
+		if ( $heading || $notHeading ) {
+			$option = ltrim( $option, '+-' );
 		}
 
-		if ( substr( $option, 0, 1 ) == '-' ) {
-			// categories are NOT headings
-			$notHeading = true;
-
-			$option = ltrim( $option, '-' );
-		}
-
-		// We expand html entities because they contain an '& 'which would be interpreted as an AND condition
-		$option = html_entity_decode( $option, ENT_QUOTES );
-
-		if ( strpos( $option, '|' ) !== false ) {
-			$parameters = explode( '|', $option );
-			$operator = 'OR';
-		} else {
-			$parameters = explode( '&', $option );
-			$operator = 'AND';
-		}
+		[ $parameters, $operator ] = str_contains( $option, '|' )
+			? [ explode( '|', $option ), 'OR' ]
+			: [ explode( '<&>', $option ), 'AND' ];
 
 		foreach ( $parameters as $parameter ) {
 			$parameter = trim( $parameter );
+			if ( $parameter === '' ) {
+				continue;
+			}
 
-			if ( $parameter === '_none_' || $parameter === '' ) {
+			if ( $parameter === '_none_' ) {
 				$this->setParameter( 'includeuncat', true );
 				$categories[] = '';
-			} elseif ( $parameter ) {
-				if ( strpos( $parameter, '*' ) === 0 && strlen( $parameter ) >= 2 ) {
-					if ( strpos( $parameter, '*', 1 ) === 1 ) {
-						$parameter = substr( $parameter, 2 );
-						$subCategories = Query::getSubcategories( $parameter, 2 );
-					} else {
-						$parameter = substr( $parameter, 1 );
-						$subCategories = Query::getSubcategories( $parameter, 1 );
-					}
+				continue;
+			}
 
-					$subCategories[] = $parameter;
-					foreach ( $subCategories as $subCategory ) {
-						$title = Title::newFromText( $subCategory );
+			if ( str_starts_with( $parameter, '*' ) && strlen( $parameter ) >= 2 ) {
+				$depth = $parameter[1] === '*' ? 2 : 1;
+				$parameter = ltrim( $parameter, '*' );
+				$subCategories = Query::getSubcategories( $parameter, $depth );
+				$subCategories[] = $parameter;
 
-						if ( $title !== null ) {
-							// The * helper is just like listing "Category1|SubCategory1".
-							// This gets hard coded here for this purpose.
-							$categories['OR'][] = $title->getDbKey();
-						}
+				foreach ( $subCategories as $subCategory ) {
+					$title = Title::newFromText( $subCategory );
+					if ( $title ) {
+						$categories['OR'][] = $title->getDbKey();
 					}
-				} else {
-					$title = Title::newFromText( $parameter );
-
-					if ( $title !== null ) {
-						$categories[$operator][] = $title->getDbKey();
-					}
+				}
+			} else {
+				$title = Title::newFromText( $parameter );
+				if ( $title ) {
+					$categories[$operator][] = $title->getDbKey();
 				}
 			}
 		}
 
-		if ( $categories ) {
-			$data = $this->getParameter( 'category' );
-
-			// Do a bunch of data integrity checks to avoid E_NOTICE.
-			if ( !is_array( $data ) ) {
-				$data = [];
-			}
-
-			if ( !array_key_exists( '=', $data ) || !is_array( $data['='] ) ) {
-				$data['='] = [];
-			}
-
-			foreach ( $categories as $_operator => $_categories ) {
-				if ( !array_key_exists( $_operator, $data['='] ) || !is_array( $data['='][$_operator] ) ) {
-					$data['='][$_operator] = [];
-				}
-
-				$data['='][$_operator][] = $_categories;
-			}
-
-			$this->setParameter( 'category', $data );
-			if ( $heading ) {
-				$this->setParameter( 'catheadings', array_unique( array_merge( (
-					is_array( $this->getParameter( 'catheadings' ) ) ?
-					$this->getParameter( 'catheadings' ) : []
-				), $categories ) ) );
-			}
-
-			if ( $notHeading ) {
-				$this->setParameter( 'catnotheadings', array_unique( array_merge( (
-					is_array( $this->getParameter( 'catnotheadings' ) ) ?
-					$this->getParameter( 'catnotheadings' ) : []
-				), $categories ) ) );
-			}
-
-			$this->setOpenReferencesConflict( true );
-
-			return true;
+		if ( $categories === [] ) {
+			return false;
 		}
 
-		return false;
+		$data = $this->getParameter( 'category' ) ?? [];
+		$data['='] ??= [];
+
+		foreach ( $categories as $operatorType => $categoryList ) {
+			$data['='][$operatorType] ??= [];
+			$data['='][$operatorType][] = $categoryList;
+		}
+
+		$this->setParameter( 'category', $data );
+
+		if ( $heading ) {
+			$this->setParameter( 'catheadings', array_unique(
+				array_merge( $this->getParameter( 'catheadings' ) ?? [], $categories )
+			) );
+		}
+
+		if ( $notHeading ) {
+			$this->setParameter( 'catnotheadings', array_unique(
+				array_merge( $this->getParameter( 'catnotheadings' ) ?? [], $categories )
+			) );
+		}
+
+		$this->setOpenReferencesConflict( true );
+		return true;
 	}
 
 	/**
 	 * Clean and test 'categoryregexp' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _categoryregexp( $option ) {
-		if ( !$this->isRegexValid( $option, true ) ) {
+	private function _categoryregexp( string $option ): bool {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
@@ -579,25 +457,15 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'categorymatch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _categorymatch( $option ) {
-		if ( strpos( $option, '|' ) !== false ) {
-			$newMatches = explode( '|', $option );
-			$operator = 'OR';
-		} else {
-			$newMatches = explode( '&', $option );
-			$operator = 'AND';
-		}
+	private function _categorymatch( string $option ): bool {
+		[ $newMatches, $operator ] = str_contains( $option, '|' )
+			? [ explode( '|', $option ), 'OR' ]
+			: [ explode( '<&>', $option ), 'AND' ];
 
-		$data = $this->getParameter( 'category' );
-		if ( isset( $data['LIKE'] ) && !is_array( $data['LIKE'][$operator] ) ) {
-			$data['LIKE'][$operator] = [];
-		}
-
-		$data['LIKE'][$operator][] = $newMatches;
+		$data = $this->getParameter( 'category' ) ?? [];
+		$data[IExpression::LIKE][$operator] ??= [];
+		$data[IExpression::LIKE][$operator][] = $newMatches;
 
 		$this->setParameter( 'category', $data );
 		$this->setOpenReferencesConflict( true );
@@ -607,39 +475,32 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'notcategory' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _notcategory( $option ) {
+	private function _notcategory( string $option ): bool {
 		$title = Title::newFromText( $option );
-
-		if ( $title !== null ) {
-			$data = $this->getParameter( 'notcategory' );
-			$data['='][] = $title->getDbKey();
-
-			$this->setParameter( 'notcategory', $data );
-			$this->setOpenReferencesConflict( true );
-
-			return true;
+		if ( $title === null ) {
+			return false;
 		}
 
-		return false;
+		$data = $this->getParameter( 'notcategory' ) ?? [];
+		$data['='][] = $title->getDbKey();
+
+		$this->setParameter( 'notcategory', $data );
+		$this->setOpenReferencesConflict( true );
+
+		return true;
 	}
 
 	/**
 	 * Clean and test 'notcategoryregexp' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _notcategoryregexp( $option ) {
-		if ( !$this->isRegexValid( $option, true ) ) {
+	private function _notcategoryregexp( string $option ): bool {
+		if ( !$this->isRegexValid( [ $option ], forDb: true ) ) {
 			return false;
 		}
 
 		$data = $this->getParameter( 'notcategory' );
-		$data['regexp'][] = $option;
+		$data['REGEXP'][] = $option;
 
 		$this->setParameter( 'notcategory', $data );
 		$this->setOpenReferencesConflict( true );
@@ -649,19 +510,13 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'notcategorymatch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _notcategorymatch( $option ) {
-		$data = $this->getParameter( 'notcategory' );
-
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
-		}
+	private function _notcategorymatch( string $option ): bool {
+		$data = $this->getParameter( 'notcategory' ) ?? [];
+		$data[IExpression::LIKE] ??= [];
 
 		$newMatches = explode( '|', $option );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'notcategory', $data );
 		$this->setOpenReferencesConflict( true );
@@ -671,93 +526,97 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'count' parameter.
-	 *
-	 * @param string|int $option
-	 * @return bool
 	 */
-	public function _count( $option ) {
+	private function _count( string|int $option ): bool {
 		if ( !is_numeric( $option ) || (int)$option <= 0 ) {
 			return false;
 		}
 
-		$max = Config::getSetting( 'allowUnlimitedResults' ) ? INF :
-			Config::getSetting( 'maxResultCount' );
+		$max = $this->config->get( 'allowUnlimitedResults' ) ? INF :
+			$this->config->get( 'maxResultCount' );
 
 		$this->setParameter( 'count', min( (int)$option, $max ) );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'namespace' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _namespace( $option ) {
+	private function _namespace( string $option ): bool {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-
-		$extraParams = explode( '|', $option );
-		foreach ( $extraParams as $parameter ) {
+		$allowedNamespaces = $this->config->get( 'allowedNamespaces' );
+		$data = $this->getParameter( 'namespace' ) ?? [];
+		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
-			$namespaceId = $contLang->getNsIndex( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
+			$lowerParam = strtolower( $parameter );
+			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
+				$parameter = '';
+			}
 
-			if ( $namespaceId === false || (
-				is_array( Config::getSetting( 'allowedNamespaces' ) ) &&
-				!in_array( $parameter, Config::getSetting( 'allowedNamespaces' ) )
-			) ) {
-				// Let the user know this namespace is not allowed or does not exist.
+			$namespaceId = $contLang->getNsIndex( $parameter );
+			if ( $namespaceId === false && is_numeric( $parameter ) &&
+				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+			) {
+				$namespaceId = (int)$parameter;
+			}
+
+			if (
+				$namespaceId === false || (
+				$allowedNamespaces &&
+					!in_array( $namespaceId, $allowedNamespaces, true )
+				)
+			) {
 				return false;
 			}
 
-			$data = $this->getParameter( 'namespace' );
 			$data[] = $namespaceId;
-			$data = array_unique( $data );
-
-			$this->setParameter( 'namespace', $data );
-			$this->setSelectionCriteriaFound( true );
 		}
+
+		$this->setParameter( 'namespace', array_unique( $data ) );
+		$this->setSelectionCriteriaFound( true );
 
 		return true;
 	}
 
 	/**
 	 * Clean and test 'notnamespace' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _notnamespace( $option ) {
+	private function _notnamespace( string $option ): bool {
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
-
-		$extraParams = explode( '|', $option );
-		foreach ( $extraParams as $parameter ) {
+		$data = $this->getParameter( 'notnamespace' ) ?? [];
+		foreach ( explode( '|', $option ) as $parameter ) {
 			$parameter = trim( $parameter );
+			$parameter = str_replace( ' ', '_', $parameter );
+			$lowerParam = strtolower( $parameter );
+			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
+				$parameter = '';
+			}
+
 			$namespaceId = $contLang->getNsIndex( $parameter );
+			if ( $namespaceId === false && is_numeric( $parameter ) &&
+				in_array( (int)$parameter, $contLang->getNamespaceIds(), true )
+			) {
+				$namespaceId = (int)$parameter;
+			}
 
 			if ( $namespaceId === false ) {
-				// Let the user know this namespace is not allowed or does not exist.
 				return false;
 			}
 
-			$data = $this->getParameter( 'notnamespace' );
 			$data[] = $namespaceId;
-			$data = array_unique( $data );
-
-			$this->setParameter( 'notnamespace', $data );
-			$this->setSelectionCriteriaFound( true );
 		}
+
+		$this->setParameter( 'notnamespace', array_unique( $data ) );
+		$this->setSelectionCriteriaFound( true );
 
 		return true;
 	}
 
 	/**
 	 * Clean and test 'openreferences' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _openreferences( $option ) {
+	private function _openreferences( string $option ): bool {
 		if ( $option !== 'missing' ) {
 			$option = $this->filterBoolean( $option );
 		}
@@ -775,15 +634,12 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'ordermethod' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _ordermethod( $option ) {
-		$methods = explode( ',', $option );
-
+	private function _ordermethod( string $option ): bool {
+		$methods = array_map( 'trim', explode( ',', $option ) );
+		$validMethods = $this->getData( 'ordermethod' )['values'] ?? [];
 		foreach ( $methods as $method ) {
-			if ( !in_array( $method, $this->getData( 'ordermethod' )['values'] ) ) {
+			if ( !in_array( $method, $validMethods, true ) ) {
 				return false;
 			}
 		}
@@ -798,84 +654,74 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'mode' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _mode( $option ) {
-		if ( in_array( $option, $this->getData( 'mode' )['values'] ) ) {
-			// 'none' mode is implemented as a specific submode of 'inline' with <br/> as inline text
-			if ( $option == 'none' ) {
-				$this->setParameter( 'mode', 'inline' );
-				$this->setParameter( 'inlinetext', '<br/>' );
-			} elseif ( $option == 'userformat' ) {
-				// userformat resets inline text to empty string
-				$this->setParameter( 'inlinetext', '' );
-				$this->setParameter( 'mode', $option );
-			} else {
-				$this->setParameter( 'mode', $option );
-			}
-
-			return true;
-		} else {
+	private function _mode( string $option ): bool {
+		if ( !in_array( $option, $this->getData( 'mode' )['values'] ?? [], true ) ) {
 			return false;
 		}
+
+		switch ( $option ) {
+			case 'none':
+				$this->setParameter( 'mode', 'inline' );
+				$this->setParameter( 'inlinetext', Html::element( 'br' ) );
+				break;
+			case 'userformat':
+				$this->setParameter( 'inlinetext', '' );
+				$this->setParameter( 'mode', $option );
+				break;
+			default:
+				$this->setParameter( 'mode', $option );
+		}
+
+		return true;
 	}
 
 	/**
 	 * Clean and test 'distinct' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _distinct( $option ) {
-		$boolean = $this->filterBoolean( $option );
-
-		if ( $option == 'strict' ) {
+	private function _distinct( string $option ): bool {
+		if ( $option === 'strict' ) {
 			$this->setParameter( 'distinctresultset', 'strict' );
-		} elseif ( $boolean !== null ) {
-			$this->setParameter( 'distinctresultset', $boolean );
-		} else {
-			return false;
+			return true;
 		}
 
-		return true;
+		$option = $this->filterBoolean( $option );
+		if ( $option !== null ) {
+			$this->setParameter( 'distinctresultset', $option );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
 	 * Clean and test 'ordercollation' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _ordercollation( $option ) {
-		if ( $option == 'bridge' ) {
+	private function _ordercollation( string $option ): bool {
+		if ( $option === 'bridge' ) {
 			$this->setParameter( 'ordersuitsymbols', true );
-		} elseif ( $option ) {
-			$this->setParameter( 'ordercollation', $option );
-		} else {
-			return false;
+			return true;
 		}
 
-		return true;
+		if ( $option !== '' ) {
+			$this->setParameter( 'ordercollation', $option );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
-	 * Short cut to _format();
-	 *
-	 * @return mixed
+	 * Shortcut to _format().
 	 */
-	public function _listseparators() {
-		return call_user_func_array( [ $this, '_format' ], func_get_args() );
+	private function _listseparators( string $option ): bool {
+		return $this->_format( $option );
 	}
 
 	/**
 	 * Clean and test 'format' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _format( $option ) {
+	private function _format( string $option ): bool {
 		// Parsing of wikitext will happen at the end of the output phase.
 		// Replace '\n' in the input by linefeed because wiki syntax
 		// depends on linefeeds.
@@ -893,66 +739,42 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'title' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _title( $option ) {
+	private function _title( string $option ): bool {
 		$title = Title::newFromText( $option );
-
-		if ( $title ) {
-			$data = $this->getParameter( 'title' );
-			$data['='][] = str_replace( ' ', '_', $title->getText() );
-			$this->setParameter( 'title', $data );
-
-			$data = $this->getParameter( 'namespace' );
-			$data[] = $title->getNamespace();
-			$data = array_unique( $data );
-
-			$this->setParameter( 'namespace', $data );
-			$this->setParameter( 'mode', 'userformat' );
-
-			$this->setSelectionCriteriaFound( true );
-			$this->setOpenReferencesConflict( true );
-
-			return true;
+		if ( !$title ) {
+			return false;
 		}
 
-		return false;
-	}
+		$titleText = $title->getDbKey();
+		$titleData = $this->getParameter( 'title' ) ?? [];
+		$titleData['='][] = $titleText;
+		$this->setParameter( 'title', $titleData );
 
-	/**
-	 * Clean and test 'titlemaxlength' parameter.
-	 *
-	 * @param string|int $option
-	 * @return bool
-	 */
-	public function _titlemaxlength( $option ) {
-		$this->setParameter( 'titlemaxlen', (int)$option );
+		$namespaceData = $this->getParameter( 'namespace' ) ?? [];
+		$namespaceData[] = $title->getNamespace();
+		$this->setParameter( 'namespace', array_unique( $namespaceData ) );
+
+		$this->setParameter( 'mode', 'userformat' );
+		$this->setSelectionCriteriaFound( true );
+		$this->setOpenReferencesConflict( true );
 
 		return true;
 	}
 
 	/**
 	 * Clean and test 'titleregexp' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _titleregexp( $option ) {
-		$data = $this->getParameter( 'title' );
+	private function _titleregexp( string $option ): bool {
+		$data = $this->getParameter( 'title' ) ?? [];
+		$data['REGEXP'] ??= [];
 
-		if ( !is_array( $data['regexp'] ?? false ) ) {
-			$data['regexp'] = [];
-		}
-
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		$newMatches = explode( '|', $option );
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
 
-		$data['regexp'] = array_merge( $data['regexp'], $newMatches );
+		$data['REGEXP'] = array_merge( $data['REGEXP'], $newMatches );
 
 		$this->setParameter( 'title', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -962,19 +784,13 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'titlematch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _titlematch( $option ) {
-		$data = $this->getParameter( 'title' );
+	private function _titlematch( string $option ): bool {
+		$data = $this->getParameter( 'title' ) ?? [];
+		$data[IExpression::LIKE] ??= [];
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
-		}
-
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$newMatches = explode( '|', $option );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'title', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -984,23 +800,17 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'nottitleregexp' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _nottitleregexp( $option ) {
-		$data = $this->getParameter( 'nottitle' );
+	private function _nottitleregexp( string $option ): bool {
+		$data = $this->getParameter( 'nottitle' ) ?? [];
+		$data['REGEXP'] ??= [];
 
-		if ( !is_array( $data['regexp'] ?? null ) ) {
-			$data['regexp'] = [];
-		}
-
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['regexp'] = array_merge( $data['regexp'], $newMatches );
-
-		if ( !$this->isRegexValid( $newMatches, true ) ) {
+		$newMatches = explode( '|', $option );
+		if ( !$this->isRegexValid( $newMatches, forDb: true ) ) {
 			return false;
 		}
+
+		$data['REGEXP'] = array_merge( $data['REGEXP'], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -1010,19 +820,13 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'nottitlematch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _nottitlematch( $option ) {
-		$data = $this->getParameter( 'nottitle' );
+	private function _nottitlematch( string $option ): bool {
+		$data = $this->getParameter( 'nottitle' ) ?? [];
+		$data[IExpression::LIKE] ??= [];
 
-		if ( !is_array( $data['like'] ?? false ) ) {
-			$data['like'] = [];
-		}
-
-		$newMatches = explode( '|', str_replace( ' ', '\_', $option ) );
-		$data['like'] = array_merge( $data['like'], $newMatches );
+		$newMatches = explode( '|', $option );
+		$data[IExpression::LIKE] = array_merge( $data[IExpression::LIKE], $newMatches );
 
 		$this->setParameter( 'nottitle', $data );
 		$this->setSelectionCriteriaFound( true );
@@ -1032,39 +836,29 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'scroll' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _scroll( $option ) {
+	private function _scroll( string $option ): bool {
 		$option = $this->filterBoolean( $option );
 		$this->setParameter( 'scroll', $option );
 
-		// If scrolling is active we adjust the values for certain other parameters based on URL arguments
+		// If scrolling is active we adjust the values for certain other parameters based on URL arguments.
 		if ( $option === true ) {
 			$request = RequestContext::getMain()->getRequest();
 
 			// The 'findTitle' option has argument over the 'fromTitle' argument.
-			$titlegt = $request->getVal( 'DPL_findTitle', '' );
-
-			if ( $titlegt ) {
-				$titlegt = '=_' . ucfirst( $titlegt );
-			} else {
-				$titlegt = $request->getVal( 'DPL_fromTitle', '' );
-				$titlegt = ucfirst( $titlegt );
-			}
+			$titlegt = $request->getText( 'DPL_findTitle' );
+			$titlegt = $titlegt !== '' ? '=_' . ucfirst( $titlegt ) :
+				ucfirst( $request->getText( 'DPL_fromTitle' ) );
 
 			$this->setParameter( 'titlegt', str_replace( ' ', '_', $titlegt ) );
 
 			// Lets get the 'toTitle' argument.
-			$titlelt = $request->getVal( 'DPL_toTitle', '' );
-			$titlelt = ucfirst( $titlelt );
-
+			$titlelt = ucfirst( $request->getText( 'DPL_toTitle' ) );
 			$this->setParameter( 'titlelt', str_replace( ' ', '_', $titlelt ) );
 
 			// Make sure the 'scrollDir' arugment is captured. This is mainly used for the
 			// Variables extension and in the header/footer replacements.
-			$this->setParameter( 'scrolldir', $request->getVal( 'DPL_scrollDir', '' ) );
+			$this->setParameter( 'scrolldir', $request->getText( 'DPL_scrollDir' ) );
 
 			// Also set count limit from URL if not otherwise set.
 			$this->_count( $request->getInt( 'DPL_count' ) );
@@ -1077,215 +871,159 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'replaceintitle' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _replaceintitle( $option ) {
+	private function _replaceintitle( string $option ): bool {
 		// We offer a possibility to replace some part of the title
 		$replaceInTitle = explode( ',', $option, 2 );
-
 		if ( isset( $replaceInTitle[1] ) ) {
 			$replaceInTitle[1] = $this->stripHtmlTags( $replaceInTitle[1] );
 		}
 
 		$this->setParameter( 'replaceintitle', $replaceInTitle );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'debug' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _debug( $option ) {
-		if ( in_array( $option, $this->getData( 'debug' )['values'] ) ) {
-			Hooks::setDebugLevel( $option );
-		} else {
+	private function _debug( string $option ): bool {
+		if ( !is_numeric( $option ) ) {
 			return false;
 		}
 
-		return true;
+		$option = (int)$option;
+		if ( in_array( $option, $this->getData( 'debug' )['values'] ?? [], true ) ) {
+			Utils::setDebugLevel( $option );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
-	 * Short cut to _include();
-	 *
-	 * @return mixed
+	 * Shortcut to _include().
 	 */
-	public function _includepage() {
-		return call_user_func_array( [ $this, '_include' ], func_get_args() );
+	private function _includepage( string $option ): bool {
+		return $this->_include( $option );
 	}
 
 	/**
 	 * Clean and test 'include' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _include( $option ) {
-		if ( $option ) {
-			$this->setParameter( 'incpage', true );
-			$this->setParameter( 'seclabels', explode( ',', $option ) );
-		} else {
+	private function _include( string $option ): bool {
+		if ( $option === '' ) {
 			return false;
 		}
+
+		$this->setParameter( 'incpage', true );
+		$this->setParameter( 'seclabels', explode( ',', $option ) );
 
 		return true;
 	}
 
 	/**
 	 * Clean and test 'includematch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _includematch( $option ) {
+	private function _includematch( string $option ): bool {
 		$regexes = explode( ',', $option );
-
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
 		$this->setParameter( 'seclabelsmatch', $regexes );
-
-		return true;
-	}
-
-	/**
-	 * Clean and test 'includemaxlength' parameter.
-	 *
-	 * @param string|int $option
-	 * @return bool
-	 */
-	public function _includemaxlength( $option ) {
-		$this->setParameter( 'includemaxlen', (int)$option );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'includematchparsed' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _includematchparsed( $option ) {
+	private function _includematchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
 		$this->setParameter( 'incparsed', true );
 		$this->setParameter( 'seclabelsmatch', $regexes );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'includenotmatch' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _includenotmatch( $option ) {
+	private function _includenotmatch( string $option ): bool {
 		$regexes = explode( ',', $option );
-
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
 		$this->setParameter( 'seclabelsnotmatch', $regexes );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'includenotmatchparsed' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _includenotmatchparsed( $option ) {
+	private function _includenotmatchparsed( string $option ): bool {
 		$regexes = explode( ',', $option );
-
-		if ( !$this->isRegexValid( $regexes ) ) {
+		if ( !$this->isRegexValid( $regexes, forDb: false ) ) {
 			return false;
 		}
 
 		$this->setParameter( 'incparsed', true );
 		$this->setParameter( 'seclabelsnotmatch', $regexes );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'secseparators' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _secseparators( $option ) {
+	private function _secseparators( string $option ): bool {
 		// We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter( 'secseparators', explode( ',', Parse::replaceNewLines( $option ) ) );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'multisecseparators' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _multisecseparators( $option ) {
+	private function _multisecseparators( string $option ): bool {
 		// We replace '\n' by newline to support wiki syntax within the section separators
 		$this->setParameter( 'multisecseparators', explode( ',', Parse::replaceNewLines( $option ) ) );
-
 		return true;
 	}
 
 	/**
 	 * Clean and test 'table' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _table( $option ) {
+	private function _table( string $option ): bool {
 		$this->setParameter( 'defaulttemplatesuffix', '' );
 		$this->setParameter( 'mode', 'userformat' );
 		$this->setParameter( 'inlinetext', '' );
 
 		$withHLink = "[[%PAGE%|%TITLE%]]\n|";
 		$listSeparators = [];
-
 		foreach ( explode( ',', $option ) as $tabnr => $tab ) {
-			if ( $tabnr == 0 ) {
-				if ( $tab == '' ) {
-					$tab = 'class=wikitable';
-				}
-
-				$listSeparators[0] = '{|' . $tab;
-			} else {
-				if ( $tabnr == 1 && $tab == '-' ) {
+			if ( $tabnr === 0 ) {
+				$tab = $tab !== '' ? $tab : 'class=wikitable';
+				$listSeparators[0] = "{|$tab";
+			} elseif ( $tabnr === 1 ) {
+				if ( $tab === '-' ) {
 					$withHLink = '';
 					continue;
 				}
 
-				if ( $tabnr == 1 && $tab == '' ) {
-					$tab = wfMessage( 'article' )->text();
-				}
-
-				$listSeparators[0] .= "\n!{$tab}";
+				$tab = $tab !== '' ? $tab : wfMessage( 'article' )->text();
+				$listSeparators[0] .= "\n!$tab";
+			} else {
+				$listSeparators[0] .= "\n!$tab";
 			}
 		}
 
 		$listSeparators[1] = '';
 
-		// the user may have specified the third parameter of 'format' to add meta attributes of articles to the table
+		// The user may have specified the third parameter of 'format' to
+		// add meta attributes of articles to the table.
 		$listSeparators[2] = '';
 
 		$listSeparators[3] = "\n|}";
@@ -1293,31 +1031,29 @@ class Parameters extends ParametersData {
 		// Overwrite 'listseparators'.
 		$this->setParameter( 'listseparators', $listSeparators );
 
-		$sectionLabels = (array)$this->getParameter( 'seclabels' );
-		$sectionSeparators = $this->getParameter( 'secseparators' );
-		$multiSectionSeparators = $this->getParameter( 'multisecseparators' );
+		$sectionLabels = $this->getParameter( 'seclabels' ) ?? [];
+		$sectionSeparators = $this->getParameter( 'secseparators' ) ?? [];
+		$multiSectionSeparators = $this->getParameter( 'multisecseparators' ) ?? [];
 
-		for ( $i = 0; $i < count( $sectionLabels ); $i++ ) {
-			if ( $i == 0 ) {
-				$sectionSeparators[0] = "\n|-\n|" . $withHLink;
+		foreach ( array_keys( $sectionLabels ) as $i ) {
+			if ( $i === 0 ) {
+				$sectionSeparators[0] = "\n|-\n|$withHLink";
 				$sectionSeparators[1] = '';
-				$multiSectionSeparators[0] = "\n|-\n|" . $withHLink;
-			} else {
-				$sectionSeparators[2 * $i] = "\n|";
-				$sectionSeparators[2 * $i + 1] = '';
-
-				if ( is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] == '#' ) {
-					$multiSectionSeparators[$i] = "\n----\n";
-				} else {
-					$multiSectionSeparators[$i] = "<br/>\n";
-				}
+				$multiSectionSeparators[0] = "\n|-\n|$withHLink";
+				continue;
 			}
+
+			$sectionSeparators[2 * $i] = "\n|";
+			$sectionSeparators[2 * $i + 1] = '';
+
+			$multiSectionSeparators[$i] = (
+				is_array( $sectionLabels[$i] ) && $sectionLabels[$i][0] === '#'
+			) ? "\n----\n" : "<br/>\n";
 		}
 
 		// Overwrite 'secseparators' and 'multisecseparators'.
 		$this->setParameter( 'secseparators', $sectionSeparators );
 		$this->setParameter( 'multisecseparators', $multiSectionSeparators );
-
 		$this->setParameter( 'table', Parse::replaceNewLines( $option ) );
 
 		return true;
@@ -1325,149 +1061,116 @@ class Parameters extends ParametersData {
 
 	/**
 	 * Clean and test 'tablerow' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _tablerow( $option ) {
+	private function _tablerow( string $option ): bool {
 		$option = Parse::replaceNewLines( trim( $option ) );
-
-		if ( !$option ) {
-			$this->setParameter( 'tablerow', [] );
-		} else {
-			$this->setParameter( 'tablerow', explode( ',', $option ) );
-		}
-
+		$this->setParameter( 'tablerow', $option === '' ? [] : explode( ',', $option ) );
 		return true;
 	}
 
 	/**
 	 * Clean and test 'allowcachedresults' parameter.
 	 * This function is necessary for the custom 'yes+warn' option that sets 'warncachedresults'.
-	 *
-	 * @param string $option
-	 * @return bool|int|string
 	 */
-	public function _allowcachedresults( $option ) {
+	private function _allowcachedresults( string $option ): bool {
 		// If execAndExit was previously set (i.e. if it is not empty) we will ignore all
 		// cache settings which are placed AFTER the execandexit statement thus we make sure
 		// that the cache will only become invalid if the query is really executed.
-		if ( $this->getParameter( 'execandexit' ) === null ) {
-			if ( $option === 'yes+warn' ) {
-				$this->setParameter( 'allowcachedresults', true );
-				$this->setParameter( 'warncachedresults', true );
-
-				return true;
-			}
-
-			$option = $this->filterBoolean( $option );
-			if ( $option !== null ) {
-				$this->setParameter( 'allowcachedresults', $this->filterBoolean( $option ) );
-			} else {
-				return false;
-			}
-		} else {
+		if ( $this->getParameter( 'execandexit' ) !== null ) {
 			$this->setParameter( 'allowcachedresults', false );
+			return true;
 		}
 
-		return true;
+		if ( $option === 'yes+warn' ) {
+			$this->setParameter( 'allowcachedresults', true );
+			$this->setParameter( 'warncachedresults', true );
+			return true;
+		}
+
+		$option = $this->filterBoolean( $option );
+		if ( $option !== null ) {
+			$this->setParameter( 'allowcachedresults', $option );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
 	 * Clean and test 'fixcategory' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _fixcategory( $option ) {
-		Hooks::fixCategory( $option );
-
+	private function _fixcategory( string $option ): bool {
+		Utils::fixCategory( $option );
 		return true;
 	}
 
 	/**
 	 * Clean and test 'reset' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _reset( $option ) {
-		$arguments = explode( ',', $option );
+	private function _reset( string $option ): bool {
+		$arguments = array_map( 'trim', explode( ',', $option ) );
+		$values = $this->getData( 'reset' )['values'] ?? [];
 		$reset = [];
 
 		foreach ( $arguments as $argument ) {
-			$argument = trim( $argument );
-
-			if ( !$argument ) {
+			if ( $argument === '' ) {
 				continue;
 			}
 
-			$values = $this->getData( 'reset' )['values'];
-			if ( !in_array( $argument, $values ) ) {
+			if ( !in_array( $argument, $values, true ) ) {
 				return false;
-			} else {
-				if ( $argument == 'all' || $argument == 'none' ) {
-					$boolean = ( $argument == 'all' );
-					$values = array_diff( $values, [ 'all', 'none' ] );
-					$reset = array_flip( $values );
-
-					foreach ( $reset as $value => $_ ) {
-						$reset[$value] = $boolean;
-					}
-				} else {
-					$reset[$argument] = true;
-				}
 			}
+
+			if ( $argument === 'all' || $argument === 'none' ) {
+				$boolean = $argument === 'all';
+				$subValues = array_diff( $values, [ 'all', 'none' ] );
+				$reset = array_fill_keys( $subValues, $boolean );
+				// No need to process further after 'all' or 'none'
+				break;
+			}
+
+			$reset[$argument] = true;
 		}
 
-		$data = $this->getParameter( 'reset' );
-		$data = array_merge( $data, $reset );
-
-		$this->setParameter( 'reset', $data );
+		$data = $this->getParameter( 'reset' ) ?? [];
+		$this->setParameter( 'reset', array_merge( $data, $reset ) );
 
 		return true;
 	}
 
 	/**
 	 * Clean and test 'eliminate' parameter.
-	 *
-	 * @param string $option
-	 * @return bool
 	 */
-	public function _eliminate( $option ) {
-		$arguments = explode( ',', $option );
+	private function _eliminate( string $option ): bool {
+		$arguments = array_map( 'trim', explode( ',', $option ) );
+		$values = $this->getData( 'eliminate' )['values'] ?? [];
 		$eliminate = [];
 
 		foreach ( $arguments as $argument ) {
-			$argument = trim( $argument );
-
-			if ( !$argument ) {
+			if ( $argument === '' ) {
 				continue;
 			}
 
-			$values = $this->getData( 'eliminate' )['values'];
-
-			if ( !in_array( $argument, $values ) ) {
+			if ( !in_array( $argument, $values, true ) ) {
 				return false;
-			} else {
-				if ( $argument == 'all' || $argument == 'none' ) {
-					$boolean = ( $argument == 'all' );
-					$values = array_diff( $values, [ 'all', 'none' ] );
-					$eliminate = array_flip( $values );
-
-					foreach ( $eliminate as $value => $_ ) {
-						$eliminate[$value] = $boolean;
-					}
-				} else {
-					$eliminate[$argument] = true;
-				}
 			}
+
+			if ( $argument === 'all' || $argument === 'none' ) {
+				$boolean = $argument === 'all';
+				$subValues = array_diff( $values, [ 'all', 'none' ] );
+				$eliminate = array_fill_keys( $subValues, $boolean );
+				// No need to process further
+				break;
+			}
+
+			$eliminate[$argument] = true;
 		}
 
-		$data = $this->getParameter( 'eliminate' );
-		$data = array_merge( $data, $eliminate );
-		$this->setParameter( 'eliminate', $data );
+		$data = $this->getParameter( 'eliminate' ) ?? [];
+		$this->setParameter( 'eliminate', array_merge( $data, $eliminate ) );
 
 		return true;
 	}
+
+	// @phpcs:enable
 }

@@ -1,73 +1,71 @@
 {
-	"name": "DynamicPageList3",
-	"version": "3.6.4",
+	"name": "DynamicPageList4",
+	"version": "4.0.0-beta.1",
 	"author": [
-		"'''Universal Omega'''",
-		"Alexia E. Smith",
-		"Gero Scholz"
+		"Universal Omega",
+		"..."
 	],
-	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList3",
+	"url": "https://www.mediawiki.org/wiki/Extension:DynamicPageList4",
 	"descriptionmsg": "dpl-desc",
 	"license-name": "GPL-3.0-or-later",
 	"type": "parserhook",
 	"requires": {
 		"MediaWiki": ">= 1.43.0"
 	},
-	"GroupPermissions": {
-		"sysop": {
-			"dpl_param_update_rules": true,
-			"dpl_param_delete_rules": true
-		}
-	},
-	"AvailableRights": [
-		"dpl_param_update_rules",
-		"dpl_param_delete_rules"
-	],
 	"MessagesDirs": {
-		"DynamicPageList3": [
+		"DynamicPageList4": [
 			"i18n"
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"DynamicPageList3Magic": "DynamicPageList3Magic.php"
+		"DynamicPageList4Magic": "DynamicPageList4Magic.php"
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\": "includes/",
-		"MediaWiki\\Extension\\DynamicPageList3\\Maintenance\\": "maintenance/"
+		"MediaWiki\\Extension\\DynamicPageList4\\": "includes/",
+		"MediaWiki\\Extension\\DynamicPageList4\\Maintenance\\": "maintenance/"
 	},
 	"TestAutoloadNamespaces": {
-		"MediaWiki\\Extension\\DynamicPageList3\\Tests\\": "tests/phpunit/"
+		"MediaWiki\\Extension\\DynamicPageList4\\Tests\\": "tests/phpunit/"
 	},
 	"Hooks": {
-		"ParserFirstCallInit": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onParserFirstCallInit"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"MediaWiki\\Extension\\DynamicPageList3\\Hooks::onLoadExtensionSchemaUpdates"
-		]
+		"LoadExtensionSchemaUpdates": {
+			"handler": "Installer"
+		},
+		"ParserFirstCallInit": {
+			"handler": "Main"
+		}
+	},
+	"HookHandlers": {
+		"Installer": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Installer"
+		},
+		"Main": {
+			"class": "MediaWiki\\Extension\\DynamicPageList4\\HookHandlers\\Main"
+		}
 	},
 	"config": {
 		"DplSettings": {
 			"value": {
-				"allowedNamespaces": null,
+				"allowedNamespaces": [],
 				"allowUnlimitedCategories": false,
 				"allowUnlimitedResults": false,
+				"alwaysCacheResults": false,
 				"categoryStyleListCutoff": 6,
 				"functionalRichness": 3,
 				"maxCategoryCount": 4,
-				"minCategoryCount": 0,
-				"maxResultCount": 500,
-				"recursiveTagParse": false,
-				"recursivePreprocess": false,
-				"runFromProtectedPagesOnly": false,
-				"handleSectionTag": false,
-				"alwaysCacheResults": false,
 				"maxQueryTime": 10000,
-				"queryCacheTime": 0
+				"maxResultCount": 500,
+				"minCategoryCount": 0,
+				"overrideParameterDefaults": [],
+				"queryCacheTime": 0,
+				"recursivePreprocess": true,
+				"recursiveTagParse": false,
+				"runFromProtectedPagesOnly": false
 			}
 		}
 	},
 	"TrackingCategories": [
+		"dpl-tracking-category",
 		"dpl-tag-tracking-category",
 		"dpl-intersection-tracking-category",
 		"dpl-parserfunc-tracking-category",

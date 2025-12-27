@@ -1,70 +1,40 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+declare( strict_types = 1 );
 
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
-use MediaWiki\Extension\DynamicPageList3\Parameters;
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
+
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Parameters;
+use function sprintf;
+use function substr;
 
 class TieredHeading extends Heading {
-	/**
-	 * List(Section) Start
-	 *
-	 * @var string
-	 */
-	public $listStart = '<div%s>';
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '</div>';
+	private readonly string $tierLevel;
 
-	/**
-	 * Item Start
-	 *
-	 * @var string
-	 */
-	public $itemStart = '<h%2$s%1$s>';
+	protected string $listStart = '<div%s>';
+	protected string $listEnd = '</div>';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '</h%2$s>';
+	protected string $itemStart = '<h%2$s%1$s>';
+	protected string $itemEnd = '</h%2$s>';
 
-	/**
-	 * Tier Level
-	 *
-	 * @var string
-	 */
-	private $tierLevel = 'eader';
-
-	/**
-	 * @param Parameters $parameters
-	 */
 	public function __construct( Parameters $parameters ) {
 		parent::__construct( $parameters );
-
 		$this->tierLevel = substr( $parameters->getParameter( 'headingmode' ), 1 );
 	}
 
 	/**
 	 * Format a heading group.
-	 *
-	 * @param int $headingStart
-	 * @param int $headingCount
-	 * @param string $headingLink
-	 * @param array $articles
-	 * @param Lister $lister
-	 * @return string
 	 */
-	public function formatItem( $headingStart, $headingCount, $headingLink, $articles, Lister $lister ) {
-		$item = '';
-
-		$item .= $this->getItemStart() . $headingLink;
-
+	protected function formatItem(
+		int $headingStart,
+		int $headingCount,
+		string $headingLink,
+		array $articles,
+		Lister $lister
+	): string {
+		$item = $this->getItemStart() . $headingLink;
 		if ( $this->showHeadingCount ) {
 			$item .= $this->articleCountMessage( $headingCount );
 		}
@@ -76,29 +46,16 @@ class TieredHeading extends Heading {
 	}
 
 	/**
-	 * Return $this->listStart with attributes replaced.
-	 *
-	 * @return string
-	 */
-	public function getListStart() {
-		return sprintf( $this->listStart, $this->listAttributes );
-	}
-
-	/**
 	 * Return $this->itemStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemStart() {
+	protected function getItemStart(): string {
 		return sprintf( $this->itemStart, $this->itemAttributes, $this->tierLevel );
 	}
 
 	/**
 	 * Return $this->itemEnd with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemEnd() {
+	protected function getItemEnd(): string {
 		return sprintf( $this->itemEnd, $this->itemAttributes, $this->tierLevel );
 	}
 }

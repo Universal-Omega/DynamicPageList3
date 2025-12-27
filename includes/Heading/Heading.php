@@ -1,359 +1,278 @@
 <?php
 
-namespace MediaWiki\Extension\DynamicPageList3\Heading;
+declare( strict_types = 1 );
 
-use MediaWiki\Extension\DynamicPageList3\Article;
-use MediaWiki\Extension\DynamicPageList3\Lister\Lister;
-use MediaWiki\Extension\DynamicPageList3\Parameters;
+namespace MediaWiki\Extension\DynamicPageList4\Heading;
+
+use MediaWiki\Extension\DynamicPageList4\Article;
+use MediaWiki\Extension\DynamicPageList4\Lister\Lister;
+use MediaWiki\Extension\DynamicPageList4\Parameters;
+use MediaWiki\Html\Html;
 use MediaWiki\Parser\Sanitizer;
+use function ceil;
+use function count;
+use function max;
+use function min;
+use function range;
+use function sprintf;
+use function strtolower;
+use function wfMessage;
 
 class Heading {
-	/**
-	 * Listing style for this class.
-	 *
-	 * @var int|null
-	 */
-	public $style = null;
 
 	/**
 	 * List(Section) Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $listStart = '';
+	protected string $listStart = '';
 
-	/**
-	 * List(Section) End
-	 *
-	 * @var string
-	 */
-	public $listEnd = '';
+	/** List(Section) End */
+	protected string $listEnd = '';
 
 	/**
 	 * Item Start
 	 * Use %s for attribute placement. Example: <div%s>
-	 *
-	 * @var string
 	 */
-	public $itemStart = '';
+	protected string $itemStart = '';
+	protected string $itemEnd = '';
 
-	/**
-	 * Item End
-	 *
-	 * @var string
-	 */
-	public $itemEnd = '';
+	/** Extra list HTML attributes. */
+	protected string $listAttributes = '';
 
-	/**
-	 * Extra list HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $listAttributes = '';
+	/** Extra item HTML attributes. */
+	protected string $itemAttributes = '';
 
-	/**
-	 * Extra item HTML attributes.
-	 *
-	 * @var string
-	 */
-	public $itemAttributes = '';
+	/** If the article count per heading should be shown. */
+	protected readonly bool $showHeadingCount;
 
-	/**
-	 * If the article count per heading should be shown.
-	 *
-	 * @var bool
-	 */
-	protected $showHeadingCount = false;
-
-	/**
-	 * Parameters
-	 *
-	 * @var Parameters
-	 */
-	protected $parameters;
-
-	/**
-	 * @param Parameters $parameters
-	 */
-	public function __construct( Parameters $parameters ) {
-		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) );
-		$this->setItemAttributes( $parameters->getParameter( 'hitemattr' ) );
-		$this->setShowHeadingCount( $parameters->getParameter( 'headingcount' ) );
-		$this->parameters = $parameters;
+	protected function __construct(
+		private readonly Parameters $parameters
+	) {
+		$this->setListAttributes( $parameters->getParameter( 'hlistattr' ) ?? '' );
+		$this->setItemAttributes( $parameters->getParameter( 'hitemattr' ) ?? '' );
+		$this->showHeadingCount = $parameters->getParameter( 'headingcount' ) ?? false;
 	}
 
 	/**
-	 * Get a new List subclass based on user selection.
-	 *
-	 * @param string $style
-	 * @param Parameters $parameters
-	 * @return mixed
+	 * Get a new Heading subclass based on user selection.
 	 */
-	public static function newFromStyle( $style, Parameters $parameters ) {
+	public static function newFromStyle( string $style, Parameters $parameters ): ?self {
 		$style = strtolower( $style );
+		$class = match ( $style ) {
+			'definition' => DefinitionHeading::class,
+			'ordered' => OrderedHeading::class,
+			'unordered' => UnorderedHeading::class,
+			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header' => TieredHeading::class,
+			default => null,
+		};
 
-		switch ( $style ) {
-			case 'definition':
-				$class = DefinitionHeading::class;
-				break;
-			case 'h1':
-			case 'h2':
-			case 'h3':
-			case 'h4':
-			case 'h5':
-			case 'h6':
-			case 'header':
-				$class = TieredHeading::class;
-				break;
-			case 'ordered':
-				$class = OrderedHeading::class;
-				break;
-			case 'unordered':
-				$class = UnorderedHeading::class;
-				break;
-			default:
-				return null;
-		}
-
-		return new $class( $parameters );
+		return $class ? new $class( $parameters ) : null;
 	}
 
-	/**
-	 * Get the Parameters object this object was constructed with.
-	 *
-	 * @return Parameters
-	 */
-	public function getParameters() {
-		return $this->parameters;
+	private function setListAttributes( string $attributes ): void {
+		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes, 'ul' );
 	}
 
-	/**
-	 * Set extra list attributes.
-	 *
-	 * @param ?string $attributes
-	 */
-	public function setListAttributes( $attributes ) {
-		$this->listAttributes = Sanitizer::fixTagAttributes( $attributes ?: '', 'ul' );
-	}
-
-	/**
-	 * Set extra item attributes.
-	 *
-	 * @param ?string $attributes
-	 */
-	public function setItemAttributes( $attributes ) {
-		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes ?: '', 'li' );
-	}
-
-	/**
-	 * Set if the article count per heading should be shown.
-	 *
-	 * @param bool $show
-	 */
-	public function setShowHeadingCount( $show = false ) {
-		$this->showHeadingCount = (bool)$show;
-	}
-
-	/**
-	 * Return the list style.
-	 *
-	 * @return int
-	 */
-	public function getStyle() {
-		return $this->style;
+	private function setItemAttributes( string $attributes ): void {
+		$this->itemAttributes = Sanitizer::fixTagAttributes( $attributes, 'li' );
 	}
 
 	/**
 	 * Format a list of articles into all lists with headings as needed.
-	 *
-	 * @param array $articles
-	 * @param Lister $lister
-	 * @return string
 	 */
-	public function format( $articles, Lister $lister ) {
-		$columns = $this->getParameters()->getParameter( 'columns' );
-		$rows = $this->getParameters()->getParameter( 'rows' );
-		$rowSize = $this->getParameters()->getParameter( 'rowsize' );
-		$rowColFormat = $this->getParameters()->getParameter( 'rowcolformat' );
+	public function format( array $articles, Lister $lister ): string {
+		$columns = $this->parameters->getParameter( 'columns' );
+		$rows = $this->parameters->getParameter( 'rows' );
+		$rowSize = $this->parameters->getParameter( 'rowsize' );
+		$rowColFormat = $this->parameters->getParameter( 'rowcolformat' ) ?? '';
 
 		$headings = Article::getHeadings();
+		if ( $headings ) {
+			if ( $columns !== 1 || $rows !== 1 ) {
+				return $this->formatHeadingsMultiColumn(
+					$articles, $lister, $columns, $rows,
+					$headings, $rowColFormat
+				);
+			}
+
+			return $this->formatHeadingsSingleColumn( $articles, $lister, $headings );
+		}
+
+		if ( $columns !== 1 || $rows !== 1 ) {
+			return $this->formatMultiColumnWithoutHeadings( $articles, $lister, $columns, $rows, $rowColFormat );
+		}
+
+		if ( $rowSize > 0 ) {
+			return $this->formatByRowSize( $articles, $lister, $rowSize, $rowColFormat );
+		}
+
+		return $lister->formatList( $articles, 0, count( $articles ) );
+	}
+
+	private function formatHeadingsMultiColumn(
+		array $articles,
+		Lister $lister,
+		int $columns,
+		int $rows,
+		array $headings,
+		string $rowColFormat
+	): string {
+		$hspace = 2;
+		$count = count( $articles ) + $hspace * count( $headings );
+		$iGroup = $columns !== 1 ? $columns : $rows;
+		$nsize = max( (int)ceil( $count / $iGroup ), $hspace + 1 );
+
+		$output = "{|$rowColFormat\n|\n";
+		$output .= $this->getListStart();
+
+		$nstart = 0;
+		$greml = $nsize;
+		$offset = 0;
+
+		foreach ( $headings as $headingCount ) {
+			$headingStart = $nstart - $offset;
+			$headingLink = $articles[$headingStart]->mParentHLink ?? '';
+			$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
+
+			if ( $this->showHeadingCount ) {
+				$output .= $this->articleCountMessage( $headingCount );
+			}
+
+			$offset += $hspace;
+			$nstart += $hspace;
+			$portion = $headingCount;
+			$greml -= $hspace;
+
+			$output .= $this->renderArticlesAcrossColumns(
+				$articles, $lister, $columns, $count, $nstart,
+				$offset, $portion, $nsize, $greml
+			);
+
+			$output .= $this->getItemEnd();
+		}
+
+		$output .= $this->getItemEnd();
+		$output .= "\n|}\n";
+
+		return $output;
+	}
+
+	private function renderArticlesAcrossColumns(
+		array $articles,
+		Lister $lister,
+		int $columns,
+		int $count,
+		int &$nstart,
+		int $offset,
+		int $portion,
+		int &$nsize,
+		int $greml
+	): string {
 		$output = '';
 
-		if ( $headings ) {
-			if ( $columns != 1 || $rows != 1 ) {
-				$hspace = 2;
+		while ( $portion > 0 ) {
+			$greml -= $portion;
 
-				// repeat outer tags for each of the specified columns / rows in the output
-				// we assume that a heading roughly takes the space of two articles
-				$count = count( $articles ) + $hspace * count( $headings );
-
-				if ( $columns != 1 ) {
-					$iGroup = $columns;
-				} else {
-					$iGroup = $rows;
-				}
-
-				$nsize = floor( $count / $iGroup );
-				$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
-
-				if ( $rest > 0 ) {
-					$nsize += 1;
-				}
-
-				$output .= "{|" . $rowColFormat . "\n|\n";
-
-				if ( $nsize < $hspace + 1 ) {
-					$nsize = $hspace + 1;
-				}
-
-				$output .= $this->getListStart();
-				$nstart = 0;
-				$greml = $nsize;
-				$offset = 0;
-				foreach ( $headings as $headingCount ) {
-					$headingStart = $nstart - $offset;
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->getItemStart() . $headingLink . $this->getItemEnd();
-
-					if ( $this->showHeadingCount ) {
-						$output .= $this->articleCountMessage( $headingCount );
-					}
-
-					$offset += $hspace;
-					$nstart += $hspace;
-					$portion = $headingCount;
-					$greml -= $hspace;
-
-					do {
-						$greml -= $portion;
-
-						if ( $greml > 0 ) {
-							$output .= $lister->formatList( $articles, $nstart - $offset, $portion );
-							$nstart += $portion;
-							$portion = 0;
-							break;
-						} else {
-							$output .= $lister->formatList( $articles, $nstart - $offset, $portion + $greml );
-							$nstart += ( $portion + $greml );
-							$portion = ( -$greml );
-
-							if ( $columns != 1 ) {
-								$output .= "\n|valign=top|\n";
-							} else {
-								$output .= "\n|-\n|\n";
-							}
-
-							if ( $nstart + $nsize > $count ) {
-								$nsize = $count - $nstart;
-							}
-
-							$greml = $nsize;
-
-							if ( $greml <= 0 ) {
-								break;
-							}
-						}
-					} while ( $portion > 0 );
-
-					$output .= $this->getItemEnd();
-				}
-
-				$output .= $this->listEnd;
-				$output .= "\n|}\n";
-			} else {
-				$output .= $this->getListStart();
-				$headingStart = 0;
-
-				foreach ( $headings as $headingCount ) {
-					$headingLink = $articles[$headingStart]->mParentHLink;
-					$output .= $this->formatItem( $headingStart, $headingCount, $headingLink, $articles, $lister );
-					$headingStart += $headingCount;
-				}
-
-				$output .= $this->listEnd;
-			}
-		} elseif ( $columns != 1 || $rows != 1 ) {
-			// repeat outer tags for each of the specified columns / rows in the output
-			$nstart = 0;
-			$count = count( $articles );
-
-			if ( $columns != 1 ) {
-				$iGroup = $columns;
-			} else {
-				$iGroup = $rows;
+			if ( $greml > 0 ) {
+				$output .= $lister->formatList( $articles, $nstart - $offset, $portion );
+				$nstart += $portion;
+				break;
 			}
 
-			$nsize = floor( $count / $iGroup );
-			$rest = $count - ( floor( $nsize ) * floor( $iGroup ) );
+			$output .= $lister->formatList( $articles, $nstart - $offset, $portion + $greml );
+			$nstart += ( $portion + $greml );
+			$portion = -$greml;
 
-			if ( $rest > 0 ) {
-				$nsize += 1;
+			$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
+
+			if ( $nstart + $nsize > $count ) {
+				$nsize = $count - $nstart;
 			}
 
-			$output .= "{|" . $rowColFormat . "\n|\n";
-
-			for ( $g = 0; $g < $iGroup; $g++ ) {
-				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
-
-				if ( $columns != 1 ) {
-					$output .= "\n|valign=top|\n";
-				} else {
-					$output .= "\n|-\n|\n";
-				}
-
-				$nstart += $nsize;
-
-				if ( $nstart + $nsize > $count ) {
-					$nsize = $count - $nstart;
-				}
+			$greml = $nsize;
+			if ( $greml <= 0 ) {
+				break;
 			}
-
-			$output .= "\n|}\n";
-		} elseif ( $rowSize > 0 ) {
-			// repeat row header after n lines of output
-			$nstart = 0;
-			$nsize = $rowSize;
-			$count = count( $articles );
-			$output .= '{|' . $rowColFormat . "\n|\n";
-
-			do {
-				if ( $nstart + $nsize > $count ) {
-					$nsize = $count - $nstart;
-				}
-
-				$output .= $lister->formatList( $articles, $nstart, (int)$nsize );
-				$output .= "\n|-\n|\n";
-				$nstart += $nsize;
-				if ( $nstart >= $count ) {
-					break;
-				}
-			} while ( true );
-
-			$output .= "\n|}\n";
-		} else {
-			// Even though the headingmode is not none there were no headings, but still results. Output them anyway.
-			$output .= $lister->formatList( $articles, 0, count( $articles ) );
 		}
 
 		return $output;
 	}
 
+	private function formatHeadingsSingleColumn( array $articles, Lister $lister, array $headings ): string {
+		$output = $this->getListStart();
+		$headingStart = 0;
+
+		foreach ( $headings as $headingCount ) {
+			$headingLink = $articles[$headingStart]->mParentHLink ?? '';
+			$output .= $this->formatItem( $headingStart, $headingCount, $headingLink, $articles, $lister );
+			$headingStart += $headingCount;
+		}
+
+		$output .= $this->listEnd;
+		return $output;
+	}
+
+	private function formatMultiColumnWithoutHeadings(
+		array $articles,
+		Lister $lister,
+		int $columns,
+		int $rows,
+		string $rowColFormat
+	): string {
+		$nstart = 0;
+		$count = count( $articles );
+		$iGroup = $columns !== 1 ? $columns : $rows;
+		$nsize = (int)ceil( $count / $iGroup );
+
+		$output = "{|$rowColFormat\n|\n";
+
+		foreach ( range( 0, $iGroup - 1 ) as $_ ) {
+			$output .= $lister->formatList( $articles, $nstart, $nsize );
+			$output .= $columns !== 1 ? "\n|valign=top|\n" : "\n|-\n|\n";
+
+			$nstart += $nsize;
+			if ( $nstart + $nsize > $count ) {
+				$nsize = $count - $nstart;
+			}
+		}
+
+		$output .= "\n|}\n";
+		return $output;
+	}
+
+	private function formatByRowSize(
+		array $articles,
+		Lister $lister,
+		int $rowSize,
+		string $rowColFormat
+	): string {
+		$nstart = 0;
+		$count = count( $articles );
+
+		$output = "{|$rowColFormat\n|\n";
+
+		do {
+			$nsize = min( $rowSize, $count - $nstart );
+			$output .= $lister->formatList( $articles, $nstart, $nsize );
+			$output .= "\n|-\n|\n";
+			$nstart += $nsize;
+		} while ( $nstart < $count );
+
+		$output .= "\n|}\n";
+		return $output;
+	}
+
 	/**
 	 * Format a heading group.
-	 *
-	 * @param int $headingStart
-	 * @param int $headingCount
-	 * @param string $headingLink
-	 * @param array $articles
-	 * @param Lister $lister
-	 * @return string
 	 */
-	public function formatItem( $headingStart, $headingCount, $headingLink, $articles, Lister $lister ) {
-		$item = '';
-
-		$item .= $this->getItemStart() . $headingLink;
-
+	protected function formatItem(
+		int $headingStart,
+		int $headingCount,
+		string $headingLink,
+		array $articles,
+		Lister $lister
+	): string {
+		$item = $this->getItemStart() . $headingLink;
 		if ( $this->showHeadingCount ) {
 			$item .= $this->articleCountMessage( $headingCount );
 		}
@@ -366,46 +285,34 @@ class Heading {
 
 	/**
 	 * Return $this->listStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getListStart() {
+	protected function getListStart(): string {
 		return sprintf( $this->listStart, $this->listAttributes );
 	}
 
 	/**
 	 * Return $this->itemStart with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemStart() {
+	protected function getItemStart(): string {
 		return sprintf( $this->itemStart, $this->itemAttributes );
 	}
 
 	/**
 	 * Return $this->itemEnd with attributes replaced.
-	 *
-	 * @return string
 	 */
-	public function getItemEnd() {
+	protected function getItemEnd(): string {
 		return $this->itemEnd;
 	}
 
 	/**
 	 * Get the article count message appropriate for this list.
-	 *
-	 * @param int $count
-	 * @return string
 	 */
-	protected function articleCountMessage( $count ) {
-		$orderMethods = $this->getParameters()->getParameter( 'ordermethods' );
+	protected function articleCountMessage( int $count ): string {
+		$orderMethods = $this->parameters->getParameter( 'ordermethod' );
+		$message = ( $orderMethods[0] ?? null ) === 'category'
+			? 'category-article-count-limited'
+			: 'dpl_articlecount';
 
-		if ( isset( $orderMethods[0] ) && $orderMethods[0] === 'category' ) {
-			$message = 'categoryarticlecount';
-		} else {
-			$message = 'dpl_articlecount';
-		}
-
-		return '<p>' . wfMessage( $message, $count )->escaped() . '</p>';
+		return Html::rawElement( 'p', [], wfMessage( $message )->numParams( $count )->parse() );
 	}
 }
