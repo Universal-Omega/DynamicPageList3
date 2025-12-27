@@ -38,7 +38,7 @@ jobs:
           - mw: 'master'
             php: 8.2
             php-docker: 82
-            experimental: false
+            experimental: true
             stage: coverage
 
           # Latest MediaWiki LTS - PHP 8.2 (phpunit)
