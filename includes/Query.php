@@ -92,7 +92,7 @@ class Query {
 		$this->config = Config::getInstance();
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
-		$this->ignoreCase = $this->parameters->getParameter( 'ignorecase' );
+		$this->ignoreCase = $this->parameters->getParameter( 'ignorecase' ) ?? false;
 	}
 
 	/**
