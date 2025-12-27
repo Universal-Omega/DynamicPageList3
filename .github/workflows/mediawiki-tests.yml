@@ -13,73 +13,73 @@ jobs:
     strategy:
       matrix:
         include:
-          # Latest MediaWiki LTS - PHP 8.1 (phan)
+          # Latest MediaWiki LTS - PHP 8.2 (phan)
           - mw: 'REL1_43'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: phan
 
-          # Latest stable MediaWiki - PHP 8.1 (phan)
+          # Latest stable MediaWiki - PHP 8.2 (phan)
           - mw: 'REL1_44'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: true
             stage: phan
 
-          # Latest MediaWiki master - PHP 8.1 (phan)
+          # Latest MediaWiki master - PHP 8.2 (phan)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: true
             stage: phan
 
-          # Latest MediaWiki master - PHP 8.1 (coverage)
+          # Latest MediaWiki master - PHP 8.2 (coverage)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: coverage
 
-          # Latest MediaWiki LTS - PHP 8.1 (phpunit)
+          # Latest MediaWiki LTS - PHP 8.2 (phpunit)
           - mw: 'REL1_43'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: phpunit
             
-          # Latest stable MediaWiki - PHP 8.1 (phpunit)
+          # Latest stable MediaWiki - PHP 8.2 (phpunit)
           - mw: 'REL1_44'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: phpunit
 
-          # Latest MediaWiki master - PHP 8.1 (phpunit)
+          # Latest MediaWiki master - PHP 8.2 (phpunit)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: true
             stage: phpunit
 
-          # Latest MediaWiki master - PHP 8.1 (selenium)
+          # Latest MediaWiki master - PHP 8.2 (selenium)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: true
             stage: selenium
 
-          # Latest MediaWiki master - PHP 8.1 (qunit)
+          # Latest MediaWiki master - PHP 8.2 (qunit)
           - mw: 'master'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: true
             stage: qunit
 
-          # Latest stable MediaWiki - PHP 8.1 (composer-test)
+          # Latest stable MediaWiki - PHP 8.2 (composer-test)
           - mw: 'REL1_43'
-            php: 8.1
-            php-docker: 81
+            php: 8.2
+            php-docker: 82
             experimental: false
             stage: composer-test
 
@@ -90,7 +90,6 @@ jobs:
       DOCKER_ORG: releng
       QUIBBLE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}
       COVERAGE_DOCKER_IMAGE: quibble-bullseye-php${{ matrix.php-docker }}-coverage
-      PHAN_DOCKER_IMAGE: mediawiki-phan-php${{ matrix.php-docker }}
       MEDIAWIKI_VERSION: ${{ matrix.mw }}
 
     steps:
@@ -109,9 +108,7 @@ jobs:
       # $GITHUB_WORKSPACE/.github/workflows/globals.php   Add global configuration options for MediaWiki
       - name: Set up
         run: |
-          if [ "${{ matrix.stage }}" == 'phan' ]; then
-            export DOCKER_IMAGE="${PHAN_DOCKER_IMAGE}"
-          elif [ "${{ matrix.stage }}" == coverage ]; then
+          if [ "${{ matrix.stage }}" == coverage ]; then
             export DOCKER_IMAGE="${COVERAGE_DOCKER_IMAGE}"
           else
             export DOCKER_IMAGE="${QUIBBLE_DOCKER_IMAGE}"
@@ -259,6 +256,7 @@ jobs:
 
           if [ "${{ matrix.stage }}" == 'phan' ]; then
             docker run \
+              --entrypoint /run-phan.sh \
               -e THING_SUBNAME=extensions/"${{ github.event.repository.name }}" \
               -v "$(pwd)"/src:/mediawiki \
               "${DOCKER_REGISTRY}/${DOCKER_ORG}/${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}" \
