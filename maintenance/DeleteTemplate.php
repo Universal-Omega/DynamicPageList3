@@ -21,7 +21,7 @@ class DeleteTemplate extends LoggedUpdateMaintenance {
 		return 'dynamic-page-list-4-delete-template';
 	}
 
-	protected function updateSkippedMessage(): string {
+	public function updateSkippedMessage(): string {
 		return 'Template already deleted.';
 	}
 
