@@ -81,6 +81,8 @@ class Query {
 	/** Was the revision auxiliary table select added for firstedit and lastedit? */
 	private bool $revisionAuxWhereAdded = false;
 
+	private bool $ignoreCase = false;
+
 	public function __construct(
 		private readonly Parameters $parameters
 	) {
@@ -90,6 +92,7 @@ class Query {
 		$this->config = Config::getInstance();
 		$this->queryBuilder = $this->dbr->newSelectQueryBuilder();
 		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
+		$this->ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 	}
 
 	/**
@@ -973,7 +976,6 @@ class Query {
 		$this->queryBuilder->select( [ 'image_sel_title' => 'il.il_to' ] );
 
 		$where = [ 'p.page_id = il.il_from' ];
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		$ors = [];
 		foreach ( $option as $linkGroup ) {
@@ -981,7 +983,7 @@ class Query {
 				$dbkey = $link->getDBkey();
 				$fieldExpr = 'il.il_to';
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
 					continue;
 				}
@@ -1110,7 +1112,6 @@ class Query {
 		}
 
 		$this->queryBuilder->where( 'pl.pl_target_id = lt.lt_id' );
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 
 		foreach ( $option as $index => $linkGroup ) {
 			$ors = [];
@@ -1120,13 +1121,13 @@ class Query {
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
-					if ( $ignoreCase ) {
+					if ( $this->ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
 					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $operator, $title );
 				} else {
 					$comparison = $this->dbr->expr( $fieldExpr, $operator, $title );
@@ -1204,7 +1205,6 @@ class Query {
 	 * Set SQL for 'notlinksto' parameter.
 	 */
 	private function _notlinksto( array $option ): void {
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
 
 		foreach ( $option as $linkGroup ) {
@@ -1214,13 +1214,13 @@ class Query {
 				$fieldExpr = 'lt.lt_title';
 
 				if ( $operator === IExpression::LIKE ) {
-					if ( $ignoreCase ) {
+					if ( $this->ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
 					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$comparison = $this->caseInsensitiveComparison( $fieldExpr, $operator, $title );
 				} else {
 					$comparison = $this->dbr->expr( $fieldExpr, $operator, $title );
@@ -1933,20 +1933,19 @@ class Query {
 	 */
 	private function _title( array $option ): void {
 		$ors = [];
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$openReferences = $this->parameters->getParameter( 'openreferences' );
 
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				$field = $openReferences ? 'lt.lt_title' : 'p.page_title';
 				if ( $comparisonType === IExpression::LIKE ) {
-					if ( $ignoreCase ) {
+					if ( $this->ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
 					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
 					continue;
 				}
@@ -1979,20 +1978,19 @@ class Query {
 	 */
 	private function _nottitle( array $option ): void {
 		$ors = [];
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$openReferences = $this->parameters->getParameter( 'openreferences' );
 
 		foreach ( $option as $comparisonType => $titles ) {
 			foreach ( $titles as $title ) {
 				$field = $openReferences ? 'lt.lt_title' : 'p.page_title';
 				if ( $comparisonType === IExpression::LIKE ) {
-					if ( $ignoreCase ) {
+					if ( $this->ignoreCase ) {
 						$title = mb_strtolower( $title, 'UTF-8' );
 					}
 					$title = new LikeValue( ...$this->splitLikePattern( $title ) );
 				}
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$ors[] = $this->caseInsensitiveComparison( $field, $comparisonType, $title );
 					continue;
 				}
@@ -2111,7 +2109,6 @@ class Query {
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
 		[ $nsField, $titleField ] = $linksMigration->getTitleFields( 'templatelinks' );
 
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
 
 		foreach ( $option as $linkGroup ) {
@@ -2119,7 +2116,7 @@ class Query {
 				$dbkey = $link->getDBkey();
 				$fieldExpr = "lt_uses.$titleField";
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$comparison = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
 				} else {
 					$comparison = $this->dbr->expr( $fieldExpr, '=', $dbkey );
@@ -2151,7 +2148,6 @@ class Query {
 			->from( 'templatelinks', 'tln' )
 			->join( 'linktarget', 'ltn', 'ltn.lt_id = tln.tl_target_id' );
 
-		$ignoreCase = $this->parameters->getParameter( 'ignorecase' );
 		$ors = [];
 
 		foreach ( $option as $linkGroup ) {
@@ -2159,7 +2155,7 @@ class Query {
 				$dbkey = $link->getDBkey();
 				$fieldExpr = "ltn.$titleField";
 
-				if ( $ignoreCase ) {
+				if ( $this->ignoreCase ) {
 					$comparison = $this->caseInsensitiveComparison( $fieldExpr, '=', $dbkey );
 				} else {
 					$comparison = $this->dbr->expr( $fieldExpr, '=', $dbkey );
