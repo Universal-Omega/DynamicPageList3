@@ -24,7 +24,7 @@ class CreateView extends LoggedUpdateMaintenance {
 		return 'dynamic-page-list-4-create-view';
 	}
 
-	protected function updateSkippedMessage(): string {
+	public function updateSkippedMessage(): string {
 		return 'VIEW already created.';
 	}
 
