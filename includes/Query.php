@@ -81,7 +81,7 @@ class Query {
 	/** Was the revision auxiliary table select added for firstedit and lastedit? */
 	private bool $revisionAuxWhereAdded = false;
 
-	private bool $ignoreCase = false;
+	private readonly bool $ignoreCase;
 
 	public function __construct(
 		private readonly Parameters $parameters
